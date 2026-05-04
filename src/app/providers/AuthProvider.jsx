@@ -1,24 +1,50 @@
+// src/app/providers/AuthProvider.jsx
 import { useEffect, useState } from "react";
 import { useUserStore } from "@entities/user/userStore";
 import { tokenStorage } from "@shared/api/tokenStorage";
 
+function decodeToken(token) {
+  try {
+    const payload = token.split(".")[1];
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+}
+
+// Esta función verifica si el token ya expiró
+function tokenExpirado(decoded) {
+  if (!decoded?.exp) return true;
+  return decoded.exp * 1000 < Date.now();
+}
+
 export function AuthProvider({ children }) {
-  const { setUser } = useUserStore();
+  const { setUser, logout } = useUserStore();
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    // Al recargar la página, miramos si hay un token guardado
     const token = tokenStorage.getAccessToken();
 
     if (token) {
-      // 💡 Nota: En la Fase 3, aquí decodificaremos el JWT para sacar el ID y Rol real
-      setUser({ token: token, role: "MYPE" }); // Dato simulado por ahora
+      const decoded = decodeToken(token);
+
+      // Si el token expiró o está corrupto, limpiamos todo
+      if (!decoded || tokenExpirado(decoded)) {
+        logout();
+      } else {
+        // El token es válido — restauramos la sesión
+        // Spring Security guarda el subject (sub) como el email o ID del usuario
+        setUser({
+          token: token,
+          id: decoded.sub,
+          rol: decoded.rol ?? decoded.role ?? decoded.authorities,
+        });
+      }
     }
 
     setIsInitializing(false);
-  }, [setUser]);
+  }, [setUser, logout]);
 
-  // Evitamos renderizar la app hasta saber si el usuario está logueado o no
   if (isInitializing) return <div className="h-screen bg-gray-50"></div>;
 
   return children;
