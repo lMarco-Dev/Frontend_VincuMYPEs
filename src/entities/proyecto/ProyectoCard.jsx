@@ -32,7 +32,7 @@ export function ProyectoCard({ proyecto, onClick }) {
       </p>
 
       {/* Fecha límite — solo se muestra si existe */}
-      {proyecto.fecha_limite && (
+      {proyecto.fechaLimite && (
         <p className="text-xs text-gray-400">
           Límite: {new Date(proyecto.fechaLimite).toLocaleDateString("es-PE")}
         </p>
