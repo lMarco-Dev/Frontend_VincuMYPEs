@@ -1,34 +1,54 @@
-import { LoginForm } from "@/features/auth-login/LoginForm";
+import { LoginForm } from "@features/auth-login/LoginForm";
+import { Logo } from "@shared/ui/Logo";
 import { Link } from "react-router-dom";
 
 export function LoginPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">VincuMYPEs</h1>
-          <p className="text-gray-500 mt-2">Inicia sesión en tu cuenta</p>
-        </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Efectos de fondo */}
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
 
-        {/* Cards */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
+        <div className="flex justify-center mb-6">
+          <Link to="/">
+            <Logo className="scale-125" />
+          </Link>
+        </div>
+        <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900 tracking-tight">
+          Bienvenido de nuevo
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          Ingresa tus credenciales para continuar
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10">
+        <div className="bg-white py-8 px-4 shadow-2xl shadow-gray-200/50 sm:rounded-2xl sm:px-10 border border-gray-100">
           <LoginForm />
 
-          {/* Registro */}
-          <div className="mt-6 text-center space-y-2">
-            <p className="text-sm text-gray-500">¿No tienes cuenta?</p>
-            <div className="flex gap-4 justify-center">
+          <div className="mt-8">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500 font-medium">
+                  ¿Nuevo en la plataforma?
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3">
               <Link
                 to="/register/estudiante"
-                className="text-sm text-blue-600 hover:underline"
+                className="w-full flex justify-center py-2.5 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
               >
-                Registrarme como ESTUDIANTE
+                Crear cuenta como Estudiante
               </Link>
-              <span className="text-gray-300">|</span>
               <Link
                 to="/register/mype"
-                className="text-sm text-blue-600 hover:underline"
+                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
               >
                 Registrar mi Empresa
               </Link>

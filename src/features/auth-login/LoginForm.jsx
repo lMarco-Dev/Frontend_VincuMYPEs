@@ -1,80 +1,86 @@
 import { useForm } from "react-hook-form";
+import { Button } from "@shared/ui/Button";
+import { Mail, Lock, AlertCircle } from "lucide-react";
 import { useLogin } from "./useLogin";
-import { Button } from "@/shared/ui/Button";
 
 export function LoginForm() {
   const { login, isLoading, error } = useLogin();
-
-  //useForm maneja el estado del formulario
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
 
-  //Validación
-  const onSubmit = (data) => {
-    login(data);
-  };
+  const onSubmit = (data) => login(data);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {/* Campo email */}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">
           Correo Electrónico
         </label>
-        <input
-          type="email"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="usuario@email.com"
-          {...register("email", {
-            required: "El email es obligatorio",
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: "Email inválido",
-            },
-          })}
-        />
-
-        {/* Error */}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Mail className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="email"
+            className="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50 focus:bg-white"
+            placeholder="usuario@email.com"
+            {...register("email", {
+              required: "El email es obligatorio",
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Email inválido",
+              },
+            })}
+          />
+        </div>
         {errors.email && (
-          <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+          <p className="text-red-500 text-xs mt-1 font-medium flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" /> {errors.email.message}
+          </p>
         )}
       </div>
 
-      {/* Campo password */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">
           Contraseña
         </label>
-        <input
-          type="password"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="••••••••••"
-          {...register("password", {
-            required: "La contraseña es obligatoria",
-            minLength: {
-              value: 6,
-              message: "Mínimo 8 caracteres",
-            },
-          })}
-        />
-
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Lock className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="password"
+            className="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-gray-50 focus:bg-white"
+            placeholder="••••••••••"
+            {...register("password", {
+              required: "La contraseña es obligatoria",
+              minLength: { value: 6, message: "Mínimo 6 caracteres" },
+            })}
+          />
+        </div>
         {errors.password && (
-          <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+          <p className="text-red-500 text-xs mt-1 font-medium flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" /> {errors.password.message}
+          </p>
         )}
       </div>
 
-      {/* Error del backend */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-red-600 text-sm">{error}</p>
+          <p className="text-red-600 text-sm text-center font-medium">
+            {error}
+          </p>
         </div>
       )}
 
-      {/* Botón de submit */}
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button
+        type="submit"
+        className="w-full h-12 text-base rounded-xl mt-2 shadow-lg shadow-primary/20"
+        disabled={isLoading}
+      >
         {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
       </Button>
     </form>
