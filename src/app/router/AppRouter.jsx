@@ -17,21 +17,34 @@ const router = createBrowserRouter([
     path: "/register/:tipo",
     element: <RegisterPage />,
   },
+  // Rutas MYPE — solo ROLE_MYPE puede entrar
   {
     path: "/dashboard/mype",
     element: (
-      <div className="p-10 text-center text-2xl text-green-600">
-        Dashboard MYPE 🏢 (próximamente)
-      </div>
+      <ProtectedRoute rolesPermitidos={["ROLE_MYPE"]}>
+        <div>Dashboard MYPE — próximamente</div>
+      </ProtectedRoute>
     ),
   },
+
+  // Rutas ESTUDIANTE — solo ROLE_ESTUDIANTE puede entrar
   {
     path: "/dashboard/estudiante",
     element: (
-      <div className="p-10 text-center text-2xl text-blue-600">
-        Dashboard Estudiante 🎓 (próximamente)
-      </div>
+      <ProtectedRoute rolesPermitidos={["ROLE_ESTUDIANTE"]}>
+        <div>Dashboard Estudiante — próximamente</div>
+      </ProtectedRoute>
     ),
+  },
+
+  // Proyectos — público
+  {
+    path: "/proyectos",
+    element: <div>Lista proyectos — próximamente</div>,
+  },
+  {
+    path: "/proyectos/:id",
+    element: <div>Detalle proyecto — próximamente</div>,
   },
 ]);
 
