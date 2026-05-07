@@ -6,7 +6,8 @@ export function ProtectedRoute({ children, rolesPermitidos }) {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
-  if (rolesPermitidos && !rolesPermitidos.includes(user.rol)) {
+  if (rolesPermitidos && !rolesPermitidos.includes(user.role)) {
+    console.warn(`Acceso denegado para el rol: ${user.role}`);
     return <Navigate to="/" replace />;
   }
 

@@ -1,22 +1,7 @@
-// src/app/providers/AuthProvider.jsx
 import { useEffect, useState } from "react";
 import { useUserStore } from "@entities/user/userStore";
 import { tokenStorage } from "@shared/api/tokenStorage";
-
-function decodeToken(token) {
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
-  }
-}
-
-// Esta función verifica si el token ya expiró
-function tokenExpirado(decoded) {
-  if (!decoded?.exp) return true;
-  return decoded.exp * 1000 < Date.now();
-}
+import { decodeJwt, isTokenExpired } from "@/shared/lib/jwt";
 
 export function AuthProvider({ children }) {
   const { setUser, logout } = useUserStore();
@@ -26,18 +11,15 @@ export function AuthProvider({ children }) {
     const token = tokenStorage.getAccessToken();
 
     if (token) {
-      const decoded = decodeToken(token);
+      const decoded = decodeJwt(token);
 
-      // Si el token expiró o está corrupto, limpiamos todo
-      if (!decoded || tokenExpirado(decoded)) {
+      if (!decoded || isTokenExpired(decoded)) {
         logout();
       } else {
-        // El token es válido — restauramos la sesión
-        // Spring Security guarda el subject (sub) como el email o ID del usuario
         setUser({
           token: token,
           id: decoded.sub,
-          rol: decoded.rol ?? decoded.role ?? decoded.authorities,
+          role: decoded.role ?? decoded.rol ?? decoded.authorities,
         });
       }
     }
@@ -45,7 +27,13 @@ export function AuthProvider({ children }) {
     setIsInitializing(false);
   }, [setUser, logout]);
 
-  if (isInitializing) return <div className="h-screen bg-gray-50"></div>;
+  //Skeleton elegante
+  if (isInitializing)
+    return (
+      <div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
 
   return children;
 }
