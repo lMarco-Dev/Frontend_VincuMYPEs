@@ -21,7 +21,7 @@ export function useRegister(tipo) {
         id: data.usuarioId,
         nombre: data.nombre,
         email: data.email,
-        rol: data.rol,
+        rol: data.role,
         token: data.token,
       });
 

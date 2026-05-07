@@ -1,5 +1,3 @@
-// src/entities/proyecto/ProyectoCard.jsx
-
 import { Card } from "@shared/ui/Card";
 import { ProyectoEstadoBadge } from "./ProyectoEstadoBadge";
 import { AreaBadge } from "./AreaBadge";
