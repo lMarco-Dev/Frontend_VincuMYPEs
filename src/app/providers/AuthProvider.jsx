@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useUserStore } from "@entities/user/userStore";
 import { tokenStorage } from "@shared/api/tokenStorage";
 import { decodeJwt, isTokenExpired } from "@/shared/lib/jwt";
+import { httpClient } from "@/shared/api/httpClient";
 
 export function AuthProvider({ children }) {
   const { setUser, logout } = useUserStore();
@@ -10,21 +11,35 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = tokenStorage.getAccessToken();
 
-    if (token) {
-      const decoded = decodeJwt(token);
-
-      if (!decoded || isTokenExpired(decoded)) {
-        logout();
-      } else {
-        setUser({
-          token: token,
-          id: decoded.sub,
-          role: decoded.role ?? decoded.rol ?? decoded.authorities,
-        });
-      }
+    if (!token) {
+      setIsInitializing(false);
+      return;
     }
 
-    setIsInitializing(false);
+    const decoded = decodeJwt(token);
+    if (!decoded || isTokenExpired(decoded)) {
+      logout();
+      setIsInitializing(false);
+      return;
+    }
+
+    setUser({ token, id: decoded.sub, rol: decoded.rol });
+
+    httpClient
+      .get("/usuarios/me")
+      .then(({ data }) => {
+        setUser({
+          token,
+          id: data.id,
+          nombre: data.nombre,
+          email: data.email,
+          rol: data.rol,
+          telefono: data.telefono,
+          fotoPerfil: data.fotoPerfil,
+        });
+      })
+      .catch(() => logout())
+      .finally(() => setIsInitializing(false));
   }, [setUser, logout]);
 
   //Skeleton elegante

@@ -3,9 +3,9 @@
 // Estos son los valores EXACTOS que manda el backend de tu compañero
 // Si escribes "MYPE" en vez de "ROLE_MYPE", el RoleBadge no va a funcionar
 export const USER_ROLES = {
-  MYPE: "ROLE_MYPE",
-  ESTUDIANTE: "ROLE_ESTUDIANTE",
-  ADMIN: "ROLE_ADMIN",
+  MYPE: "MYPE",
+  ESTUDIANTE: "ESTUDIANTE",
+  ADMIN: "ADMIN",
 };
 
 // Lo que el usuario VE en pantalla

@@ -22,7 +22,7 @@ const router = createBrowserRouter([
   {
     path: "/dashboard/mype",
     element: (
-      <ProtectedRoute rolesPermitidos={["ROLE_MYPE"]}>
+      <ProtectedRoute rolesPermitidos={["MYPE"]}>
         <div>Dashboard MYPE — próximamente</div>
       </ProtectedRoute>
     ),
