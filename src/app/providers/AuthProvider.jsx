@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { tokenStorage } from "@shared/api/tokenStorage";
-import { decodeJwt, isTokenExpired } from "@shared/lib/jwt";
+import { decodeJwt, isTokenExpired } from "@/shared/lib/jwt";
+import { httpClient } from "@/shared/api/httpClient";
 
 export function AuthProvider({ children }) {
   const { setUser, logout } = useAuthStore();
@@ -9,21 +10,36 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const token = tokenStorage.getAccessToken();
-    if (token) {
-      const decoded = decodeJwt(token);
 
-      if (!decoded || isTokenExpired(decoded)) {
-        logout();
-      } else {
-        // El token es válido — restauramos la sesión
-        setUser({
-          token: token,
-          id: decoded.sub,
-          role: decoded.rol ?? decoded.role ?? decoded.authorities,
-        });
-      }
+    if (!token) {
+      setIsInitializing(false);
+      return;
     }
-    setTimeout(() => setIsInitializing(false), 0);
+
+    const decoded = decodeJwt(token);
+    if (!decoded || isTokenExpired(decoded)) {
+      logout();
+      setIsInitializing(false);
+      return;
+    }
+
+    setUser({ token, id: decoded.sub, rol: decoded.rol });
+
+    httpClient
+      .get("/usuarios/me")
+      .then(({ data }) => {
+        setUser({
+          token,
+          id: data.id,
+          nombre: data.nombre,
+          email: data.email,
+          rol: data.rol,
+          telefono: data.telefono,
+          fotoPerfil: data.fotoPerfil,
+        });
+      })
+      .catch(() => logout())
+      .finally(() => setIsInitializing(false));
   }, [setUser, logout]);
 
   if (isInitializing)
