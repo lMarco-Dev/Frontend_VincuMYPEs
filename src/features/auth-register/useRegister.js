@@ -1,13 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { registerEstudianteApi, registerMypeApi } from "./authRegister.api";
-import { useUserStore } from "@entities/user/userStore";
+import { useAuthStore } from "../../store/authStore";
 import { tokenStorage } from "@shared/api/tokenStorage";
 import { handleApiError } from "@shared/api/apiErrors";
 
 export function useRegister(tipo) {
   const navigate = useNavigate();
-  const { setUser } = useUserStore();
+  const { login } = useAuthStore();
 
   const apiFn = tipo === "estudiante" ? registerEstudianteApi : registerMypeApi;
 
@@ -15,17 +15,13 @@ export function useRegister(tipo) {
     mutationFn: apiFn,
 
     onSuccess: ({ data }) => {
+      // 1. Guardar el token para httpClient
       tokenStorage.setTokens(data.token, null);
 
-      setUser({
-        id: data.usuarioId,
-        nombre: data.nombre,
-        email: data.email,
-        rol: data.role,
-        token: data.token,
-      });
+      // 2. Guardar en el store antiguo
+      login(data);
 
-      if (data.rol === "ROLE_MYPE") {
+      if (data.rol === "MYPE" || data.rol === "ROLE_MYPE") {
         navigate("/dashboard/mype");
       } else {
         navigate("/dashboard/estudiante");

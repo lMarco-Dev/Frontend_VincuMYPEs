@@ -14,7 +14,7 @@ import {
   BadgeInfo,
   AlertCircle,
   CheckCircle,
-  ChevronDown, // <-- Faltaba importar este ícono
+  ChevronDown,
 } from "lucide-react";
 
 const UNIVERSIDADES = [
@@ -77,7 +77,6 @@ const SelectWrapper = ({ icon: Icon, label, options, error, ...props }) => (
           </option>
         ))}
       </select>
-      {/* Ícono de flechita hacia abajo personalizado */}
       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
         <ChevronDown className="h-4 w-4 text-gray-400" />
       </div>
@@ -90,7 +89,6 @@ const SelectWrapper = ({ icon: Icon, label, options, error, ...props }) => (
   </div>
 );
 
-// tipo = "estudiante" o "mype"
 export function RegisterForm({ tipo }) {
   const {
     register: registerUser,
@@ -106,9 +104,7 @@ export function RegisterForm({ tipo }) {
   } = useForm();
 
   const onSubmit = (data) => registerUser(data);
-
   const esEstudiante = tipo === "estudiante";
-
   const passwordActual = watch("password", "");
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -134,7 +130,7 @@ export function RegisterForm({ tipo }) {
       {/* 2. EMAIL */}
       <InputWrapper
         icon={Mail}
-        type="email" // CORRECCIÓN: type="email" en lugar de type={email}
+        type="email"
         label="Correo Electrónico"
         placeholder="usuario@gmail.com"
         {...register("email", {

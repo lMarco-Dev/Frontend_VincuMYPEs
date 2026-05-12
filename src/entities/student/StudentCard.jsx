@@ -1,5 +1,4 @@
 // src/entities/student/StudentCard.jsx
-
 import { Card } from "@shared/ui/Card";
 import { UserAvatar } from "@entities/user/UserAvatar";
 

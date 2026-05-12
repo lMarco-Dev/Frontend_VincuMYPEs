@@ -1,36 +1,34 @@
 import { useEffect, useState } from "react";
-import { useUserStore } from "@entities/user/userStore";
+import { useAuthStore } from "../../store/authStore";
 import { tokenStorage } from "@shared/api/tokenStorage";
-import { decodeJwt, isTokenExpired } from "@/shared/lib/jwt";
+import { decodeJwt, isTokenExpired } from "@shared/lib/jwt";
 
 export function AuthProvider({ children }) {
-  const { setUser, logout } = useUserStore();
+  const { setUser, logout } = useAuthStore();
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     const token = tokenStorage.getAccessToken();
-
     if (token) {
       const decoded = decodeJwt(token);
 
       if (!decoded || isTokenExpired(decoded)) {
         logout();
       } else {
+        // El token es válido — restauramos la sesión
         setUser({
           token: token,
           id: decoded.sub,
-          role: decoded.role ?? decoded.rol ?? decoded.authorities,
+          role: decoded.rol ?? decoded.role ?? decoded.authorities,
         });
       }
     }
-
-    setIsInitializing(false);
+    setTimeout(() => setIsInitializing(false), 0);
   }, [setUser, logout]);
 
-  //Skeleton elegante
   if (isInitializing)
     return (
-      <div>
+      <div className="h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );

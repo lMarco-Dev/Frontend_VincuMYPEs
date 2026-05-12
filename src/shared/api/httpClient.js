@@ -7,8 +7,14 @@ export const httpClient = axios.create({
 });
 
 httpClient.interceptors.request.use((config) => {
-  const token = tokenStorage.getAccessToken(); // ¡Mucho más limpio!
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const token = tokenStorage.getAccessToken();
+  
+  // No enviar el token para rutas de autenticación (login, register)
+  const isAuthRoute = config.url.includes('/auth/');
+  
+  if (token && !isAuthRoute) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
@@ -24,7 +30,7 @@ httpClient.interceptors.response.use(
         const refreshToken = tokenStorage.getRefreshToken();
         if (!refreshToken) throw new Error("No hay refresh token");
 
-        const baseURL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
+        const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
         const { data } = await axios.post(`${baseURL}/auth/refresh`, {
           refreshToken,
         });

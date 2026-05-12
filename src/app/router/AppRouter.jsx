@@ -1,9 +1,16 @@
-// src/app/router/AppRouter.jsx
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { LandingPage } from "@pages/auth/LandingPage";
 import { LoginPage } from "@pages/auth/LoginPage";
 import { RegisterPage } from "@pages/auth/RegisterPage";
 import { ProtectedRoute } from "./ProtectedRoute";
+
+// Páginas de Estudiante
+import EstudianteDashboardPage from '@pages/estudiante/EstudianteDashboardPage';
+import ProyectosPage from '@pages/estudiante/ProyectosPage';
+import DetalleProyectoPage from '@pages/estudiante/DetalleProyectoPage';
+import PerfilPage from '@pages/estudiante/PerfilPage';
+import MisPostulacionesPage from '@pages/estudiante/MisPostulacionesPage';
+import StudentLayout from '@shared/layouts/StudentLayout';
 
 const router = createBrowserRouter([
   {
@@ -22,30 +29,49 @@ const router = createBrowserRouter([
   {
     path: "/dashboard/mype",
     element: (
-      <ProtectedRoute rolesPermitidos={["ROLE_MYPE"]}>
+      <ProtectedRoute rolesPermitidos={["ROLE_MYPE", "MYPE"]}>
         <div>Dashboard MYPE — próximamente</div>
       </ProtectedRoute>
     ),
   },
-
-  // Rutas ESTUDIANTE — solo ROLE_ESTUDIANTE puede entrar
+  // Rutas Protegidas para ESTUDIANTE con Layout
   {
-    path: "/dashboard/estudiante",
-    element: (
-      <ProtectedRoute rolesPermitidos={["ROLE_ESTUDIANTE"]}>
-        <div>Dashboard Estudiante — próximamente</div>
-      </ProtectedRoute>
-    ),
+    element: <ProtectedRoute rolesPermitidos={["ESTUDIANTE", "ROLE_ESTUDIANTE"]} />,
+    children: [
+      {
+        element: <StudentLayout />,
+        children: [
+          {
+            path: "/dashboard/estudiante",
+            element: <EstudianteDashboardPage />,
+          },
+          {
+            path: "/proyectos",
+            element: <ProyectosPage />,
+          },
+          {
+            path: "/proyectos/:id",
+            element: <DetalleProyectoPage />,
+          },
+          {
+            path: "/mis-postulaciones",
+            element: <MisPostulacionesPage />,
+          },
+          {
+            path: "/perfil",
+            element: <PerfilPage />,
+          },
+        ],
+      },
+    ],
   },
-
-  // Proyectos — público
   {
-    path: "/proyectos",
-    element: <div>Lista proyectos — próximamente</div>,
+    path: "/dashboard",
+    element: <Navigate to="/dashboard/estudiante" replace />,
   },
   {
-    path: "/proyectos/:id",
-    element: <div>Detalle proyecto — próximamente</div>,
+    path: "*",
+    element: <Navigate to="/" replace />,
   },
 ]);
 

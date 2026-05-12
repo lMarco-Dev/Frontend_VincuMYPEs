@@ -1,3 +1,4 @@
+// src/pages/auth/RegisterPage.jsx
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { RegisterForm } from "@features/auth-register/RegisterForm";
 import { Logo } from "@shared/ui/Logo";
@@ -46,11 +47,10 @@ export function RegisterPage() {
             <button
               type="button"
               onClick={() => handleToggle("estudiante")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
-                esEstudiante
-                  ? "bg-white text-primary shadow-sm ring-1 ring-black/5" // Estado Activo
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50" // Estado Inactivo
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${esEstudiante
+                ? "bg-white text-primary shadow-sm ring-1 ring-black/5" // Estado Activo
+                : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50" // Estado Inactivo
+                }`}
             >
               <GraduationCap className="w-4 h-4" />
               Estudiante
@@ -60,11 +60,10 @@ export function RegisterPage() {
             <button
               type="button"
               onClick={() => handleToggle("mype")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
-                !esEstudiante
-                  ? "bg-white text-primary shadow-sm ring-1 ring-black/5" // Estado Activo
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50" // Estado Inactivo
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${!esEstudiante
+                ? "bg-white text-primary shadow-sm ring-1 ring-black/5" // Estado Activo
+                : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50" // Estado Inactivo
+                }`}
             >
               <Building2 className="w-4 h-4" />
               MYPE
@@ -86,8 +85,8 @@ export function RegisterPage() {
               </Link>
             </p>
           </div>
-        </div>
-      </div>
-    </div>
+        </div >
+      </div >
+    </div >
   );
 }
