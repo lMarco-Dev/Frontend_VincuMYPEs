@@ -1,5 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useCrearProyecto } from "./useCrearProyecto";
+import { Button } from "@/shared/ui/Button"; // ← AGREGAR
+import { AREA_SISTEMAS_LABELS } from "@/entities/proyecto/proyecto.constants";
 
 export function CrearProyectoForm() {
   const { crearProyecto, isLoading, error } = useCrearProyecto();

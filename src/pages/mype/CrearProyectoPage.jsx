@@ -22,12 +22,13 @@ export function CrearProyectoPage() {
           <h1 className="text-2xl font-bold text-gray-700">
             Publicar nuevo proyecto
           </h1>
-          <p className="text-gray-500 mt-1">Describe tu problematica</p>
+          <p className="text-gray-500 mt-1">Describe tu problemática</p>
         </div>
-      </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-        <CrearProyectoForm />
+        {/* Formulario ahora SÍ está dentro del contenedor centrado */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+          <CrearProyectoForm />
+        </div>
       </div>
     </div>
   );

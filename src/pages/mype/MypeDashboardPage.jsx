@@ -1,6 +1,11 @@
 import { useUserStore } from "@/entities/user/userStore";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
-import { useNavigate } from "react-router-dom";
+import { ProyectoCard } from "@/entities/proyecto/ProyectoCard";
+import { Button } from "@/shared/ui/Button";
+import { Skeleton } from "@/shared/ui/Skeleton";
+import { Logo } from "@/shared/ui/Logo";
+import { Link, useNavigate } from "react-router-dom";
+import { LogOut, Plus } from "lucide-react";
 
 export function MypeDashboardPage() {
   const { proyectos, isLoading } = useMisProyectos();
@@ -49,14 +54,12 @@ export function MypeDashboardPage() {
 
         {/* Lista de proyectos */}
         {isLoading ? (
-          // Skeletons mientras carga
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-48 rounded-2xl" />
             ))}
           </div>
         ) : proyectos.length === 0 ? (
-          // Estado vacío
           <div className="text-center py-20">
             <p className="text-gray-400 text-lg mb-4">
               Aún no tienes proyectos publicados
@@ -66,7 +69,6 @@ export function MypeDashboardPage() {
             </Link>
           </div>
         ) : (
-          // Grilla de proyectos
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {proyectos.map((proyecto) => (
               <ProyectoCard

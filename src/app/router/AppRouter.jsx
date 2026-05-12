@@ -1,4 +1,3 @@
-// src/app/router/AppRouter.jsx
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { LandingPage } from "@pages/auth/LandingPage";
 import { LoginPage } from "@pages/auth/LoginPage";
@@ -20,7 +19,7 @@ const router = createBrowserRouter([
     path: "/register/:tipo",
     element: <RegisterPage />,
   },
-  // Rutas MYPE — solo ROLE_MYPE puede entrar
+  // Rutas MYPE
   {
     path: "/dashboard/mype",
     element: (
@@ -37,17 +36,15 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-
-  // Rutas ESTUDIANTE — solo ROLE_ESTUDIANTE puede entrar
+  // Rutas ESTUDIANTE — corregido: "ESTUDIANTE" sin prefijo ROLE_
   {
     path: "/dashboard/estudiante",
     element: (
-      <ProtectedRoute rolesPermitidos={["ROLE_ESTUDIANTE"]}>
+      <ProtectedRoute rolesPermitidos={["ESTUDIANTE"]}>
         <div>Dashboard Estudiante — próximamente</div>
       </ProtectedRoute>
     ),
   },
-
   // Proyectos — público
   {
     path: "/proyectos",
