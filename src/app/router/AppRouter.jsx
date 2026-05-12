@@ -4,6 +4,8 @@ import { LandingPage } from "@pages/auth/LandingPage";
 import { LoginPage } from "@pages/auth/LoginPage";
 import { RegisterPage } from "@pages/auth/RegisterPage";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { MypeDashboardPage } from "@/pages/mype/MypeDashboardPage";
+import { CrearProyectoPage } from "@/pages/mype/CrearProyectoPage";
 
 const router = createBrowserRouter([
   {
@@ -23,7 +25,15 @@ const router = createBrowserRouter([
     path: "/dashboard/mype",
     element: (
       <ProtectedRoute rolesPermitidos={["MYPE"]}>
-        <div>Dashboard MYPE — próximamente</div>
+        <MypeDashboardPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/dashboard/mype/crear",
+    element: (
+      <ProtectedRoute rolesPermitidos={["MYPE"]}>
+        <CrearProyectoPage />
       </ProtectedRoute>
     ),
   },
