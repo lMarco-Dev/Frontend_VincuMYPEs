@@ -1,85 +1,76 @@
-import { useUserStore } from "@/entities/user/userStore";
+import { MypeLayout } from "./layout/MypeLayout";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import { ProyectoCard } from "@/entities/proyecto/ProyectoCard";
-import { Button } from "@/shared/ui/Button";
 import { Skeleton } from "@/shared/ui/Skeleton";
-import { Logo } from "@/shared/ui/Logo";
+import { Button } from "@/shared/ui/Button";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, Plus } from "lucide-react";
 
 export function MypeDashboardPage() {
   const { proyectos, isLoading } = useMisProyectos();
-  const { user, logout } = useUserStore();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
-        <Logo />
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600 font-medium">
-            {user?.nombre}
-          </span>
-          <button
-            onClick={handleLogout}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+    <MypeLayout
+      titulo="Dashboard"
+      accion={{ to: "/dashboard/mype/crear", label: "Nuevo proyecto" }}
+    >
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        {[
+          {
+            label: "Proyectos publicados",
+            valor: proyectos.length,
+            sub: "+1 este mes",
+          },
+          {
+            label: "Postulantes activos",
+            valor: 0,
+            sub: "Pendientes de revisión",
+          },
+          { label: "En ejecución", valor: 0, sub: "Proyectos activos" },
+        ].map((s) => (
+          <div
+            key={s.label}
+            className="bg-white border border-gray-100 rounded-xl p-4"
           >
-            <LogOut className="w-5 h-5" />
-          </button>
-        </div>
-      </nav>
-
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        {/* Header con botón crear */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Mis proyectos</h1>
-            <p className="text-gray-500 mt-1">
-              Gestiona los proyectos que has publicado
-            </p>
+            <p className="text-xs text-gray-500 mb-1">{s.label}</p>
+            <p className="text-2xl font-medium text-gray-900">{s.valor}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{s.sub}</p>
           </div>
+        ))}
+      </div>
+
+      {/* Lista */}
+      <div className="flex justify-between items-center mb-3">
+        <p className="text-sm font-medium text-gray-900">Proyectos recientes</p>
+      </div>
+
+      {isLoading ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-44 rounded-xl" />
+          ))}
+        </div>
+      ) : proyectos.length === 0 ? (
+        <div className="text-center py-20">
+          <p className="text-gray-400 mb-4">
+            Aún no tienes proyectos publicados
+          </p>
           <Link to="/dashboard/mype/crear">
-            <Button className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              Nuevo proyecto
-            </Button>
+            <Button>Publicar mi primer proyecto</Button>
           </Link>
         </div>
-
-        {/* Lista de proyectos */}
-        {isLoading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-48 rounded-2xl" />
-            ))}
-          </div>
-        ) : proyectos.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-gray-400 text-lg mb-4">
-              Aún no tienes proyectos publicados
-            </p>
-            <Link to="/dashboard/mype/crear">
-              <Button>Publicar mi primer proyecto</Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {proyectos.map((proyecto) => (
-              <ProyectoCard
-                key={proyecto.id}
-                proyecto={proyecto}
-                onClick={() => navigate(`/proyectos/${proyecto.id}`)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {proyectos.map((p) => (
+            <ProyectoCard
+              key={p.id}
+              proyecto={p}
+              onClick={() => navigate(`/proyectos/${p.id}`)}
+            />
+          ))}
+        </div>
+      )}
+    </MypeLayout>
   );
 }
