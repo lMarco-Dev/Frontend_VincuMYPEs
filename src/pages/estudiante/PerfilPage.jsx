@@ -153,23 +153,13 @@ const PerfilPage = () => {
           </div>
           
           <div className="pb-2 flex gap-2">
-            {!isEditing ? (
-              <button 
-                onClick={handleStartEdit}
-                className="bg-primary text-white px-6 h-12 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg transition-all active:scale-95"
-              >
-                <Edit2 size={18} />
-                Editar Perfil
-              </button>
-            ) : (
-              <button 
-                onClick={handleCancelEdit}
-                className="bg-red-500 text-white px-6 h-12 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg transition-all active:scale-95"
-              >
-                <X size={18} />
-                Cancelar
-              </button>
-            )}
+            <button 
+              onClick={isEditing ? handleCancelEdit : handleStartEdit}
+              className={`${isEditing ? 'bg-red-500' : 'bg-primary'} text-white px-6 h-12 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg transition-all active:scale-95`}
+            >
+              {isEditing ? <X size={18} /> : <Edit2 size={18} />}
+              {isEditing ? 'Cancelar' : 'Editar Perfil'}
+            </button>
           </div>
         </div>
       </div>
@@ -189,64 +179,55 @@ const PerfilPage = () => {
               </h3>
             </div>
             
-            {!isEditing ? (
-              <>
-                <p className="text-on-surface-variant text-sm leading-relaxed mb-6">
-                  {user.bio || 'Cuéntanos un poco sobre ti...'}
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-start gap-3 p-4 rounded-2xl bg-surface-container-low">
-                    <GraduationCap className="text-primary mt-1" size={20} />
-                    <div>
-                      <span className="font-bold text-on-surface-variant block uppercase text-[10px]">Grado</span>
-                      <span className="text-sm font-bold">{academicInfo.ciclo}, {academicInfo.carrera}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-4 rounded-2xl bg-surface-container-low">
-                    <Briefcase className="text-primary mt-1" size={20} />
-                    <div>
-                      <span className="font-bold text-on-surface-variant block uppercase text-[10px]">Interés</span>
-                      <span className="text-sm font-bold">Consultoría Estratégica</span>
-                    </div>
+            <div className={!isEditing ? 'block' : 'hidden'}>
+              <p className="text-on-surface-variant text-sm leading-relaxed mb-6">
+                {user.bio || 'Cuéntanos un poco sobre ti...'}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3 p-4 rounded-2xl bg-surface-container-low">
+                  <GraduationCap className="text-primary mt-1" size={20} />
+                  <div>
+                    <span className="font-bold text-on-surface-variant block uppercase text-[10px]">Grado</span>
+                    <span className="text-sm font-bold">{academicInfo.ciclo}, {academicInfo.carrera}</span>
                   </div>
                 </div>
-              </>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-1">Biografía</label>
-                  <textarea
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleInputChange}
-                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                    rows="3"
-                    placeholder="Cuéntanos un poco sobre ti..."
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-1">Habilidades (separadas por comas)</label>
-                  <input
-                    type="text"
-                    name="skills"
-                    value={formData.skills}
-                    onChange={handleInputChange}
-                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                    placeholder="React, Node, CSS..."
-                  />
-                </div>
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={isUpdating}
-                    className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-lg disabled:opacity-50"
-                  >
-                    {isUpdating ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                    Guardar Cambios
-                  </button>
-                </div>
-              </form>
-            )}
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className={`space-y-4 ${isEditing ? 'block' : 'hidden'}`}>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-1">Biografía</label>
+                <textarea
+                  name="bio"
+                  value={formData.bio}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  rows="3"
+                  placeholder="Cuéntanos un poco sobre ti..."
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-1">Habilidades (separadas por comas)</label>
+                <input
+                  type="text"
+                  name="skills"
+                  value={formData.skills}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  placeholder="React, Node, CSS..."
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-lg disabled:opacity-50"
+                >
+                  {isUpdating ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                  Guardar Cambios
+                </button>
+              </div>
+            </form>
           </section>
 
           {/* Academic Journey (Timeline Style) */}
@@ -318,18 +299,7 @@ const PerfilPage = () => {
               <MapPin className="text-primary" size={24} />
               Ubicación
             </h3>
-            <div className="h-40 rounded-2xl bg-surface-container mb-4 overflow-hidden relative border border-outline-variant/20">
-              <img 
-                alt="Mapa Ubicación" 
-                className="w-full h-full object-cover grayscale opacity-50" 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTixQ44kSP9eqrHH2_U6zr5-gHl9PUMq0dTbxbACXx2BZYBPMCEP2jGGxeMIoPc-SH2N2wv3woJmVDcIaFqECnOj8YPzAQ_VpFxfF-B75EmsFBr3ggZSO8oRBkNd_pWJUyfeBRGuuyBCMXNGKm6_QZRuuvDXb-TzDZtC97hSJyNiOl9TDEtmZs4X6CajynC-83v5EGQIOZ8QnWE04hRIVDb-CDynX10kwY4k6ijgouH8hdnGC3o0C2Xn9JZxonnUmnH9UApGt42F0" 
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-pulse">
-                  <MapPin size={16} className="text-white" />
-                </div>
-              </div>
-            </div>
+
             <p className="text-sm text-on-surface-variant flex items-center gap-1">
               <strong>{locationInfo.ciudad},</strong> {locationInfo.pais}
             </p>
