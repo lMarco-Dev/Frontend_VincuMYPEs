@@ -27,6 +27,7 @@ import { MypeLayout } from "@shared/layouts/MypeLayout";
 
 // Guard
 import { ProtectedRoute } from "./ProtectedRoute";
+import { MisProyectosPage } from "@/pages/mype/MisProyectosPage";
 
 const router = createBrowserRouter([
   // ── Rutas públicas ──────────────────────────────────────────
@@ -57,7 +58,7 @@ const router = createBrowserRouter([
     path: "/dashboard/mype/proyectos",
     element: (
       <ProtectedRoute rolesPermitidos={["MYPE"]}>
-        <MypeLayout titulo="Mis proyectos" /> {/* próximamente */}
+        <MisProyectosPage />
       </ProtectedRoute>
     ),
   },
