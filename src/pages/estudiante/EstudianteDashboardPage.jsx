@@ -1,11 +1,11 @@
 import React from 'react';
 import { useAuthStore } from '../../store/authStore';
-import { 
-  Rocket, 
-  Search, 
-  User, 
-  Clock, 
-  CheckCircle2, 
+import {
+  Rocket,
+  Search,
+  User,
+  Clock,
+  CheckCircle2,
   ArrowUpRight,
   Sparkles,
   Trophy,
@@ -19,24 +19,24 @@ const EstudianteDashboardPage = () => {
   const { user } = useAuthStore();
 
   const stats = [
-    { 
-      label: 'Postulaciones', 
-      value: '0', 
-      icon: <Rocket className="text-orange-500" />, 
+    {
+      label: 'Postulaciones',
+      value: '0',
+      icon: <Rocket className="text-orange-500" />,
       color: 'bg-orange-50',
       trend: 'En espera'
     },
-    { 
-      label: 'Aceptados', 
-      value: '0/2', 
-      icon: <CheckCircle2 className="text-emerald-500" />, 
+    {
+      label: 'Aceptados',
+      value: '0/2',
+      icon: <CheckCircle2 className="text-emerald-500" />,
       color: 'bg-emerald-50',
       trend: 'Meta semestral'
     },
-    { 
-      label: 'Horas Realizadas', 
-      value: '0h', 
-      icon: <Clock className="text-indigo-500" />, 
+    {
+      label: 'Horas Realizadas',
+      value: '0h',
+      icon: <Clock className="text-indigo-500" />,
       color: 'bg-indigo-50',
       trend: 'Meta: 160h'
     },
@@ -50,10 +50,10 @@ const EstudianteDashboardPage = () => {
   return (
     <div className="p-6 lg:p-12 lg:pt-0">
       <div className="max-w-7xl mx-auto space-y-8">
-        
+
         {/* WELCOME HERO - BENTO STYLE */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="lg:col-span-2 bg-indigo-600 rounded-[3rem] p-10 text-white relative overflow-hidden shadow-2xl shadow-indigo-200"
@@ -63,13 +63,13 @@ const EstudianteDashboardPage = () => {
                 Panel de Estudiante
               </span>
               <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">
-                ¡Hola, {user?.nombre?.split(' ')[0] || 'Estudiante'}! 👋
+                ¡Hola, {user?.nombre?.split(' ')[0] || 'Estudiante'}!
               </h1>
               <p className="text-indigo-100 text-lg max-w-xl mb-10 leading-relaxed font-medium">
                 Tienes nuevas oportunidades esperándote. Impulsa tu carrera trabajando en proyectos reales con MYPEs locales.
               </p>
-              
-              <Link 
+
+              <Link
                 to="/proyectos"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-white text-indigo-600 rounded-2xl font-black hover:bg-indigo-50 transition-all group"
               >
@@ -84,7 +84,7 @@ const EstudianteDashboardPage = () => {
             <div className="absolute bottom-[-10%] left-[20%] w-32 h-32 bg-blue-400/20 rounded-full blur-2xl" />
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -96,7 +96,7 @@ const EstudianteDashboardPage = () => {
             <h3 className="text-xl font-black text-slate-900 mb-2">Próxima Meta</h3>
             <p className="text-slate-500 text-sm font-medium mb-6">Completa tu primera postulación para obtener tu badge de "Iniciador".</p>
             <div className="w-full bg-slate-50 h-3 rounded-full overflow-hidden">
-              <motion.div 
+              <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: '15%' }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
@@ -109,7 +109,7 @@ const EstudianteDashboardPage = () => {
 
         {/* STATS & ACTIVITY GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          
+
           {/* STATS CARDS */}
           <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
             {stats.map((stat, index) => (
@@ -139,7 +139,7 @@ const EstudianteDashboardPage = () => {
             ))}
 
             {/* QUICK ACTIONS CARD */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}
@@ -201,11 +201,10 @@ const EstudianteDashboardPage = () => {
 };
 
 const QuickButton = ({ label, icon, isPrimary }) => (
-  <button className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition-all ${
-    isPrimary 
-      ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
+  <button className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition-all ${isPrimary
+      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
       : 'bg-white/10 text-white hover:bg-white/20'
-  }`}>
+    }`}>
     {icon}
     {label}
   </button>

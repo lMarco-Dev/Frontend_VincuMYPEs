@@ -1,9 +1,9 @@
 import React from 'react';
-import { 
-  Briefcase, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  Briefcase,
+  Clock,
+  CheckCircle2,
+  XCircle,
   ArrowUpRight,
   Building2,
   Calendar,
@@ -68,12 +68,12 @@ const MisPostulacionesPage = () => {
     <div className="p-6 lg:p-12 lg:pt-0">
       <div className="max-w-5xl mx-auto">
         <header className="mb-10">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="text-4xl font-black text-slate-900 tracking-tight mb-2"
           >
-            Mis Postulaciones 📁
+            Mis Postulaciones
           </motion.h1>
           <p className="text-slate-500">Sigue el estado de los proyectos a los que has aplicado.</p>
         </header>
@@ -123,14 +123,14 @@ const MisPostulacionesPage = () => {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Link 
+                    <Link
                       to={`/proyectos/${postulacion.proyectoId}`}
                       className="inline-flex items-center gap-2 px-5 py-3 bg-slate-50 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-100 transition-colors group"
                     >
                       Ver Proyecto
                       <ArrowUpRight size={16} className="text-slate-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </Link>
-                    
+
                     {postulacion.estado === 'ACEPTADO' && (
                       <button className="px-5 py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100">
                         Iniciar Trabajo
@@ -147,7 +147,7 @@ const MisPostulacionesPage = () => {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-1">No has postulado a ningún proyecto</h3>
               <p className="text-slate-500 mb-6">¡Explora las oportunidades disponibles y postula!</p>
-              <Link 
+              <Link
                 to="/proyectos"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
               >

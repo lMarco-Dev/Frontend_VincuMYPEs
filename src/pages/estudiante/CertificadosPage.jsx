@@ -33,21 +33,21 @@ const CertificadosPage = () => {
       <div className="max-w-5xl mx-auto">
         <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               className="text-4xl font-black text-slate-900 tracking-tight mb-2"
             >
-              Mis Certificados 📜
+              Mis Certificados
             </motion.h1>
             <p className="text-slate-500">Aquí puedes ver y descargar tus logros.</p>
           </div>
-          
+
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Buscar certificado..." 
+            <input
+              type="text"
+              placeholder="Buscar certificado..."
               className="pl-12 pr-4 py-3 bg-white border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent w-full md:w-64 shadow-sm text-sm"
             />
           </div>
@@ -81,7 +81,7 @@ const CertificadosPage = () => {
                   <div className="min-w-0 flex-1">
                     <h3 className="text-lg font-bold text-slate-900 truncate mb-1">{cert.tituloCertificado}</h3>
                     <p className="text-sm text-slate-500 mb-3 truncate">Proyecto: {cert.proyectoTitulo}</p>
-                    
+
                     <div className="flex items-center gap-4 text-xs text-slate-400">
                       <div className="flex items-center gap-1">
                         <Calendar size={14} />
@@ -91,11 +91,11 @@ const CertificadosPage = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="mt-6 flex justify-end">
-                  <a 
-                    href={cert.urlCertificado} 
-                    target="_blank" 
+                  <a
+                    href={cert.urlCertificado}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
                   >
@@ -103,7 +103,7 @@ const CertificadosPage = () => {
                     <ExternalLink size={14} />
                   </a>
                 </div>
-                
+
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-50/50 to-transparent rounded-bl-full group-hover:scale-110 transition-transform origin-top-right" />
               </motion.div>
             ))}

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  GraduationCap, 
-  MapPin, 
+import {
+  User,
+  Mail,
+  Phone,
+  GraduationCap,
+  MapPin,
   Camera,
   Edit2,
   Calendar,
@@ -99,19 +99,19 @@ const PerfilPage = () => {
     <div className="p-6 lg:p-12 lg:pt-0">
       <div className="max-w-4xl mx-auto">
         <header className="mb-10">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="text-4xl font-black text-slate-900 tracking-tight mb-2"
           >
-            Mi Perfil 👤
+            Mi Perfil
           </motion.h1>
           <p className="text-slate-500">Gestiona tu información personal y académica.</p>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* COLUMNA IZQUIERDA: AVATAR Y ESTADO */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="lg:col-span-1 space-y-6"
@@ -120,9 +120,9 @@ const PerfilPage = () => {
               <div className="relative z-10">
                 <div className="relative inline-block mb-6">
                   {user.fotoPerfil ? (
-                    <img 
-                      src={user.fotoPerfil} 
-                      alt={user.nombre} 
+                    <img
+                      src={user.fotoPerfil}
+                      alt={user.nombre}
                       className="w-32 h-32 rounded-[2rem] object-cover shadow-inner"
                     />
                   ) : (
@@ -134,19 +134,19 @@ const PerfilPage = () => {
                     <Camera size={18} />
                   </button>
                 </div>
-                
+
                 <h2 className="text-2xl font-bold text-slate-900 mb-1">{user.nombre}</h2>
                 <span className="px-4 py-1.5 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-full uppercase tracking-widest">
                   {displayRol}
                 </span>
               </div>
-              
+
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 rounded-full blur-3xl -mr-16 -mt-16" />
             </div>
           </motion.div>
 
           {/* COLUMNA DERECHA: FORMULARIO/INFO */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -177,7 +177,7 @@ const PerfilPage = () => {
                   Perfil Profesional
                 </h3>
                 {!isEditing ? (
-                  <button 
+                  <button
                     onClick={handleStartEdit}
                     className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
                   >
@@ -185,7 +185,7 @@ const PerfilPage = () => {
                   </button>
                 ) : (
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       onClick={handleCancelEdit}
                       className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                     >
@@ -228,7 +228,7 @@ const PerfilPage = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Biografía</label>
-                    <textarea 
+                    <textarea
                       name="bio"
                       value={formData.bio}
                       onChange={handleInputChange}
@@ -239,7 +239,7 @@ const PerfilPage = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Habilidades (separadas por comas)</label>
-                    <input 
+                    <input
                       type="text"
                       name="skills"
                       value={formData.skills}
@@ -250,7 +250,7 @@ const PerfilPage = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Teléfono</label>
-                    <input 
+                    <input
                       type="tel"
                       name="telefono"
                       value={formData.telefono}
@@ -262,7 +262,7 @@ const PerfilPage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">URL Portafolio</label>
-                      <input 
+                      <input
                         type="url"
                         name="portafolioUrl"
                         value={formData.portafolioUrl}
@@ -273,7 +273,7 @@ const PerfilPage = () => {
                     </div>
                     <div>
                       <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">URL LinkedIn</label>
-                      <input 
+                      <input
                         type="url"
                         name="linkedinUrl"
                         value={formData.linkedinUrl}
@@ -284,7 +284,7 @@ const PerfilPage = () => {
                     </div>
                   </div>
                   <div className="flex justify-end">
-                    <button 
+                    <button
                       type="submit"
                       disabled={isUpdating}
                       className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50"
