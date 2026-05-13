@@ -13,22 +13,10 @@ export function useLogin() {
     mutationFn: loginApi,
 
     onSuccess: ({ data }) => {
-      // data -> AuthResponse del back: { token, tipo, usuarioId, nombre, email, rol }
-      // IMPORTANTE: el campo es "rol", no "role". El backend manda "MYPE" o "ESTUDIANTE" (sin prefijo ROLE_)
-
-      // 1. Guardar el token en localStorage
       tokenStorage.setTokens(data.token, null);
 
-      // 2. Guardar el usuario en el store global
-      setUser({
-        id: data.usuarioId,
-        nombre: data.nombre,
-        email: data.email,
-        rol: data.rol, // "MYPE" | "ESTUDIANTE" (así lo manda el backend)
-        token: data.token,
-      });
+      login(data);
 
-      // 3. Redirigir según el rol (sin prefijo ROLE_, igual que en ProtectedRoute)
       if (data.rol === "MYPE") {
         navigate("/dashboard/mype");
       } else if (data.rol === "ESTUDIANTE") {

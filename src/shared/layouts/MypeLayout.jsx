@@ -1,4 +1,4 @@
-import { Sidebar } from "./Sidebar";
+import { Sidebar } from "./MypeSidebar";
 import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/shared/ui/Button";
