@@ -1,8 +1,10 @@
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { LandingPage } from "@pages/auth/LandingPage";
 import { LoginPage } from "@pages/auth/LoginPage";
 import { RegisterPage } from "@pages/auth/RegisterPage";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { MypeDashboardPage } from "@/pages/mype/MypeDashboardPage";
+import { CrearProyectoPage } from "@/pages/mype/CrearProyectoPage";
 
 // Páginas de Estudiante
 import EstudianteDashboardPage from '@pages/estudiante/EstudianteDashboardPage';
@@ -25,45 +27,36 @@ const router = createBrowserRouter([
     path: "/register/:tipo",
     element: <RegisterPage />,
   },
-  // Rutas MYPE — solo ROLE_MYPE puede entrar
+  // Rutas MYPE
   {
     path: "/dashboard/mype",
     element: (
       <ProtectedRoute rolesPermitidos={["MYPE"]}>
-        <div>Dashboard MYPE — próximamente</div>
+        <MypeDashboardPage />
       </ProtectedRoute>
     ),
   },
-  // Rutas Protegidas para ESTUDIANTE con Layout
   {
-    element: <ProtectedRoute rolesPermitidos={["ESTUDIANTE", "ROLE_ESTUDIANTE"]} />,
-    children: [
-      {
-        element: <StudentLayout />,
-        children: [
-          {
-            path: "/dashboard/estudiante",
-            element: <EstudianteDashboardPage />,
-          },
-          {
-            path: "/proyectos",
-            element: <ProyectosPage />,
-          },
-          {
-            path: "/proyectos/:id",
-            element: <DetalleProyectoPage />,
-          },
-          {
-            path: "/mis-postulaciones",
-            element: <MisPostulacionesPage />,
-          },
-          {
-            path: "/perfil",
-            element: <PerfilPage />,
-          },
-        ],
-      },
-    ],
+    path: "/dashboard/mype/crear",
+    element: (
+      <ProtectedRoute rolesPermitidos={["MYPE"]}>
+        <CrearProyectoPage />
+      </ProtectedRoute>
+    ),
+  },
+  // Rutas ESTUDIANTE — corregido: "ESTUDIANTE" sin prefijo ROLE_
+  {
+    path: "/dashboard/estudiante",
+    element: (
+      <ProtectedRoute rolesPermitidos={["ESTUDIANTE"]}>
+        <div>Dashboard Estudiante — próximamente</div>
+      </ProtectedRoute>
+    ),
+  },
+  // Proyectos — público
+  {
+    path: "/proyectos",
+    element: <div>Lista proyectos — próximamente</div>,
   },
   {
     path: "/dashboard",
