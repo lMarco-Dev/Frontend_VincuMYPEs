@@ -4,10 +4,18 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  ArrowUpRight,
+  ArrowRight,
   Building2,
   Calendar,
-  Loader2
+  Loader2,
+  Lightbulb,
+  TrendingUp,
+  Star,
+  FileEdit,
+  History,
+  ClipboardList,
+  Headphones,
+  Search
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -64,97 +72,194 @@ const MisPostulacionesPage = () => {
     );
   }
 
+  const hasPostulaciones = postulaciones.length > 0;
+
   return (
-    <div className="p-6 lg:p-12 lg:pt-0">
-      <div className="max-w-5xl mx-auto">
-        <header className="mb-10">
-          <motion.h1
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-4xl font-black text-slate-900 tracking-tight mb-2"
-          >
-            Mis Postulaciones
-          </motion.h1>
-          <p className="text-slate-500">Sigue el estado de los proyectos a los que has aplicado.</p>
-        </header>
+    <div className="p-6 lg:p-8 max-w-[1440px] mx-auto">
+      {/* Header Section */}
+      <div className="mb-8">
+        <h1 className="text-4xl font-extrabold text-on-surface mb-2">Mis Postulaciones</h1>
+        <p className="text-lg text-on-surface-variant">Gestiona y revisa el estado de tus aplicaciones a proyectos MYPE.</p>
+      </div>
 
-        {/* LISTA DE POSTULACIONES */}
-        <div className="space-y-6">
-          {postulaciones.length > 0 ? (
-            postulaciones.map((postulacion, index) => {
-              const status = getStatusStyle(postulacion.estado);
-              const key = postulacion.id || `postulacion-${index}`;
-              const fecha = postulacion.fechaPostulacion ? new Date(postulacion.fechaPostulacion).toLocaleDateString() : "Fecha no disponible";
-
-              return (
-                <motion.div
-                  key={key}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className="bg-white rounded-[2rem] p-6 lg:p-8 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
-                >
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${status.bg} ${status.text}`}>
-                        {status.icon}
-                        {status.label}
-                      </span>
-                      <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
-                        <Calendar size={14} />
-                        {fecha}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h2 className="text-xl font-bold text-slate-900 mb-1">{postulacion.proyectoTitulo || "Proyecto sin título"}</h2>
-                      <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
-                        <span className="flex items-center gap-1.5">
-                          <Building2 size={16} className="text-slate-400" />
-                          MYPE (ID: {postulacion.proyectoId})
-                        </span>
-                      </div>
-                      {postulacion.mensajePostulacion && (
-                        <p className="text-sm text-slate-600 mt-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                          <span className="font-semibold text-slate-700">Tu mensaje:</span> "{postulacion.mensajePostulacion}"
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Link
-                      to={`/proyectos/${postulacion.proyectoId}`}
-                      className="inline-flex items-center gap-2 px-5 py-3 bg-slate-50 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-100 transition-colors group"
-                    >
-                      Ver Proyecto
-                      <ArrowUpRight size={16} className="text-slate-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </Link>
-
-                    {postulacion.estado === 'ACEPTADO' && (
-                      <button className="px-5 py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100">
-                        Iniciar Trabajo
-                      </button>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })
-          ) : (
-            <div className="text-center py-20 bg-white rounded-[2rem] border border-slate-100">
-              <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-4">
-                <Briefcase size={32} />
+      {/* Dashboard Grid Layout */}
+      <div className="grid grid-cols-12 gap-6">
+        
+        {/* Main Content (Left/Center - 8 Columns) */}
+        <div className="col-span-12 lg:col-span-8">
+          
+          {!hasPostulaciones ? (
+            /* Empty State Card */
+            <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-8 lg:p-12 flex flex-col items-center text-center shadow-sm">
+              <div className="w-64 h-64 mb-6 relative">
+                <img 
+                  className="w-full h-full object-contain rounded-2xl opacity-90" 
+                  alt="Ilustración de maletín"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDl3IGGqyHJzG14MqWo_K91LoQpk8F__FKCRB9Xqo1EXlqy_vXHveONxKMWzYJm--mqUw5kTCmlRLiOcATlibGzpWp8QFjZcoa1a7dnh5wqw97noT_sQu-9xJM3rytdW3mIPQjZbX65VJl7gl8Cfao_SWjLuAHPll69yKZueQ_zIZ797ugGBbyTjw565ptiATYD9cQkdxTiSHzBOtkwtNVnYqC6teC_IrRuAJvYaHdi9k74e0-4wjwBJtPlZl7OSLadU99v-KX7uCk" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest to-transparent pointer-events-none"></div>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-1">No has postulado a ningún proyecto</h3>
-              <p className="text-slate-500 mb-6">¡Explora las oportunidades disponibles y postula!</p>
-              <Link
-                to="/proyectos"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
-              >
-                Explorar Proyectos
+              <h3 className="text-2xl font-bold text-on-surface mb-2">No has postulado a ningún proyecto</h3>
+              <p className="text-sm text-on-surface-variant max-w-md mb-8">
+                Tu lista está vacía. Comienza tu camino profesional postulando a proyectos reales que necesitan tu talento académico.
+              </p>
+              <Link to="/proyectos">
+                <button className="bg-primary text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:bg-primary/90 transition-all active:scale-95 flex items-center gap-2">
+                  <ClipboardList size={18} />
+                  Explorar Proyectos
+                </button>
               </Link>
             </div>
+          ) : (
+            /* List of Postulations */
+            <div className="space-y-4">
+              {postulaciones.map((postulacion, index) => {
+                const status = getStatusStyle(postulacion.estado);
+                const fecha = postulacion.fechaPostulacion ? new Date(postulacion.fechaPostulacion).toLocaleDateString() : "Fecha no disponible";
+
+                return (
+                  <motion.div
+                    key={postulacion.id || index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="bg-white rounded-2xl p-6 border border-outline-variant/30 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  >
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-3">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${status.bg} ${status.text}`}>
+                          {status.icon}
+                          {status.label}
+                        </span>
+                        <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                          <Calendar size={14} />
+                          {fecha}
+                        </span>
+                      </div>
+
+                      <div>
+                        <h2 className="text-lg font-bold text-slate-900 mb-1">{postulacion.proyectoTitulo || "Proyecto sin título"}</h2>
+                        <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
+                          <span className="flex items-center gap-1.5">
+                            <Building2 size={16} className="text-slate-400" />
+                            MYPE (ID: {postulacion.proyectoId})
+                          </span>
+                        </div>
+                        {postulacion.mensajePostulacion && (
+                          <p className="text-sm text-slate-600 mt-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span className="font-semibold text-slate-700">Tu mensaje:</span> "{postulacion.mensajePostulacion}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <Link
+                        to={`/proyectos/${postulacion.proyectoId}`}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-50 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-100 transition-colors group"
+                      >
+                        Ver Proyecto
+                        <ArrowRight size={16} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                      </Link>
+
+                      {postulacion.estado === 'ACEPTADO' && (
+                        <button className="px-4 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors shadow-lg shadow-indigo-100">
+                          Iniciar Trabajo
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
           )}
+
+          {/* Recommended Quick Look */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-secondary-container p-6 rounded-2xl flex flex-col justify-between h-40">
+              <Lightbulb className="text-on-secondary-container" size={32} />
+              <div>
+                <p className="font-bold text-on-secondary-container text-sm">¿Sabías que...?</p>
+                <p className="text-xs text-on-secondary-container opacity-80">Los estudiantes con perfiles completos tienen 3x más probabilidades de ser aceptados.</p>
+              </div>
+            </div>
+            <div className="bg-tertiary-container p-6 rounded-2xl flex flex-col justify-between h-40">
+              <TrendingUp className="text-on-tertiary-container" size={32} />
+              <div>
+                <p className="font-bold text-on-tertiary-container text-sm">Tendencia</p>
+                <p className="text-xs text-on-tertiary-container opacity-80">Proyectos de Marketing Digital son los más buscados esta semana.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Side Panels (Right - 4 Columns) */}
+        <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
+          
+          {/* Pro Tip Section */}
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 text-primary">
+              <Star size={20} className="fill-primary" />
+              <h4 className="font-bold uppercase text-xs tracking-wider">Consejo Pro</h4>
+            </div>
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
+                  <FileEdit size={16} className="text-primary" />
+                </div>
+                <p className="text-xs text-on-surface-variant">
+                  <strong className="text-on-surface">Personaliza tu carta:</strong> No uses la misma plantilla para todos los proyectos. Las MYPEs valoran la autenticidad.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
+                  <Clock size={16} className="text-primary" />
+                </div>
+                <p className="text-xs text-on-surface-variant">
+                  <strong className="text-on-surface">Rapidez:</strong> Las empresas suelen revisar las primeras 10 postulaciones con mayor detalle.
+                </p>
+              </div>
+            </div>
+            <hr className="my-4 border-outline-variant" />
+            <a className="text-primary font-bold text-sm flex items-center gap-1 hover:underline" href="#">
+              Ver guía completa de éxito
+              <ArrowRight size={14} />
+            </a>
+          </div>
+
+          {/* History Section */}
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-sm">
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="font-bold text-sm text-on-surface">Historial</h4>
+              <History size={16} className="text-on-surface-variant" />
+            </div>
+            {/* Empty History State */}
+            <div className="flex flex-col items-center py-6 opacity-50">
+              <ClipboardList size={32} className="mb-2" />
+              <p className="text-xs text-center">Aún no tienes actividad previa en la plataforma.</p>
+            </div>
+            {/* Progress indicator placeholder */}
+            <div className="mt-4">
+              <div className="flex justify-between mb-1">
+                <span className="text-[10px] font-bold text-on-surface-variant">Tu progreso de perfil</span>
+                <span className="text-[10px] font-bold text-primary">65%</span>
+              </div>
+              <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+                <div className="bg-primary h-full w-[65%] rounded-full"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Small Decorative Card */}
+          <div className="relative overflow-hidden rounded-2xl bg-primary h-32 flex items-center p-6">
+            <div className="relative z-10">
+              <p className="text-white font-bold text-lg leading-tight">¿Necesitas ayuda profesional?</p>
+              <button className="mt-2 text-[10px] font-bold bg-white text-primary px-3 py-1 rounded-full uppercase tracking-tighter hover:bg-slate-50 transition-colors">
+                Hablar con Tutor
+              </button>
+            </div>
+            <Headphones size={100} className="absolute -right-4 -bottom-4 text-white opacity-10 rotate-12 pointer-events-none" />
+          </div>
         </div>
       </div>
     </div>

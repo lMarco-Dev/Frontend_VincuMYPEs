@@ -13,9 +13,14 @@ import {
   Globe,
   ExternalLink,
   Save,
-  X
+  X,
+  Briefcase,
+  Layers,
+  ArrowRight,
+  Send,
+  Zap,
+  PenLine
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { usePerfil, useUpdatePerfil } from '@features/perfil/usePerfil';
 
 const PerfilPage = () => {
@@ -62,14 +67,6 @@ const PerfilPage = () => {
     });
   };
 
-  // Datos simulados para los campos que el backend aún no envía
-  const academicInfo = {
-    universidad: "Universidad Privada del Norte",
-    carrera: "Ingeniería de Sistemas Computacionales",
-    codigo: "N00012345",
-    ciclo: "8vo Ciclo"
-  };
-
   if (isLoading) {
     return (
       <div className="p-6 lg:p-12 lg:pt-0 flex items-center justify-center min-h-[400px]">
@@ -95,252 +92,309 @@ const PerfilPage = () => {
   const user = userProfile || {};
   const displayRol = user.rol || storeRol || 'Estudiante';
 
+  // Datos simulados originales del proyecto
+  const academicInfo = {
+    universidad: "Universidad Privada del Norte",
+    carrera: "Ingeniería de Sistemas Computacionales",
+    codigo: "N00012345",
+    ciclo: "8vo Ciclo"
+  };
+
+  const locationInfo = {
+    ciudad: "Cajamarca",
+    pais: "Perú",
+    sector: "Cajamarca / Disponible para remoto"
+  };
+
   return (
-    <div className="p-6 lg:p-12 lg:pt-0">
-      <div className="max-w-4xl mx-auto">
-        <header className="mb-10">
-          <motion.h1
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-4xl font-black text-slate-900 tracking-tight mb-2"
-          >
-            Mi Perfil
-          </motion.h1>
-          <p className="text-slate-500">Gestiona tu información personal y académica.</p>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* COLUMNA IZQUIERDA: AVATAR Y ESTADO */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="lg:col-span-1 space-y-6"
-          >
-            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm text-center relative overflow-hidden group">
-              <div className="relative z-10">
-                <div className="relative inline-block mb-6">
-                  {user.fotoPerfil ? (
-                    <img
-                      src={user.fotoPerfil}
-                      alt={user.nombre}
-                      className="w-32 h-32 rounded-[2rem] object-cover shadow-inner"
-                    />
-                  ) : (
-                    <div className="w-32 h-32 bg-indigo-50 rounded-[2rem] flex items-center justify-center text-indigo-600 text-5xl font-black shadow-inner">
-                      {user.nombre?.charAt(0) || 'U'}
-                    </div>
-                  )}
-                  <button className="absolute bottom-0 right-0 p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg border-4 border-white hover:scale-110 transition-transform">
-                    <Camera size={18} />
-                  </button>
-                </div>
-
-                <h2 className="text-2xl font-bold text-slate-900 mb-1">{user.nombre}</h2>
-                <span className="px-4 py-1.5 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-full uppercase tracking-widest">
-                  {displayRol}
-                </span>
-              </div>
-
-              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 rounded-full blur-3xl -mr-16 -mt-16" />
-            </div>
-          </motion.div>
-
-          {/* COLUMNA DERECHA: FORMULARIO/INFO */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-2 space-y-6"
-          >
-            {/* INFORMACIÓN PERSONAL (Lectura) */}
-            <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-3">
-                  <User className="text-indigo-600" size={24} />
-                  Información Personal
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <InfoItem icon={<Mail size={18} />} label="Email" value={user.email || 'No disponible'} />
-                <InfoItem icon={<Phone size={18} />} label="Teléfono" value={user.telefono || 'No registrado'} />
-                <InfoItem icon={<Calendar size={18} />} label="Miembro desde" value="Mayo 2026" />
-                <InfoItem icon={<MapPin size={18} />} label="Ciudad" value="Cajamarca, Perú" />
-              </div>
-            </div>
-
-            {/* INFORMACIÓN PROFESIONAL (Editable) */}
-            <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-3">
-                  <Globe className="text-indigo-600" size={24} />
-                  Perfil Profesional
-                </h3>
-                {!isEditing ? (
-                  <button
-                    onClick={handleStartEdit}
-                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-                  >
-                    <Edit2 size={20} />
-                  </button>
-                ) : (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleCancelEdit}
-                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {!isEditing ? (
-                <div className="space-y-6">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Biografía</p>
-                    <p className="text-slate-700 font-medium">{user.bio || 'Cuéntanos un poco sobre ti...'}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Habilidades</p>
-                    <p className="text-slate-700 font-medium">{user.skills || 'No registradas'}</p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Portafolio</p>
-                      {user.portafolioUrl ? (
-                        <a href={user.portafolioUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 font-bold flex items-center gap-1">
-                          Ver Portafolio <Globe size={14} />
-                        </a>
-                      ) : <p className="text-slate-400 font-medium">No registrado</p>}
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">LinkedIn</p>
-                      {user.linkedinUrl ? (
-                        <a href={user.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 font-bold flex items-center gap-1">
-                          Ver Perfil <ExternalLink size={14} />
-                        </a>
-                      ) : <p className="text-slate-400 font-medium">No registrado</p>}
-                    </div>
-                  </div>
-                </div>
+    <div className="p-6 lg:p-8 max-w-[1440px] mx-auto">
+      {/* Hero Profile Section */}
+      <div className="relative mb-8">
+        <div className="h-48 md:h-64 rounded-3xl overflow-hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary-container opacity-90"></div>
+          <img 
+            alt="Banner de perfil" 
+            className="w-full h-full object-cover" 
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYjYJkP4xAZ8n__tM-qKgUix2twTe1ZZt3I4g0N1gAsH5-CHnIYzqqwO5KltmZ39MAbvAobujp5Cs2dYtm02_7JrvZSkM_9gmyltfY_Yw94EOYmY8TUWAGi2FtyIZbMuLnorgO-PMehGQQqeW6BfGSlf8Rv-fWbbS5AShaAyb5_4BJERSZzkQ3nueWO51YRz-8jrzWdqIukdmHGWN8AMxu0kblFYNBA4p6EUqRZSVXJMoExg4xmA6itA4KbreNBPDIheJ31CLUhp4" 
+          />
+          <button className="absolute bottom-4 right-4 bg-surface/20 backdrop-blur-md text-white border border-white/30 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-surface/30 transition-all font-bold text-sm">
+            <PenLine size={18} />
+            Editar Portada
+          </button>
+        </div>
+        
+        <div className="px-4 md:px-8 -mt-16 md:-mt-20 relative flex flex-col md:flex-row items-end gap-4 md:gap-6">
+          <div className="relative group">
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-3xl border-8 border-background overflow-hidden shadow-lg bg-white">
+              {user.fotoPerfil ? (
+                <img 
+                  alt="Foto de perfil" 
+                  className="w-full h-full object-cover" 
+                  src={user.fotoPerfil} 
+                />
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Biografía</label>
-                    <textarea
-                      name="bio"
-                      value={formData.bio}
-                      onChange={handleInputChange}
-                      className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent text-sm"
-                      rows="3"
-                      placeholder="Cuéntanos un poco sobre ti..."
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Habilidades (separadas por comas)</label>
-                    <input
-                      type="text"
-                      name="skills"
-                      value={formData.skills}
-                      onChange={handleInputChange}
-                      className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent text-sm"
-                      placeholder="React, Node, CSS..."
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Teléfono</label>
-                    <input
-                      type="tel"
-                      name="telefono"
-                      value={formData.telefono}
-                      onChange={handleInputChange}
-                      className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent text-sm"
-                      placeholder="987654321"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">URL Portafolio</label>
-                      <input
-                        type="url"
-                        name="portafolioUrl"
-                        value={formData.portafolioUrl}
-                        onChange={handleInputChange}
-                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent text-sm"
-                        placeholder="https://..."
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">URL LinkedIn</label>
-                      <input
-                        type="url"
-                        name="linkedinUrl"
-                        value={formData.linkedinUrl}
-                        onChange={handleInputChange}
-                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent text-sm"
-                        placeholder="https://..."
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={isUpdating}
-                      className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50"
-                    >
-                      {isUpdating ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                      Guardar Cambios
-                    </button>
-                  </div>
-                </form>
+                <div className="w-full h-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-5xl font-black">
+                  {user.nombre?.charAt(0) || 'U'}
+                </div>
               )}
             </div>
+            <button className="absolute bottom-2 right-2 p-2 bg-primary text-white rounded-xl shadow-lg border-4 border-background hover:scale-105 transition-transform">
+              <Camera size={20} />
+            </button>
+          </div>
+          
+          <div className="flex-1 pb-2 text-center md:text-left">
+            <h1 className="text-3xl font-extrabold text-on-background">{user.nombre || 'Usuario'}</h1>
+            <p className="text-base text-primary font-bold flex items-center justify-center md:justify-start gap-2">
+              {displayRol}
+              <span className="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+              {academicInfo.universidad}
+            </p>
+          </div>
+          
+          <div className="pb-2 flex gap-2">
+            {!isEditing ? (
+              <button 
+                onClick={handleStartEdit}
+                className="bg-primary text-white px-6 h-12 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg transition-all active:scale-95"
+              >
+                <Edit2 size={18} />
+                Editar Perfil
+              </button>
+            ) : (
+              <button 
+                onClick={handleCancelEdit}
+                className="bg-red-500 text-white px-6 h-12 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg transition-all active:scale-95"
+              >
+                <X size={18} />
+                Cancelar
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
-            {/* INFORMACIÓN ACADÉMICA */}
-            <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm">
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-3">
-                  <GraduationCap className="text-indigo-600" size={24} />
-                  Trayectoria Académica
-                </h3>
-              </div>
-
-              <div className="space-y-6">
-                <div className="flex gap-4 p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm">
-                    <GraduationCap size={24} />
+      {/* Dashboard Layout (2 Columns for wide screens) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Left Column (Personal & Professional Info) */}
+        <div className="lg:col-span-8 space-y-6">
+          
+          {/* Bio & Professional Summary */}
+          <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <User className="text-primary" size={24} />
+                Perfil Profesional
+              </h3>
+            </div>
+            
+            {!isEditing ? (
+              <>
+                <p className="text-on-surface-variant text-sm leading-relaxed mb-6">
+                  {user.bio || 'Cuéntanos un poco sobre ti...'}
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-start gap-3 p-4 rounded-2xl bg-surface-container-low">
+                    <GraduationCap className="text-primary mt-1" size={20} />
+                    <div>
+                      <span className="font-bold text-on-surface-variant block uppercase text-[10px]">Grado</span>
+                      <span className="text-sm font-bold">{academicInfo.ciclo}, {academicInfo.carrera}</span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-lg font-bold text-slate-900">{academicInfo.universidad}</p>
-                    <p className="text-slate-500 font-medium">{academicInfo.carrera}</p>
-                    <div className="mt-3 flex gap-3">
-                      <span className="px-3 py-1 bg-white rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-100">
-                        Cód: {academicInfo.codigo}
-                      </span>
-                      <span className="px-3 py-1 bg-white rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-100">
-                        {academicInfo.ciclo}
-                      </span>
+                  <div className="flex items-start gap-3 p-4 rounded-2xl bg-surface-container-low">
+                    <Briefcase className="text-primary mt-1" size={20} />
+                    <div>
+                      <span className="font-bold text-on-surface-variant block uppercase text-[10px]">Interés</span>
+                      <span className="text-sm font-bold">Consultoría Estratégica</span>
                     </div>
                   </div>
                 </div>
+              </>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-1">Biografía</label>
+                  <textarea
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleInputChange}
+                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    rows="3"
+                    placeholder="Cuéntanos un poco sobre ti..."
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-1">Habilidades (separadas por comas)</label>
+                  <input
+                    type="text"
+                    name="skills"
+                    value={formData.skills}
+                    onChange={handleInputChange}
+                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    placeholder="React, Node, CSS..."
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isUpdating}
+                    className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-lg disabled:opacity-50"
+                  >
+                    {isUpdating ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                    Guardar Cambios
+                  </button>
+                </div>
+              </form>
+            )}
+          </section>
+
+          {/* Academic Journey (Timeline Style) */}
+          <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
+            <h3 className="text-xl font-bold flex items-center gap-2 mb-6">
+              <GraduationCap className="text-primary" size={24} />
+              Trayectoria Académica
+            </h3>
+            <div className="space-y-4 relative before:absolute before:left-4 before:top-4 before:bottom-4 before:w-0.5 before:bg-outline-variant">
+              {/* Entry 1 */}
+              <div className="relative pl-10">
+                <div className="absolute left-1.5 top-1 w-5 h-5 rounded-full bg-primary-container border-4 border-background"></div>
+                <div className="p-4 bg-surface-container border border-outline-variant/20 rounded-2xl hover:translate-y-[-2px] transition-all">
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className="text-lg font-bold text-primary">{academicInfo.carrera}</h4>
+                    <span className="text-xs font-bold text-on-surface-variant bg-surface px-3 py-1 rounded-full border border-outline-variant">Presente</span>
+                  </div>
+                  <p className="text-sm font-bold mb-1">{academicInfo.universidad}</p>
+                  <p className="text-xs text-on-surface-variant">Código: {academicInfo.codigo} | Ciclo: {academicInfo.ciclo}</p>
+                </div>
               </div>
             </div>
-          </motion.div>
+          </section>
+
+          {/* Portfolio / Projects (Bento-style grid) */}
+          <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <Layers className="text-primary" size={24} />
+                Portafolio de Proyectos
+              </h3>
+              <button className="text-primary font-bold flex items-center gap-1 hover:underline text-sm">
+                Ver todos
+                <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="group relative aspect-video rounded-2xl overflow-hidden cursor-pointer">
+                <img 
+                  alt="Dashboard Proyecto" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD2ObASeZRMUAerk31NZWNG7CRaFS-zLiZ_AMUE9m3sqkqkJTo0eTaNxwrrCRfadKF4YBzXCrCFjX48AToH11Rv1-_AJWEQE04o5dmHqQYDXxBl-42g4ZrlkO58txiWXXFMsOP2RzoKw1sXxpesLOOb07lmHWJSlG8lufHW9OH4YtkqkGC_Xr0CnrBD7xUXHIN7Qv8e8VoAS3ztTX6WIoiRnQvkGJXLTf8pAYpIloBNpDGnUtCbZkqev-AsmuOrqIqZhOkBHvz6mI" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">
+                  <h5 className="text-white font-bold">Proyecto Demo 1</h5>
+                  <p className="text-white/80 text-xs">Descripción corta del proyecto</p>
+                </div>
+              </div>
+              <div className="group relative aspect-video rounded-2xl overflow-hidden cursor-pointer">
+                <img 
+                  alt="Análisis de datos" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPxmaDcjTqKpp9iZbSAHyWsv22PKChCNh070a91g8nqDN76eBw4cK0vw8UOsWfMlWJzm5j52HjdtwjtWb6P_S4mE6gQ91r4ZsLflys0NTK_vKSFCJY41tlvAs3BDveazWvOsShoHdHKxcM5z-qGPGCLWztfYb5822xNVclX1RHjd0dtH5qQpZ2NNXtmmk5YxpoC5OPucQwJ5X8fGkFOJksbJ-iInk4Ycsay3rJbUJy6Yc-xEVWMDxwgPByZYP16ACffFRpL9pGbw4" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">
+                  <h5 className="text-white font-bold">Proyecto Demo 2</h5>
+                  <p className="text-white/80 text-xs">Visualización de KPIS</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Right Column (Sidebar Stats, Location, Skills) */}
+        <div className="lg:col-span-4 space-y-6">
+          {/* Location Card */}
+          <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30 overflow-hidden">
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <MapPin className="text-primary" size={24} />
+              Ubicación
+            </h3>
+            <div className="h-40 rounded-2xl bg-surface-container mb-4 overflow-hidden relative border border-outline-variant/20">
+              <img 
+                alt="Mapa Ubicación" 
+                className="w-full h-full object-cover grayscale opacity-50" 
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTixQ44kSP9eqrHH2_U6zr5-gHl9PUMq0dTbxbACXx2BZYBPMCEP2jGGxeMIoPc-SH2N2wv3woJmVDcIaFqECnOj8YPzAQ_VpFxfF-B75EmsFBr3ggZSO8oRBkNd_pWJUyfeBRGuuyBCMXNGKm6_QZRuuvDXb-TzDZtC97hSJyNiOl9TDEtmZs4X6CajynC-83v5EGQIOZ8QnWE04hRIVDb-CDynX10kwY4k6ijgouH8hdnGC3o0C2Xn9JZxonnUmnH9UApGt42F0" 
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-pulse">
+                  <MapPin size={16} className="text-white" />
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-on-surface-variant flex items-center gap-1">
+              <strong>{locationInfo.ciudad},</strong> {locationInfo.pais}
+            </p>
+            <p className="text-xs text-slate-400">{locationInfo.sector}</p>
+          </section>
+
+          {/* Professional Links */}
+          <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
+            <h3 className="text-xl font-bold mb-4">Conectividad</h3>
+            <div className="space-y-2">
+              <a 
+                className="flex items-center justify-between p-3 rounded-xl bg-surface-container-low hover:bg-primary/10 transition-colors group" 
+                href={user.linkedinUrl || '#'} 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                <div className="flex items-center gap-2">
+                  <Globe size={18} className="text-primary" />
+                  <span className="text-sm font-medium">LinkedIn Profile</span>
+                </div>
+                <ExternalLink size={16} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+              </a>
+              <a 
+                className="flex items-center justify-between p-3 rounded-xl bg-surface-container-low hover:bg-primary/10 transition-colors group" 
+                href={`mailto:${user.email || ''}`}
+              >
+                <div className="flex items-center gap-2">
+                  <Mail size={18} className="text-primary" />
+                  <span className="text-sm font-medium">{user.email || 'No disponible'}</span>
+                </div>
+                <Send size={16} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+              </a>
+              {user.telefono && (
+                <div className="flex items-center justify-between p-3 rounded-xl bg-surface-container-low">
+                  <div className="flex items-center gap-2">
+                    <Phone size={18} className="text-primary" />
+                    <span className="text-sm font-medium">{user.telefono}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Skills & Tags */}
+          <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold">Habilidades</h3>
+              <Zap size={24} className="text-primary" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {user.skills ? (
+                user.skills.split(',').map((skill, index) => (
+                  <span key={index} className="px-3 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-xs">
+                    {skill.trim()}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-slate-400">No registradas</span>
+              )}
+            </div>
+          </section>
         </div>
       </div>
     </div>
   );
 };
-
-const InfoItem = ({ icon, label, value }) => (
-  <div className="space-y-1.5">
-    <div className="flex items-center gap-2 text-slate-400">
-      {icon}
-      <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
-    </div>
-    <p className="text-slate-900 font-bold ml-6">{value}</p>
-  </div>
-);
 
 export default PerfilPage;

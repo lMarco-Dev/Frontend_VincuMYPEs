@@ -6,7 +6,17 @@ import {
   Calendar,
   ArrowRight,
   Filter,
-  X
+  X,
+  Terminal,
+  Building2,
+  TrendingUp,
+  Palette,
+  BarChart2,
+  ShoppingBag,
+  Megaphone,
+  ChevronDown,
+  Lightbulb,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -31,8 +41,27 @@ const getAreaStyle = (area) => {
   }
 };
 
+const getAreaIcon = (area) => {
+  switch (area) {
+    case 'DESARROLLO_WEB':
+      return <Terminal size={20} className="text-primary" />;
+    case 'DESARROLLO_MOVIL':
+      return <ShoppingBag size={20} className="text-primary" />;
+    case 'DESARROLLO_SOFTWARE':
+      return <Terminal size={20} className="text-primary" />;
+    case 'BASE_DE_DATOS':
+      return <BarChart2 size={20} className="text-primary" />;
+    case 'ANALISIS_DATOS':
+      return <TrendingUp size={20} className="text-tertiary" />;
+    case 'SOPORTE_TI':
+      return <Terminal size={20} className="text-slate-600" />;
+    default:
+      return <Briefcase size={20} className="text-primary" />;
+  }
+};
+
 const AREAS = [
-  { value: '', label: 'Todas las áreas' },
+  { value: '', label: 'Todos los Proyectos' },
   { value: 'DESARROLLO_WEB', label: 'Desarrollo Web' },
   { value: 'DESARROLLO_MOVIL', label: 'Desarrollo Móvil' },
   { value: 'DESARROLLO_SOFTWARE', label: 'Desarrollo de Software' },
@@ -64,160 +93,165 @@ const ProyectosPage = () => {
   });
 
   return (
-    <div className="p-6 lg:p-12 lg:pt-0">
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-10">
-          <motion.h1
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-4xl font-black text-slate-900 tracking-tight mb-2"
-          >
-            Explorar Proyectos
-          </motion.h1>
-          <p className="text-slate-500">Encuentra el desafío perfecto para potenciar tu carrera.</p>
-        </header>
-
-        {/* BARRA DE BÚSQUEDA Y FILTROS */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8 relative">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-3.5 text-slate-400" size={20} />
-            <input
-              type="text"
-              placeholder="Buscar por título, tecnología o empresa..."
-              className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-sm transition-all"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+    <div className="p-6 lg:p-8 max-w-[1440px] mx-auto">
+      
+      {/* Hero Search Section */}
+      <section className="mb-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary-container p-8 lg:p-12 text-white">
+          <div className="relative z-10 max-w-2xl">
+            <h1 className="text-4xl lg:text-5xl font-extrabold mb-4">Descubre tu próximo reto profesional</h1>
+            <p className="text-lg opacity-90 mb-8">Conecta con MYPEs que necesitan tu talento académico para impulsar su transformación digital.</p>
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={24} />
+              <input 
+                className="w-full h-14 pl-14 pr-4 rounded-xl bg-white text-on-surface border-none focus:ring-4 focus:ring-primary/20 shadow-lg transition-all text-base" 
+                placeholder="Buscar por tecnología, empresa o rol..." 
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
-          
-          <div className="relative">
-            <button 
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition-all border h-full ${isFilterOpen ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-100 bg-white'}`}
-            >
-              <SlidersHorizontal size={20} className={isFilterOpen ? 'text-indigo-600' : 'text-slate-500'} />
-              Filtros
-              {selectedArea && (
-                <span className="ml-1 px-2 py-0.5 bg-indigo-600 text-white text-xs rounded-full">
-                  1
-                </span>
-              )}
-            </button>
+          {/* Abstract Background Elements */}
+          <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-white/5 rounded-full blur-2xl"></div>
+        </div>
+      </section>
 
-            {/* Dropdown de Filtros */}
-            <AnimatePresence>
-              {isFilterOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-100 z-20 p-4"
-                >
-                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Área de Sistemas</h3>
-                  <div className="space-y-2">
-                    {AREAS.map(area => (
-                      <button
-                        key={area.value}
-                        onClick={() => {
-                          setSelectedArea(area.value);
-                          setIsFilterOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center justify-between ${
-                          selectedArea === area.value 
-                            ? 'bg-indigo-50 text-indigo-600 font-bold' 
-                            : 'text-slate-600 hover:bg-slate-50'
-                        }`}
-                      >
-                        {area.label}
-                        {selectedArea === area.value && <div className="w-2 h-2 bg-indigo-600 rounded-full" />}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+      {/* Filters Section */}
+      <section className="mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {AREAS.map(area => (
+              <button
+                key={area.value}
+                onClick={() => setSelectedArea(area.value)}
+                className={`px-5 py-2.5 rounded-full font-bold text-sm whitespace-nowrap transition-all ${
+                  selectedArea === area.value
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
+                }`}
+              >
+                {area.label}
+              </button>
+            ))}
           </div>
-
-          {/* Botón para limpiar todo */}
           <button 
-            onClick={() => {
-              setSearchTerm('');
-              setSelectedArea('');
-            }}
-            className="flex items-center gap-2 px-6 py-3.5 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-all"
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container-low transition-colors font-bold text-sm"
           >
-            <X size={20} className="text-slate-500" />
-            Limpiar
+            <SlidersHorizontal size={18} />
+            Filtros Avanzados
           </button>
         </div>
+      </section>
 
-        {/* Chips de Filtros Activos */}
-        {selectedArea && (
-          <div className="flex gap-2 mb-6">
-            <span className="px-4 py-2 bg-indigo-50 text-indigo-600 text-sm font-bold rounded-full flex items-center gap-2">
-              Área: {AREAS.find(a => a.value === selectedArea)?.label}
-              <button onClick={() => setSelectedArea('')} className="hover:text-indigo-800">
-                <X size={16} />
-              </button>
-            </span>
+      {/* Projects Grid */}
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {isLoading && (
+          <div className="col-span-full text-center text-slate-500 py-12 flex flex-col items-center gap-2">
+            <Loader2 className="animate-spin" size={24} />
+            Cargando proyectos...
           </div>
         )}
-
-        {/* LISTADO DE PROYECTOS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {isLoading && <div className="col-span-3 text-center text-slate-500 py-12">Cargando proyectos...</div>}
-          {isError && <div className="col-span-3 text-center text-red-500 py-12">Error al cargar proyectos.</div>}
-          {!isLoading && !isError && filteredProyectos.length === 0 && (
-            <div className="col-span-3 text-center text-slate-500 py-12">
-              No se encontraron proyectos con los criterios de búsqueda.
-            </div>
-          )}
-          {!isLoading && !isError && filteredProyectos.map((proyecto, index) => (
-            <motion.div
-              key={proyecto.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className={`px-3 py-1.5 text-xs font-bold rounded-lg uppercase tracking-widest ${getAreaStyle(proyecto.areaSistemas)}`}>
-                    {proyecto.areaSistemas}
-                  </span>
-                  <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
-                    <Calendar size={14} />
-                    Lim: {proyecto.fechaLimite}
-                  </span>
-                </div>
-
-                <h2 className="text-xl font-bold text-slate-900 mb-2 leading-tight">
-                  {proyecto.titulo}
-                </h2>
-
-                <p className="text-slate-500 text-sm mb-6 line-clamp-3 font-medium">
-                  {proyecto.descripcion}
-                </p>
+        
+        {isError && (
+          <div className="col-span-full text-center text-red-500 py-12">
+            Error al cargar proyectos.
+          </div>
+        )}
+        
+        {!isLoading && !isError && filteredProyectos.length === 0 && (
+          <div className="col-span-full text-center text-slate-500 py-12 bg-white rounded-2xl border border-outline-variant/30">
+            <Search size={48} className="mx-auto mb-4 text-slate-400" />
+            <p className="text-lg font-bold text-slate-900 mb-1">No se encontraron proyectos</p>
+            <p className="text-sm text-slate-500">Intenta con otros términos de búsqueda o filtros.</p>
+          </div>
+        )}
+        
+        {!isLoading && !isError && filteredProyectos.map((proyecto, index) => (
+          <motion.div
+            key={proyecto.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className="bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-300 group cursor-pointer flex flex-col h-full"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getAreaStyle(proyecto.areaSistemas)}`}>
+                {getAreaIcon(proyecto.areaSistemas)}
               </div>
-
-              <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Empresa</p>
-                  <p className="text-sm font-bold text-slate-700 flex items-center gap-1">
-                    <Briefcase size={14} className="text-slate-400" />
-                    {proyecto.mypeNombre}
-                  </p>
+              <span className="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-bold text-[10px] uppercase tracking-wider">
+                Nuevo
+              </span>
+            </div>
+            
+            <h3 className="text-xl font-bold text-on-surface group-hover:text-primary transition-colors mb-2 leading-tight">
+              {proyecto.titulo}
+            </h3>
+            
+            <p className="text-on-surface-variant text-sm mb-4 flex items-center gap-1.5">
+              <Building2 size={16} className="text-slate-400" />
+              {proyecto.mypeNombre || 'MYPE'}
+            </p>
+            
+            <p className="text-slate-500 text-sm mb-6 line-clamp-3 font-medium">
+              {proyecto.descripcion}
+            </p>
+            
+            <div className="mt-auto space-y-4">
+              <div className="flex flex-wrap gap-1.5">
+                <span className="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-bold text-[11px]">
+                  {proyecto.areaSistemas?.replace('_', ' ')}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between pt-4 border-t border-outline-variant/30">
+                <div className="flex flex-col">
+                  <span className="text-on-surface-variant font-bold text-[10px] uppercase">Límite</span>
+                  <span className="text-error text-sm font-bold flex items-center gap-1">
+                    <Calendar size={14} />
+                    {proyecto.fechaLimite}
+                  </span>
                 </div>
-
+                
                 <Link
                   to={`/proyectos/${proyecto.id}`}
-                  className="w-10 h-10 bg-slate-50 text-slate-700 rounded-xl flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all group"
+                  className="w-10 h-10 bg-slate-50 text-slate-700 rounded-xl flex items-center justify-center hover:bg-primary hover:text-white transition-all group-hover:translate-x-1"
                 >
-                  <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight size={18} />
                 </Link>
               </div>
-            </motion.div>
-          ))}
+            </div>
+          </motion.div>
+        ))}
+      </section>
+
+      {/* Load More / Pagination */}
+      {!isLoading && !isError && filteredProyectos.length > 0 && (
+        <div className="mt-8 flex justify-center">
+          <button className="flex items-center gap-2 px-6 h-12 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-all active:scale-95">
+            Ver más proyectos
+            <ChevronDown size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* Contextual Info Banner */}
+      <div className="mt-12">
+        <div className="bg-surface-container-high rounded-3xl p-6 lg:p-8 flex flex-col md:flex-row items-center gap-6">
+          <div className="w-16 h-16 shrink-0 bg-primary-container rounded-full flex items-center justify-center">
+            <Lightbulb className="text-primary text-[32px]" size={32} />
+          </div>
+          <div>
+            <h4 className="text-xl font-bold text-on-surface mb-1">¿No encuentras lo que buscas?</h4>
+            <p className="text-sm text-on-surface-variant">
+              Puedes configurar alertas personalizadas para que te avisemos cuando se publique un proyecto que coincida con tus habilidades e intereses académicos.
+            </p>
+          </div>
+          <button className="md:ml-auto whitespace-nowrap bg-on-background text-white px-6 h-12 rounded-xl font-bold hover:opacity-90 transition-opacity">
+            Configurar Alertas
+          </button>
         </div>
       </div>
     </div>

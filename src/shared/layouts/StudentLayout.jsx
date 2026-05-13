@@ -59,7 +59,7 @@ const StudentLayout = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex overflow-hidden">
+    <div className="portal-estudiante min-h-screen bg-[#F8FAFC] flex overflow-hidden">
       {/* SIDEBAR PARA DESKTOP */}
       <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-slate-100 shadow-sm z-30">
         <div className="p-8">
