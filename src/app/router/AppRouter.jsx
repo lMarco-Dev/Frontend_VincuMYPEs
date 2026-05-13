@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { LandingPage } from "@pages/auth/LandingPage";
 import { LoginPage } from "@pages/auth/LoginPage";
 import { RegisterPage } from "@pages/auth/RegisterPage";
@@ -12,6 +12,7 @@ import ProyectosPage from '@pages/estudiante/ProyectosPage';
 import DetalleProyectoPage from '@pages/estudiante/DetalleProyectoPage';
 import PerfilPage from '@pages/estudiante/PerfilPage';
 import MisPostulacionesPage from '@pages/estudiante/MisPostulacionesPage';
+import CertificadosPage from '@pages/estudiante/CertificadosPage';
 import StudentLayout from '@shared/layouts/StudentLayout';
 
 const router = createBrowserRouter([
@@ -44,19 +45,39 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  // Rutas ESTUDIANTE — corregido: "ESTUDIANTE" sin prefijo ROLE_
+  // Rutas ESTUDIANTE
   {
-    path: "/dashboard/estudiante",
     element: (
       <ProtectedRoute rolesPermitidos={["ESTUDIANTE"]}>
-        <div>Dashboard Estudiante — próximamente</div>
+        <StudentLayout />
       </ProtectedRoute>
     ),
-  },
-  // Proyectos — público
-  {
-    path: "/proyectos",
-    element: <div>Lista proyectos — próximamente</div>,
+    children: [
+      {
+        path: "/dashboard/estudiante",
+        element: <EstudianteDashboardPage />,
+      },
+      {
+        path: "/proyectos",
+        element: <ProyectosPage />,
+      },
+      {
+        path: "/proyectos/:id",
+        element: <DetalleProyectoPage />,
+      },
+      {
+        path: "/mis-postulaciones",
+        element: <MisPostulacionesPage />,
+      },
+      {
+        path: "/certificados",
+        element: <CertificadosPage />,
+      },
+      {
+        path: "/perfil",
+        element: <PerfilPage />,
+      },
+    ],
   },
   {
     path: "/dashboard",

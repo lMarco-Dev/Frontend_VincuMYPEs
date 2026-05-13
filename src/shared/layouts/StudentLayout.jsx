@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Search, 
@@ -8,16 +8,25 @@ import {
   LogOut, 
   Menu, 
   X,
-  Bell
+  Bell,
+  Award
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
 import { Logo } from '../ui/Logo';
+import { useNotificaciones, useLeerNotificacion } from '../../features/notificaciones/useNotificaciones';
 
 const StudentLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  
+  const { data: notificaciones } = useNotificaciones();
+  const { mutate: leerNotificacion } = useLeerNotificacion();
+  
+  const unreadCount = notificaciones?.filter(n => !n.leida).length || 0;
 
   const menuItems = [
     { 
@@ -34,6 +43,11 @@ const StudentLayout = () => {
       path: '/mis-postulaciones', 
       icon: <Briefcase size={22} />, 
       label: 'Mis Postulaciones' 
+    },
+    { 
+      path: '/certificados', 
+      icon: <Award size={22} />, 
+      label: 'Mis Certificados' 
     },
     { 
       path: '/perfil', 
@@ -160,10 +174,58 @@ const StudentLayout = () => {
           </div>
           
           <div className="flex items-center gap-6">
-            <button className="relative p-2.5 text-slate-400 bg-white border border-slate-100 rounded-2xl hover:text-indigo-600 hover:shadow-md transition-all">
-              <Bell size={20} />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                className="relative p-2.5 text-slate-400 bg-white border border-slate-100 rounded-2xl hover:text-indigo-600 hover:shadow-md transition-all"
+              >
+                <Bell size={20} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+                )}
+              </button>
+              
+              <AnimatePresence>
+                {isNotificationsOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute right-0 mt-2 w-80 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 overflow-hidden"
+                  >
+                    <div className="p-4 border-b border-slate-50 flex justify-between items-center">
+                      <h3 className="font-bold text-slate-900">Notificaciones</h3>
+                      <span className="text-xs text-slate-400">{unreadCount} nuevas</span>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {notificaciones?.length === 0 ? (
+                        <div className="p-4 text-center text-slate-400 text-sm">
+                          No tienes notificaciones
+                        </div>
+                      ) : (
+                        notificaciones?.map(notif => (
+                          <div 
+                            key={notif.id} 
+                            className={`p-4 border-b border-slate-50 last:border-b-0 hover:bg-slate-50 transition-colors cursor-pointer ${!notif.leida ? 'bg-indigo-50/30' : ''}`}
+                            onClick={() => {
+                              if (!notif.leida) leerNotificacion(notif.id);
+                              if (notif.urlReferencia) navigate(notif.urlReferencia);
+                              setIsNotificationsOpen(false);
+                            }}
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <h4 className="text-sm font-bold text-slate-900">{notif.titulo}</h4>
+                              <span className="text-[10px] text-slate-400">{new Date(notif.fechaCreacion).toLocaleDateString()}</span>
+                            </div>
+                            <p className="text-xs text-slate-500">{notif.mensaje}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             
             <div className="flex items-center gap-3 px-3 py-1.5 bg-white border border-slate-100 rounded-2xl shadow-sm">
               <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-black">

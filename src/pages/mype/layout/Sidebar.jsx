@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useUserStore } from "@/entities/user/userStore";
+import { useAuthStore } from "@/store/authStore";
 import { Logo } from "@/shared/ui/Logo";
 import { useNavigate } from "react-router-dom";
 import {
@@ -94,7 +94,7 @@ function NavItem({ to, icon: Icon, label }) {
 }
 
 export function Sidebar() {
-  const { user, logout } = useUserStore();
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
 
   const initials =
