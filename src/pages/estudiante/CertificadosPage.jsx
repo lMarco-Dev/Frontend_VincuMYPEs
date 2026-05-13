@@ -7,13 +7,8 @@ import {
   Loader2, 
   Search, 
   Rocket, 
-  Gavel, 
-  ShieldCheck, 
-  Share2, 
-  FileText,
   PartyPopper,
-  Hammer,
-  Globe
+  Hammer
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -58,8 +53,8 @@ const CertificadosPage = () => {
       {/* Bento Grid Layout */}
       <div className="grid grid-cols-12 gap-6">
         
-        {/* Main Content Area (8 Columns) */}
-        <div className="col-span-12 lg:col-span-8">
+        {/* Main Content Area */}
+        <div className="col-span-12">
           {!hasCertificados ? (
             /* Empty State */
             <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm h-full min-h-[400px]">
@@ -79,7 +74,7 @@ const CertificadosPage = () => {
             </div>
           ) : (
             /* Filled State - List of Certificates */
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {certificados.map((cert, index) => (
                 <motion.div
                   key={cert.id}
@@ -126,52 +121,7 @@ const CertificadosPage = () => {
         </div>
 
         {/* Info Panels (Asymmetric Sidebar - 4 Columns) */}
-        <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
-          
-          {/* Validez Oficial */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-sm hover:shadow-md transition-all">
-            <div className="flex items-center gap-2 mb-2 text-primary">
-              <Gavel size={20} />
-              <h3 className="font-bold">Validez Oficial</h3>
-            </div>
-            <p className="text-sm text-on-surface-variant">
-              Todos nuestros certificados cuentan con el respaldo institucional y son válidos como horas de experiencia profesional bajo el marco de vinculación académica.
-            </p>
-          </div>
 
-          {/* Firma Digital */}
-          <div className="bg-primary-container text-white rounded-2xl p-6 shadow-sm overflow-hidden relative">
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-2">
-                <ShieldCheck size={20} />
-                <h3 className="font-bold">Firma Digital</h3>
-              </div>
-              <p className="text-sm opacity-90">
-                Cada documento posee un código QR único y una firma electrónica avanzada que garantiza su autenticidad e integridad ante reclutadores.
-              </p>
-            </div>
-            <ShieldCheck size={100} className="absolute -bottom-4 -right-4 opacity-10 pointer-events-none" />
-          </div>
-
-          {/* Compartir Logros */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center gap-2 mb-2 text-secondary">
-              <Share2 size={20} />
-              <h3 className="font-bold">Compartir Logros</h3>
-            </div>
-            <p className="text-sm text-on-surface-variant mb-4">
-              Integra tus certificados directamente en tu perfil de LinkedIn o descarga una versión en PDF de alta calidad para tu CV.
-            </p>
-            <div className="flex gap-2">
-              <div className="w-8 h-8 rounded bg-surface-container flex items-center justify-center">
-                <Globe size={16} className="text-slate-400" />
-              </div>
-              <div className="w-8 h-8 rounded bg-surface-container flex items-center justify-center">
-                <FileText size={16} className="text-slate-400" />
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Bottom Insight Card */}
         <div className="col-span-12 bg-secondary-container text-on-secondary-container rounded-2xl p-6 lg:p-8 flex flex-col md:flex-row items-center gap-6">
