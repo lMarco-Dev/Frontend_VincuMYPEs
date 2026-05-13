@@ -113,8 +113,10 @@ export function Sidebar() {
   return (
     <aside className="w-[220px] bg-primary flex flex-col flex-shrink-0">
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-white/8">
-        <Logo />
+      <div className="px-4 py-4 border-b border-white/8">
+        <div className="bg-white/12 rounded-lg px-3 py-2 flex items-center gap-2">
+          <Logo />
+        </div>
       </div>
 
       {/* Usuario */}

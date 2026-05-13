@@ -1,4 +1,4 @@
-import { MypeLayout } from "./layout/MypeLayout";
+import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { CrearProyectoForm } from "@/features/proyecto-create/CrearProyectoForm";
 
 export function CrearProyectoPage() {

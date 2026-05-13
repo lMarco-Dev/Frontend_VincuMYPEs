@@ -1,4 +1,4 @@
-import { MypeLayout } from "./layout/MypeLayout";
+import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import { ProyectoCard } from "@/entities/proyecto/ProyectoCard";
 import { Skeleton } from "@/shared/ui/Skeleton";
