@@ -23,6 +23,7 @@ import PerfilPage from "@pages/estudiante/PerfilPage";
 
 // Layouts
 import StudentLayout from "@shared/layouts/StudentLayout";
+import { MypeLayout } from "@shared/layouts/MypeLayout";
 
 // Guard
 import { ProtectedRoute } from "./ProtectedRoute";
@@ -33,8 +34,9 @@ const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   { path: "/register/:tipo", element: <RegisterPage /> },
 
-  // ── Rutas MYPE (tu parte) ───────────────────────────────────
-  // Cada página ya incluye MypeLayout internamente
+  /* ===========================================================================================
+                                      RUTAS MYPEs
+     =========================================================================================== */
   {
     path: "/dashboard/mype",
     element: (
@@ -51,11 +53,65 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  // Aquí irán tus demás páginas MYPE cuando las construyas:
-  // /dashboard/mype/postulantes, /dashboard/mype/mensajes, etc.
-
-  // ── Rutas ESTUDIANTE (parte de tu compañero) ────────────────
-  // StudentLayout usa <Outlet />, así que se pone como padre
+  {
+    path: "/dashboard/mype/proyectos",
+    element: (
+      <ProtectedRoute rolesPermitidos={["MYPE"]}>
+        <MypeLayout titulo="Mis proyectos" /> {/* próximamente */}
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/dashboard/mype/postulantes",
+    element: (
+      <ProtectedRoute rolesPermitidos={["MYPE"]}>
+        <MypeLayout titulo="Postulantes" />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/dashboard/mype/mensajes",
+    element: (
+      <ProtectedRoute rolesPermitidos={["MYPE"]}>
+        <MypeLayout titulo="Mensajes" />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/dashboard/mype/ejecucion",
+    element: (
+      <ProtectedRoute rolesPermitidos={["MYPE"]}>
+        <MypeLayout titulo="En ejecución" />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/dashboard/mype/certificados",
+    element: (
+      <ProtectedRoute rolesPermitidos={["MYPE"]}>
+        <MypeLayout titulo="Certificados" />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/dashboard/mype/perfil",
+    element: (
+      <ProtectedRoute rolesPermitidos={["MYPE"]}>
+        <MypeLayout titulo="Mi perfil" />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/dashboard/mype/configuracion",
+    element: (
+      <ProtectedRoute rolesPermitidos={["MYPE"]}>
+        <MypeLayout titulo="Configuración" />
+      </ProtectedRoute>
+    ),
+  },
+  /* ===========================================================================================
+                                      RUTAS Estudiantes
+     =========================================================================================== */
   {
     element: (
       <ProtectedRoute rolesPermitidos={["ESTUDIANTE"]}>
