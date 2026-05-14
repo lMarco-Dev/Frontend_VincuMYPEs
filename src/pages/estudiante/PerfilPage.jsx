@@ -22,11 +22,16 @@ import {
   PenLine
 } from 'lucide-react';
 import { usePerfil, useUpdatePerfil } from '@features/perfil/usePerfil';
+import { useMisPostulaciones } from '@features/postulaciones-list/useMisPostulaciones';
+import { Link } from 'react-router-dom';
 
 const PerfilPage = () => {
   const { data: userProfile, isLoading, isError, error } = usePerfil();
   const { mutate: updatePerfil, isPending: isUpdating } = useUpdatePerfil();
   const { rol: storeRol } = useAuthStore();
+  const isEstudiante = storeRol === 'ESTUDIANTE';
+  const { data: postulaciones = [] } = useMisPostulaciones({ enabled: isEstudiante });
+  const proyectosAceptados = postulaciones.filter(p => p.estado === 'ACEPTADO');
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -92,18 +97,17 @@ const PerfilPage = () => {
   const user = userProfile || {};
   const displayRol = user.rol || storeRol || 'Estudiante';
 
-  // Datos simulados originales del proyecto
   const academicInfo = {
-    universidad: "Universidad Privada del Norte",
-    carrera: "Ingeniería de Sistemas Computacionales",
-    codigo: "N00012345",
-    ciclo: "8vo Ciclo"
+    universidad: user.universidad || "No especificada",
+    carrera: user.carrera || "No especificada",
+    codigo: user.codigo || "No especificado",
+    ciclo: user.ciclo || "No especificado"
   };
 
   const locationInfo = {
-    ciudad: "Cajamarca",
-    pais: "Perú",
-    sector: "Cajamarca / Disponible para remoto"
+    ciudad: user.ciudad || "No especificada",
+    pais: user.pais || "No especificado",
+    sector: user.sector || "No especificado"
   };
 
   return (
@@ -138,28 +142,31 @@ const PerfilPage = () => {
                 </div>
               )}
             </div>
-            <button className="absolute bottom-2 right-2 p-2 bg-primary text-white rounded-xl shadow-lg border-4 border-background hover:scale-105 transition-transform">
-              <Camera size={20} />
-            </button>
           </div>
           
           <div className="flex-1 pb-2 text-center md:text-left">
             <h1 className="text-3xl font-extrabold text-on-background">{user.nombre || 'Usuario'}</h1>
             <p className="text-base text-primary font-bold flex items-center justify-center md:justify-start gap-2">
               {displayRol}
-              <span className="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
-              {academicInfo.universidad}
+              {isEstudiante && (
+                <span className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+                  <span>{academicInfo.universidad}</span>
+                </span>
+              )}
             </p>
           </div>
           
           <div className="pb-2 flex gap-2">
-            <button 
-              onClick={isEditing ? handleCancelEdit : handleStartEdit}
-              className={`${isEditing ? 'bg-red-500' : 'bg-primary'} text-white px-6 h-12 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg transition-all active:scale-95`}
-            >
-              {isEditing ? <X size={18} /> : <Edit2 size={18} />}
-              {isEditing ? 'Cancelar' : 'Editar Perfil'}
-            </button>
+            {isEstudiante && (
+              <button 
+                onClick={isEditing ? handleCancelEdit : handleStartEdit}
+                className={`${isEditing ? 'bg-red-500' : 'bg-primary'} text-white px-6 h-12 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg transition-all active:scale-95`}
+              >
+                {isEditing ? <X size={18} /> : <Edit2 size={18} />}
+                <span>{isEditing ? 'Cancelar' : 'Editar Perfil'}</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -171,124 +178,126 @@ const PerfilPage = () => {
         <div className="lg:col-span-8 space-y-6">
           
           {/* Bio & Professional Summary */}
-          <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <User className="text-primary" size={24} />
-                Perfil Profesional
-              </h3>
-            </div>
-            
-            <div className={!isEditing ? 'block' : 'hidden'}>
-              <p className="text-on-surface-variant text-sm leading-relaxed mb-6">
-                {user.bio || 'Cuéntanos un poco sobre ti...'}
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-start gap-3 p-4 rounded-2xl bg-surface-container-low">
-                  <GraduationCap className="text-primary mt-1" size={20} />
-                  <div>
-                    <span className="font-bold text-on-surface-variant block uppercase text-[10px]">Grado</span>
-                    <span className="text-sm font-bold">{academicInfo.ciclo}, {academicInfo.carrera}</span>
+          {isEstudiante && (
+            <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <User className="text-primary" size={24} />
+                  Perfil Profesional
+                </h3>
+              </div>
+              
+              <div className={!isEditing ? 'block' : 'hidden'}>
+                <p className="text-on-surface-variant text-sm leading-relaxed mb-6">
+                  {user.bio || 'Cuéntanos un poco sobre ti...'}
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-start gap-3 p-4 rounded-2xl bg-surface-container-low">
+                    <GraduationCap className="text-primary mt-1" size={20} />
+                    <div>
+                      <span className="font-bold text-on-surface-variant block uppercase text-[10px]">Grado</span>
+                      <span className="text-sm font-bold">{academicInfo.ciclo}, {academicInfo.carrera}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <form onSubmit={handleSubmit} className={`space-y-4 ${isEditing ? 'block' : 'hidden'}`}>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-1">Biografía</label>
-                <textarea
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleInputChange}
-                  className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                  rows="3"
-                  placeholder="Cuéntanos un poco sobre ti..."
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-1">Habilidades (separadas por comas)</label>
-                <input
-                  type="text"
-                  name="skills"
-                  value={formData.skills}
-                  onChange={handleInputChange}
-                  className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                  placeholder="React, Node, CSS..."
-                />
-              </div>
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isUpdating}
-                  className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-lg disabled:opacity-50"
-                >
-                  {isUpdating ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                  Guardar Cambios
-                </button>
-              </div>
-            </form>
-          </section>
+              <form onSubmit={handleSubmit} className={`space-y-4 ${isEditing ? 'block' : 'hidden'}`}>
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-1">Biografía</label>
+                  <textarea
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleInputChange}
+                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    rows="3"
+                    placeholder="Cuéntanos un poco sobre ti..."
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-1">Habilidades (separadas por comas)</label>
+                  <input
+                    type="text"
+                    name="skills"
+                    value={formData.skills}
+                    onChange={handleInputChange}
+                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    placeholder="React, Node, CSS..."
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isUpdating}
+                    className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-lg disabled:opacity-50"
+                  >
+                    {isUpdating ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                    <span>Guardar Cambios</span>
+                  </button>
+                </div>
+              </form>
+            </section>
+          )}
 
           {/* Academic Journey (Timeline Style) */}
-          <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
-            <h3 className="text-xl font-bold flex items-center gap-2 mb-6">
-              <GraduationCap className="text-primary" size={24} />
-              Trayectoria Académica
-            </h3>
-            <div className="space-y-4 relative before:absolute before:left-4 before:top-4 before:bottom-4 before:w-0.5 before:bg-outline-variant">
-              {/* Entry 1 */}
-              <div className="relative pl-10">
-                <div className="absolute left-1.5 top-1 w-5 h-5 rounded-full bg-primary-container border-4 border-background"></div>
-                <div className="p-4 bg-surface-container border border-outline-variant/20 rounded-2xl hover:translate-y-[-2px] transition-all">
-                  <div className="flex justify-between items-start mb-1">
-                    <h4 className="text-lg font-bold text-primary">{academicInfo.carrera}</h4>
-                    <span className="text-xs font-bold text-on-surface-variant bg-surface px-3 py-1 rounded-full border border-outline-variant">Presente</span>
+          {isEstudiante && (
+            <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
+              <h3 className="text-xl font-bold flex items-center gap-2 mb-6">
+                <GraduationCap className="text-primary" size={24} />
+                Trayectoria Académica
+              </h3>
+              <div className="space-y-4 relative before:absolute before:left-4 before:top-4 before:bottom-4 before:w-0.5 before:bg-outline-variant">
+                {/* Entry 1 */}
+                <div className="relative pl-10">
+                  <div className="absolute left-1.5 top-1 w-5 h-5 rounded-full bg-primary-container border-4 border-background"></div>
+                  <div className="p-4 bg-surface-container border border-outline-variant/20 rounded-2xl hover:translate-y-[-2px] transition-all">
+                    <div className="flex justify-between items-start mb-1">
+                      <h4 className="text-lg font-bold text-primary">{academicInfo.carrera}</h4>
+                      <span className="text-xs font-bold text-on-surface-variant bg-surface px-3 py-1 rounded-full border border-outline-variant">Presente</span>
+                    </div>
+                    <p className="text-sm font-bold mb-1">{academicInfo.universidad}</p>
+                    <p className="text-xs text-on-surface-variant">Código: {academicInfo.codigo} | Ciclo: {academicInfo.ciclo}</p>
                   </div>
-                  <p className="text-sm font-bold mb-1">{academicInfo.universidad}</p>
-                  <p className="text-xs text-on-surface-variant">Código: {academicInfo.codigo} | Ciclo: {academicInfo.ciclo}</p>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           {/* Portfolio / Projects (Bento-style grid) */}
-          <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <Layers className="text-primary" size={24} />
-                Portafolio de Proyectos
-              </h3>
-              <button className="text-primary font-bold flex items-center gap-1 hover:underline text-sm">
-                Ver todos
-                <ArrowRight size={16} />
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="group relative aspect-video rounded-2xl overflow-hidden cursor-pointer">
-                <img 
-                  alt="Dashboard Proyecto" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD2ObASeZRMUAerk31NZWNG7CRaFS-zLiZ_AMUE9m3sqkqkJTo0eTaNxwrrCRfadKF4YBzXCrCFjX48AToH11Rv1-_AJWEQE04o5dmHqQYDXxBl-42g4ZrlkO58txiWXXFMsOP2RzoKw1sXxpesLOOb07lmHWJSlG8lufHW9OH4YtkqkGC_Xr0CnrBD7xUXHIN7Qv8e8VoAS3ztTX6WIoiRnQvkGJXLTf8pAYpIloBNpDGnUtCbZkqev-AsmuOrqIqZhOkBHvz6mI" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">
-                  <h5 className="text-white font-bold">Proyecto Demo 1</h5>
-                  <p className="text-white/80 text-xs">Descripción corta del proyecto</p>
-                </div>
+          {isEstudiante && (
+            <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold flex items-center gap-2">
+                  <Layers className="text-primary" size={24} />
+                  Portafolio de Proyectos
+                </h3>
+                <Link to="/estudiante/mis-postulaciones" className="text-primary font-bold flex items-center gap-1 hover:underline text-sm">
+                  Ver todos
+                  <ArrowRight size={16} />
+                </Link>
               </div>
-              <div className="group relative aspect-video rounded-2xl overflow-hidden cursor-pointer">
-                <img 
-                  alt="Análisis de datos" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPxmaDcjTqKpp9iZbSAHyWsv22PKChCNh070a91g8nqDN76eBw4cK0vw8UOsWfMlWJzm5j52HjdtwjtWb6P_S4mE6gQ91r4ZsLflys0NTK_vKSFCJY41tlvAs3BDveazWvOsShoHdHKxcM5z-qGPGCLWztfYb5822xNVclX1RHjd0dtH5qQpZ2NNXtmmk5YxpoC5OPucQwJ5X8fGkFOJksbJ-iInk4Ycsay3rJbUJy6Yc-xEVWMDxwgPByZYP16ACffFRpL9pGbw4" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4">
-                  <h5 className="text-white font-bold">Proyecto Demo 2</h5>
-                  <p className="text-white/80 text-xs">Visualización de KPIS</p>
+              
+              {proyectosAceptados.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {proyectosAceptados.slice(0, 4).map((proyecto, index) => (
+                    <Link to={`/proyectos/${proyecto.proyectoId}`} key={index} className="group relative aspect-video rounded-2xl overflow-hidden cursor-pointer bg-slate-900 border border-outline-variant/30">
+                      <div className={`absolute inset-0 bg-gradient-to-br ${index % 2 === 0 ? 'from-primary to-indigo-900' : 'from-slate-800 to-primary-container'} opacity-80 group-hover:opacity-100 transition-opacity duration-500`}></div>
+                      <div className="absolute inset-0 flex flex-col justify-end p-4 z-10 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+                        <h5 className="text-white font-bold truncate">{proyecto.proyectoTitulo || "Proyecto sin título"}</h5>
+                        <p className="text-white/80 text-xs">ID de Proyecto: {proyecto.proyectoId}</p>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-              </div>
-            </div>
-          </section>
+              ) : (
+                <div className="p-8 text-center bg-surface-container-low rounded-2xl border border-dashed border-outline-variant">
+                  <p className="text-on-surface-variant font-medium text-sm">
+                    Aún no tienes proyectos completados o aceptados. ¡Postula a proyectos MYPE para armar tu portafolio!
+                  </p>
+                </div>
+              )}
+            </section>
+          )}
         </div>
 
         {/* Right Column (Sidebar Stats, Location, Skills) */}
@@ -344,23 +353,25 @@ const PerfilPage = () => {
           </section>
 
           {/* Skills & Tags */}
-          <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">Habilidades</h3>
-              <Zap size={24} className="text-primary" />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {user.skills ? (
-                user.skills.split(',').map((skill, index) => (
-                  <span key={index} className="px-3 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-xs">
-                    {skill.trim()}
-                  </span>
-                ))
-              ) : (
-                <span className="text-xs text-slate-400">No registradas</span>
-              )}
-            </div>
-          </section>
+          {isEstudiante && (
+            <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-3xl shadow-sm border border-outline-variant/30">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold">Habilidades</h3>
+                <Zap size={24} className="text-primary" />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {user.skills ? (
+                  user.skills.split(',').map((skill, index) => (
+                    <span key={index} className="px-3 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-xs">
+                      {skill.trim()}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-slate-400">No registradas</span>
+                )}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </div>
