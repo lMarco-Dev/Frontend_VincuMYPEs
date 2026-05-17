@@ -5,7 +5,7 @@ export function useMisPostulaciones(options = {}) {
   return useQuery({
     queryKey: ["mis-postulaciones"],
     queryFn: async () => {
-      const response = await httpClient.get("/proyectos/mis-postulaciones");
+      const response = await httpClient.get("/estudiantes/me/postulaciones");
       return response.data;
     },
     ...options
