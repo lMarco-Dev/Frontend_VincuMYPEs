@@ -1,25 +1,43 @@
 import React, { useState } from 'react';
 import { usePostular } from './usePostular';
 import { Send, Loader2, CheckCircle } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
 const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
   const [mensaje, setMensaje] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   // Usamos el hook y renombramos la función a 'postular' como se solicitó
-  const { postular, estaCargando, error } = usePostular();
+  const { postular, estaCargando } = usePostular();
 
   const manejarEnvioDePostulacion = (e) => {
     e.preventDefault();
     if (mensaje.length > 200) return;
     
-    // Ejecutamos la acción de postular
+    // Ejecutamos la acción de postular con callbacks de mutación personalizados
     postular({ 
       proyectoId: proyectoId,
       datos: {
         mensajePostulacion: mensaje,
         archivoAdjunto: "" // Opcional según manual técnico
+      }
+    }, {
+      onSuccess: () => {
+        setIsSuccess(true);
+        setMensaje('');
+        // Ocultar mensaje de éxito después de 3.5 segundos
+        setTimeout(() => {
+          setIsSuccess(false);
+          setShowForm(false);
+        }, 3500);
+      },
+      onError: (err) => {
+        const msg = err.response?.data?.message || err.message || "Error al enviar la postulación";
+        setErrorMessage(msg);
+        setTimeout(() => setErrorMessage(''), 5000);
       }
     });
   };
@@ -33,6 +51,24 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
         <CheckCircle size={20} />
         Ya postulaste
       </button>
+    );
+  }
+
+  if (isSuccess) {
+    return (
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="w-full bg-emerald-50 border border-emerald-100 p-5 rounded-2xl flex flex-col items-center justify-center text-center shadow-lg shadow-emerald-50/50"
+      >
+        <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center mb-3 shadow-md shadow-emerald-200">
+          <CheckCircle size={24} className="animate-bounce" style={{ animationDuration: '2s' }} />
+        </div>
+        <h4 className="text-sm font-extrabold text-emerald-800 mb-1">¡Postulación Enviada!</h4>
+        <p className="text-xs text-emerald-600 font-semibold leading-relaxed">
+          Tu aplicación ha sido registrada y enviada a la MYPE con éxito.
+        </p>
+      </motion.div>
     );
   }
 
@@ -100,6 +136,12 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
               )}
             </button>
           </div>
+
+          {errorMessage && (
+            <p className="text-red-500 text-[11px] font-bold text-center bg-red-50 p-2.5 rounded-xl border border-red-100 mt-2">
+              ⚠️ {errorMessage}
+            </p>
+          )}
         </motion.form>
       )}
     </div>
