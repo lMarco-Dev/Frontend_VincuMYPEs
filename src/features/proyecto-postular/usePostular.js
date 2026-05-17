@@ -15,12 +15,10 @@ export function usePostular() {
       // Invalidamos las consultas de proyectos para refrescar el estado de "yaPostulado"
       queryClient.invalidateQueries({ queryKey: ["proyectos"] });
       queryClient.invalidateQueries({ queryKey: ["proyecto"] });
-      alert("¡Postulación enviada con éxito!");
     },
 
     onError: (error) => {
-      const mensajeError = handleApiError(error);
-      alert(mensajeError);
+      handleApiError(error);
     },
   });
 
