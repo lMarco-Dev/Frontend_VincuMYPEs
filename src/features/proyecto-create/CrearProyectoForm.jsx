@@ -40,7 +40,7 @@ const ARBOL_DECISION = {
     ]
   },
   experiencia_clientes: {
-    pregunta: "¿Tienes identificado qué aspect deseas optimizar con tus clientes?",
+    pregunta: "¿Tienes identificado qué aspecto deseas optimizar con tus clientes?",
     opciones: [
       { texto: "Sí, sé exactamente qué aplicación o sistema web requiero mapear", resultado: "3.1" },
       { texto: "Tengo un proceso digital actual que suele confundir o trabar a mis clientes", resultado: "3.2" },
@@ -78,7 +78,7 @@ const LEAF_PROJECTS = {
     areaSistemas: "SISTEMAS_INFORMACION"
   },
   "1.4": {
-    titulo: "Dashboard interactivo para la visualización de datos empresariales",
+    titulo: "Dashboard interactivo para la visualización de datosempresariales",
     recibiras: "Un panel de control gráfico (métricas, barras, líneas de tiempo) interactivo conectado a tus datos comerciales para que evalúes el rendimiento de tu negocio al instante.",
     tiempo: "4 a 5 días",
     areaSistemas: "SISTEMAS_INFORMACION"
@@ -146,7 +146,7 @@ const LEAF_PROJECTS = {
 };
 
 export function CrearProyectoForm() {
-  // ── INTEGRACIÓN DE TU HOOK REAL CON REACT QUERY ──
+  // Conectamos tu mutación real de TanStack Query
   const { crearProyecto, isLoading, error: apiError } = useCrearProyecto();
 
   const [history, setHistory] = useState(["inicio"]);
@@ -177,32 +177,28 @@ export function CrearProyectoForm() {
     }
   };
 
-  // Enviar los datos mapeados quirúrgicamente al backend
   const handlePublishSubmit = (e) => {
     e.preventDefault();
-
-    // Estructuramos el payload esperado por tu RegisterMypeRequest/Controller en Spring Boot
+    
+    // Mapeamos las respuestas del árbol al payload final que Spring Boot procesa
     const projectPayload = {
       titulo: selectedResult.titulo,
-      // Si el usuario escribe notas, se vuelve la descripción, sino dejamos una genérica profesional
       descripcion: comentario.trim() 
         ? comentario.trim() 
         : `Requerimiento solicitado para el desarrollo e implementación de un(a) ${selectedResult.titulo}.`,
       objetivo: `Solucionar la necesidad empresarial mediante un diseño de ${selectedResult.titulo} a medida.`,
       entregablesSugeridos: selectedResult.recibiras,
       areaSistemas: selectedResult.areaSistemas,
-      fechaInicio: null, // Campos opcionales requeridos en nulo o manejados por BD
+      fechaInicio: null,
       fechaLimite: null
     };
 
-    console.log("Despachando payload legítimo al endpoint /proyectos:", projectPayload);
-    
-    // Disparamos la mutación real de React Query
+    // Disparamos la mutación real de Axios
     crearProyecto(projectPayload);
   };
 
   return (
-    <div style={{ fontFamily: "'Angro Std', 'Outfit', sans-serif" }}>
+    <div>
       <style>{`
         .wizard-option-btn {
           width: 100%;
@@ -230,7 +226,6 @@ export function CrearProyectoForm() {
         }
         .text-brand-orange { color: #F97316; }
         .text-brand-cyan { color: #06B6D4; }
-        .bg-brand-orange { background-color: #F97316; }
         
         .saas-textarea {
           width: 100%;
@@ -246,14 +241,12 @@ export function CrearProyectoForm() {
           resize: vertical;
           transition: border-color 0.2s;
         }
-        .saas-textarea:focus {
-          border-color: #F97316;
-        }
+        .saas-textarea:focus { border-color: #F97316; }
       `}</style>
 
       <AnimatePresence mode="wait">
         {!selectedResult ? (
-          /* ── FLUJO DE PREGUNTAS DEL ÁRBOL ── */
+          /* ── PREGUNTAS DEL ÁRBOL ── */
           <motion.div
             key={currentKey}
             initial={{ opacity: 0, x: 10 }}
@@ -300,7 +293,7 @@ export function CrearProyectoForm() {
             )}
           </motion.div>
         ) : (
-          /* ── FORMULARIO/FICHA DE CONFIRMACIÓN Y ENVÍO ── */
+          /* ── CONFIRMACIÓN FINAL Y ENVÍO RE-ACOPLADO ── */
           <motion.form
             key="resultado-final"
             onSubmit={handlePublishSubmit}
@@ -317,7 +310,6 @@ export function CrearProyectoForm() {
               </span>
             </div>
 
-            {/* Ficha Resumen del Proyecto Mapeado */}
             <div className="bg-[#081828] border border-slate-700/50 rounded-xl p-5 flex flex-col gap-4 shadow-inner">
               <div>
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Título clasificado:</p>
@@ -342,7 +334,6 @@ export function CrearProyectoForm() {
               </div>
             </div>
 
-            {/* Cuadro de texto para sobreescribir o añadir descripción manual */}
             <div className="flex flex-col gap-2">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 Describe detalladamente tu problema o requerimiento (Obligatorio)
@@ -356,7 +347,6 @@ export function CrearProyectoForm() {
               />
             </div>
 
-            {/* Gestión de errores globales provenientes del API Handler */}
             {apiError && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 flex items-center gap-2.5 text-red-400 text-sm">
                 <AlertCircle size={16} className="shrink-0" />
@@ -364,7 +354,6 @@ export function CrearProyectoForm() {
               </div>
             )}
 
-            {/* Botonera de Envío Real */}
             <div className="flex gap-3 pt-1">
               <button
                 type="button"
