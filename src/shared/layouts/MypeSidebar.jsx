@@ -1,6 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
-import { Logo } from "@/shared/ui/Logo";
 import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -15,15 +14,13 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 
+const FONT = "'Angro Std', 'Outfit', sans-serif";
+
 const NAV = [
   {
     label: "Principal",
     items: [
-      {
-        to: "/dashboard/mype",
-        icon: LayoutDashboard,
-        label: "Dashboard",
-      },
+      { to: "/dashboard/mype", icon: LayoutDashboard, label: "Dashboard" },
       {
         to: "/dashboard/mype/proyectos",
         icon: Briefcase,
@@ -33,11 +30,12 @@ const NAV = [
         to: "/dashboard/mype/postulantes",
         icon: Users,
         label: "Postulantes",
+        badge: true,
       },
     ],
   },
   {
-    label: "Gestion",
+    label: "Gestión",
     items: [
       {
         to: "/dashboard/mype/ejecucion",
@@ -59,11 +57,7 @@ const NAV = [
   {
     label: "Cuenta",
     items: [
-      {
-        to: "/dashboard/mype/perfil",
-        icon: UserCircle,
-        label: "Mi perfil",
-      },
+      { to: "/dashboard/mype/perfil", icon: UserCircle, label: "Mi perfil" },
       {
         to: "/dashboard/mype/configuracion",
         icon: Settings,
@@ -73,22 +67,41 @@ const NAV = [
   },
 ];
 
-function NavItem({ to, icon: Icon, label }) {
+function NavItem({ to, icon: Icon, label, badge }) {
   const { pathname } = useLocation();
   const active = pathname === to;
 
   return (
     <Link
       to={to}
+      style={{ fontFamily: FONT }}
       className={clsx(
-        "flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5",
+        "flex items-center gap-2 px-2.5 py-[7px] rounded-lg text-[12px] transition-all duration-150 mb-[2px] border no-underline",
         active
-          ? "bg-white/12 text-white font-medium"
-          : "text-white/55 hover:bg-white/7 hover:text-white/85",
+          ? "bg-[rgba(27,111,232,0.18)] text-white border-[rgba(27,111,232,0.3)] font-semibold"
+          : "text-white/45 hover:bg-white/[0.06] hover:text-white/80 border-transparent",
       )}
     >
-      <Icon size={17} className="shrink-0" />
-      {label}
+      <Icon
+        size={15}
+        className={clsx("shrink-0", active && "text-[#06B6D4]")}
+      />
+      <span className="flex-1">{label}</span>
+      {badge && (
+        <span
+          style={{
+            background: "rgba(249,115,22,0.2)",
+            color: "#FB923C",
+            border: "1px solid rgba(249,115,22,0.3)",
+            fontSize: 9,
+            fontWeight: 700,
+            padding: "1px 6px",
+            borderRadius: 10,
+          }}
+        >
+          •
+        </span>
+      )}
     </Link>
   );
 }
@@ -111,32 +124,162 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-[220px] bg-primary flex flex-col flex-shrink-0">
+    <aside
+      style={{
+        width: 210,
+        flexShrink: 0,
+        display: "flex",
+        flexDirection: "column",
+        background:
+          "linear-gradient(170deg,#081828 0%,#0F2A4A 60%,#0C3260 100%)",
+        position: "relative",
+        overflow: "hidden",
+        fontFamily: FONT,
+      }}
+    >
+      {/* Dot grid */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px,rgba(255,255,255,0.045) 1px,transparent 0)",
+          backgroundSize: "28px 28px",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+
+      {/* Glow orbe */}
+      <div
+        style={{
+          position: "absolute",
+          top: -80,
+          right: -80,
+          width: 200,
+          height: 200,
+          borderRadius: "50%",
+          background: "radial-gradient(circle,#06B6D4,transparent 70%)",
+          opacity: 0.12,
+          filter: "blur(40px)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-white/8">
-        <div className="bg-white/12 rounded-lg px-3 py-2 flex items-center gap-2">
-          <Logo />
-        </div>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          padding: "16px 14px 12px",
+          borderBottom: "0.5px solid rgba(255,255,255,0.07)",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <svg
+          viewBox="0 0 100 100"
+          fill="none"
+          style={{ width: 26, height: 26, flexShrink: 0 }}
+        >
+          <path d="M20 15 L50 85 L65 85 L35 15 Z" fill="#1B6FE8" />
+          <path
+            d="M80 15 L50 85 L35 85 L65 15 Z"
+            fill="#06B6D4"
+            opacity="0.9"
+          />
+          <circle cx="50" cy="85" r="8" fill="#F97316" />
+        </svg>
+        <span
+          style={{
+            fontSize: 14,
+            fontWeight: 700,
+            color: "#fff",
+            letterSpacing: -0.3,
+          }}
+        >
+          Vincu<span style={{ color: "#06B6D4" }}>MYPEs</span>
+        </span>
       </div>
 
       {/* Usuario */}
-      <div className="px-4 py-3.5 border-b border-white/8 flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-xs font-medium shrink-0">
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          padding: "10px 14px",
+          borderBottom: "0.5px solid rgba(255,255,255,0.07)",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            flexShrink: 0,
+            background: "linear-gradient(135deg,#1B6FE8,#06B6D4)",
+            border: "1.5px solid rgba(6,182,212,0.35)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 11,
+            fontWeight: 700,
+            color: "#fff",
+          }}
+        >
           {initials}
         </div>
-        <div className="min-w-0">
-          <p className="text-white/90 text-xs font-medium truncate">
+        <div style={{ minWidth: 0 }}>
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              color: "rgba(255,255,255,0.85)",
+              margin: 0,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             {user?.nombre}
           </p>
-          <p className="text-white/40 text-[11px]">MYPE</p>
+          <p
+            style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: 0 }}
+          >
+            MYPE · Cuenta activa
+          </p>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2 py-3 overflow-y-auto">
+      <nav
+        style={{
+          position: "relative",
+          zIndex: 1,
+          flex: 1,
+          padding: "10px 8px",
+          overflowY: "auto",
+        }}
+      >
         {NAV.map((section) => (
-          <div key={section.label} className="mb-5">
-            <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-2 mb-1">
+          <div key={section.label} style={{ marginBottom: 16 }}>
+            <p
+              style={{
+                fontSize: 9,
+                fontWeight: 700,
+                color: "rgba(255,255,255,0.25)",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                padding: "0 8px",
+                marginBottom: 4,
+                margin: "0 0 4px",
+              }}
+            >
               {section.label}
             </p>
             {section.items.map((item) => (
@@ -147,13 +290,41 @@ export function Sidebar() {
       </nav>
 
       {/* Logout */}
-      <div className="p-2 border-t border-white/8">
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          padding: 8,
+          borderTop: "0.5px solid rgba(255,255,255,0.07)",
+        }}
+      >
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-white/40 hover:text-white/70 hover:bg-white/5 transition-all w-full"
+          style={{
+            fontFamily: FONT,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "7px 10px",
+            borderRadius: 8,
+            fontSize: 12,
+            color: "rgba(255,255,255,0.3)",
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            width: "100%",
+            transition: "all 0.15s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+            e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "rgba(255,255,255,0.3)";
+            e.currentTarget.style.background = "transparent";
+          }}
         >
-          <LogOut size={17} />
-          Cerrar sesión
+          <LogOut size={15} /> Cerrar sesión
         </button>
       </div>
     </aside>

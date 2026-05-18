@@ -1,4 +1,25 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap");
+
 @import "tailwindcss";
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 @theme {
   --color-primary: #1e3a5f;
@@ -18,28 +39,28 @@
   --color-surface-container: #efecf8;
   --color-surface-container-high: #e9e6f3;
   --color-surface-container-highest: #e4e1ed;
-  
+
   --color-on-surface: #1b1b23;
   --color-on-surface-variant: #464554;
-  
+
   --color-outline: #767586;
   --color-outline-variant: #c7c4d7;
-  
+
   --color-primary-container: #6063ee;
   --color-secondary-container: #d2e1f7;
   --color-tertiary-container: #b55d00;
-  
+
   --color-primary-fixed: #e1e0ff;
   --color-primary-fixed-dim: #c0c1ff;
   --color-secondary-fixed: #d4e4fa;
   --color-secondary-fixed-dim: #b9c8de;
   --color-tertiary-fixed: #ffdcc5;
   --color-tertiary-fixed-dim: #ffb783;
-  
+
   --color-on-primary: #ffffff;
   --color-on-secondary: #ffffff;
   --color-on-tertiary: #ffffff;
-  
+
   --color-on-primary-container: #fffbff;
   --color-on-secondary-container: #556477;
   --color-on-tertiary-container: #fffbff;
@@ -50,4 +71,3 @@
   --color-primary: #4648d4;
   --color-primary-container: #6063ee;
 }
-

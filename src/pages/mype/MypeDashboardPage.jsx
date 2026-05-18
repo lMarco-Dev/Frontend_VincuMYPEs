@@ -1,9 +1,7 @@
 import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import { PROYECTO_ESTADO } from "@/entities/proyecto/proyecto.constants";
-import { Link } from "react-router-dom";
-import { Button } from "@/shared/ui/Button";
-import { Skeleton } from "@/shared/ui/Skeleton";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FileText,
   Users,
@@ -13,10 +11,78 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+const FONT = "'Angro Std', 'Outfit', sans-serif";
+
+export function EstadoBadge({ estado }) {
+  const map = {
+    BORRADOR: {
+      bg: "#F3F4F6",
+      color: "#4B5563",
+      border: "#E5E7EB",
+      label: "Borrador",
+    },
+    PENDIENTE: {
+      bg: "#EFF6FF",
+      color: "#1D4ED8",
+      border: "#BFDBFE",
+      label: "Publicado",
+    },
+    EN_DESARROLLO: {
+      bg: "#FFFBEB",
+      color: "#B45309",
+      border: "#FDE68A",
+      label: "En desarrollo",
+    },
+    EN_REVISION: {
+      bg: "#F5F3FF",
+      color: "#6D28D9",
+      border: "#DDD6FE",
+      label: "En revisión",
+    },
+    COMPLETADO: {
+      bg: "#F0FDF4",
+      color: "#15803D",
+      border: "#BBF7D0",
+      label: "Completado",
+    },
+  };
+  const s = map[estado] ?? map.BORRADOR;
+  return (
+    <span
+      style={{
+        fontFamily: FONT,
+        fontSize: 10,
+        fontWeight: 700,
+        padding: "2px 9px",
+        borderRadius: 10,
+        background: s.bg,
+        color: s.color,
+        border: `1px solid ${s.border}`,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {s.label}
+    </span>
+  );
+}
+
+function Sk({ h = 80 }) {
+  return (
+    <div
+      style={{
+        height: h,
+        borderRadius: 10,
+        background: "#E5E7EB",
+        animation: "pulse 1.5s ease-in-out infinite",
+      }}
+    />
+  );
+}
+
 export function MypeDashboardPage() {
   const { proyectos, isLoading } = useMisProyectos();
+  const navigate = useNavigate();
 
-  // Métricas calculadas desde los datos reales
   const pendientes = proyectos.filter(
     (p) => p.estado === PROYECTO_ESTADO.PENDIENTE,
   ).length;
@@ -30,247 +96,465 @@ export function MypeDashboardPage() {
     (p) => p.estado === PROYECTO_ESTADO.BORRADOR,
   ).length;
 
+  const recientes = [...proyectos]
+    .sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion))
+    .slice(0, 4);
+
   const stats = [
     {
       label: "Total proyectos",
       valor: proyectos.length,
       icon: FileText,
-      color: "bg-slate-50 text-slate-700 border-slate-200",
+      bg: "#EFF6FF",
+      color: "#1B6FE8",
     },
     {
       label: "Publicados",
       valor: pendientes,
       icon: Users,
-      color: "bg-orange-50/60 text-orange-600 border-orange-100",
+      bg: "#F0F9FF",
+      color: "#0891B2",
     },
     {
       label: "En desarrollo",
       valor: enDesarrollo,
       icon: Play,
-      color: "bg-slate-50 text-slate-700 border-slate-200",
+      bg: "#FFFBEB",
+      color: "#D97706",
     },
     {
       label: "Completados",
       valor: completados,
       icon: CheckCircle,
-      color: "bg-slate-50 text-slate-700 border-slate-200",
+      bg: "#F0FDF4",
+      color: "#16A34A",
     },
   ];
 
-  // Proyectos recientes (últimos 3)
-  const recientes = [...proyectos]
-    .sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion))
-    .slice(0, 3);
+  const barras = [
+    {
+      label: "Publicados",
+      count: pendientes,
+      bar: "linear-gradient(90deg,#1B6FE8,#06B6D4)",
+    },
+    { label: "En desarrollo", count: enDesarrollo, bar: "#F97316" },
+    { label: "Borradores", count: borradores, bar: "#6B7280" },
+    { label: "Completados", count: completados, bar: "#10B981" },
+  ];
 
   return (
     <MypeLayout
       titulo="Dashboard"
       accion={{ to: "/dashboard/mype/crear", label: "Nuevo proyecto" }}
     >
-      <style>{`
-        .saas-card {
-          background: #ffffff;
-          border: 1px solid #E2E8F0;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-          transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-        .saas-card:hover {
-          border-color: #CBD5E1;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        }
-        .text-brand-orange {
-          color: #F97316;
-        }
-        .bg-brand-orange {
-          background-color: #F97316;
-        }
-      `}</style>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* Stats */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4,1fr)",
+          gap: 10,
+          marginBottom: 16,
+        }}
+      >
         {isLoading
-          ? [1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-24 rounded-xl" />
-            ))
+          ? [1, 2, 3, 4].map((i) => <Sk key={i} h={76} />)
           : stats.map((s) => {
               const Icon = s.icon;
               return (
                 <div
                   key={s.label}
-                  className="saas-card rounded-xl p-5 flex items-center gap-4"
+                  style={{
+                    background: "#fff",
+                    border: "0.5px solid #E5E7EB",
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    transition: "box-shadow 0.2s",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.boxShadow =
+                      "0 4px 16px rgba(0,0,0,0.05)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.boxShadow = "none")
+                  }
                 >
                   <div
-                    className={`w-11 h-11 rounded-lg border flex items-center justify-center shrink-0 ${s.color}`}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 8,
+                      background: s.bg,
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                   >
-                    <Icon size={18} strokeWidth={2.2} />
+                    <Icon size={17} color={s.color} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-900 tracking-tight">
+                    <p
+                      style={{
+                        fontFamily: FONT,
+                        fontSize: 22,
+                        fontWeight: 700,
+                        color: "#111827",
+                        margin: 0,
+                        lineHeight: 1,
+                      }}
+                    >
                       {s.valor}
                     </p>
-                    <p className="text-xs font-medium text-slate-500 mt-0.5">{s.label}</p>
+                    <p
+                      style={{
+                        fontFamily: FONT,
+                        fontSize: 10,
+                        color: "#9CA3AF",
+                        margin: "3px 0 0",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {s.label}
+                    </p>
                   </div>
                 </div>
               );
             })}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      {/* Dos columnas */}
+      <div
+        style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: 12 }}
+      >
         {/* Proyectos recientes */}
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-          <div className="flex justify-between items-center mb-5">
-            <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wider text-xs">
+        <div
+          style={{
+            background: "#fff",
+            border: "0.5px solid #E5E7EB",
+            borderRadius: 10,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              padding: "12px 16px",
+              borderBottom: "0.5px solid #F3F4F6",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <p
+              style={{
+                fontFamily: FONT,
+                fontSize: 11,
+                fontWeight: 700,
+                color: "#111827",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+                margin: 0,
+              }}
+            >
               Proyectos recientes
-            </h2>
+            </p>
             <Link
               to="/dashboard/mype/proyectos"
-              className="text-xs font-semibold text-brand-orange hover:text-orange-700 flex items-center gap-1 transition-colors"
+              style={{
+                fontFamily: FONT,
+                fontSize: 11,
+                fontWeight: 600,
+                color: "#1B6FE8",
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 3,
+              }}
             >
-              Ver todos <ArrowRight size={13} />
+              Ver todos <ArrowRight size={12} />
             </Link>
           </div>
 
           {isLoading ? (
-            <div className="space-y-3">
+            <div
+              style={{
+                padding: 16,
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
               {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-16 rounded-lg" />
+                <Sk key={i} h={52} />
               ))}
             </div>
           ) : recientes.length === 0 ? (
-            <div className="text-center py-12 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-              <p className="text-slate-400 text-sm mb-4">
-                Aún no tienes proyectos registrados en la plataforma
+            <div style={{ padding: "40px 16px", textAlign: "center" }}>
+              <p
+                style={{
+                  fontFamily: FONT,
+                  fontSize: 13,
+                  color: "#9CA3AF",
+                  marginBottom: 12,
+                }}
+              >
+                Aún no tienes proyectos publicados
               </p>
               <Link to="/dashboard/mype/crear">
-                <Button className="bg-brand-orange hover:bg-orange-600 text-white font-medium px-4 py-2 rounded-lg text-sm transition-all shadow-sm">
+                <button
+                  style={{
+                    fontFamily: FONT,
+                    padding: "0 16px",
+                    height: 34,
+                    borderRadius: 8,
+                    background: "linear-gradient(135deg,#1B6FE8,#0E54C4)",
+                    color: "#fff",
+                    border: "none",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
                   Crear mi primer proyecto
-                </Button>
+                </button>
               </Link>
             </div>
           ) : (
-            <div className="space-y-1">
-              {recientes.map((p) => (
-                <Link
-                  key={p.id}
-                  to="/dashboard/mype/proyectos"
-                  className="flex items-center justify-between p-3.5 rounded-xl hover:bg-slate-50 transition-all group border border-transparent hover:border-slate-100"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 group-hover:text-brand-orange transition-colors truncate">
-                      {p.titulo}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                      {p.fechaLimite
-                        ? `Límite de entrega: ${new Date(p.fechaLimite).toLocaleDateString("es-PE")}`
-                        : "Sin fecha límite especificada"}
-                    </p>
-                  </div>
-                  <EstadoBadge estado={p.estado} />
-                </Link>
-              ))}
-            </div>
+            recientes.map((p, i) => (
+              <div
+                key={p.id}
+                onClick={() => navigate("/dashboard/mype/proyectos")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "10px 16px",
+                  cursor: "pointer",
+                  borderBottom:
+                    i < recientes.length - 1 ? "0.5px solid #F9FAFB" : "none",
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "#F9FAFB")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
+              >
+                <div style={{ minWidth: 0, flex: 1, paddingRight: 12 }}>
+                  <p
+                    style={{
+                      fontFamily: FONT,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "#1F2937",
+                      margin: 0,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {p.titulo}
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: FONT,
+                      fontSize: 11,
+                      color: "#9CA3AF",
+                      margin: "2px 0 0",
+                    }}
+                  >
+                    {p.fechaLimite
+                      ? `Límite: ${new Date(p.fechaLimite).toLocaleDateString("es-PE")}`
+                      : "Sin fecha límite"}
+                  </p>
+                </div>
+                <EstadoBadge estado={p.estado} />
+              </div>
+            ))
           )}
         </div>
 
-        {/* Panel de distribución por estado */}
-        <div className="bg-[#0F2A4A] border border-slate-700/40 rounded-xl p-6 shadow-xl flex flex-col gap-6 w-full">
-          
-          {/* Bloque superior: Gráfico o Estado de Proyectos */}
-          <div className="w-full">
-            <h2 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-4">
-              Estado de proyectos
-            </h2>
-            
-            {isLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} className="h-10 bg-[#081828] rounded-lg" />
-                ))}
-              </div>
-            ) : proyectos.length === 0 ? (
-              /* Caja contenedora elegante para el estado vacío, evitando que se pegue al costado */
-              <div className="text-center py-8 bg-[#081828]/40 border border-dashed border-slate-700/40 rounded-xl w-full">
-                <p className="text-slate-400 text-xs font-light">
-                  Sin datos estadísticos activos
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4 w-full">
-                {[
-                  { label: "Borradores", count: borradores, color: "bg-[#081828]", bar: "bg-slate-500" },
-                  { label: "Publicados / En espera", count: pendientes, color: "bg-[#081828]", bar: "bg-blue-500" },
-                  { label: "En desarrollo", count: enDesarrollo, color: "bg-[#081828]", bar: "bg-cyan-500" },
-                  { label: "Completados", count: completados, color: "bg-[#081828]", bar: "bg-emerald-500" },
-                ].map((item) => (
-                  <div key={item.label} className="w-full">
-                    <div className="flex justify-between text-xs text-slate-400 mb-1.5 font-medium">
-                      <span>{item.label}</span>
-                      <span className="text-white font-bold">{item.count}</span>
-                    </div>
-                    <div className={`h-2 rounded-full w-full ${item.color}`}>
-                      <div
-                        className={`h-2 rounded-full ${item.bar} transition-all duration-500`}
-                        style={{
-                          width: proyectos.length > 0 ? `${(item.count / proyectos.length) * 100}%` : "0%",
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* Panel oscuro */}
+        <div
+          style={{
+            background: "linear-gradient(170deg,#081828,#0F2A4A)",
+            border: "0.5px solid rgba(27,111,232,0.2)",
+            borderRadius: 10,
+            padding: 16,
+            position: "relative",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: -40,
+              right: -40,
+              width: 120,
+              height: 120,
+              borderRadius: "50%",
+              background: "radial-gradient(circle,#06B6D4,transparent 70%)",
+              opacity: 0.1,
+              filter: "blur(30px)",
+              pointerEvents: "none",
+            }}
+          />
 
-          {/* Línea divisoria nítida */}
-          <div className="w-full border-t border-slate-700/50" />
+          <p
+            style={{
+              fontFamily: FONT,
+              fontSize: 10,
+              fontWeight: 700,
+              color: "rgba(255,255,255,0.3)",
+              textTransform: "uppercase",
+              letterSpacing: "1px",
+              margin: 0,
+            }}
+          >
+            Estado de proyectos
+          </p>
 
-          {/* Bloque inferior: Accesos Rápidos Estructurados */}
-          <div className="w-full">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">
-              Accesos rápidos
+          {isLoading ? (
+            [1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                style={{
+                  height: 28,
+                  borderRadius: 6,
+                  background: "rgba(255,255,255,0.07)",
+                  animation: "pulse 1.5s ease-in-out infinite",
+                }}
+              />
+            ))
+          ) : proyectos.length === 0 ? (
+            <p
+              style={{
+                fontFamily: FONT,
+                fontSize: 12,
+                color: "rgba(255,255,255,0.3)",
+                textAlign: "center",
+              }}
+            >
+              Sin datos aún
             </p>
-            <div className="flex flex-col gap-2 w-full">
-              <Link to="/dashboard/mype/crear" className="block w-full text-decoration-none">
-                <button className="flex items-center gap-3 w-full text-sm font-medium text-slate-300 hover:text-brand-orange hover:bg-[#081828]/80 bg-[#081828]/30 rounded-xl px-4 py-3 transition-all border border-transparent hover:border-slate-700/50 cursor-pointer text-left">
-                  <Plus size={16} strokeWidth={2.5} className="text-brand-orange shrink-0" /> 
-                  <span>Publicar nuevo proyecto</span>
+          ) : (
+            barras.map((b) => (
+              <div key={b.label}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontFamily: FONT,
+                    fontSize: 10,
+                    color: "rgba(255,255,255,0.45)",
+                    marginBottom: 4,
+                  }}
+                >
+                  <span>{b.label}</span>
+                  <span style={{ color: "#fff", fontWeight: 700 }}>
+                    {b.count}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    height: 5,
+                    borderRadius: 3,
+                    background: "rgba(255,255,255,0.07)",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: 5,
+                      borderRadius: 3,
+                      background: b.bar,
+                      width:
+                        proyectos.length > 0
+                          ? `${(b.count / proyectos.length) * 100}%`
+                          : "0%",
+                      transition: "width 0.5s ease",
+                    }}
+                  />
+                </div>
+              </div>
+            ))
+          )}
+
+          <div
+            style={{ height: "0.5px", background: "rgba(255,255,255,0.07)" }}
+          />
+
+          <p
+            style={{
+              fontFamily: FONT,
+              fontSize: 10,
+              fontWeight: 700,
+              color: "rgba(255,255,255,0.3)",
+              textTransform: "uppercase",
+              letterSpacing: "1px",
+              margin: 0,
+            }}
+          >
+            Accesos rápidos
+          </p>
+
+          {[
+            {
+              to: "/dashboard/mype/crear",
+              icon: Plus,
+              label: "Nuevo proyecto",
+              color: "#1B6FE8",
+            },
+            {
+              to: "/dashboard/mype/postulantes",
+              icon: Users,
+              label: "Revisar postulantes",
+              color: "#06B6D4",
+            },
+          ].map((b) => {
+            const Icon = b.icon;
+            return (
+              <Link key={b.to} to={b.to} style={{ textDecoration: "none" }}>
+                <button
+                  style={{
+                    fontFamily: FONT,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "8px 10px",
+                    borderRadius: 8,
+                    fontSize: 11,
+                    fontWeight: 500,
+                    color: "rgba(255,255,255,0.45)",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid transparent",
+                    cursor: "pointer",
+                    width: "100%",
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "rgba(255,255,255,0.8)";
+                    e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "rgba(255,255,255,0.45)";
+                    e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                    e.currentTarget.style.borderColor = "transparent";
+                  }}
+                >
+                  <Icon size={14} color={b.color} /> {b.label}
                 </button>
               </Link>
-              <Link to="/dashboard/mype/postulantes" className="block w-full text-decoration-none">
-                <button className="flex items-center gap-3 w-full text-sm font-medium text-slate-300 hover:text-brand-cyan hover:bg-[#081828]/80 bg-[#081828]/30 rounded-xl px-4 py-3 transition-all border border-transparent hover:border-slate-700/50 cursor-pointer text-left">
-                  <Users size={16} strokeWidth={2.2} className="text-brand-cyan shrink-0" /> 
-                  <span>Revisar postulantes de la UPN</span>
-                </button>
-              </Link>
-            </div>
-          </div>
+            );
+          })}
         </div>
       </div>
     </MypeLayout>
-  );
-}
-
-// Badge de estado globalizado e impecable
-export function EstadoBadge({ estado }) {
-  const map = {
-    BORRADOR: "bg-slate-100 text-slate-700 border-slate-200",
-    PENDIENTE: "bg-blue-50 text-blue-700 border-blue-100",
-    EN_DESARROLLO: "bg-amber-50 text-amber-700 border-amber-100",
-    EN_REVISION: "bg-indigo-50 text-indigo-700 border-indigo-100",
-    COMPLETADO: "bg-emerald-50 text-emerald-700 border-emerald-100",
-  };
-  const labels = {
-    BORRADOR: "Borrador",
-    PENDIENTE: "Publicado",
-    EN_DESARROLLO: "En desarrollo",
-    EN_REVISION: "En revisión",
-    COMPLETADO: "Completado",
-  };
-  return (
-    <span
-      className={`text-xs px-2.5 py-1 rounded-full font-semibold border shrink-0 tracking-wide ${map[estado] ?? "bg-slate-100 text-slate-600"}`}
-    >
-      {labels[estado] ?? estado}
-    </span>
   );
 }

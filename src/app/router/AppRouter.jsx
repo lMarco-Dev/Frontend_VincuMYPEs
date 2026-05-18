@@ -9,11 +9,11 @@ import { LandingPage } from "@pages/auth/LandingPage";
 import { LoginPage } from "@pages/auth/LoginPage";
 import { RegisterPage } from "@pages/auth/RegisterPage";
 
-// MYPE pages 
+// MYPE pages
 import { MypeDashboardPage } from "@pages/mype/MypeDashboardPage";
 import { CrearProyectoPage } from "@pages/mype/CrearProyectoPage";
 import { MisProyectosPage } from "@/pages/mype/MisProyectosPage";
-import { RevisionEntregablesPage } from "@/pages/mype/RevisionEntregablesPage"; 
+import { RevisionEntregablesPage } from "@/pages/mype/RevisionEntregablesPage";
 
 // Estudiante pages
 import EstudianteDashboardPage from "@pages/estudiante/EstudianteDashboardPage";
@@ -147,7 +147,7 @@ const router = createBrowserRouter([
       { path: "/certificados", element: <CertificadosPage /> },
       { path: "/perfil", element: <PerfilPage /> },
       // ✨ RUTA AÑADIDA: El espacio de trabajo para el alumno cuando es aceptado
-      { path: "/workspace/:proyectoId", element: <ProyectoWorkspacePage /> }, 
+      { path: "/workspace/:proyectoId", element: <ProyectoWorkspacePage /> },
     ],
   },
 
@@ -166,7 +166,7 @@ const router = createBrowserRouter([
       { path: "/admin/usuarios", element: <AdminUsuariosPage /> },
       { path: "/admin/auditoria", element: <AdminAuditoriaPage /> },
       { path: "/admin/reportes", element: <AdminReportesPage /> },
-      { path: "/admin/configuracion", element: <AdminConfiguracionPage /> }
+      { path: "/admin/configuracion", element: <AdminConfiguracionPage /> },
     ],
   },
 
