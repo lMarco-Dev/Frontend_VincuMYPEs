@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { httpClient } from '@shared/api/httpClient';
 import { useMisPostulaciones } from '../../features/postulaciones-list/useMisPostulaciones';
 import { useAuthStore } from '../../store/authStore';
+import { usePerfil } from '../../features/perfil/usePerfil';
 import PostularButton from '../../features/proyecto-postular/PostularButton';
 import {
   ChevronLeft,
@@ -50,6 +51,7 @@ const DetalleProyectoPage = () => {
 
   const { user } = useAuthStore();
   const { data: postulaciones } = useMisPostulaciones();
+  const { data: perfil } = usePerfil();
 
   // Consulta del detalle del proyecto
   const { data: proyecto, isLoading, isError } = useQuery({
@@ -65,6 +67,14 @@ const DetalleProyectoPage = () => {
     if (!postulaciones || !id) return false;
     return postulaciones.some(p => p.proyectoId === parseInt(id) || p.proyectoId === id);
   }, [postulaciones, id]);
+
+  // Validar límite de proyectos activos
+  const proyectosActivos = React.useMemo(() => {
+    return postulaciones?.filter(p => p.estado === 'ACEPTADO' || p.estado === 'Aceptado') || [];
+  }, [postulaciones]);
+
+  const limiteProyectos = perfil?.limiteProyectos ?? 1;
+  const haSuperadoLimite = proyectosActivos.length >= limiteProyectos;
 
   if (isLoading) {
     return (
@@ -271,8 +281,21 @@ const DetalleProyectoPage = () => {
                 <PostularButton
                   proyectoId={proyecto.id}
                   yaPostulo={yaPostulo}
+                  disabled={haSuperadoLimite && !yaPostulo}
                 />
               </div>
+
+              {haSuperadoLimite && !yaPostulo && (
+                <div className="mt-4 p-3.5 bg-amber-50 rounded-2xl border border-amber-100 flex items-start gap-2.5">
+                  <span className="text-amber-600 mt-0.5 text-xs">⚠️</span>
+                  <div>
+                    <p className="text-xs font-bold text-amber-900 leading-snug">Límite de proyectos activos alcanzado</p>
+                    <p className="text-[10px] text-amber-700 font-semibold leading-relaxed mt-0.5">
+                      Tienes {proyectosActivos.length} de {limiteProyectos} proyecto(s) activo(s). Solicita un incremento al administrador o finaliza tu trabajo actual para volver a postular.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <p className="text-[10px] text-center text-slate-400 mt-4 uppercase tracking-widest font-bold">
                 Convocatoria Gratuita para Estudiantes

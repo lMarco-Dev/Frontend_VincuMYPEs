@@ -102,6 +102,14 @@ const ProyectosPage = () => {
     return map;
   }, [postulaciones]);
 
+  // Validar límite de proyectos activos
+  const proyectosActivos = React.useMemo(() => {
+    return postulaciones?.filter(p => p.estado === 'ACEPTADO' || p.estado === 'Aceptado') || [];
+  }, [postulaciones]);
+
+  const limiteProyectos = userProfile?.limiteProyectos ?? 1;
+  const haSuperadoLimite = proyectosActivos.length >= limiteProyectos;
+
   // Filtrado combinado: Búsqueda + Área
   const filteredProyectos = proyectos.filter(proyecto => {
     const matchesSearch =
@@ -423,10 +431,22 @@ const ProyectosPage = () => {
 
               {/* Drawer Footer Actions - Unified Single prominent PostularButton */}
               <div className="p-6 border-t border-slate-100 flex flex-col gap-3 bg-slate-50 shrink-0">
+                {haSuperadoLimite && !yaPostuloMap[selectedProyecto.id] && (
+                  <div className="p-3 bg-amber-50 rounded-2xl border border-amber-100 flex items-start gap-2 text-left">
+                    <span className="text-amber-600 mt-0.5 text-xs">⚠️</span>
+                    <div>
+                      <p className="text-xs font-bold text-amber-900 leading-snug">Límite alcanzado ({proyectosActivos.length} de {limiteProyectos})</p>
+                      <p className="text-[10px] text-amber-700 font-semibold leading-relaxed mt-0.5">
+                        No puedes postular a más proyectos. Solicita un incremento al administrador o finaliza tu trabajo actual.
+                      </p>
+                    </div>
+                  </div>
+                )}
                 <div className="w-full flex justify-center">
                   <PostularButton
                     proyectoId={selectedProyecto.id}
                     yaPostulo={yaPostuloMap[selectedProyecto.id]}
+                    disabled={haSuperadoLimite && !yaPostuloMap[selectedProyecto.id]}
                   />
                 </div>
                 <button

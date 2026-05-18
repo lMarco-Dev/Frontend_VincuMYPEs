@@ -232,10 +232,13 @@ const MisPostulacionesPage = () => {
                     </Link>
 
                     {(postulacion.estado === 'ACEPTADO' || postulacion.estado === 'Aceptado') && (
-                      <button className="px-4 py-2.5 bg-primary text-white rounded-xl font-bold text-xs hover:bg-primary/95 transition-colors shadow-lg shadow-indigo-100 flex items-center gap-1.5 whitespace-nowrap">
-                        <Sparkles size={13} className="animate-spin" style={{ animationDuration: '4s' }} />
-                        Iniciar Trabajo
-                      </button>
+                      <Link
+                        to={`/workspace/${postulacion.proyectoId}`}
+                        className="px-4 py-2.5 bg-primary text-white rounded-xl font-bold text-xs hover:bg-[#3b5998] hover:shadow-lg transition-all flex items-center gap-1.5 whitespace-nowrap"
+                      >
+                        <Sparkles size={13} className="animate-pulse" />
+                        Ir al Workspace
+                      </Link>
                     )}
                   </div>
                 </motion.div>
