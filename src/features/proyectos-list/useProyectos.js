@@ -6,8 +6,8 @@ export const useProyectos = (page = 0, size = 10) => {
     queryKey: ['proyectos', page, size],
     queryFn: async () => {
       const res = await getProyectos(page, size);
-      return res.data;
+      return res; 
     },
-    keepPreviousData: true,
+    keepPreviousData: true, 
   });
 };
