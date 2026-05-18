@@ -61,8 +61,8 @@ const ARBOL_DECISION = {
 const LEAF_PROJECTS = {
   "1.1": {
     titulo: "Página web de presentación (Landing Page) con formulario",
-    areaSistemas: "DESARROLLO_WEB",
-    cupos: 1, // ✨ Exigencia baja: 1 estudiante es suficiente para una Landing
+    areaSistemas: "DESARROLLO_WEB", // ✅ Correcto
+    cupos: 1, 
     entregables: [
       "Diseño visual previo de la estructura de la página antes de programar",
       "Código fuente completo alojado y ordenado en GitHub o GitLab",
@@ -73,8 +73,8 @@ const LEAF_PROJECTS = {
   },
   "1.2": {
     titulo: "Prototipo interactivo de Catálogo Digital de Productos",
-    areaSistemas: "DESARROLLO_WEB",
-    cupos: 2, // ✨ Exigencia media: Requiere catálogo dinámico e imágenes (2 estudiantes)
+    areaSistemas: "DESARROLLO_WEB", // ✅ Correcto
+    cupos: 2, 
     entregables: [
       "Estructura organizada de categorías de productos acordada con el negocio",
       "Plataforma web con buscador interactivo y visualización dinámica de imágenes",
@@ -84,8 +84,8 @@ const LEAF_PROJECTS = {
   },
   "1.3": {
     titulo: "Prototipo de sistema de registro de clientes y pedidos",
-    areaSistemas: "SISTEMAS_INFORMACION",
-    cupos: 2, // ✨ Exigencia media: Control de estados de pedidos y paneles internos
+    areaSistemas: "DESARROLLO_SOFTWARE", // 🔄 CORREGIDO (Era SISTEMAS_INFORMACION)
+    cupos: 2, 
     entregables: [
       "Formulario web interactivo y seguro para capturar datos de clientes",
       "Panel interno privado para consultar, ordenar y filtrar pedidos o citas",
@@ -95,8 +95,8 @@ const LEAF_PROJECTS = {
   },
   "1.4": {
     titulo: "Dashboard interactivo para la visualización de datos empresariales",
-    areaSistemas: "SISTEMAS_INFORMACION",
-    cupos: 2, // ✨ Exigencia media: Carga de archivos Excel/CSV y reportería gráfica
+    areaSistemas: "ANALISIS_DATOS", // 🔄 CORREGIDO (Era SISTEMAS_INFORMACION)
+    cupos: 2, 
     entregables: [
       "Maquetación previa de la distribución del panel de control gráfico",
       "Dashboard web interactivo con gráficos estadísticos (barras, líneas, KPI)",
@@ -106,8 +106,8 @@ const LEAF_PROJECTS = {
   },
   "2.1": {
     titulo: "Diseño e implementación de Base de Datos relacional profesional",
-    areaSistemas: "BASE_DATOS",
-    cupos: 2, // ✨ Exigencia media: Modelamiento de datos, diagramas y optimización SQL
+    areaSistemas: "BASE_DE_DATOS", // 🔄 CORREGIDO (Era BASE_DATOS - Falta el "_DE_")
+    cupos: 2, 
     entregables: [
       "Diagrama del Modelo Entidad-Relación conceptual y lógico de los datos",
       "Scripts de programación SQL estructurados y listos para ejecutar en el servidor",
@@ -117,8 +117,8 @@ const LEAF_PROJECTS = {
   },
   "2.2": {
     titulo: "Servicio integral de limpieza, ordenamiento y migración de datos",
-    areaSistemas: "BASE_DATOS",
-    cupos: 2, // ✨ Exigencia media: ETL y procesamiento de datos corruptos
+    areaSistemas: "BASE_DE_DATOS", // 🔄 CORREGIDO
+    cupos: 2, 
     entregables: [
       "Informe diagnóstico detallando los errores e inconsistencias encontrados originalmente",
       "Archivos o tablas limpias, libres de registros duplicados o corruptos",
@@ -128,8 +128,8 @@ const LEAF_PROJECTS = {
   },
   "2.3": {
     titulo: "Análisis exploratorio de datos y diagnóstico de negocio",
-    areaSistemas: "INTELIGENCIA_NEGOCIO",
-    cupos: 2, // ✨ Exigencia media: Inteligencia de negocios y segmentación de clientes
+    areaSistemas: "ANALISIS_DATOS", // 🔄 CORREGIDO (Era INTELIGENCIA_NEGOCIO)
+    cupos: 2, 
     entregables: [
       "Informe ejecutivo de analítica comercial descriptiva con hallazgos críticos",
       "Gráficos interactivos detallando tendencias de venta, horarios pico e inventario",
@@ -139,8 +139,8 @@ const LEAF_PROJECTS = {
   },
   "3.1": {
     titulo: "Diseño de interfaz de usuario interactiva (UI/UX) en Figma",
-    areaSistemas: "DISEÑO_SOFTWARE",
-    cupos: 1, // ✨ Exigencia baja: Enfocado puramente en prototipado visual en Figma
+    areaSistemas: "DESARROLLO_WEB", // 🔄 CORREGIDO (Era DISEÑO_SOFTWARE)
+    cupos: 1, 
     entregables: [
       "Wireframes (bocetos en blanco y negro) del flujo de navegación inicial",
       "Enlace al prototipo de alta fidelidad interactivo en Figma (simulación de clics)",
@@ -150,8 +150,8 @@ const LEAF_PROJECTS = {
   },
   "3.2": {
     titulo: "Rediseño optimizado de experiencia de usuario para canales digitales",
-    areaSistemas: "DISEÑO_SOFTWARE",
-    cupos: 1, // ✨ Exigencia baja: Auditoría UX y flujos de navegación simplificados
+    areaSistemas: "DESARROLLO_WEB", // 🔄 CORREGIDO
+    cupos: 1, 
     entregables: [
       "Informe de auditoría de usabilidad detallando fricciones en la plataforma actual",
       "Propuesta visual rediseñada con flujos simplificados para el cliente",
@@ -161,8 +161,8 @@ const LEAF_PROJECTS = {
   },
   "3.3": {
     titulo: "Mapa de experiencia del cliente (Customer Journey Map) y diagnóstico",
-    areaSistemas: "DISEÑO_SOFTWARE",
-    cupos: 1, // ✨ Exigencia baja: Mapeo estratégico de canales analógicos y digitales
+    areaSistemas: "ANALISIS_DATOS", // 🔄 CORREGIDO
+    cupos: 1, 
     entregables: [
       "Mapa visual detallado del viaje del cliente (Customer Journey Map) interactivo",
       "Identificación formal de puntos de fricción y cuellos de botella operativos",
@@ -172,8 +172,8 @@ const LEAF_PROJECTS = {
   },
   "4.1": {
     titulo: "Diagnóstico de conectividad y plan de mejora de infraestructura de red",
-    areaSistemas: "REDES_TELECOM",
-    cupos: 2, // ✨ Exigencia media: Levantamiento de topologías físicas y análisis de latencia
+    areaSistemas: "SOPORTE_TI", // 🔄 CORREGIDO (Era REDES_TELECOM)
+    cupos: 2, 
     entregables: [
       "Informe del estado, rendimiento, latencia y cobertura actual de tu red local",
       "Diagrama técnico de la topología de red física con fallas identificadas",
@@ -183,8 +183,8 @@ const LEAF_PROJECTS = {
   },
   "4.2": {
     titulo: "Diseño técnico de arquitectura de red para nuevos locales",
-    areaSistemas: "REDES_TELECOM",
-    cupos: 2, // ✨ Exigencia media: Diseño de cableado estructurado y seguridad perimetral
+    areaSistemas: "SOPORTE_TI", // 🔄 CORREGIDO
+    cupos: 2, 
     entregables: [
       "Plano constructivo, lógico y físico de las conexiones de red en el nuevo local",
       "Ubicación estratégica de cableado estructurado y puntos de acceso Wi-Fi",
@@ -194,8 +194,8 @@ const LEAF_PROJECTS = {
   },
   "5.1": {
     titulo: "Auditoría básica preventiva de seguridad digital y accesos",
-    areaSistemas: "SEGURIDAD_INFORMATICA",
-    cupos: 2, // ✨ Exigencia media: Análisis de vulnerabilidades y políticas de blindaje
+    areaSistemas: "SOPORTE_TI", // 🔄 CORREGIDO (Era SEGURIDAD_INFORMATICA)
+    cupos: 2, 
     entregables: [
       "Informe confidencial de riesgos identificados en cuentas de correo y contraseñas",
       "Reporte del estado de permisos, accesos y roles del personal en tus sistemas",
@@ -205,8 +205,8 @@ const LEAF_PROJECTS = {
   },
   "5.2": {
     titulo: "Diseño y despliegue automatizado de plan de respaldo de datos (Backup)",
-    areaSistemas: "SEGURIDAD_INFORMATICA",
-    cupos: 2, // ✨ Exigencia media: Scripts de automatización y almacenamiento en la nube
+    areaSistemas: "SOPORTE_TI", // 🔄 CORREGIDO
+    cupos: 2, 
     entregables: [
       "Política formal y cronograma de copias de seguridad de la información del negocio",
       "Configuración e instalación de scripts o software de backup automático en la nube",

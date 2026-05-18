@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useAdminProyectos } from '@features/admin/useAdminProyectos';
+import { Loader2 } from 'lucide-react';
 import { 
   Search, 
   Filter, 
@@ -8,54 +10,10 @@ import {
   XCircle, 
   Users, 
   Building2, 
-  MoreVertical,
-  RefreshCw,
-  ArrowRightLeft
+  ArrowRightLeft,
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// =========================================================================
-// MOCK DATA (Alineado al ecosistema de Cajamarca y tipos de proyectos)
-// =========================================================================
-const MOCK_PROYECTOS = [
-  {
-    id: 1,
-    titulo: "SaaS de Transporte Interprovincial",
-    mype: "Transportes Regionales Cajamarca",
-    area: "DESARROLLO_SOFTWARE",
-    estado: "PENDIENTE",
-    cupos: 2,
-    aceptados: 0,
-    postulantes: [
-      { id: 101, nombre: "Ana López", carrera: "Ingeniería de Sistemas", match: 95, estado: "PENDIENTE" },
-      { id: 102, nombre: "Luis Pérez", carrera: "Ingeniería de Sistemas", match: 88, estado: "PENDIENTE" }
-    ]
-  },
-  {
-    id: 2,
-    titulo: "Sistema de Gestión Microservicios",
-    mype: "Agroveterinaria El Norteño",
-    area: "DESARROLLO_WEB",
-    estado: "EN_DESARROLLO",
-    cupos: 1,
-    aceptados: 1,
-    postulantes: [
-      { id: 103, nombre: "Carlos Ruiz", carrera: "Ingeniería de Sistemas", match: 92, estado: "ACEPTADO" }
-    ]
-  },
-  {
-    id: 3,
-    titulo: "Prototipo Interactivo de Delivery",
-    mype: "Bodega San Juan",
-    area: "UX",
-    estado: "COMPLETADO",
-    cupos: 1,
-    aceptados: 1,
-    postulantes: [
-      { id: 104, nombre: "María Gómez", carrera: "Ingeniería de Sistemas", match: 85, estado: "ACEPTADO" }
-    ]
-  }
-];
 
 const getEstadoBadge = (estado) => {
   const styles = {
@@ -76,17 +34,41 @@ const getEstadoBadge = (estado) => {
 // =========================================================================
 export default function AdminProyectosPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [proyectos, setProyectos] = useState(MOCK_PROYECTOS);
+
+  const { proyectos, isLoading, cederGestion, auditarAbandono, isAuditando } = useAdminProyectos();
   
   // Estados para Modales
   const [modalPostulantes, setModalPostulantes] = useState({ isOpen: false, proyecto: null });
   const [modalAuditoria, setModalAuditoria] = useState({ isOpen: false, proyecto: null });
 
   // Filtrado
-  const filteredProyectos = proyectos.filter(p => 
+  const filteredProyectos = proyectos?.filter(p => 
     p.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.mype.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    (p.mypeNombre && p.mypeNombre.toLowerCase().includes(searchTerm.toLowerCase()))
+  ) || [];
+
+  const handleCederGestion = (proyectoId) => {
+    if(window.confirm("¿Estás seguro de ceder la gestión a la MYPE?")) {
+      cederGestion(proyectoId);
+    }
+  };
+
+  const handleConfirmarAuditoria = () => {
+    auditarAbandono({ 
+      proyectoId: modalAuditoria.proyecto.id, 
+      postulacionId: 1 // TODO: Ajustar con el ID real del postulante cuando se expanda el MVP
+    });
+    setModalAuditoria({ isOpen: false, proyecto: null });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <Loader2 className="animate-spin text-primary" size={40} />
+        <p className="text-slate-500 font-medium">Cargando proyectos...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -136,7 +118,7 @@ export default function AdminProyectosPage() {
                   <td className="px-6 py-4">
                     <p className="text-sm font-bold text-slate-900 mb-0.5">{proyecto.titulo}</p>
                     <p className="text-xs font-medium text-slate-500 flex items-center gap-1.5">
-                      <Building2 size={12} /> {proyecto.mype}
+                      <Building2 size={12} /> {proyecto.mypeNombre}
                     </p>
                   </td>
                   <td className="px-6 py-4">
@@ -146,33 +128,31 @@ export default function AdminProyectosPage() {
                     <div className="flex items-center gap-2">
                       <Users size={14} className="text-slate-400" />
                       <span className="text-sm font-bold text-slate-700">
-                        {proyecto.aceptados} <span className="text-slate-400 font-medium">/ {proyecto.cupos}</span>
+                        {proyecto.cuposAceptados} <span className="text-slate-400 font-medium">/ {proyecto.cuposTotales}</span>
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                        {/* Dentro de la tabla, en la columna de acciones (td className="text-right") */}
-
-                        {proyecto.estado === 'PENDIENTE' && (
+                      
+                      {proyecto.estado === 'PENDIENTE' && (
                         <>
-                            <button 
+                          <button 
                             onClick={() => setModalPostulantes({ isOpen: true, proyecto })}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-primary border border-indigo-100 rounded-lg text-xs font-bold hover:bg-primary hover:text-white transition-colors"
-                            >
+                          >
                             <Eye size={14} /> Revisar Postulantes
-                            </button>
+                          </button>
 
-                            {/* ✨ EL NUEVO BOTÓN PARA CEDER GESTIÓN ✨ */}
-                            <button 
-                            onClick={() => alert(`Cediendo gestión a la MYPE para el proyecto: ${proyecto.titulo}`)}
+                          <button 
+                            onClick={() => handleCederGestion(proyecto.id)}
                             className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors border border-transparent hover:border-amber-200"
                             title="Ceder gestión de postulantes a la MYPE"
-                            >
+                          >
                             <ArrowRightLeft size={16} />
-                            </button>
+                          </button>
                         </>
-                        )}
+                      )}
                       
                       {proyecto.estado === 'EN_DESARROLLO' && (
                         <button 
@@ -190,13 +170,21 @@ export default function AdminProyectosPage() {
                   </td>
                 </tr>
               ))}
+
+              {filteredProyectos.length === 0 && (
+                <tr>
+                  <td colSpan="4" className="px-6 py-12 text-center text-slate-500">
+                    No se encontraron proyectos en el sistema.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
       {/* =========================================================================
-          MODAL 1: REVISIÓN DE POSTULANTES
+          MODAL 1: REVISIÓN DE POSTULANTES (Pendiente conectar con backend)
           ========================================================================= */}
       <AnimatePresence>
         {modalPostulantes.isOpen && (
@@ -216,35 +204,16 @@ export default function AdminProyectosPage() {
                 <div className="px-3 py-1 bg-white border border-slate-200 rounded-lg flex items-center gap-2 shadow-sm">
                   <span className="text-[10px] font-bold text-slate-400 uppercase">Vacantes libres:</span>
                   <span className="text-sm font-extrabold text-primary">
-                    {modalPostulantes.proyecto?.cupos - modalPostulantes.proyecto?.aceptados}
+                    {modalPostulantes.proyecto?.cuposTotales - modalPostulantes.proyecto?.cuposAceptados}
                   </span>
                 </div>
               </div>
 
-              <div className="p-6 overflow-y-auto space-y-4">
-                {modalPostulantes.proyecto?.postulantes.map(postulante => (
-                  <div key={postulante.id} className="p-4 border border-slate-200 rounded-2xl flex items-center justify-between hover:border-primary/30 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500">
-                        {postulante.nombre.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">{postulante.nombre}</p>
-                        <p className="text-xs text-slate-500 font-medium">{postulante.carrera}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <button className="p-2 text-emerald-600 bg-emerald-50 rounded-xl hover:bg-emerald-500 hover:text-white transition-colors" title="Aceptar Estudiante">
-                        <CheckCircle2 size={18} />
-                      </button>
-                      <button className="p-2 text-red-500 bg-red-50 rounded-xl hover:bg-red-500 hover:text-white transition-colors" title="Rechazar Estudiante">
-                        <XCircle size={18} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+              <div className="p-6 overflow-y-auto space-y-4 text-center">
+                  {/* Para conectar los postulantes, necesitaremos otro endpoint específico o traerlos en el DTO */}
+                  <p className="text-slate-500 text-sm">Próximamente: Lista dinámica de postulantes desde el backend.</p>
               </div>
+              
               <div className="p-4 border-t border-slate-100 flex justify-end">
                 <button onClick={() => setModalPostulantes({ isOpen: false, proyecto: null })} className="px-5 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
                   Cerrar
@@ -296,11 +265,18 @@ export default function AdminProyectosPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button onClick={() => setModalAuditoria({ isOpen: false, proyecto: null })} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors">
+                  <button 
+                    onClick={() => setModalAuditoria({ isOpen: false, proyecto: null })}
+                    className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors"
+                  >
                     Cancelar
                   </button>
-                  <button className="flex-1 py-3 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20">
-                    Confirmar Expulsión
+                  <button 
+                    onClick={handleConfirmarAuditoria}
+                    disabled={isAuditando}
+                    className="flex-1 py-3 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20 disabled:opacity-50"
+                  >
+                    {isAuditando ? 'Procesando...' : 'Confirmar Expulsión'}
                   </button>
                 </div>
               </div>
