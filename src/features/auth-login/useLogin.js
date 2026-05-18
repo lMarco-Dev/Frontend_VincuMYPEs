@@ -17,10 +17,12 @@ export function useLogin() {
 
       login(data);
 
-      if (data.rol === "MYPE") {
+      if (data.rol === "MYPE" || data.rol === "ROLE_MYPE") {
         navigate("/dashboard/mype");
-      } else if (data.rol === "ESTUDIANTE") {
+      } else if (data.rol === "ESTUDIANTE" || data.rol === "ROLE_ESTUDIANTE") {
         navigate("/dashboard/estudiante");
+      } else if (data.rol === "ADMIN" || data.rol === "ROLE_ADMIN") {
+        navigate("/admin/dashboard");
       } else {
         navigate("/");
       }

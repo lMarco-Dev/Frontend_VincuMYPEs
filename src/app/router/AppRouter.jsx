@@ -13,19 +13,29 @@ import { RegisterPage } from "@pages/auth/RegisterPage";
 import { MypeDashboardPage } from "@pages/mype/MypeDashboardPage";
 import { CrearProyectoPage } from "@pages/mype/CrearProyectoPage";
 import { MisProyectosPage } from "@/pages/mype/MisProyectosPage";
-import { RevisionEntregablesPage } from "@/pages/mype/RevisionEntregablesPage"; // ✨ IMPORTACIÓN AGREGADA
+import { RevisionEntregablesPage } from "@/pages/mype/RevisionEntregablesPage"; 
 
-// Estudiante pages (parte de tu compañero)
+// Estudiante pages
 import EstudianteDashboardPage from "@pages/estudiante/EstudianteDashboardPage";
 import ProyectosPage from "@pages/estudiante/ProyectosPage";
 import DetalleProyectoPage from "@pages/estudiante/DetalleProyectoPage";
 import MisPostulacionesPage from "@pages/estudiante/MisPostulacionesPage";
 import CertificadosPage from "@pages/estudiante/CertificadosPage";
 import PerfilPage from "@pages/estudiante/PerfilPage";
+import ProyectoWorkspacePage from "@pages/estudiante/ProyectoWorkspacePage"; // ✨ NUEVA: Workspace del proyecto activo
+
+// Admin pages (✨ NUEVAS IMPORTACIONES)
+import AdminDashboardPage from "@pages/admin/AdminDashboardPage";
+import AdminProyectosPage from "@pages/admin/AdminProyectosPage";
+import AdminUsuariosPage from "@pages/admin/AdminUsuariosPage";
+import AdminAuditoriaPage from "@pages/admin/AdminAuditoriaPage";
+import AdminReportesPage from "@pages/admin/AdminReportesPage";
+import AdminConfiguracionPage from "@pages/admin/AdminConfiguracionPage";
 
 // Layouts
 import StudentLayout from "@shared/layouts/StudentLayout";
 import { MypeLayout } from "@shared/layouts/MypeLayout";
+import AdminLayout from "@shared/layouts/AdminLayout"; // ✨ NUEVO LAYOUT
 
 // Guard
 import { ProtectedRoute } from "./ProtectedRoute";
@@ -37,7 +47,7 @@ const router = createBrowserRouter([
   { path: "/register/:tipo", element: <RegisterPage /> },
 
   /* ===========================================================================================
-                                        RUTAS MYPEs
+                                          RUTAS MYPEs
      =========================================================================================== */
   {
     path: "/dashboard/mype",
@@ -63,7 +73,6 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  // ✨ NUEVA RUTA PARA REVISIÓN DE ENTREGABLES AÑADIDA AQUÍ ✨
   {
     path: "/dashboard/mype/proyectos/:id/entregables",
     element: (
@@ -120,8 +129,9 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+
   /* ===========================================================================================
-                                        RUTAS Estudiantes
+                                          RUTAS Estudiantes
      =========================================================================================== */
   {
     element: (
@@ -136,11 +146,33 @@ const router = createBrowserRouter([
       { path: "/mis-postulaciones", element: <MisPostulacionesPage /> },
       { path: "/certificados", element: <CertificadosPage /> },
       { path: "/perfil", element: <PerfilPage /> },
+      // ✨ RUTA AÑADIDA: El espacio de trabajo para el alumno cuando es aceptado
+      { path: "/workspace/:proyectoId", element: <ProyectoWorkspacePage /> }, 
+    ],
+  },
+
+  /* ===========================================================================================
+                                          RUTAS ADMINISTRADOR (NUEVO)
+     =========================================================================================== */
+  {
+    element: (
+      <ProtectedRoute rolesPermitidos={["ROLE_ADMIN"]}>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { path: "/admin/dashboard", element: <AdminDashboardPage /> },
+      { path: "/admin/proyectos", element: <AdminProyectosPage /> },
+      { path: "/admin/usuarios", element: <AdminUsuariosPage /> },
+      { path: "/admin/auditoria", element: <AdminAuditoriaPage /> },
+      { path: "/admin/reportes", element: <AdminReportesPage /> },
+      { path: "/admin/configuracion", element: <AdminConfiguracionPage /> }
     ],
   },
 
   // ── Fallbacks ───────────────────────────────────────────────
   { path: "/dashboard", element: <Navigate to="/login" replace /> },
+  { path: "/admin", element: <Navigate to="/admin/dashboard" replace /> }, // ✨ Redirección de ayuda
   { path: "*", element: <Navigate to="/" replace /> },
 ]);
 
