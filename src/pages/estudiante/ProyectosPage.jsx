@@ -26,7 +26,6 @@ import {
   Package,
   CheckCircle2
 } from 'lucide-react';
-// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useProyectos } from '@features/proyectos-list/useProyectos';
@@ -156,8 +155,8 @@ const ProyectosPage = () => {
                 key={area.value}
                 onClick={() => setSelectedArea(area.value)}
                 className={`px-5 py-2.5 rounded-full font-bold text-sm whitespace-nowrap transition-all ${selectedArea === area.value
-                    ? 'bg-primary text-white shadow-md'
-                    : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest border border-outline-variant/20'
+                  ? 'bg-primary text-white shadow-md'
+                  : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest border border-outline-variant/20'
                   }`}
               >
                 {area.label}
@@ -376,8 +375,8 @@ const ProyectosPage = () => {
                           <span
                             key={idx}
                             className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border transition-all ${matches
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm'
-                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/20'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm'
+                              : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/20'
                               }`}
                           >
                             {matches ? <CheckCircle size={12} className="text-emerald-600" /> : <Lightbulb size={12} className="text-slate-400" />}
