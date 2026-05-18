@@ -61,87 +61,158 @@ const ARBOL_DECISION = {
 const LEAF_PROJECTS = {
   "1.1": {
     titulo: "Página web de presentación (Landing Page) con formulario",
-    recibiras: "Una página web moderna de una sola sección estructurada para exponer tus productos/servicios de Cajamarca y un formulario integrado para recibir datos de clientes directo a tu WhatsApp o correo.",
-    tiempo: "3 a 5 días",
-    areaSistemas: "DESARROLLO_WEB"
+    areaSistemas: "DESARROLLO_WEB",
+    cupos: 1, // ✨ Exigencia baja: 1 estudiante es suficiente para una Landing
+    entregables: [
+      "Diseño visual previo de la estructura de la página antes de programar",
+      "Código fuente completo alojado y ordenado en GitHub o GitLab",
+      "Página web publicada y accesible desde internet (Hosting configurado)",
+      "Formulario de contacto funcional vinculado a tu WhatsApp o correo corporativo",
+      "Manual de usuario digital paso a paso para modificar los textos tú mismo"
+    ]
   },
   "1.2": {
     titulo: "Prototipo interactivo de Catálogo Digital de Productos",
-    recibiras: "Una plataforma web responsive optimizada donde tus clientes podrán explorar tu inventario organizado de forma limpia por categorías, imágenes dinámicas y precios actualizados.",
-    tiempo: "4 a 6 días",
-    areaSistemas: "DESARROLLO_WEB"
+    areaSistemas: "DESARROLLO_WEB",
+    cupos: 2, // ✨ Exigencia media: Requiere catálogo dinámico e imágenes (2 estudiantes)
+    entregables: [
+      "Estructura organizada de categorías de productos acordada con el negocio",
+      "Plataforma web con buscador interactivo y visualización dinámica de imágenes",
+      "Código fuente completo, modular y listo para producción en Git",
+      "Manual de administración para el registro, edición y baja de productos"
+    ]
   },
   "1.3": {
     titulo: "Prototipo de sistema de registro de clientes y pedidos",
-    recibiras: "Un formulario web funcional y seguro conectado a un panel de control ordenado donde podrás registrar y consultar clientes, reservas o estados de pedidos desde cualquier dispositivo.",
-    tiempo: "3 a 5 días",
-    areaSistemas: "SISTEMAS_INFORMACION"
+    areaSistemas: "SISTEMAS_INFORMACION",
+    cupos: 2, // ✨ Exigencia media: Control de estados de pedidos y paneles internos
+    entregables: [
+      "Formulario web interactivo y seguro para capturar datos de clientes",
+      "Panel interno privado para consultar, ordenar y filtrar pedidos o citas",
+      "Código fuente del software con manejo seguro de sesiones y credenciales",
+      "Guía práctica de operación del sistema para el personal encargado"
+    ]
   },
   "1.4": {
-    titulo: "Dashboard interactivo para la visualización de datosempresariales",
-    recibiras: "Un panel de control gráfico (métricas, barras, líneas de tiempo) interactivo conectado a tus datos comerciales para que evalúes el rendimiento de tu negocio al instante.",
-    tiempo: "4 a 5 días",
-    areaSistemas: "SISTEMAS_INFORMACION"
+    titulo: "Dashboard interactivo para la visualización de datos empresariales",
+    areaSistemas: "SISTEMAS_INFORMACION",
+    cupos: 2, // ✨ Exigencia media: Carga de archivos Excel/CSV y reportería gráfica
+    entregables: [
+      "Maquetación previa de la distribución del panel de control gráfico",
+      "Dashboard web interactivo con gráficos estadísticos (barras, líneas, KPI)",
+      "Módulo de importación o carga de datos históricos desde archivos Excel/CSV",
+      "Manual interpretativo para el análisis de las métricas comerciales resultantes"
+    ]
   },
   "2.1": {
     titulo: "Diseño e implementación de Base de Datos relacional profesional",
-    recibiras: "Una arquitectura de base de datos segura y normalizada (SQL) diseñada a la medida para almacenar tu información histórica, eliminando dependencias de archivos de Excel corruptibles.",
-    tiempo: "4 a 6 días",
-    areaSistemas: "BASE_DATOS"
+    areaSistemas: "BASE_DATOS",
+    cupos: 2, // ✨ Exigencia media: Modelamiento de datos, diagramas y optimización SQL
+    entregables: [
+      "Diagrama del Modelo Entidad-Relación conceptual y lógico de los datos",
+      "Scripts de programación SQL estructurados y listos para ejecutar en el servidor",
+      "Diccionario de datos detallando la función de cada tabla y columna",
+      "Reporte técnico de pruebas de conectividad y optimización de consultas"
+    ]
   },
   "2.2": {
     titulo: "Servicio integral de limpieza, ordenamiento y migración de datos",
-    recibiras: "Tus registros comerciales actuales procesados, corregidos de errores tipográficos, filtrados de duplicados y unificados en una estructura lista para acoplarse a cualquier software.",
-    tiempo: "3 a 4 días",
-    areaSistemas: "BASE_DATOS"
+    areaSistemas: "BASE_DATOS",
+    cupos: 2, // ✨ Exigencia media: ETL y procesamiento de datos corruptos
+    entregables: [
+      "Informe diagnóstico detallando los errores e inconsistencias encontrados originalmente",
+      "Archivos o tablas limpias, libres de registros duplicados o corruptos",
+      "Scripts automáticos o mapeos lógicos ejecutados para la transformación de datos",
+      "Documentación técnica del nuevo formato estandarizado y unificado"
+    ]
   },
   "2.3": {
     titulo: "Análisis exploratorio de datos y diagnóstico de negocio",
-    recibiras: "Un informe estadístico comercial con analítica descriptiva que identifique tus picos de ventas, productos más rentables y perfiles de consumo clave basados en tu histórico.",
-    tiempo: "3 a 5 días",
-    areaSistemas: "INTELIGENCIA_NEGOCIO"
+    areaSistemas: "INTELIGENCIA_NEGOCIO",
+    cupos: 2, // ✨ Exigencia media: Inteligencia de negocios y segmentación de clientes
+    entregables: [
+      "Informe ejecutivo de analítica comercial descriptiva con hallazgos críticos",
+      "Gráficos interactivos detallando tendencias de venta, horarios pico e inventario",
+      "Segmentación analítica de clientes clave basada en comportamiento histórico",
+      "Presentación final con conclusiones operativas para la toma de decisiones"
+    ]
   },
   "3.1": {
     titulo: "Diseño de interfaz de usuario interactiva (UI/UX) en Figma",
-    recibiras: "El prototipo visual de alta fidelidad pantalla por pantalla del sistema o aplicativo que tienes en mente, simulando flujos de clics y transiciones reales antes de pasar a programación.",
-    tiempo: "4 a 6 días",
-    areaSistemas: "DISEÑO_SOFTWARE"
+    areaSistemas: "DISEÑO_SOFTWARE",
+    cupos: 1, // ✨ Exigencia baja: Enfocado puramente en prototipado visual en Figma
+    entregables: [
+      "Wireframes (bocetos en blanco y negro) del flujo de navegación inicial",
+      "Enlace al prototipo de alta fidelidad interactivo en Figma (simulación de clics)",
+      "Guía de estilo digital que incluye paleta de colores, tipografías e íconos",
+      "Paquete de recursos visuales exportados y listos para el equipo de desarrollo"
+    ]
   },
   "3.2": {
     titulo: "Rediseño optimizado de experiencia de usuario para canales digitales",
-    recibiras: "Un diagnóstico de usabilidad sobre tu plataforma actual y una propuesta estructurada con interfaces simplificadas para elevar tu tasa de conversión y evitar abandonos.",
-    tiempo: "4 a 5 días",
-    areaSistemas: "DISEÑO_SOFTWARE"
+    areaSistemas: "DISEÑO_SOFTWARE",
+    cupos: 1, // ✨ Exigencia baja: Auditoría UX y flujos de navegación simplificados
+    entregables: [
+      "Informe de auditoría de usabilidad detallando fricciones en la plataforma actual",
+      "Propuesta visual rediseñada con flujos simplificados para el cliente",
+      "Prototipo interactivo comparativo demostrando las mejoras de experiencia",
+      "Documento formal con las especificaciones y estándares UX recomendados"
+    ]
   },
   "3.3": {
     titulo: "Mapa de experiencia del cliente (Customer Journey Map) y diagnóstico",
-    recibiras: "Un mapeo visual detallado de todos los puntos de contacto digitales del cliente con tu marca, identificando dolores, fricciones operativas y un plan de acción de mejoras.",
-    tiempo: "3 a 4 días",
-    areaSistemas: "DISEÑO_SOFTWARE"
+    areaSistemas: "DISEÑO_SOFTWARE",
+    cupos: 1, // ✨ Exigencia baja: Mapeo estratégico de canales analógicos y digitales
+    entregables: [
+      "Mapa visual detallado del viaje del cliente (Customer Journey Map) interactivo",
+      "Identificación formal de puntos de fricción y cuellos de botella operativos",
+      "Matriz priorizada de oportunidades de mejora según el impacto en el negocio",
+      "Informe estratégico con tácticas aplicables a los canales del negocio"
+    ]
   },
   "4.1": {
     titulo: "Diagnóstico de conectividad y plan de mejora de infraestructura de red",
-    recibiras: "Un estudio técnico de tu espectro o cableado local que determine las causas de lentitud o caídas, acompañado de una topología recomendada y configuración de equipos.",
-    tiempo: "3 a 4 días",
-    areaSistemas: "REDES_TELECOM"
+    areaSistemas: "REDES_TELECOM",
+    cupos: 2, // ✨ Exigencia media: Levantamiento de topologías físicas y análisis de latencia
+    entregables: [
+      "Informe del estado, rendimiento, latencia y cobertura actual de tu red local",
+      "Diagrama técnico de la topología de red física con fallas identificadas",
+      "Plan de acción estructurado con configuraciones optimizadas de red",
+      "Lista de equipos recomendados (hardware) alineada al presupuesto comercial"
+    ]
   },
   "4.2": {
     titulo: "Diseño técnico de arquitectura de red para nuevos locales",
-    recibiras: "El plano y diseño lógico de conexiones, distribución estratégica de puntos de acceso Wi-Fi, segmentación de seguridad y presupuesto de hardware optimizado para tu nuevo espacio.",
-    tiempo: "4 a 5 días",
-    areaSistemas: "REDES_TELECOM"
+    areaSistemas: "REDES_TELECOM",
+    cupos: 2, // ✨ Exigencia media: Diseño de cableado estructurado y seguridad perimetral
+    entregables: [
+      "Plano constructivo, lógico y físico de las conexiones de red en el nuevo local",
+      "Ubicación estratégica de cableado estructurado y puntos de acceso Wi-Fi",
+      "Especificaciones de hardware recomendadas (modelos de Router, Switches, APs)",
+      "Arquitectura de seguridad perimetral inicial para segmentar la red interna"
+    ]
   },
   "5.1": {
     titulo: "Auditoría básica preventiva de seguridad digital y accesos",
-    recibiras: "Un análisis de riesgos de tus cuentas corporativas, contraseñas y permisos de red actuales, junto con la entrega de un manual práctico de blindaje contra vulnerabilidades básicas.",
-    tiempo: "3 a 4 días",
-    areaSistemas: "SEGURIDAD_INFORMATICA"
+    areaSistemas: "SEGURIDAD_INFORMATICA",
+    cupos: 2, // ✨ Exigencia media: Análisis de vulnerabilidades y políticas de blindaje
+    entregables: [
+      "Informe confidencial de riesgos identificados en cuentas de correo y contraseñas",
+      "Reporte del estado de permisos, accesos y roles del personal en tus sistemas",
+      "Manual preventivo de ciberseguridad con políticas de protección para la empresa",
+      "Plan de acción detallado para el blindaje de credenciales críticas"
+    ]
   },
   "5.2": {
     titulo: "Diseño y despliegue automatizado de plan de respaldo de datos (Backup)",
-    recibiras: "Una política técnica e implementación de copias de seguridad automáticas y encriptadas en la nube para asegurar el resguardo de tu información operativa crítica ante incidentes.",
-    tiempo: "3 a 4 días",
-    areaSistemas: "SEGURIDAD_INFORMATICA"
+    areaSistemas: "SEGURIDAD_INFORMATICA",
+    cupos: 2, // ✨ Exigencia media: Scripts de automatización y almacenamiento en la nube
+    entregables: [
+      "Política formal y cronograma de copias de seguridad de la información del negocio",
+      "Configuración e instalación de scripts o software de backup automático en la nube",
+      "Manual operativo de recuperación de archivos ante incidentes o emergencias",
+      "Reporte de pruebas exitosas de restauración de datos ejecutadas en el entorno"
+    ]
   }
 };
 
@@ -180,20 +251,21 @@ export function CrearProyectoForm() {
   const handlePublishSubmit = (e) => {
     e.preventDefault();
     
-    // Mapeamos las respuestas del árbol al payload final que Spring Boot procesa
     const projectPayload = {
       titulo: selectedResult.titulo,
       descripcion: comentario.trim() 
         ? comentario.trim() 
         : `Requerimiento solicitado para el desarrollo e implementación de un(a) ${selectedResult.titulo}.`,
       objetivo: `Solucionar la necesidad empresarial mediante un diseño de ${selectedResult.titulo} a medida.`,
-      entregablesSugeridos: selectedResult.recibiras,
+      entregablesSugeridos: selectedResult.entregables.map(e => `• ${e}`).join("\n"),
       areaSistemas: selectedResult.areaSistemas,
+      
+      cupos: selectedResult.cupos, 
+      
       fechaInicio: null,
       fechaLimite: null
     };
 
-    // Disparamos la mutación real de Axios
     crearProyecto(projectPayload);
   };
 
@@ -310,27 +382,27 @@ export function CrearProyectoForm() {
               </span>
             </div>
 
-            <div className="bg-[#081828] border border-slate-700/50 rounded-xl p-5 flex flex-col gap-4 shadow-inner">
+            {/* Ficha Resumen del Proyecto Mapeado con Entregables en Lista */}
+            <div className="bg-[#081828] border border-slate-700/50 rounded-xl p-5 flex flex-col gap-5 shadow-inner">
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Título clasificado:</p>
-                <h4 className="text-base font-bold text-white flex items-start gap-2">
-                  <CheckCircle2 size={18} className="text-brand-orange shrink-0 mt-0.5" />
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Título del proyecto propuesto:</p>
+                <h4 className="text-base font-bold text-white flex items-center gap-2">
+                  <Sparkles size={16} className="text-brand-orange shrink-0" />
                   {selectedResult.titulo}
                 </h4>
               </div>
 
+              {/* Lista Desplegada de Entregables Estructurados */}
               <div>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Entregables sugeridos:</p>
-                <p className="text-sm text-slate-300 font-light leading-relaxed">
-                  {selectedResult.recibiras}
-                </p>
-              </div>
-
-              <div className="flex justify-between items-center bg-[#0F2A4A]/50 px-4 py-2.5 rounded-lg border border-slate-700/30">
-                <span className="text-xs font-medium text-slate-400">Tiempo de desarrollo estimado:</span>
-                <span className="text-xs font-bold text-brand-cyan bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-0.5 rounded-md">
-                  {selectedResult.tiempo}
-                </span>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2.5">Lo que recibirás de los estudiantes:</p>
+                <div className="flex flex-col gap-2.5">
+                  {selectedResult.entregables?.map((entregable, i) => (
+                    <div key={i} className="flex items-start gap-2.5 text-sm text-slate-300 font-light leading-snug">
+                      <CheckCircle2 size={14} className="text-brand-orange shrink-0 mt-0.5" />
+                      <span>{entregable}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 

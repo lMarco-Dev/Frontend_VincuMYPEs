@@ -9,9 +9,11 @@ import { LandingPage } from "@pages/auth/LandingPage";
 import { LoginPage } from "@pages/auth/LoginPage";
 import { RegisterPage } from "@pages/auth/RegisterPage";
 
-// MYPE pages (tu parte)
+// MYPE pages 
 import { MypeDashboardPage } from "@pages/mype/MypeDashboardPage";
 import { CrearProyectoPage } from "@pages/mype/CrearProyectoPage";
+import { MisProyectosPage } from "@/pages/mype/MisProyectosPage";
+import { RevisionEntregablesPage } from "@/pages/mype/RevisionEntregablesPage"; // ✨ IMPORTACIÓN AGREGADA
 
 // Estudiante pages (parte de tu compañero)
 import EstudianteDashboardPage from "@pages/estudiante/EstudianteDashboardPage";
@@ -27,7 +29,6 @@ import { MypeLayout } from "@shared/layouts/MypeLayout";
 
 // Guard
 import { ProtectedRoute } from "./ProtectedRoute";
-import { MisProyectosPage } from "@/pages/mype/MisProyectosPage";
 
 const router = createBrowserRouter([
   // ── Rutas públicas ──────────────────────────────────────────
@@ -36,7 +37,7 @@ const router = createBrowserRouter([
   { path: "/register/:tipo", element: <RegisterPage /> },
 
   /* ===========================================================================================
-                                      RUTAS MYPEs
+                                        RUTAS MYPEs
      =========================================================================================== */
   {
     path: "/dashboard/mype",
@@ -59,6 +60,15 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute rolesPermitidos={["MYPE"]}>
         <MisProyectosPage />
+      </ProtectedRoute>
+    ),
+  },
+  // ✨ NUEVA RUTA PARA REVISIÓN DE ENTREGABLES AÑADIDA AQUÍ ✨
+  {
+    path: "/dashboard/mype/proyectos/:id/entregables",
+    element: (
+      <ProtectedRoute rolesPermitidos={["MYPE"]}>
+        <RevisionEntregablesPage />
       </ProtectedRoute>
     ),
   },
@@ -111,7 +121,7 @@ const router = createBrowserRouter([
     ),
   },
   /* ===========================================================================================
-                                      RUTAS Estudiantes
+                                        RUTAS Estudiantes
      =========================================================================================== */
   {
     element: (

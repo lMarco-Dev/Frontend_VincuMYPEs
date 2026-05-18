@@ -7,12 +7,38 @@ import {
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/shared/ui/Button";
-import { Users, Pencil, Trash2 } from "lucide-react";
+import { Users, Pencil, Trash2, FileText } from "lucide-react";
 import { EstadoBadge } from "./MypeDashboardPage";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { httpClient } from "@/shared/api/httpClient";
+import { Loader2 } from "lucide-react"; 
 
 export function MisProyectosPage() {
   const { proyectos, isLoading } = useMisProyectos();
   const navigate = useNavigate();
+
+  const queryClient = useQueryClient();
+
+  const { mutate: ejecutarCierre, isPending: estaCerrando } = useMutation({
+    mutationFn: async (proyectoId) => {
+      const { data } = await httpClient.patch(`/proyectos/${proyectoId}/cerrar`);
+      return data;
+    },
+    onSuccess: () => {
+      // Esto obliga a 'useMisProyectos' a volver a traer la lista actualizada sin el proyecto eliminado
+      queryClient.invalidateQueries({ queryKey: ["mis-proyectos"] }); 
+      alert("Proyecto cerrado e inactivado con éxito.");
+    },
+    onError: (error) => {
+      alert(error?.response?.data?.message || "No se pudo cerrar el proyecto.");
+    }
+  });
+
+  const handleCerrar = (id, titulo) => {
+    if (window.confirm(`¿Estás seguro de que deseas dar de baja el proyecto "${titulo}"? No se mostrará más a los estudiantes.`)) {
+      ejecutarCierre(id);
+    }
+  };
 
   return (
     <MypeLayout
@@ -109,13 +135,25 @@ export function MisProyectosPage() {
 
               {/* Acciones del SaaS */}
               <div className="col-span-2 flex items-center justify-end gap-1.5">
-                <button
-                  onClick={() => navigate(`/dashboard/mype/postulantes?proyecto=${p.id}`)}
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-brand-orange px-2.5 py-1.5 rounded-lg hover:bg-orange-50/60 border border-transparent hover:border-orange-100 transition-all"
-                  title="Ver estudiantes postulantes"
-                >
-                  <Users size={14} /> <span>Postulantes</span>
-                </button>
+                
+                {/* Botón dinámico según el estado: Postulantes o Revisar Entregables */}
+                {p.estado === 'EN_EJECUCION' ? (
+                  <Link 
+                    to={`/dashboard/mype/proyectos/${p.id}/entregables`}
+                    className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-brand-cyan px-2.5 py-1.5 rounded-lg hover:bg-cyan-50/60 border border-transparent hover:border-cyan-100 transition-all"
+                    title="Revisar Entregables del Proyecto"
+                  >
+                    <FileText size={14} /> <span>Revisar</span>
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => navigate(`/dashboard/mype/postulantes?proyecto=${p.id}`)}
+                    className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-brand-orange px-2.5 py-1.5 rounded-lg hover:bg-orange-50/60 border border-transparent hover:border-orange-100 transition-all"
+                    title="Ver estudiantes postulantes"
+                  >
+                    <Users size={14} /> <span>Postulantes</span>
+                  </button>
+                )}
                 
                 <button
                   className="action-icon-btn hover:text-amber-600 hover:!border-amber-200 hover:!bg-amber-50/50"
@@ -125,7 +163,9 @@ export function MisProyectosPage() {
                 </button>
                 
                 <button
-                  className="action-icon-btn hover:text-red-600 hover:!border-red-200 hover:!bg-red-50/50"
+                  onClick={() => handleCerrar(p.id, p.titulo)}
+                  disabled={estaCerrando}
+                  className="action-icon-btn hover:text-red-600 hover:!border-red-200 hover:!bg-red-50/50 disabled:opacity-50"
                   title="Eliminar proyecto"
                 >
                   <Trash2 size={14} />
