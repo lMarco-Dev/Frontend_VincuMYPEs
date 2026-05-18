@@ -41,9 +41,9 @@ const getAreaStyle = (area) => {
       return 'bg-emerald-50 text-emerald-700 border border-emerald-100';
     case 'DESARROLLO_SOFTWARE':
       return 'bg-violet-50 text-violet-700 border border-violet-100';
-    case 'BASE_DE_DATOS':
+    case 'BASE_DATOS': 
       return 'bg-amber-50 text-amber-700 border border-amber-100';
-    case 'ANALISIS_DATOS':
+    case 'INTELIGENCIA_NEGOCIO':
       return 'bg-pink-50 text-pink-700 border border-pink-100';
     case 'SOPORTE_TI':
       return 'bg-slate-50 text-slate-700 border border-slate-200';
@@ -60,9 +60,9 @@ const getAreaIcon = (area) => {
       return <ShoppingBag size={20} className="text-emerald-600" />;
     case 'DESARROLLO_SOFTWARE':
       return <Terminal size={20} className="text-violet-600" />;
-    case 'BASE_DE_DATOS':
+    case 'BASE_DATOS':
       return <BarChart2 size={20} className="text-amber-600" />;
-    case 'ANALISIS_DATOS':
+    case 'INTELIGENCIA_NEGOCIO': 
       return <TrendingUp size={20} className="text-pink-600" />;
     case 'SOPORTE_TI':
       return <Terminal size={20} className="text-slate-600" />;
@@ -76,8 +76,8 @@ const AREAS = [
   { value: 'DESARROLLO_WEB', label: 'Desarrollo Web' },
   { value: 'DESARROLLO_MOVIL', label: 'Desarrollo Móvil' },
   { value: 'DESARROLLO_SOFTWARE', label: 'Software' },
-  { value: 'BASE_DE_DATOS', label: 'Base de Datos' },
-  { value: 'ANALISIS_DATOS', label: 'Datos' },
+  { value: 'BASE_DATOS', label: 'Base de Datos' },     
+  { value: 'INTELIGENCIA_NEGOCIO', label: 'Inteligencia de Negocio' },
   { value: 'SOPORTE_TI', label: 'Soporte TI' }
 ];
 
@@ -236,7 +236,7 @@ const ProyectosPage = () => {
             <div className="mt-auto space-y-4">
               <div className="flex flex-wrap gap-1.5">
                 <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${getAreaStyle(proyecto.areaSistemas)}`}>
-                  {proyecto.areaSistemas?.replace('_', ' ')}
+                  {proyecto.areaSistemas?.replaceAll('_', ' ')} 
                 </span>
               </div>
 
@@ -282,7 +282,7 @@ const ProyectosPage = () => {
               {/* Header */}
               <div className="p-6 border-b border-slate-100 flex items-center justify-between shrink-0">
                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${getAreaStyle(selectedProyecto.areaSistemas)}`}>
-                  {selectedProyecto.areaSistemas?.replace('_', ' ')}
+                  {selectedProyecto.areaSistemas?.replaceAll('_', ' ')}
                 </span>
                 <button
                   onClick={() => setSelectedProyecto(null)}
@@ -398,17 +398,24 @@ const ProyectosPage = () => {
                       Entregables Sugeridos
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {selectedProyecto.entregablesSugeridos.split(',').map((entregable, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-100 group cursor-default hover:border-primary/20 transition-all"
-                        >
-                          <div className="w-5 h-5 rounded bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                            <CheckCircle2 size={12} />
+                      {/* ✨ SOLUCIÓN: Separamos por salto de línea (\n) y filtramos líneas vacías */}
+                      {selectedProyecto.entregablesSugeridos
+                        .split('\n')
+                        .filter(linea => linea.trim())
+                        .map((entregable, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-100 group cursor-default hover:border-primary/20 transition-all"
+                          >
+                            <div className="w-5 h-5 rounded bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                              <CheckCircle2 size={12} />
+                            </div>
+                            {/* Limpiamos el símbolo '•' para que no se duplique con tu icono */}
+                            <span className="text-xs text-slate-700 font-bold truncate">
+                              {entregable.replace('•', '').trim()}
+                            </span>
                           </div>
-                          <span className="text-xs text-slate-700 font-bold truncate">{entregable.trim()}</span>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   </div>
                 )}

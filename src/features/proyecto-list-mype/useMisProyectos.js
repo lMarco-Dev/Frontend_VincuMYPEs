@@ -7,10 +7,8 @@ export function useMisProyectos() {
     queryFn: getMisProyectosApi,
   });
 
-  // GET /api/proyectos devuelve Page<ProyectoResponse>
-  // La estructura es: response.data.content (array de proyectos)
   return {
-    proyectos: data?.data ?? [],
+    proyectos: data?.data ?? data ?? [],
     isLoading,
     error,
   };
