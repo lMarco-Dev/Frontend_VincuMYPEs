@@ -23,6 +23,7 @@ import MisPostulacionesPage from "@pages/estudiante/MisPostulacionesPage";
 import CertificadosPage from "@pages/estudiante/CertificadosPage";
 import PerfilPage from "@pages/estudiante/PerfilPage";
 import ProyectoWorkspacePage from "@pages/estudiante/ProyectoWorkspacePage"; // ✨ NUEVA: Workspace del proyecto activo
+import WorkspaceSelectorPage from "@pages/estudiante/WorkspaceSelectorPage"; // ✨ Selector de workspaces activos
 
 // Admin pages (✨ NUEVAS IMPORTACIONES)
 import AdminDashboardPage from "@pages/admin/AdminDashboardPage";
@@ -144,10 +145,10 @@ const router = createBrowserRouter([
       { path: "/proyectos", element: <ProyectosPage /> },
       { path: "/proyectos/:id", element: <DetalleProyectoPage /> },
       { path: "/mis-postulaciones", element: <MisPostulacionesPage /> },
+      { path: "/workspace", element: <WorkspaceSelectorPage /> },
+      { path: "/workspace/:proyectoId", element: <ProyectoWorkspacePage /> },
       { path: "/certificados", element: <CertificadosPage /> },
       { path: "/perfil", element: <PerfilPage /> },
-      // ✨ RUTA AÑADIDA: El espacio de trabajo para el alumno cuando es aceptado
-      { path: "/workspace/:proyectoId", element: <ProyectoWorkspacePage /> }, 
     ],
   },
 

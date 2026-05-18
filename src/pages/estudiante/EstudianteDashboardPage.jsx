@@ -105,6 +105,38 @@ const EstudianteDashboardPage = () => {
             </div>
           </motion.section>
 
+          {/* Active Workspaces Panel */}
+          {aceptados > 0 && (
+            <motion.section
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm space-y-4"
+            >
+              <h2 className="text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                <Rocket className="text-primary" size={20} />
+                Mis Proyectos Activos
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {postulaciones?.filter(p => p.estado === 'ACEPTADO' || p.estado === 'Aceptado').map((p, idx) => (
+                  <div key={idx} className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100 flex flex-col justify-between h-32 hover:border-primary/20 hover:shadow-sm transition-all duration-300">
+                    <div>
+                      <span className="text-[9px] font-black text-primary bg-indigo-50 px-2 py-0.5 rounded uppercase tracking-wider">
+                        En Ejecución
+                      </span>
+                      <h4 className="text-sm font-extrabold text-slate-900 mt-2 line-clamp-1">{p.proyectoTitulo}</h4>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100/50">
+                      <span className="text-[10px] text-slate-400 font-bold">MYPE Asociada</span>
+                      <Link to={`/workspace/${p.proyectoId}`} className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+                        Ir al Workspace <ArrowRight size={12} />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.section>
+          )}
+
           {/* Metric Cards Bento Grid with Circular SVG Progress Rings */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             

@@ -9,72 +9,37 @@ import {
   Menu, 
   X,
   Bell,
-  Award
+  Award,
+  FolderOpen
 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
 import { Logo } from '../ui/Logo';
 import { useNotificaciones, useLeerNotificacion } from '../../features/notificaciones/useNotificaciones';
+import { useMisPostulaciones } from '../../features/postulaciones-list/useMisPostulaciones';
+import { useCertificados } from '../../features/certificados/useCertificados';
 
-const NAV_SECTIONS = [
-  {
-    label: "Principal",
-    items: [
-      {
-        to: "/dashboard/estudiante",
-        icon: LayoutDashboard,
-        label: "Mi Panel",
-      },
-      {
-        to: "/proyectos",
-        icon: Search,
-        label: "Explorar Proyectos",
-      },
-    ],
-  },
-  {
-    label: "Gestión",
-    items: [
-      {
-        to: "/mis-postulaciones",
-        icon: Briefcase,
-        label: "Mis Postulaciones",
-      },
-      {
-        to: "/certificados",
-        icon: Award,
-        label: "Mis Certificados",
-      },
-    ],
-  },
-  {
-    label: "Cuenta",
-    items: [
-      {
-        to: "/perfil",
-        icon: User,
-        label: "Mi Perfil",
-      },
-    ],
-  },
-];
+const NAV_SECTIONS = []; // Se define dinámicamente dentro del componente para soportar reactividad
 
-const NavItem = ({ to, icon: Icon, label, pathname, onClick }) => {
+const NavItem = ({ to, icon: Icon, label, pathname, onClick, badge }) => {
   const active = pathname === to;
 
   return (
     <Link
       to={to}
       onClick={onClick}
-      className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 ${
+      className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 w-full ${
         active
           ? "bg-white/12 text-white font-medium"
           : "text-white/55 hover:bg-white/7 hover:text-white/85"
       }`}
     >
-      <Icon size={17} className="shrink-0" />
-      {label}
+      <div className="flex items-center gap-2.5">
+        <Icon size={17} className="shrink-0" />
+        {label}
+      </div>
+      {badge}
     </Link>
   );
 };
@@ -88,6 +53,61 @@ const StudentLayout = () => {
   
   const { data: notificaciones } = useNotificaciones();
   const { mutate: leerNotificacion } = useLeerNotificacion();
+  const { data: postulaciones } = useMisPostulaciones();
+  const { data: certificados } = useCertificados();
+
+  const hasCertificados = certificados && certificados.length > 0;
+
+  const proyectoAceptado = postulaciones?.find(p => p.estado === 'ACEPTADO' || p.estado === 'Aceptado');
+  const idProyectoParaWorkspace = proyectoAceptado?.proyectoId || (postulaciones && postulaciones.length > 0 ? postulaciones[0].proyectoId : "1");
+
+  const navigationSections = [
+    {
+      label: "Principal",
+      items: [
+        {
+          to: "/dashboard/estudiante",
+          icon: LayoutDashboard,
+          label: "Mi Panel",
+        },
+        {
+          to: "/proyectos",
+          icon: Search,
+          label: "Explorar Proyectos",
+        },
+      ],
+    },
+    {
+      label: "Gestión",
+      items: [
+        {
+          to: "/mis-postulaciones",
+          icon: Briefcase,
+          label: "Mis Postulaciones",
+        },
+        {
+          to: "/workspace",
+          icon: FolderOpen,
+          label: "Mi Workspace",
+        },
+        {
+          to: "/certificados",
+          icon: Award,
+          label: "Mis Certificados",
+        },
+      ],
+    },
+    {
+      label: "Cuenta",
+      items: [
+        {
+          to: "/perfil",
+          icon: User,
+          label: "Mi Perfil",
+        },
+      ],
+    },
+  ];
   
   const unreadCount = notificaciones?.filter(n => !n.leida).length || 0;
 
@@ -125,7 +145,7 @@ const StudentLayout = () => {
 
         {/* Nav */}
         <nav className="flex-1 px-2 py-3 overflow-y-auto">
-          {NAV_SECTIONS.map((section) => (
+          {navigationSections.map((section) => (
             <div key={section.label} className="mb-5">
               <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-2 mb-1">
                 {section.label}
@@ -137,6 +157,12 @@ const StudentLayout = () => {
                   icon={item.icon} 
                   label={item.label} 
                   pathname={location.pathname} 
+                  badge={item.label === "Mis Certificados" && hasCertificados ? (
+                    <span className="flex h-1.5 w-1.5 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    </span>
+                  ) : null}
                 />
               ))}
             </div>
@@ -169,20 +195,23 @@ const StudentLayout = () => {
       {/* MOBILE SIDEBAR OVERLAY */}
       <AnimatePresence>
         {isSidebarOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 lg:hidden"
+          >
+            {/* Backdrop */}
+            <div
               onClick={() => setIsSidebarOpen(false)}
-              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50"
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
             <motion.aside
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-[240px] bg-[#1e3a5f] z-[60] flex flex-col shadow-2xl"
+              className="absolute inset-y-0 left-0 w-[240px] bg-[#1e3a5f] z-10 flex flex-col shadow-2xl h-full"
             >
               {/* Logo y Botón Cerrar */}
               <div className="px-4 py-4 border-b border-white/8 flex items-center justify-between">
@@ -212,7 +241,7 @@ const StudentLayout = () => {
 
               {/* Nav */}
               <nav className="flex-1 px-2 py-3 overflow-y-auto">
-                {NAV_SECTIONS.map((section) => (
+                {navigationSections.map((section) => (
                   <div key={section.label} className="mb-5">
                     <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-2 mb-1">
                       {section.label}
@@ -225,6 +254,12 @@ const StudentLayout = () => {
                         label={item.label} 
                         pathname={location.pathname} 
                         onClick={() => setIsSidebarOpen(false)} 
+                        badge={item.label === "Mis Certificados" && hasCertificados ? (
+                          <span className="flex h-1.5 w-1.5 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                          </span>
+                        ) : null}
                       />
                     ))}
                   </div>
@@ -242,7 +277,7 @@ const StudentLayout = () => {
                 </button>
               </div>
             </motion.aside>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
 
