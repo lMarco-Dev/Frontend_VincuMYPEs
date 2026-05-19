@@ -1,10 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  cambiarEstadoPostulacionApi,
   getPostulacionesApi,
+  getPostulacionesAceptadasApi,
+  cambiarEstadoPostulacionApi,
 } from "./postulaciones.api";
 import { handleApiError } from "@/shared/api/apiErrors";
 
+// Vista normal — solo ACEPTADOS (admin ya validó)
+export function usePostulacionesAceptadas(proyectoId) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["postulaciones-aceptadas", proyectoId],
+    queryFn: () => getPostulacionesAceptadasApi(proyectoId),
+    enabled: !!proyectoId,
+  });
+
+  return {
+    postulaciones: data?.data ?? [],
+    isLoading,
+    error,
+  };
+}
+
+// Vista completa — todos los estados (modo solicitado)
 export function usePostulaciones(proyectoId) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["postulaciones", proyectoId],
@@ -19,15 +36,19 @@ export function usePostulaciones(proyectoId) {
   };
 }
 
-// Para aceptar o rechazar una postulación
+// Aceptar o rechazar
 export function useCambiarEstadoPostulacion(proyectoId) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: cambiarEstadoPostulacionApi,
     onSuccess: () => {
+      // Invalida ambas queries para refrescar las dos vistas
       queryClient.invalidateQueries({
         queryKey: ["postulaciones", proyectoId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["postulaciones-aceptadas", proyectoId],
       });
     },
     onError: (error) => {

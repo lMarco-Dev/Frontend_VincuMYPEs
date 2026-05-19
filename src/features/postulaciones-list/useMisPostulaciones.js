@@ -8,6 +8,6 @@ export function useMisPostulaciones(options = {}) {
       const response = await httpClient.get("/estudiantes/me/postulaciones");
       return response.data;
     },
-    ...options
+    ...options,
   });
 }

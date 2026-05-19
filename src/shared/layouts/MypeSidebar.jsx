@@ -13,6 +13,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { clsx } from "clsx";
+import { queryClient } from "../api/queryClient";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
@@ -119,6 +120,7 @@ export function Sidebar() {
       .toUpperCase() ?? "?";
 
   const handleLogout = () => {
+    queryClient.clear();
     logout();
     navigate("/login");
   };

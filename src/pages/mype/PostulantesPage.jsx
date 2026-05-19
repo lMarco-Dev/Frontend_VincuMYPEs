@@ -3,6 +3,7 @@ import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import {
   usePostulaciones,
+  usePostulacionesAceptadas,
   useCambiarEstadoPostulacion,
 } from "@/features/proyecto-postulaciones/usePostulaciones";
 import {
@@ -300,19 +301,21 @@ function FilaPostulante({ postulacion, proyectoId, verTodos }) {
 // ── Bloque por proyecto ──────────────────────────────────────
 function BloqueProyecto({ proyecto, verTodos }) {
   const [abierto, setAbierto] = useState(true);
-  const { postulaciones, isLoading } = usePostulaciones(proyecto.id);
 
-  const postulacionesFiltradas = verTodos
-    ? postulaciones
-    : postulaciones.filter((p) => p.estado === "ACEPTADO");
+  // Usa el hook correcto según el modo
+  const hookAceptadas = usePostulacionesAceptadas(proyecto.id);
+  const hookTodas = usePostulaciones(proyecto.id);
 
-  const pendientes = postulaciones.filter(
+  // En modo normal usa solo aceptadas, en modo completo usa todas
+  const { postulaciones, isLoading } = verTodos ? hookTodas : hookAceptadas;
+
+  const pendientes = hookTodas.postulaciones.filter(
     (p) => p.estado === "PENDIENTE",
   ).length;
-  const aceptados = postulaciones.filter((p) => p.estado === "ACEPTADO").length;
+  const aceptados = hookAceptadas.postulaciones.length;
 
   // En modo normal, si no hay aceptados no mostramos el bloque
-  if (!verTodos && !isLoading && aceptados === 0) return null;
+  if (!verTodos && !hookAceptadas.isLoading && aceptados === 0) return null;
 
   const cols = verTodos ? "2fr 3fr 1fr 1fr 1.5fr" : "2fr 3fr 1fr 1fr";
 
@@ -326,7 +329,6 @@ function BloqueProyecto({ proyecto, verTodos }) {
         marginBottom: 12,
       }}
     >
-      {/* Header colapsable */}
       <button
         onClick={() => setAbierto(!abierto)}
         style={{
@@ -408,7 +410,6 @@ function BloqueProyecto({ proyecto, verTodos }) {
         />
       </button>
 
-      {/* Contenido */}
       {abierto && (
         <>
           {isLoading ? (
@@ -426,7 +427,7 @@ function BloqueProyecto({ proyecto, verTodos }) {
                 />
               ))}
             </div>
-          ) : postulacionesFiltradas.length === 0 ? (
+          ) : postulaciones.length === 0 ? (
             <div
               style={{
                 padding: "24px 16px",
@@ -443,7 +444,6 @@ function BloqueProyecto({ proyecto, verTodos }) {
             </div>
           ) : (
             <>
-              {/* Cabecera tabla */}
               <div
                 style={{
                   display: "grid",
@@ -477,9 +477,7 @@ function BloqueProyecto({ proyecto, verTodos }) {
                   </span>
                 ))}
               </div>
-
-              {/* Filas */}
-              {postulacionesFiltradas.map((p) => (
+              {postulaciones.map((p) => (
                 <FilaPostulante
                   key={p.id}
                   postulacion={p}
