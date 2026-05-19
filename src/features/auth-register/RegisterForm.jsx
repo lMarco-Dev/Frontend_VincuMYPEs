@@ -5,29 +5,27 @@ import { useState, useEffect } from "react";
 import {
   User, Mail, Lock, Building2, Briefcase, FileText,
   GraduationCap, BookOpen, BadgeInfo, AlertCircle, Phone,
-  CheckCircle2, ChevronDown, Eye, EyeOff, ArrowRight, ArrowLeft, Loader2,
+  CheckCircle2, ChevronDown, Eye, EyeOff, ArrowRight, ArrowLeft, 
+  Loader2, Search, IdCard
 } from "lucide-react";
 import { useRegister } from "./useRegister";
+import { useConsultaDni } from "./hooks/useConsultaDni";
+import { useConsultaRuc } from "./hooks/useConsultaRuc";
 
 // ── Security ──────────────────────────────────────────────────────────────────
 const stripXSS = (v = "") =>
   v.replace(/<[^>]*>/g, "").replace(/javascript:/gi, "")
    .replace(/on\w+\s*=/gi, "").replace(/[<>"'`]/g, "");
 
-const MAX = 40;
+const MAX = 100;
 const ease = [0.22, 1, 0.36, 1];
 
 // ── Peruvian validation rules ─────────────────────────────────────────────────
 const EMAIL_RE   = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
-// RUC peruano: empieza con 10 o 20, 11 dígitos
 const RUC_RE     = /^(10|20)\d{9}$/;
-// Teléfono móvil peruano: 9 dígitos, empieza con 9
 const PHONE_RE   = /^9\d{8}$/;
-// Código de estudiante UPN: letra(s) + dígitos
 const CODIGO_RE  = /^N00\d{6}$/i;
-// Nombre: solo letras, tildes, espacios — mín 2 palabras
 const NOMBRE_RE  = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+(\s[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+)+$/;
-// Contraseña fuerte
 const PASS_RE    = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-_#])[A-Za-z\d@$!%*?&\-_#]{8,}$/;
 
 const UNIVERSIDADES = [
@@ -116,9 +114,9 @@ function Field({ label, icon: Icon, error, rightEl, hint, children }) {
       }}>
         {label}
       </label>
-      <div style={{ position: "relative", width: "100%" }}>
+      <div style={{ position: "relative", width: "100%", height: 48 }}>
         <div style={{
-          position: "absolute", left: 0, top: 0, bottom: 0, width: 52,
+          position: "absolute", left: 0, top: 0, height: 48, width: 52,
           display: "flex", alignItems: "center", justifyContent: "center",
           pointerEvents: "none", zIndex: 2
         }}>
@@ -129,7 +127,7 @@ function Field({ label, icon: Icon, error, rightEl, hint, children }) {
 
         {rightEl && (
           <div style={{
-            position: "absolute", right: 0, top: 0, bottom: 0, width: 48,
+            position: "absolute", right: 0, top: 0, height: 48, width: 48,
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 2
           }}>
@@ -163,14 +161,13 @@ function Field({ label, icon: Icon, error, rightEl, hint, children }) {
     </div>
   );
 }
-
 // ── Shared input/select style ─────────────────────────────────────────────────
 const inputStyle = (hasErr, hasRight = false) => ({
   width: "100%", height: 48,
   background: hasErr ? "#FFF5F5" : "#F9FAFB",
   border: `1.5px solid ${hasErr ? "#FCA5A5" : "#E5E7EB"}`,
   borderRadius: 10, outline: "none", 
-  paddingLeft: 56, // ← El espacio extra centrado
+  paddingLeft: 56,
   paddingRight: hasRight ? 48 : 16,
   fontSize: 14, color: "#111827",
   fontFamily: "inherit", fontWeight: 400,
@@ -179,63 +176,135 @@ const inputStyle = (hasErr, hasRight = false) => ({
   appearance: "none",
 });
 
-// ── Section header (Si en algún momento quisieras usarlo) ─────────────────────
-function SectionHeader({ children }) {
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 10,
-      margin: "24px 0 16px", paddingTop: 4,
-      borderTop: "1px solid #F3F4F6",
-    }}>
-      <span style={{ fontSize: 11, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "inherit", whiteSpace: "nowrap" }}>
-        {children}
-      </span>
-      <div style={{ flex: 1, height: 1, background: "#F3F4F6" }} />
-    </div>
-  );
-}
-
 // ── Main form ─────────────────────────────────────────────────────────────────
 export function RegisterForm({ tipo, onDirtyChange }) {
   const esEstudiante = tipo === "estudiante";
   const colorTema = esEstudiante ? "#1B6FE8" : "#F97316";
 
   const { register: registerUser, isLoading, error: backendError } = useRegister(tipo);
+  const { buscarDni, isLoading: isLoadingDni, error: dniError, clearError: clearDniError } = useConsultaDni();
+  const { buscarRuc, isLoading: isLoadingRuc, error: rucError, clearError: clearRucError } = useConsultaRuc();
   
   // ── ESTADOS DEL WIZARD ──
   const [step, setStep] = useState(0);
-  const [showPass, setShowPass]     = useState(false);
+  const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [dniConsultado, setDniConsultado] = useState(false);
+  const [dniData, setDniData] = useState(null);
+  const [rucConsultado, setRucConsultado] = useState(false);
+  const [rucData, setRucData] = useState(null);
 
   const {
     register, handleSubmit, watch, trigger, clearErrors,
-    formState: { errors },
-  } = useForm({ mode: "onChange" });
+    setValue, formState: { errors },
+  } = useForm({ 
+    mode: "onChange",
+    defaultValues: {
+      dni: "",
+      nombres: "",
+      apellidoPaterno: "",
+      apellidoMaterno: "",
+      email: "",
+      telefono: "",
+      password: "",
+      confirmPassword: "",
+      universidad: "",
+      carrera: "",
+      codigoEstudiante: "",
+      nombre: "",
+      nombreComercial: "",
+      ruc: "",
+      rubro: "",
+    }
+  });
 
   useEffect(() => {
     clearErrors();
   }, [step, clearErrors]);
 
-  const passValue    = watch("password", "");
-  const formValues   = watch(); // Obtenemos todos los valores del formulario
+  const passValue = watch("password", "");
+  const dniValue = watch("dni", "");
+  const rucValue = watch("ruc", "");
+  const formValues = watch();
 
   // ── AVISAR A LA PÁGINA SI HAY CAMBIOS ──
   useEffect(() => {
-    // Verificamos si algún campo de texto no está vacío
     const hasData = Object.values(formValues).some(v => typeof v === 'string' && v.trim().length > 0);
     if (onDirtyChange) onDirtyChange(hasData);
   }, [formValues, onDirtyChange]);
 
-  // ── LÓGICA DE NAVEGACIÓN ENTRE PASOS ──
+  // ── FUNCIÓN PARA CONSULTAR DNI ──
+  const handleConsultarDni = async () => {
+    if (dniValue.length !== 8) {
+      return;
+    }
+    
+    clearDniError();
+    const data = await buscarDni(dniValue);
+    
+    if (data) {
+      setDniData(data);
+      setDniConsultado(true);
+      
+      setValue("nombres", data.nombres, { shouldValidate: true });
+      setValue("apellidoPaterno", data.apellidoPaterno, { shouldValidate: true });
+      setValue("apellidoMaterno", data.apellidoMaterno, { shouldValidate: true });
+    } else {
+      setDniConsultado(false);
+      setDniData(null);
+    }
+  };
+
+  // ── FUNCIÓN PARA CONSULTAR RUC ──
+  const handleConsultarRuc = async () => {
+    if (rucValue.length !== 11) {
+      return;
+    }
+    
+    clearRucError();
+    const data = await buscarRuc(rucValue);
+    
+    if (data) {
+      setRucData(data);
+      setRucConsultado(true);
+      
+      setValue("nombre", data.razonSocial, { shouldValidate: true });
+       setValue("nombreComercial", data.direccion, { shouldValidate: true });
+    } else {
+      setRucConsultado(false);
+      setRucData(null);
+    }
+  };
+
+  // ── Limpiar estado si se modifica manualmente el DNI ──
+  useEffect(() => {
+    if (dniConsultado && dniValue.length !== 8) {
+      setDniConsultado(false);
+      setDniData(null);
+    }
+  }, [dniValue, dniConsultado]);
+
+  // ── Limpiar estado si se modifica manualmente el RUC ──
+  useEffect(() => {
+    if (rucConsultado && rucValue.length !== 11) {
+      setRucConsultado(false);
+      setRucData(null);
+    }
+  }, [rucValue, rucConsultado]);
+
   // ── LÓGICA DE NAVEGACIÓN ENTRE PASOS ──
   const handleNext = async () => {
     let fieldsToValidate = [];
     if (step === 0) {
       fieldsToValidate = esEstudiante 
-        ? ["nombre", "email", "telefono"] 
-        : ["nombre", "nombreComercial", "email", "telefono"];
+        ? ["dni", "nombres", "apellidoPaterno", "apellidoMaterno"] 
+        : ["ruc", "nombre", "nombreComercial"];
     }
-    if (step === 1) fieldsToValidate = ["password", "confirmPassword"];
+    if (step === 1) {
+      fieldsToValidate = esEstudiante
+        ? ["email", "password", "confirmPassword"]
+        : ["email", "telefono", "password", "confirmPassword"];
+    }
 
     const isStepValid = await trigger(fieldsToValidate);
     if (isStepValid) {
@@ -265,6 +334,13 @@ export function RegisterForm({ tipo, onDirtyChange }) {
     Object.keys(data).forEach(k => { clean[k] = stripXSS(String(data[k] || "")).trim(); });
     
     delete clean.confirmPassword;
+    
+    if (esEstudiante) {
+      clean.nombre = `${clean.nombres} ${clean.apellidoPaterno} ${clean.apellidoMaterno}`.trim();
+      delete clean.nombres;
+      delete clean.apellidoPaterno;
+      delete clean.apellidoMaterno;
+    }
 
     registerUser(clean);
   };
@@ -307,6 +383,15 @@ export function RegisterForm({ tipo, onDirtyChange }) {
           background: white !important;
           outline: none !important;
         }
+        .dni-input-success {
+          background: #F0FDF4 !important;
+          border-color: #86EFAC !important;
+        }
+        .dni-button:hover:not(:disabled) {
+          background: ${colorTema} !important;
+          color: white !important;
+          border-color: ${colorTema} !important;
+        }
       `}</style>
 
       {/* ── BARRA DE PROGRESO ── */}
@@ -327,66 +412,361 @@ export function RegisterForm({ tipo, onDirtyChange }) {
       </div>
 
       <form 
-          onKeyDown={checkKeyDown} 
-          onSubmit={handleSubmit(onSubmit)} 
-          style={{ display: "flex", flexDirection: "column", gap: 18, minHeight: 280 }}
-        >
+        onKeyDown={checkKeyDown} 
+        onSubmit={handleSubmit(onSubmit)} 
+        style={{ display: "flex", flexDirection: "column", gap: 18, minHeight: 280 }}
+      >
         <AnimatePresence mode="wait">
           {/* ── PASO 1: CONTACTO ─────────────────────────────────────────── */}
           {step === 0 && (
             <motion.div key="step0" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               
               {esEstudiante ? (
-                <Field label="Nombre completo" icon={User} error={errors.nombre} hint="Tal como aparece en tu DNI">
-                  <input
-                    type="text" autoComplete="name" maxLength={MAX} className={`rf-input${errors.nombre ? " err" : ""}`} style={inputStyle(!!errors.nombre)}
-                    {...register("nombre", {
-                      required: "El nombre es obligatorio",
-                      minLength: { value: 5, message: "Mínimo 5 caracteres" },
-                      maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` },
-                      validate: {
-                        twoWords: (v) => NOMBRE_RE.test(stripXSS(v).trim()) || "Ingresa nombre y apellido",
-                        noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos",
-                      },
-                      onChange: onChangeStrip,
-                    })}
-                  />
-                </Field>
+                <>
+                  {/* CAMPO DNI CON BOTÓN DE CONSULTA */}
+                  <Field 
+                    label="DNI" 
+                    icon={IdCard} 
+                    error={errors.dni || (dniError ? { message: dniError } : null)}
+                    hint={dniConsultado ? "" : "Ingresa tu DNI y haz clic en buscar"}
+                  >
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <div style={{ position: "relative", flex: 1 }}>
+                        <input
+                          type="text" 
+                          inputMode="numeric" 
+                          maxLength={8} 
+                          placeholder="12345678"
+                          className={`rf-input${errors.dni || dniError ? " err" : ""} ${dniConsultado ? " dni-input-success" : ""}`}
+                          style={{
+                            ...inputStyle(!!errors.dni || !!dniError),
+                            paddingRight: 16
+                          }}
+                          {...register("dni", {
+                            required: "El DNI es obligatorio",
+                            minLength: { value: 8, message: "El DNI debe tener 8 dígitos" },
+                            maxLength: { value: 8, message: "El DNI debe tener 8 dígitos" },
+                            validate: {
+                              soloNumeros: (v) => /^\d{8}$/.test(v) || "Solo se permiten números",
+                            },
+                            onChange: (e) => { 
+                              e.target.value = e.target.value.replace(/\D/g, "").slice(0, 8);
+                            },
+                          })}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleConsultarDni}
+                        disabled={dniValue.length !== 8 || isLoadingDni}
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 10,
+                          border: `1.5px solid ${dniConsultado ? "#86EFAC" : "#E5E7EB"}`,
+                          background: dniConsultado ? "#F0FDF4" : "white",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: dniValue.length === 8 && !isLoadingDni ? "pointer" : "not-allowed",
+                          opacity: dniValue.length === 8 && !isLoadingDni ? 1 : 0.5,
+                          transition: "all 0.2s ease",
+                          color: dniConsultado ? "#22C55E" : "#9CA3AF",
+                        }}
+                        className="dni-button"
+                        title="Consultar DNI"
+                      >
+                        {isLoadingDni ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : dniConsultado ? (
+                          <CheckCircle2 size={18} />
+                        ) : (
+                          <Search size={18} />
+                        )}
+                      </button>
+                    </div>
+                    {dniConsultado && dniData && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{
+                          fontSize: 12,
+                          color: "#22C55E",
+                          marginTop: 6,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                          fontWeight: 500,
+                          fontFamily: "inherit"
+                        }}
+                      >
+                        <CheckCircle2 size={12} />
+                        DNI encontrado
+                      </motion.p>
+                    )}
+                  </Field>
+
+                  {/* NOMBRES */}
+                    <div style={{ marginTop: dniConsultado ? 12 : 0 }}>
+                      <Field 
+                        label="Nombres" 
+                        icon={User} 
+                        error={errors.nombres}
+                      >
+                    <input
+                      type="text"
+                      maxLength={40}
+                      disabled={dniConsultado}
+                      className={`rf-input${errors.nombres ? " err" : ""}`}
+                      style={{
+                        ...inputStyle(!!errors.nombres),
+                        ...(dniConsultado ? {
+                          background: "#F3F4F6",
+                          borderColor: "#D1D5DB",
+                          color: "#6B7280",
+                          cursor: "not-allowed",
+                          opacity: 0.8
+                        } : {})
+                      }}
+                      {...register("nombres", {
+                        required: "Los nombres son obligatorios",
+                        minLength: { value: 2, message: "Mínimo 2 caracteres" },
+                        maxLength: { value: 40, message: "Máximo 40 caracteres" },
+                        validate: {
+                          soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(v) || "Solo letras y espacios",
+                        },
+                        onChange: onChangeStrip,
+                      })}
+                    />
+                   </Field>
+                  </div>
+
+                  {/* APELLIDO PATERNO Y MATERNO EN LA MISMA LÍNEA */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <Field 
+                      label="Apellido Paterno" 
+                      icon={User} 
+                      error={errors.apellidoPaterno}
+                    >
+                      <input
+                        type="text"
+                        maxLength={40}
+                        disabled={dniConsultado}
+                        className={`rf-input${errors.apellidoPaterno ? " err" : ""}`}
+                        style={{
+                          ...inputStyle(!!errors.apellidoPaterno),
+                          ...(dniConsultado ? {
+                            background: "#F3F4F6",
+                            borderColor: "#D1D5DB",
+                            color: "#6B7280",
+                            cursor: "not-allowed",
+                            opacity: 0.8
+                          } : {})
+                        }}
+                        {...register("apellidoPaterno", {
+                          required: "El apellido paterno es obligatorio",
+                          minLength: { value: 2, message: "Mínimo 2 caracteres" },
+                          maxLength: { value: 40, message: "Máximo 40 caracteres" },
+                          validate: {
+                            soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/.test(v) || "Solo letras",
+                          },
+                          onChange: onChangeStrip,
+                        })}
+                      />
+                    </Field>
+
+                    <Field 
+                      label="Apellido Materno" 
+                      icon={User} 
+                      error={errors.apellidoMaterno}
+                    >
+                      <input
+                        type="text"
+                        maxLength={40}
+                        disabled={dniConsultado}
+                        className={`rf-input${errors.apellidoMaterno ? " err" : ""}`}
+                        style={{
+                          ...inputStyle(!!errors.apellidoMaterno),
+                          ...(dniConsultado ? {
+                            background: "#F3F4F6",
+                            borderColor: "#D1D5DB",
+                            color: "#6B7280",
+                            cursor: "not-allowed",
+                            opacity: 0.8
+                          } : {})
+                        }}
+                        {...register("apellidoMaterno", {
+                          required: "El apellido materno es obligatorio",
+                          minLength: { value: 2, message: "Mínimo 2 caracteres" },
+                          maxLength: { value: 40, message: "Máximo 40 caracteres" },
+                          validate: {
+                            soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/.test(v) || "Solo letras",
+                          },
+                          onChange: onChangeStrip,
+                        })}
+                      />
+                    </Field>
+                  </div>
+                </>
               ) : (
                 <>
-                  {/* Nombre del Dueño / Gerente */}
-                  <Field label="Nombre del representante" icon={User} error={errors.nombre} hint="Dueño o gerente de la empresa">
+                  {/* CAMPO RUC CON BOTÓN DE CONSULTA */}
+                  <Field 
+                    label="RUC" 
+                    icon={FileText} 
+                    error={errors.ruc || (rucError ? { message: rucError } : null)}
+                    hint={rucConsultado ? "" : "Ingresa tu RUC y haz clic en buscar"}
+                  >
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <div style={{ position: "relative", flex: 1 }}>
+                        <input
+                          type="text" 
+                          inputMode="numeric" 
+                          maxLength={11} 
+                          placeholder="20123456789"
+                          className={`rf-input${errors.ruc || rucError ? " err" : ""} ${rucConsultado ? " dni-input-success" : ""}`}
+                          style={{
+                            ...inputStyle(!!errors.ruc || !!rucError),
+                            paddingRight: 16
+                          }}
+                          {...register("ruc", {
+                            required: "El RUC es obligatorio",
+                            minLength: { value: 11, message: "El RUC debe tener 11 dígitos" },
+                            maxLength: { value: 11, message: "El RUC debe tener 11 dígitos" },
+                            validate: {
+                              formato: (v) => RUC_RE.test(v) || "Debe empezar con 10 o 20",
+                            },
+                            onChange: (e) => { 
+                              e.target.value = e.target.value.replace(/\D/g, "").slice(0, 11);
+                            },
+                          })}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleConsultarRuc}
+                        disabled={rucValue.length !== 11 || isLoadingRuc}
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 10,
+                          border: `1.5px solid ${rucConsultado ? "#86EFAC" : "#E5E7EB"}`,
+                          background: rucConsultado ? "#F0FDF4" : "white",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: rucValue.length === 11 && !isLoadingRuc ? "pointer" : "not-allowed",
+                          opacity: rucValue.length === 11 && !isLoadingRuc ? 1 : 0.5,
+                          transition: "all 0.2s ease",
+                          color: rucConsultado ? "#22C55E" : "#9CA3AF",
+                        }}
+                        className="dni-button"
+                        title="Consultar RUC"
+                      >
+                        {isLoadingRuc ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : rucConsultado ? (
+                          <CheckCircle2 size={18} />
+                        ) : (
+                          <Search size={18} />
+                        )}
+                      </button>
+                    </div>
+                    {rucConsultado && rucData && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{
+                          fontSize: 12,
+                          color: "#22C55E",
+                          marginTop: 6,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                          fontWeight: 500,
+                          fontFamily: "inherit"
+                        }}
+                      >
+                        <CheckCircle2 size={12} />
+                        RUC encontrado
+                      </motion.p>
+                    )}
+                  </Field>
+
+                  {/* Razón Social */}
+                    <div style={{ marginTop: rucConsultado ? 12 : 0 }}>
+                      <Field 
+                        label="Razón Social" 
+                        icon={Building2} 
+                        error={errors.nombre}
+                      >
                     <input
-                      type="text" maxLength={MAX} className={`rf-input${errors.nombre ? " err" : ""}`} style={inputStyle(!!errors.nombre)}
+                      type="text"
+                      maxLength={MAX}
+                      disabled={rucConsultado}
+                      className={`rf-input${errors.nombre ? " err" : ""}`}
+                      style={{
+                        ...inputStyle(!!errors.nombre),
+                        ...(rucConsultado ? {
+                          background: "#F3F4F6",
+                          borderColor: "#D1D5DB",
+                          color: "#6B7280",
+                          cursor: "not-allowed",
+                          opacity: 0.8
+                        } : {})
+                      }}
                       {...register("nombre", {
-                        required: "El nombre del representante es obligatorio",
-                        minLength: { value: 5, message: "Mínimo 5 caracteres" },
+                        required: "La razón social es obligatoria",
+                        minLength: { value: 2, message: "Mínimo 2 caracteres" },
                         maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` },
                         validate: {
-                          twoWords: (v) => NOMBRE_RE.test(stripXSS(v).trim()) || "Ingresa nombre y apellido",
                           noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos",
                         },
                         onChange: onChangeStrip,
                       })}
                     />
                   </Field>
-
-                  {/* Nombre de la Empresa */}
-                  <Field label="Nombre comercial" icon={Building2} error={errors.nombreComercial} hint="Nombre con el que opera tu negocio">
+                  </div>
+                  {/* Dirección */}
+                    <Field 
+                      label="Dirección" 
+                      icon={Building2} 
+                      error={errors.nombreComercial}
+                    >
                     <input
-                      type="text" maxLength={MAX} className={`rf-input${errors.nombreComercial ? " err" : ""}`} style={inputStyle(!!errors.nombreComercial)}
+                      type="text"
+                      maxLength={MAX}
+                      disabled={rucConsultado}
+                      className={`rf-input${errors.nombreComercial ? " err" : ""}`}
+                      style={{
+                        ...inputStyle(!!errors.nombreComercial),
+                        ...(rucConsultado ? {
+                          background: "#F3F4F6",
+                          borderColor: "#D1D5DB",
+                          color: "#6B7280",
+                          cursor: "not-allowed",
+                          opacity: 0.8
+                        } : {})
+                      }}
                       {...register("nombreComercial", {
                         required: "El nombre comercial es obligatorio",
                         minLength: { value: 2, message: "Mínimo 2 caracteres" },
                         maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` },
-                        validate: { noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos" },
+                        validate: { 
+                          noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos" 
+                        },
                         onChange: onChangeStrip,
                       })}
                     />
                   </Field>
                 </>
               )}
+            </motion.div>
+          )}
 
+          {/* ── PASO 2: SEGURIDAD ─────────────────────────────────────────── */}
+          {step === 1 && (
+            <motion.div key="step1" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               <Field label="Correo electrónico" icon={Mail} error={errors.email}>
                 <input
                   type="text" inputMode="email" autoComplete="email" maxLength={MAX} className={`rf-input${errors.email ? " err" : ""}`} style={inputStyle(!!errors.email)}
@@ -398,29 +778,14 @@ export function RegisterForm({ tipo, onDirtyChange }) {
                       noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos",
                     },
                     onChange: (e) => { 
-                      // Se agregó .toUpperCase() al final
-                      e.target.value = e.target.value.replace(/<[^>]*>/g, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "").replace(/[<>"'`]/g, "").toUpperCase(); 
+                      e.target.value = e.target.value.replace(/<[^>]*>/g, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "").replace(/[<>"'`]/g, ""); 
                     },
                   })}
                 />
               </Field>
 
-              <Field label="Teléfono Celular" icon={Phone} error={errors.telefono} hint="9 dígitos — Empezando con 9">
-                <input
-                  type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
-                  {...register("telefono", {
-                    required: "El celular es obligatorio",
-                    validate: { format: (v) => PHONE_RE.test(v.trim()) || "Formato inválido. Debe empezar con 9 y tener 9 dígitos" },
-                    onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 9); },
-                  })}
-                />
-              </Field>
-            </motion.div>
-          )}
+              
 
-          {/* ── PASO 2: SEGURIDAD ─────────────────────────────────────────── */}
-          {step === 1 && (
-            <motion.div key="step1" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               <Field label="Contraseña" icon={Lock} error={errors.password} rightEl={eye(showPass, setShowPass)}>
                 <input
                   type={showPass ? "text" : "password"} autoComplete="new-password" maxLength={MAX} className={`rf-input${errors.password ? " err" : ""}`} style={inputStyle(!!errors.password, true)}
@@ -485,66 +850,70 @@ export function RegisterForm({ tipo, onDirtyChange }) {
                 </div>
               </Field>
 
-              <Field label="Código de estudiante" icon={BadgeInfo} error={errors.codigoEstudiante} hint="Ej: N00123456 — Empieza con N00 + 6 números">
-                <input
-                  type="text" 
-                  maxLength={9} 
-                  className={`rf-input${errors.codigoEstudiante ? " err" : ""}`} 
-                  style={inputStyle(!!errors.codigoEstudiante)}
-                  {...register("codigoEstudiante", {
-                    required: "El código de estudiante es obligatorio",
-                    minLength: { value: 9, message: "Debe tener exactamente 9 caracteres" },
-                    maxLength: { value: 9, message: "Debe tener exactamente 9 caracteres" },
-                    validate: {
-                      format:   (v) => CODIGO_RE.test(v.trim()) || "Formato inválido. Debe empezar con 'N00' y tener 6 números más",
-                      noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos",
-                    },
-                    onChange: (e) => { e.target.value = e.target.value.replace(/[\s-]/g, "").toUpperCase(); },
-                  })}
-                />
-              </Field>
+              {/* TELÉFONO Y CÓDIGO DE ESTUDIANTE EN LA MISMA LÍNEA */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <Field label="Teléfono Celular" icon={Phone} error={errors.telefono} hint="9 dígitos — Empieza con 9">
+                  <input
+                    type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
+                    {...register("telefono", {
+                      required: "El celular es obligatorio",
+                      validate: { format: (v) => PHONE_RE.test(v.trim()) || "Formato inválido. Debe empezar con 9 y tener 9 dígitos" },
+                      onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 9); },
+                    })}
+                  />
+                </Field>
+
+                <Field label="Código de estudiante" icon={BadgeInfo} error={errors.codigoEstudiante} hint="Ej: N00123456">
+                  <input
+                    type="text" 
+                    maxLength={9} 
+                    className={`rf-input${errors.codigoEstudiante ? " err" : ""}`} 
+                    style={inputStyle(!!errors.codigoEstudiante)}
+                    {...register("codigoEstudiante", {
+                      required: "El código de estudiante es obligatorio",
+                      minLength: { value: 9, message: "Debe tener exactamente 9 caracteres" },
+                      maxLength: { value: 9, message: "Debe tener exactamente 9 caracteres" },
+                      validate: {
+                        format:   (v) => CODIGO_RE.test(v.trim()) || "Formato inválido. Debe empezar con 'N00' y tener 6 números más",
+                        noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos",
+                      },
+                      onChange: (e) => { e.target.value = e.target.value.replace(/[\s-]/g, "").toUpperCase(); },
+                    })}
+                  />
+                </Field>
+              </div>
             </motion.div>
           )}
 
           {step === 2 && !esEstudiante && (
-            <motion.div key="step2-mype" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-              <Field label="Rubro del negocio" icon={Briefcase} error={errors.rubro}>
-                <div style={{ position: "relative" }}>
-                  <select
-                    defaultValue=""
-                    className={`rf-select rf-input${errors.rubro ? " err" : ""}`}
-                    style={{ ...inputStyle(!!errors.rubro, true), cursor: "pointer", color: watch("rubro") ? "#111827" : "#9CA3AF" }}
-                    {...register("rubro", { required: "Selecciona el rubro de tu negocio" })}
-                  >
-                    <option value="" disabled hidden>Selecciona tu rubro</option>
-                    {RUBROS.map(r => <option key={r} value={r} style={{ color: "#111827" }}>{r}</option>)}
-                  </select>
-                  <ChevronDown size={16} style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", pointerEvents: "none" }} />
-                </div>
-              </Field>
+  <motion.div key="step2-mype" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+    <Field label="Rubro del negocio" icon={Briefcase} error={errors.rubro}>
+      <div style={{ position: "relative" }}>
+        <select
+          defaultValue=""
+          className={`rf-select rf-input${errors.rubro ? " err" : ""}`}
+          style={{ ...inputStyle(!!errors.rubro, true), cursor: "pointer", color: watch("rubro") ? "#111827" : "#9CA3AF" }}
+          {...register("rubro", { required: "Selecciona el rubro de tu negocio" })}
+        >
+          <option value="" disabled hidden>Selecciona tu rubro</option>
+          {RUBROS.map(r => <option key={r} value={r} style={{ color: "#111827" }}>{r}</option>)}
+        </select>
+        <ChevronDown size={16} style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", pointerEvents: "none" }} />
+      </div>
+    </Field>
 
-              <Field label="RUC" icon={FileText} error={errors.ruc} hint="11 dígitos — persona natural (10...) o jurídica (20...)">
-                <input
-                  type="text" inputMode="numeric" maxLength={11} className={`rf-input${errors.ruc ? " err" : ""}`} style={inputStyle(!!errors.ruc)}
-                  {...register("ruc", {
-                    required: "El RUC es obligatorio",
-                    validate: {
-                      format: (v) => RUC_RE.test(v.trim()) || "Debe tener 11 dígitos y empezar con 10 o 20",
-                      luhn:   (v) => {
-                        const digits = v.trim().split("").map(Number);
-                        const factors = [5,4,3,2,7,6,5,4,3,2];
-                        const sum = factors.reduce((acc, f, i) => acc + f * digits[i], 0);
-                        const remainder = 11 - (sum % 11);
-                        const check = remainder >= 10 ? remainder - 10 : remainder;
-                        return check === digits[10] || "Dígito verificador de RUC incorrecto";
-                      },
-                    },
-                    onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 11); },
-                  })}
-                />
-              </Field>
-            </motion.div>
-          )}
+    <Field label="Teléfono Celular" icon={Phone} error={errors.telefono} hint="9 dígitos — Empezando con 9">
+      <input
+        type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
+        {...register("telefono", {
+          required: "El celular es obligatorio",
+          validate: { format: (v) => PHONE_RE.test(v.trim()) || "Formato inválido. Debe empezar con 9 y tener 9 dígitos" },
+          onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 9); },
+        })}
+      />
+    </Field>
+  </motion.div>
+)}
         </AnimatePresence>
 
         {/* Backend error display */}
