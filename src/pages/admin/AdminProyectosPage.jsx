@@ -136,23 +136,33 @@ export default function AdminProyectosPage() {
                     <div className="flex items-center justify-end gap-2">
                       
                       {proyecto.estado === 'PENDIENTE' && (
-                        <>
-                          <button 
-                            onClick={() => setModalPostulantes({ isOpen: true, proyecto })}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-primary border border-indigo-100 rounded-lg text-xs font-bold hover:bg-primary hover:text-white transition-colors"
-                          >
-                            <Eye size={14} /> Revisar Postulantes
-                          </button>
+  <>
+    <button 
+      onClick={() => setModalPostulantes({ isOpen: true, proyecto })}
+      className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-primary border border-indigo-100 rounded-lg text-xs font-bold hover:bg-primary hover:text-white transition-colors"
+    >
+      <Eye size={14} /> Revisar
+    </button>
 
-                          <button 
-                            onClick={() => handleCederGestion(proyecto.id)}
-                            className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors border border-transparent hover:border-amber-200"
-                            title="Ceder gestión de postulantes a la MYPE"
-                          >
-                            <ArrowRightLeft size={16} />
-                          </button>
-                        </>
-                      )}
+    {/* ✨ NUEVA LÓGICA: Si ya se cedió, mostramos un texto. Si no, mostramos el botón */}
+    {proyecto.delegarGestionAdmin ? (
+      <span 
+        className="px-2 py-1.5 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-lg border border-slate-200 flex items-center"
+        title="La MYPE se está encargando de aceptar postulantes"
+      >
+        Gestión Cedida
+      </span>
+    ) : (
+      <button 
+        onClick={() => handleCederGestion(proyecto.id)}
+        className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors border border-transparent hover:border-amber-200"
+        title="Ceder gestión de postulantes a la MYPE"
+      >
+        <ArrowRightLeft size={16} />
+      </button>
+    )}
+  </>
+)}
                       
                       {proyecto.estado === 'EN_DESARROLLO' && (
                         <button 
