@@ -12,11 +12,6 @@ import {
 /* ════════════════════════════════════════════
    ANIMACIÓN SVG DEL HERO — red viva MYPE↔Plataforma↔Estudiante
    ════════════════════════════════════════════ */
-/* ════════════════════════════════════════════
-   ANIMACIÓN SVG — zona derecha del hero
-   Tres nodos con líneas calculadas para
-   partir/terminar EXACTAMENTE en la superficie.
-   ════════════════════════════════════════════ */
 function HeroAnimation() {
   /* Nodos principales */
   const PL  = { cx:280, cy:390, r:44 };   // Plataforma (centro-bajo)
@@ -50,7 +45,6 @@ function HeroAnimation() {
       position:"absolute", top:0, right:0,
       width:"56%", height:"100%",
       pointerEvents:"none", zIndex:1,
-      /* Fusión suave en el borde izquierdo para no cortar bruscamente */
       WebkitMaskImage:"linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 12%, black 28%, black 100%)",
       maskImage:"linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 12%, black 28%, black 100%)",
     }}>
@@ -328,9 +322,6 @@ const CATEGORIAS = [
   { label: "Plan de Backups",     grupo: "Soporte TI y Redes",   icon: ShieldCheck,color: "#059669" },
 ];
 
-
-
-
 /* ════════════════════════════════════════════
    COMPONENTE PRINCIPAL
    ════════════════════════════════════════════ */
@@ -346,24 +337,15 @@ export function LandingPage() {
 
   /* ── estilos inline compartidos ── */
   const F = "Arial, 'Helvetica Neue', Helvetica, sans-serif";
-  const FA = "'Playfair Display', Georgia, serif";
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400;1,700&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body { font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; }
 
         .lp { font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; color: #1a1a2e; background: #fafaf8; overflow-x: hidden; }
-
-        /* Fuente de acento: Playfair Italic */
-        .af { font-family: 'Playfair Display', Georgia, serif; font-style: italic; }
-        .af-blue   { color: #67d4f8; }
-        .af-orange { color: #f59e0b; }
-        .af-ink    { color: #1B6FE8; }
-        .af-ember  { color: #d4580a; }
 
         /* ── Botones ── */
         .btn-p {
@@ -466,6 +448,18 @@ export function LandingPage() {
         /* ── Hero gradient ── */
         .hero-bg { background:linear-gradient(160deg,#0d1b35 0%,#0f2a4a 55%,#0b2a4f 100%); }
 
+        /* ── Línea decorativa sutil debajo del Hero ── */
+        .hero-divider {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, transparent 0%, rgba(27,111,232,0.4) 20%, rgba(6,182,212,0.4) 50%, rgba(139,92,246,0.4) 80%, transparent 100%);
+          pointer-events: none;
+          z-index: 2;
+        }
+
         /* ── Responsive ── */
         @media(max-width:860px){
           .grid-hero { grid-template-columns:1fr !important; }
@@ -477,6 +471,7 @@ export function LandingPage() {
           .grid-foot { grid-template-columns:1fr 1fr !important; gap:32px !important; }
           .nav-desk  { display:none !important; }
           .hamburger { display:flex !important; }
+          .hero-text-block { margin-left: 0 !important; }
         }
         @media(max-width:480px){
           .grid-cats { grid-template-columns:1fr !important; }
@@ -502,7 +497,6 @@ export function LandingPage() {
           <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 28px", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
 
             <Link to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
-              {/* Imagotipo claro (sobre fondo claro al hacer scroll) / oscuro (hero) */}
               <img
                 src={scrolled ? "/imagotipo_claro.webp" : "/imagotipo_oscuro.webp"}
                 alt="Linkuy"
@@ -523,12 +517,7 @@ export function LandingPage() {
 
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <Link to="/login" style={{ textDecoration: "none" }}>
-                <span style={{ fontFamily: F, fontSize: 13, fontWeight: 700, color: scrolled ? "#4a4a5a" : "rgba(255,255,255,.6)", cursor: "pointer", transition: "color .2s" }}>Ingresar</span>
-              </Link>
-              <Link to="/register/mype" style={{ textDecoration: "none" }}>
-                <button className="btn-p" style={{ padding: "8px 16px", fontSize: 13, background: scrolled ? "#0f1f3d" : "rgba(255,255,255,.1)", border: scrolled ? "none" : "1px solid rgba(255,255,255,.25)" }}>
-                  Publicar proyecto <ArrowRight size={13} />
-                </button>
+                <span style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: scrolled ? "#4a4a5a" : "rgba(255,255,255,.6)", cursor: "pointer", transition: "color .2s" }}>Ingresar</span>
               </Link>
               <button className="hamburger" onClick={() => setMobile(v => !v)}
                 style={{ background: "none", border: "none", cursor: "pointer", display: "none", padding: 4, color: scrolled ? "#0f1f3d" : "#fff" }}>
@@ -540,75 +529,144 @@ export function LandingPage() {
           {mobileMenuOpen && (
             <div style={{ background: "#fafaf8", borderTop: "1px solid #e8e8e4", padding: "20px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
               {[["#como-funciona","Cómo funciona"],["#proyectos","Proyectos"],["#empresas","Para empresas"],["#estudiantes","Para estudiantes"]].map(([href,label]) => (
-                <a key={label} href={href} onClick={() => setMobile(false)} style={{ fontFamily: F, fontSize: 15, color: "#1a1a2e", textDecoration: "none" }}>{label}</a>
+                <a key={label} href={href} onClick={() => setMobile(false)} style={{ fontFamily: F, fontSize: 15, color: "#1a1a2e", textDecoration: "none", fontWeight: 400 }}>{label}</a>
               ))}
               <div style={{ display: "flex", gap: 10, paddingTop: 8, borderTop: "1px solid #e8e8e4" }}>
                 <Link to="/login"             style={{ textDecoration: "none" }}><button className="btn-ghost-dark" style={{ padding: "9px 16px", fontSize: 13 }}>Ingresar</button></Link>
-                <Link to="/register/mype"     style={{ textDecoration: "none" }}><button className="btn-p"          style={{ padding: "9px 16px", fontSize: 13 }}>Registrarse</button></Link>
               </div>
             </div>
           )}
         </motion.header>
 
         {/* ══════ HERO ══════ */}
-        <section className="hero-bg" style={{ paddingTop: 60, minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", position: "relative", overflow: "hidden" }}>
+          <section className="hero-bg" style={{ 
+            paddingTop: 60, 
+            minHeight: "100vh", 
+            display: "flex", 
+            flexDirection: "column", 
+            justifyContent: "center", 
+            position: "relative", 
+            overflow: "hidden"
+          }}>
 
-          <HeroAnimation />
+            <HeroAnimation />
 
-          {/* Degradado para legibilidad del texto */}
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(13,27,53,.92) 0%, rgba(13,27,53,.88) 32%, rgba(13,27,53,.3) 60%, rgba(13,27,53,.08) 100%)", pointerEvents: "none", zIndex: 1 }} />
+            {/* Degradado para legibilidad del texto */}
+            <div style={{ 
+              position: "absolute", 
+              inset: 0, 
+              background: "linear-gradient(to right, rgba(13,27,53,0.92) 0%, rgba(13,27,53,0.88) 32%, rgba(13,27,53,0.3) 60%, rgba(13,27,53,0.08) 100%)", 
+              pointerEvents: "none", 
+              zIndex: 1 
+            }} />
 
-          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "90px 28px 110px", position: "relative", zIndex: 2 }}>
+            <div style={{ 
+              maxWidth: 1200, 
+              margin: "0 auto", 
+              padding: "90px 28px 110px", 
+              position: "relative", 
+              zIndex: 2,
+              width: "100%"
+            }}>
 
-            {/* Badge de estado */}
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .5, delay: .1, ease: EASE }} style={{ marginBottom: 36 }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
-                <span style={{ fontFamily: F, fontSize: 11, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,.4)" }}>
-                  BETA
-                </span>
-              </div>
-            </motion.div>
-
-            <div className="grid-hero" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 0, alignItems: "center" }}>
-
-              {/* Copy */}
-              <motion.div initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .7, delay: .15, ease: EASE }}>
-                <h1 style={{ fontFamily: F, fontSize: "clamp(38px,5vw,62px)", fontWeight: 900, color: "#fff", lineHeight: 1.08, letterSpacing: "-.025em", marginBottom: 24 }}>
-                  Digitalización<br />
-                  basada en{" "}
-                  <span className="af af-blue">entregables claros</span>
-                </h1>
-                <p style={{ fontFamily: F, fontSize: 17, color: "rgba(255,255,255,.5)", lineHeight: 1.7, maxWidth: 580, marginBottom: 40 }}>
-                  Conectamos empresas con talento universitario. Tu empresa sabrá exactamente qué va a recibir. Sin tecnicismos, sin ambigüedades.
-                </p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 48 }}>
-                  <Link to="/register/mype" style={{ textDecoration: "none" }}>
-                    <button className="btn-p" style={{ padding: "14px 28px", fontSize: 15 }}>
-                      Publicar mi proyecto <ArrowRight size={16} />
-                    </button>
-                  </Link>
-                  <Link to="/register/estudiante" style={{ textDecoration: "none" }}>
-                    <button className="btn-ghost-light" style={{ padding: "14px 28px", fontSize: 15 }}>
-                      Soy estudiante
-                    </button>
-                  </Link>
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
-                  {["100% Gratuito para empresas", "Talento verificado", "Entregables garantizados"].map(t => (
-                    <span key={t} style={{ display: "flex", alignItems: "center", gap: 7, fontFamily: F, fontSize: 12, color: "rgba(255,255,255,.3)" }}>
-                      <CheckCircle2 size={12} style={{ color: "#67d4f8", flexShrink: 0 }} /> {t}
-                    </span>
-                  ))}
+              {/* Badge de estado */}
+              <motion.div 
+                initial={{ opacity: 0, y: 16 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ duration: .5, delay: .1, ease: EASE }} 
+                style={{ 
+                  marginBottom: 36,
+                  marginLeft: "clamp(0px, 5%, 80px)" 
+                }}
+              >
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
+                  <span style={{ fontFamily: F, fontSize: 11, fontWeight: 400, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,.4)" }}>
+                    BETA
+                  </span>
                 </div>
               </motion.div>
 
+              <div className="grid-hero" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 0, alignItems: "center" }}>
 
+                {/* Copy */}
+                <motion.div 
+                  initial={{ opacity: 0, x: -24 }} 
+                  animate={{ opacity: 1, x: 0 }} 
+                  transition={{ duration: .7, delay: .15, ease: EASE }}
+                 style={{
+                    marginLeft: "clamp(0px, 5%, 80px)"
+                  }}
+                >
+                  <h1 style={{ 
+                    fontFamily: F, 
+                    fontSize: "clamp(38px,5vw,62px)", 
+                    fontWeight: 400, 
+                    color: "#fff", 
+                    lineHeight: 1.08, 
+                    letterSpacing: "-.025em", 
+                    marginBottom: 24 
+                  }}>
+                    Soluciones <br />
+                    digitales con{" "}
+                    certeza
+                  </h1>
+                  <p style={{ 
+                    fontFamily: F, 
+                    fontSize: 17, 
+                    fontWeight: 400, 
+                    color: "rgba(255,255,255,.5)", 
+                    lineHeight: 1.7, 
+                    maxWidth: 580, 
+                    marginBottom: 40 
+                  }}>
+                    Conectamos empresas con talento universitario. Tu empresa sabrá exactamente qué va a recibir. Sin tecnicismos, sin ambigüedades.
+                  </p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 48 }}>
+                    <Link to="/register/mype" style={{ textDecoration: "none" }}>
+                      <button className="btn-p" style={{ padding: "14px 28px", fontSize: 15 }}>
+                        Publicar mi proyecto <ArrowRight size={16} />
+                      </button>
+                    </Link>
+                    <Link to="/register/estudiante" style={{ textDecoration: "none" }}>
+                      <button className="btn-ghost-light" style={{ padding: "14px 28px", fontSize: 15 }}>
+                        Soy estudiante
+                      </button>
+                    </Link>
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+                    {["100% Gratuito para empresas", "Talento verificado", "Entregables garantizados"].map(t => (
+                      <span key={t} style={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        gap: 7, 
+                        fontFamily: F, 
+                        fontSize: 12, 
+                        fontWeight: 400, 
+                        color: "rgba(255,255,255,.3)" 
+                      }}>
+                        <CheckCircle2 size={12} style={{ color: "#67d4f8", flexShrink: 0 }} /> {t}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+
+              </div>
             </div>
-          </div>
 
-          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 120, background: "linear-gradient(to bottom,transparent,#fafaf8)", pointerEvents: "none", zIndex: 2 }} />
-        </section>
+            {/* Línea divisoria sutil en lugar del degradado blanco */}
+            <div style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: "2px",
+              background: "linear-gradient(90deg, transparent 0%, rgba(27,111,232,0.4) 20%, rgba(6,182,212,0.4) 50%, rgba(139,92,246,0.4) 80%, transparent 100%)",
+              pointerEvents: "none",
+              zIndex: 2
+            }} />
+
+          </section>
 
         {/* ══════ CÓMO FUNCIONA ══════ */}
         <section id="como-funciona" style={{ padding: "120px 28px", background: "#fafaf8" }}>
@@ -616,12 +674,11 @@ export function LandingPage() {
             <FadeUp>
               <div style={{ textAlign: "center", marginBottom: 64 }}>
                 <div className="s-rule" style={{ margin: "0 auto 18px" }} />
-                <p style={{ fontFamily: F, fontSize: 11, fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase", color: "#8888a0", marginBottom: 14 }}>El proceso</p>
-                <h2 style={{ fontFamily: F, fontSize: "clamp(28px,3.5vw,42px)", fontWeight: 900, color: "#0f1f3d", letterSpacing: "-.02em", marginBottom: 14 }}>
-                  Tres pasos.{" "}
-                  <span className="af af-ink">Sin burocracia.</span>
+                <p style={{ fontFamily: F, fontSize: 11, fontWeight: 400, letterSpacing: ".12em", textTransform: "uppercase", color: "#8888a0", marginBottom: 14 }}>El proceso</p>
+                <h2 style={{ fontFamily: F, fontSize: "clamp(28px,3.5vw,42px)", fontWeight: 400, color: "#0f1f3d", letterSpacing: "-.02em", marginBottom: 14 }}>
+                  Tres pasos. Sin burocracia.
                 </h2>
-                <p style={{ fontFamily: F, fontSize: 16, color: "#6b6b7a", maxWidth: 520, lineHeight: 1.7, margin: "0 auto" }}>
+                <p style={{ fontFamily: F, fontSize: 16, fontWeight: 400, color: "#6b6b7a", maxWidth: 520, lineHeight: 1.7, margin: "0 auto" }}>
                   Diseñado para que la tecnología llegue a cualquier empresa, sin importar su conocimiento digital.
                 </p>
               </div>
@@ -636,12 +693,11 @@ export function LandingPage() {
                 <FadeUp key={s.num} delay={i * .1}>
                   <div className="step-card">
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
-                      {/* Línea de color en lugar de icono */}
                       <div style={{ width: 3, height: 44, background: `linear-gradient(to bottom,${s.color},transparent)`, borderRadius: 2, flexShrink: 0 }} />
-                      <span style={{ fontFamily: F, fontSize: 60, fontWeight: 900, color: "#ededed", lineHeight: 1 }}>{s.num}</span>
+                      <span style={{ fontFamily: F, fontSize: 60, fontWeight: 400, color: "#ededed", lineHeight: 1 }}>{s.num}</span>
                     </div>
-                    <h3 style={{ fontFamily: F, fontSize: 16, fontWeight: 700, color: "#0f1f3d", marginBottom: 10, lineHeight: 1.35, letterSpacing: "-.01em" }}>{s.title}</h3>
-                    <p  style={{ fontFamily: F, fontSize: 13, color: "#6b6b7a", lineHeight: 1.7, marginBottom: 20 }}>{s.desc}</p>
+                    <h3 style={{ fontFamily: F, fontSize: 16, fontWeight: 400, color: "#0f1f3d", marginBottom: 10, lineHeight: 1.35, letterSpacing: "-.01em" }}>{s.title}</h3>
+                    <p  style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "#6b6b7a", lineHeight: 1.7, marginBottom: 20 }}>{s.desc}</p>
                     <span className="tag" style={{ background: s.color + "14", color: s.color, border: `1px solid ${s.color}28` }}>{s.tag}</span>
                   </div>
                 </FadeUp>
@@ -652,77 +708,71 @@ export function LandingPage() {
 
         {/* ══════ DIFERENCIADORES — sin iconos genéricos ══════ */}
         <div style={{ background: "#0f1f3d", borderTop: "none", borderBottom: "none", padding: "64px 28px", position: "relative", overflow: "hidden" }}>
-          {/* fondo decorativo sutil */}
           <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 1px 1px,rgba(255,255,255,.03) 1px,transparent 0)", backgroundSize: "28px 28px", pointerEvents: "none" }} />
 
           <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 40 }}>
               <div style={{ width: 32, height: 2, background: "#1B6FE8" }} />
-              <p style={{ fontFamily: F, fontSize: 10, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(255,255,255,.3)" }}>
+              <p style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(255,255,255,.3)" }}>
                 Lo que nos diferencia
               </p>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 0 }}>
 
-              {/* Diferenciador 1 */}
               <FadeIn delay={0}>
                 <div style={{ padding: "32px 36px 32px 0", borderRight: "1px solid rgba(255,255,255,.07)", position: "relative" }}>
-                  {/* Acento visual: letra grande de fondo */}
-                  <span style={{ position: "absolute", top: 20, right: 32, fontFamily: FA, fontStyle: "italic", fontSize: 80, fontWeight: 700, color: "rgba(27,111,232,.08)", lineHeight: 1, userSelect: "none" }}>R</span>
+                  <span style={{ position: "absolute", top: 20, right: 32, fontFamily: F, fontSize: 80, fontWeight: 400, color: "rgba(27,111,232,.08)", lineHeight: 1, userSelect: "none" }}>R</span>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-                    {/* Indicador de color en lugar de icono */}
                     <div style={{ width: 3, height: 36, background: "linear-gradient(to bottom,#1B6FE8,#06B6D4)", borderRadius: 2, flexShrink: 0 }} />
-                    <p style={{ fontFamily: F, fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: "-.01em", lineHeight: 1.2 }}>
+                    <p style={{ fontFamily: F, fontSize: 18, fontWeight: 400, color: "#fff", letterSpacing: "-.01em", lineHeight: 1.2 }}>
                       Tu RRHH<br />especializado
                     </p>
                   </div>
-                  <p style={{ fontFamily: F, fontSize: 13, color: "rgba(255,255,255,.4)", lineHeight: 1.7 }}>
+                  <p style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,.4)", lineHeight: 1.7 }}>
                     Conocemos la carrera. Evaluamos perfiles técnicos, filtramos postulantes y te presentamos solo a quienes realmente encajan con tu proyecto.
                   </p>
                   <div style={{ marginTop: 24, display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ width: 20, height: 1, background: "#1B6FE8" }} />
-                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "#1B6FE8" }}>Selección a tu medida</span>
+                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".1em", textTransform: "uppercase", color: "#1B6FE8" }}>Selección a tu medida</span>
                   </div>
                 </div>
               </FadeIn>
 
-              {/* Diferenciador 2 */}
               <FadeIn delay={.1}>
                 <div style={{ padding: "32px 36px", borderRight: "1px solid rgba(255,255,255,.07)", position: "relative" }}>
-                  <span style={{ position: "absolute", top: 20, right: 32, fontFamily: FA, fontStyle: "italic", fontSize: 80, fontWeight: 700, color: "rgba(139,92,246,.08)", lineHeight: 1, userSelect: "none" }}>E</span>
+                  <span style={{ position: "absolute", top: 20, right: 32, fontFamily: F, fontSize: 80, fontWeight: 400, color: "rgba(139,92,246,.08)", lineHeight: 1, userSelect: "none" }}>E</span>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
                     <div style={{ width: 3, height: 36, background: "linear-gradient(to bottom,#8B5CF6,#1B6FE8)", borderRadius: 2, flexShrink: 0 }} />
-                    <p style={{ fontFamily: F, fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: "-.01em", lineHeight: 1.2 }}>
+                    <p style={{ fontFamily: F, fontSize: 18, fontWeight: 400, color: "#fff", letterSpacing: "-.01em", lineHeight: 1.2 }}>
                       Entregables<br />definidos
                     </p>
                   </div>
-                  <p style={{ fontFamily: F, fontSize: 13, color: "rgba(255,255,255,.4)", lineHeight: 1.7 }}>
+                  <p style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,.4)", lineHeight: 1.7 }}>
                     Tu empresa sabrá desde el primer día qué va a recibir: código fuente, manuales, prototipos. Fechas acordadas según la complejidad real.
                   </p>
                   <div style={{ marginTop: 24, display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ width: 20, height: 1, background: "#8B5CF6" }} />
-                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "#8B5CF6" }}>Claridad total</span>
+                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".1em", textTransform: "uppercase", color: "#8B5CF6" }}>Claridad total</span>
                   </div>
                 </div>
               </FadeIn>
 
-              {/* Diferenciador 3 */}
               <FadeIn delay={.2}>
                 <div style={{ padding: "32px 0 32px 36px", position: "relative" }}>
-                  <span style={{ position: "absolute", top: 20, right: 8, fontFamily: FA, fontStyle: "italic", fontSize: 80, fontWeight: 700, color: "rgba(5,150,105,.08)", lineHeight: 1, userSelect: "none" }}>M</span>
+                  <span style={{ position: "absolute", top: 20, right: 8, fontFamily: F, fontSize: 80, fontWeight: 400, color: "rgba(5,150,105,.08)", lineHeight: 1, userSelect: "none" }}>M</span>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
                     <div style={{ width: 3, height: 36, background: "linear-gradient(to bottom,#059669,#06B6D4)", borderRadius: 2, flexShrink: 0 }} />
-                    <p style={{ fontFamily: F, fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: "-.01em", lineHeight: 1.2 }}>
+                    <p style={{ fontFamily: F, fontSize: 18, fontWeight: 400, color: "#fff", letterSpacing: "-.01em", lineHeight: 1.2 }}>
                       Proyectos<br />monitoreados
                     </p>
                   </div>
-                  <p style={{ fontFamily: F, fontSize: 13, color: "rgba(255,255,255,.4)", lineHeight: 1.7 }}>
+                  <p style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,.4)", lineHeight: 1.7 }}>
                     No te dejamos solo. Hacemos seguimiento activo del avance, revisamos los entregables y garantizamos que el resultado cumpla con lo acordado.
                   </p>
                   <div style={{ marginTop: 24, display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ width: 20, height: 1, background: "#059669" }} />
-                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "#059669" }}>Auditoría continua</span>
+                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".1em", textTransform: "uppercase", color: "#059669" }}>Auditoría continua</span>
                   </div>
                 </div>
               </FadeIn>
@@ -736,12 +786,11 @@ export function LandingPage() {
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 28px", marginBottom: 56 }}>
             <FadeUp>
               <div className="s-rule" />
-              <p style={{ fontFamily: F, fontSize: 11, fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase", color: "#8888a0", marginBottom: 14 }}>Qué hacemos</p>
-              <h2 style={{ fontFamily: F, fontSize: "clamp(26px,3vw,40px)", fontWeight: 900, color: "#0f1f3d", letterSpacing: "-.02em", marginBottom: 12 }}>
-                Cuatro áreas de{" "}
-                <span className="af af-ink">especialidad</span>
+              <p style={{ fontFamily: F, fontSize: 11, fontWeight: 400, letterSpacing: ".12em", textTransform: "uppercase", color: "#8888a0", marginBottom: 14 }}>Qué hacemos</p>
+              <h2 style={{ fontFamily: F, fontSize: "clamp(26px,3vw,40px)", fontWeight: 400, color: "#0f1f3d", letterSpacing: "-.02em", marginBottom: 12 }}>
+                Cuatro áreas de especialidad
               </h2>
-              <p style={{ fontFamily: F, fontSize: 15, color: "#6b6b7a", maxWidth: 500, lineHeight: 1.7 }}>
+              <p style={{ fontFamily: F, fontSize: 15, fontWeight: 400, color: "#6b6b7a", maxWidth: 500, lineHeight: 1.7 }}>
                 Cobertura completa de las necesidades tecnológicas más comunes para impulsar tu empresa.
               </p>
             </FadeUp>
@@ -757,8 +806,8 @@ export function LandingPage() {
                       <cat.icon size={18} color={cat.color} />
                     </div>
                     <div style={{ width: 5, height: 5, borderRadius: "50%", background: cat.color, marginBottom: 8 }} />
-                    <p style={{ fontFamily: F, fontSize: 13, fontWeight: 700, color: "#0f1f3d", lineHeight: 1.35, marginBottom: 4 }}>{cat.label}</p>
-                    <p style={{ fontFamily: F, fontSize: 11, color: "#8888a0" }}>{cat.grupo}</p>
+                    <p style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "#0f1f3d", lineHeight: 1.35, marginBottom: 4 }}>{cat.label}</p>
+                    <p style={{ fontFamily: F, fontSize: 11, fontWeight: 400, color: "#8888a0" }}>{cat.grupo}</p>
                   </div>
                 </FadeUp>
               );
@@ -776,13 +825,13 @@ export function LandingPage() {
                   <div className="s-rule" />
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#0f1f3d14", padding: "4px 12px", borderRadius: 3, marginBottom: 20 }}>
                     <Building2 size={12} color="#0f1f3d" />
-                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "#0f1f3d" }}>Para empresas</span>
+                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".1em", textTransform: "uppercase", color: "#0f1f3d" }}>Para empresas</span>
                   </div>
-                  <h2 style={{ fontFamily: F, fontSize: "clamp(26px,3vw,38px)", fontWeight: 900, color: "#0f1f3d", lineHeight: 1.1, letterSpacing: "-.02em", marginBottom: 16 }}>
+                  <h2 style={{ fontFamily: F, fontSize: "clamp(26px,3vw,38px)", fontWeight: 400, color: "#0f1f3d", lineHeight: 1.1, letterSpacing: "-.02em", marginBottom: 16 }}>
                     Sin barreras técnicas.<br />
-                    <span className="af af-ink" style={{ fontSize: "1.05em" }}>Sin costos ocultos.</span>
+                    Sin costos ocultos.
                   </h2>
-                  <p style={{ fontFamily: F, fontSize: 15, color: "#6b6b7a", lineHeight: 1.7, marginBottom: 32 }}>
+                  <p style={{ fontFamily: F, fontSize: 15, fontWeight: 400, color: "#6b6b7a", lineHeight: 1.7, marginBottom: 32 }}>
                     No necesitas saber de tecnología para publicar una oferta. Nuestro equipo lo gestiona por ti de principio a fin.
                   </p>
                   <Link to="/register/mype" style={{ textDecoration: "none" }}>
@@ -799,14 +848,13 @@ export function LandingPage() {
                     { num: "03", color: "#059669", title: "Claridad total desde el día uno",     desc: "Tu empresa sabrá exactamente qué va a recibir: código fuente, manuales, prototipos. Las fechas se acuerdan según la complejidad real del proyecto." },
                   ].map(r => (
                     <div key={r.title} className="rule-item">
-                      {/* Número de orden como acento visual */}
                       <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 2 }}>
-                        <span style={{ fontFamily: F, fontSize: 11, fontWeight: 900, color: r.color, letterSpacing: ".04em" }}>{r.num}</span>
+                        <span style={{ fontFamily: F, fontSize: 11, fontWeight: 400, color: r.color, letterSpacing: ".04em" }}>{r.num}</span>
                         <div style={{ width: 1, flex: 1, background: `linear-gradient(to bottom,${r.color}50,transparent)`, marginTop: 4, minHeight: 20 }} />
                       </div>
                       <div>
-                        <p style={{ fontFamily: F, fontSize: 14, fontWeight: 700, color: "#0f1f3d", marginBottom: 4 }}>{r.title}</p>
-                        <p style={{ fontFamily: F, fontSize: 13, color: "#8888a0", lineHeight: 1.6 }}>{r.desc}</p>
+                        <p style={{ fontFamily: F, fontSize: 14, fontWeight: 400, color: "#0f1f3d", marginBottom: 4 }}>{r.title}</p>
+                        <p style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "#8888a0", lineHeight: 1.6 }}>{r.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -831,12 +879,12 @@ export function LandingPage() {
                   ].map(r => (
                     <div key={r.title} className="rule-item">
                       <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 2 }}>
-                        <span style={{ fontFamily: F, fontSize: 11, fontWeight: 900, color: r.color, letterSpacing: ".04em" }}>{r.num}</span>
+                        <span style={{ fontFamily: F, fontSize: 11, fontWeight: 400, color: r.color, letterSpacing: ".04em" }}>{r.num}</span>
                         <div style={{ width: 1, flex: 1, background: `linear-gradient(to bottom,${r.color}50,transparent)`, marginTop: 4, minHeight: 20 }} />
                       </div>
                       <div>
-                        <p style={{ fontFamily: F, fontSize: 14, fontWeight: 700, color: "#0f1f3d", marginBottom: 4 }}>{r.title}</p>
-                        <p style={{ fontFamily: F, fontSize: 13, color: "#8888a0", lineHeight: 1.6 }}>{r.desc}</p>
+                        <p style={{ fontFamily: F, fontSize: 14, fontWeight: 400, color: "#0f1f3d", marginBottom: 4 }}>{r.title}</p>
+                        <p style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "#8888a0", lineHeight: 1.6 }}>{r.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -848,13 +896,13 @@ export function LandingPage() {
                   <div className="s-rule" style={{ background: "#d4580a" }} />
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#d4580a14", padding: "4px 12px", borderRadius: 3, marginBottom: 20 }}>
                     <GraduationCap size={12} color="#d4580a" />
-                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "#d4580a" }}>Para estudiantes</span>
+                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".1em", textTransform: "uppercase", color: "#d4580a" }}>Para estudiantes</span>
                   </div>
-                  <h2 style={{ fontFamily: F, fontSize: "clamp(26px,3vw,38px)", fontWeight: 900, color: "#0f1f3d", lineHeight: 1.1, letterSpacing: "-.02em", marginBottom: 16 }}>
+                  <h2 style={{ fontFamily: F, fontSize: "clamp(26px,3vw,38px)", fontWeight: 400, color: "#0f1f3d", lineHeight: 1.1, letterSpacing: "-.02em", marginBottom: 16 }}>
                     Experiencia real.<br />
-                    <span className="af af-ember" style={{ fontSize: "1.05em" }}>No simulaciones.</span>
+                    No simulaciones.
                   </h2>
-                  <p style={{ fontFamily: F, fontSize: 15, color: "#6b6b7a", lineHeight: 1.7, marginBottom: 32 }}>
+                  <p style={{ fontFamily: F, fontSize: 15, fontWeight: 400, color: "#6b6b7a", lineHeight: 1.7, marginBottom: 32 }}>
                     Construye un portafolio verificable resolviendo problemas reales. El primer paso hacia una carrera profesional sólida, con contactos directos en el mundo empresarial.
                   </p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
@@ -873,80 +921,166 @@ export function LandingPage() {
         </section>
 
         {/* ══════ CTA FINAL ══════ */}
-        <section style={{ padding: "100px 28px", background: "#fafaf8" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <FadeUp>
-              <div style={{ background: "#0f1f3d", borderRadius: 14, padding: "60px 56px", position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 1px 1px,rgba(255,255,255,.03) 1px,transparent 0)", backgroundSize: "28px 28px", pointerEvents: "none" }} />
-                <div style={{ position: "absolute", top: -40, right: -40, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle,rgba(27,111,232,.15),transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
-                <div style={{ position: "absolute", bottom: -60, left: "30%", width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle,rgba(212,88,10,.1),transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
+<section style={{ padding: "100px 28px", background: "#fafaf8" }}>
+  <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+    <FadeUp>
+      <div style={{ 
+        background: "#ffffff", 
+        borderRadius: 16, 
+        padding: "64px 56px", 
+        position: "relative", 
+        overflow: "hidden",
+        border: "1px solid #e8e8e4",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.04)"
+      }}>
+        
+        {/* Degradado azul en forma diagonal/triangular */}
+        <div style={{ 
+          position: "absolute", 
+          top: 0, 
+          right: 0, 
+          width: "55%", 
+          height: "100%", 
+          background: "linear-gradient(135deg, transparent 0%, transparent 40%, rgba(27,111,232,0.06) 60%, rgba(6,182,212,0.08) 85%, rgba(139,92,246,0.04) 100%)", 
+          pointerEvents: "none",
+          clipPath: "polygon(25% 0, 100% 0, 100% 100%, 0% 100%)"
+        }} />
 
-                <div className="grid-cta" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center", position: "relative", zIndex: 1 }}>
-                  <div>
-                    <p style={{ fontFamily: F, fontSize: 10, fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase", color: "rgba(255,255,255,.2)", marginBottom: 18 }}>Únete hoy</p>
-                    <h2 style={{ fontFamily: F, fontSize: "clamp(26px,3vw,40px)", fontWeight: 900, color: "#fff", lineHeight: 1.1, letterSpacing: "-.02em", marginBottom: 20 }}>
-                      La conexión que tu empresa<br />
-                      <span className="af af-blue">estaba buscando</span>
-                    </h2>
-                    <p style={{ fontFamily: F, fontSize: 15, color: "rgba(255,255,255,.35)", lineHeight: 1.7 }}>
-                      Linkuy es completamente gratuito para empresas y una oportunidad real de portafolio para estudiantes. Sin compromisos.
-                    </p>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <Link to="/register/mype" style={{ textDecoration: "none" }}>
-                      <button style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "#fff", borderRadius: 7, border: "none", cursor: "pointer", fontFamily: F, fontSize: 14, fontWeight: 700, color: "#0f1f3d", transition: "all .2s" }}
-                        onMouseEnter={e => { e.currentTarget.style.background = "#f0f6ff"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,.15)"; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 10 }}><Building2 size={16} /> Registrar mi empresa</span>
-                        <ChevronRight size={16} color="#8888a0" />
-                      </button>
-                    </Link>
-                    <Link to="/register/estudiante" style={{ textDecoration: "none" }}>
-                      <button style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "#d4580a", borderRadius: 7, border: "none", cursor: "pointer", fontFamily: F, fontSize: 14, fontWeight: 700, color: "#fff", transition: "all .2s" }}
-                        onMouseEnter={e => { e.currentTarget.style.background = "#b84608"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(212,88,10,.3)"; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = "#d4580a"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 10 }}><GraduationCap size={16} /> Unirme como estudiante</span>
-                        <ChevronRight size={16} style={{ opacity: .7 }} />
-                      </button>
-                    </Link>
-                    <p style={{ textAlign: "center", fontFamily: F, fontSize: 12, color: "rgba(255,255,255,.18)" }}>Sin tarjeta de crédito · Sin compromisos</p>
-                  </div>
-                </div>
-              </div>
-            </FadeUp>
+        {/* Segundo degradado en la esquina inferior izquierda */}
+        <div style={{ 
+          position: "absolute", 
+          bottom: 0, 
+          left: 0, 
+          width: "35%", 
+          height: "50%", 
+          background: "linear-gradient(45deg, rgba(212,88,10,0.06) 0%, rgba(212,88,10,0.02) 40%, transparent 70%)", 
+          pointerEvents: "none",
+          clipPath: "polygon(0 20%, 0 100%, 100% 100%, 30% 20%)"
+        }} />
+
+        {/* Círculo decorativo azul */}
+        <div style={{ 
+          position: "absolute", 
+          top: -60, 
+          right: -60, 
+          width: 220, 
+          height: 220, 
+          borderRadius: "50%", 
+          background: "radial-gradient(circle, rgba(27,111,232,0.08) 0%, rgba(27,111,232,0.03) 40%, transparent 70%)", 
+          pointerEvents: "none" 
+        }} />
+
+        <div className="grid-cta" style={{ 
+          display: "grid", 
+          gridTemplateColumns: "1fr 1fr", 
+          gap: 60, 
+          alignItems: "center", 
+          position: "relative", 
+          zIndex: 1 
+        }}>
+          <div>
+           
+            <h2 style={{ 
+              fontFamily: F, 
+              fontSize: "clamp(26px,3vw,40px)", 
+              fontWeight: 400, 
+              color: "#0f1f3d", 
+              lineHeight: 1.15, 
+              letterSpacing: "-.02em", 
+              marginBottom: 20 
+            }}>
+              La conexión que tu<br />
+              empresa estaba buscando
+            </h2>
+            <p style={{ 
+              fontFamily: F, 
+              fontSize: 15, 
+              fontWeight: 400, 
+              color: "#6b6b7a", 
+              lineHeight: 1.7 
+            }}>
+              Linkuy es completamente gratuito para empresas y una oportunidad real de portafolio para estudiantes. Sin compromisos.
+            </p>
           </div>
-        </section>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <Link to="/register/mype" style={{ textDecoration: "none" }}>
+              <button style={{ 
+                width: "100%", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "space-between", 
+                padding: "16px 20px", 
+                background: "#0f1f3d", 
+                borderRadius: 8, 
+                border: "none", 
+                cursor: "pointer", 
+                fontFamily: F, 
+                fontSize: 14, 
+                fontWeight: 400, 
+                color: "#fff", 
+                transition: "all .2s" 
+              }}
+                onMouseEnter={e => { e.currentTarget.style.background = "#1B6FE8"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(27,111,232,.3)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "#0f1f3d"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 10 }}><Building2 size={16} /> Registrar mi empresa</span>
+                <ChevronRight size={16} style={{ opacity: .6 }} />
+              </button>
+            </Link>
+            <Link to="/register/estudiante" style={{ textDecoration: "none" }}>
+              <button style={{ 
+                width: "100%", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "space-between", 
+                padding: "16px 20px", 
+                background: "#fff", 
+                borderRadius: 8, 
+                border: "1.5px solid #e0e0dc", 
+                cursor: "pointer", 
+                fontFamily: F, 
+                fontSize: 14, 
+                fontWeight: 400, 
+                color: "#0f1f3d", 
+                transition: "all .2s" 
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "#d4580a"; e.currentTarget.style.color = "#d4580a"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(212,88,10,.12)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#e0e0dc"; e.currentTarget.style.color = "#0f1f3d"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 10 }}><GraduationCap size={16} /> Unirme como estudiante</span>
+                <ChevronRight size={16} style={{ opacity: .4 }} />
+              </button>
+            </Link>
+           
+          </div>
+        </div>
+      </div>
+    </FadeUp>
+  </div>
+</section>
 
         {/* ══════ FOOTER ══════ */}
         <footer style={{ background: "#0a1628", borderTop: "1px solid rgba(255,255,255,.06)" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 28px 36px" }}>
             <div className="grid-foot" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 48, marginBottom: 48 }}>
 
-              {/* Brand */}
               <div>
                 <div style={{ marginBottom: 16 }}>
-                  <img
-                    src="/imagotipo_oscuro.webp"
-                    alt="Linkuy"
-                    style={{ height: 32, width: "auto", objectFit: "contain" }}
-                  />
+                  <img src="/imagotipo_oscuro.webp" alt="Linkuy" style={{ height: 32, width: "auto", objectFit: "contain" }} />
                 </div>
-                <p style={{ fontFamily: F, fontSize: 13, color: "rgba(255,255,255,.28)", lineHeight: 1.7, maxWidth: 260, marginBottom: 24 }}>
+                <p style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,.28)", lineHeight: 1.7, maxWidth: 260, marginBottom: 24 }}>
                   Puente académico-empresarial que conecta empresas con talento universitario de ingeniería para resolver necesidades tecnológicas reales.
                 </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {[{ icon: MapPin, l: "Cajamarca, Perú" }, { icon: Mail, l: "contacto@mypelink.pe" }].map(c => (
                     <div key={c.l} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <c.icon size={12} color="rgba(255,255,255,.22)" />
-                      <span style={{ fontFamily: F, fontSize: 12, color: "rgba(255,255,255,.22)" }}>{c.l}</span>
+                      <span style={{ fontFamily: F, fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,.22)" }}>{c.l}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Plataforma */}
               <div>
-                <p style={{ fontFamily: F, fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,.18)", marginBottom: 20 }}>Plataforma</p>
+                <p style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,.18)", marginBottom: 20 }}>Plataforma</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   {[{ to: "/register/mype", l: "Para empresas" }, { to: "/register/estudiante", l: "Para estudiantes" }, { to: "/login", l: "Iniciar sesión" }].map(item => (
                     <Link key={item.l} to={item.to} className="fl">{item.l}</Link>
@@ -954,27 +1088,25 @@ export function LandingPage() {
                 </div>
               </div>
 
-              {/* Proyectos */}
               <div>
-                <p style={{ fontFamily: F, fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,.18)", marginBottom: 20 }}>Proyectos</p>
+                <p style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,.18)", marginBottom: 20 }}>Proyectos</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   {["Presencia Digital", "Gestión de Info", "Diseño e Innovación", "Soporte TI"].map(l => (
-                    <span key={l} style={{ fontFamily: F, fontSize: 13, color: "rgba(255,255,255,.22)" }}>{l}</span>
+                    <span key={l} style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,.22)" }}>{l}</span>
                   ))}
                 </div>
               </div>
 
-              {/* Institución */}
               <div>
-                <p style={{ fontFamily: F, fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,.18)", marginBottom: 20 }}>Institución</p>
+                <p style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,.18)", marginBottom: 20 }}>Institución</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <span style={{ fontFamily: F, fontSize: 13, color: "rgba(255,255,255,.32)", lineHeight: 1.6 }}>
+                  <span style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,.32)", lineHeight: 1.6 }}>
                     Universidad Privada del Norte<br />
                     <span style={{ color: "rgba(255,255,255,.18)", fontSize: 12 }}>Ingeniería de Sistemas</span>
                   </span>
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(103,212,248,.07)", border: "1px solid rgba(103,212,248,.14)", padding: "4px 10px", borderRadius: 3, width: "fit-content" }}>
                     <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4ade80" }} />
-                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 700, letterSpacing: ".06em", color: "#67d4f8" }}>Beta · 2026</span>
+                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".06em", color: "#67d4f8" }}>Beta · 2026</span>
                   </div>
                 </div>
               </div>
@@ -982,10 +1114,10 @@ export function LandingPage() {
             </div>
 
             <div style={{ borderTop: "1px solid rgba(255,255,255,.06)", paddingTop: 24, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14 }}>
-              <p style={{ fontFamily: F, fontSize: 12, color: "rgba(255,255,255,.16)" }}>© 2026 Linkuy · Proyecto Capstone</p>
+              <p style={{ fontFamily: F, fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,.16)" }}>© 2026 Linkuy · Proyecto Capstone</p>
               <div style={{ display: "flex", gap: 20 }}>
                 {["Términos de uso", "Privacidad"].map(l => (
-                  <span key={l} style={{ fontFamily: F, fontSize: 12, color: "rgba(255,255,255,.16)", cursor: "pointer" }}>{l}</span>
+                  <span key={l} style={{ fontFamily: F, fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,.16)", cursor: "pointer" }}>{l}</span>
                 ))}
               </div>
             </div>
