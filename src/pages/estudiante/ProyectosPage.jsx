@@ -41,9 +41,9 @@ const getAreaStyle = (area) => {
       return 'bg-emerald-50 text-emerald-700 border border-emerald-100';
     case 'DESARROLLO_SOFTWARE':
       return 'bg-violet-50 text-violet-700 border border-violet-100';
-    case 'BASE_DATOS': 
+    case 'BASE_DE_DATOS': 
       return 'bg-amber-50 text-amber-700 border border-amber-100';
-    case 'INTELIGENCIA_NEGOCIO':
+    case 'ANALISIS_DATOS':
       return 'bg-pink-50 text-pink-700 border border-pink-100';
     case 'SOPORTE_TI':
       return 'bg-slate-50 text-slate-700 border border-slate-200';
@@ -60,9 +60,9 @@ const getAreaIcon = (area) => {
       return <ShoppingBag size={20} className="text-emerald-600" />;
     case 'DESARROLLO_SOFTWARE':
       return <Terminal size={20} className="text-violet-600" />;
-    case 'BASE_DATOS':
+    case 'BASE_DE_DATOS':
       return <BarChart2 size={20} className="text-amber-600" />;
-    case 'INTELIGENCIA_NEGOCIO': 
+    case 'ANALISIS_DATOS': 
       return <TrendingUp size={20} className="text-pink-600" />;
     case 'SOPORTE_TI':
       return <Terminal size={20} className="text-slate-600" />;
@@ -76,8 +76,8 @@ const AREAS = [
   { value: 'DESARROLLO_WEB', label: 'Desarrollo Web' },
   { value: 'DESARROLLO_MOVIL', label: 'Desarrollo Móvil' },
   { value: 'DESARROLLO_SOFTWARE', label: 'Software' },
-  { value: 'BASE_DATOS', label: 'Base de Datos' },     
-  { value: 'INTELIGENCIA_NEGOCIO', label: 'Inteligencia de Negocio' },
+  { value: 'BASE_DE_DATOS', label: 'Base de Datos' },     
+  { value: 'ANALISIS_DATOS', label: 'Análisis de Datos' },
   { value: 'SOPORTE_TI', label: 'Soporte TI' }
 ];
 
