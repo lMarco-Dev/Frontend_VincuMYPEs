@@ -10,90 +10,332 @@ import { TerminosCondicionesModal } from "./TerminosCondicionesModal";
 const ease = [0.22, 1, 0.36, 1];
 
 // ── Diagrama de Registro (SVG Animado en Bucle) ──────────────────────────
+// ── Diagrama de Registro (Animación mejorada) ──────────────────────────
 function RegisterDiagram() {
+  // Posiciones - triángulo visual
+  const USER = { cx: 120, cy: 160, r: 44 };
+  const PLATFORM = { cx: 200, cy: 300, r: 52 };
+  const BRIEFCASE = { cx: 280, cy: 160, r: 44 };
+
   return (
-    <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
       <svg
-        viewBox="0 0 360 420"
+        viewBox="0 0 400 500"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        style={{ width: "100%", maxWidth: 320, overflow: "visible" }}
+        style={{ width: "100%", maxWidth: 380, overflow: "visible" }}
         aria-hidden="true"
       >
         <defs>
-          <linearGradient id="lg_reg" x1="0%" y1="0%" x2="100%" y2="100%">
+          {/* Gradientes */}
+          <linearGradient id="gradRegBlue" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#1B6FE8" />
             <stop offset="100%" stopColor="#06B6D4" />
           </linearGradient>
-          <radialGradient id="rg_user" cx="50%" cy="50%" r="50%">
+          <linearGradient id="gradRegOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#F59E0B" />
+            <stop offset="100%" stopColor="#D4580A" />
+          </linearGradient>
+          <linearGradient id="gradRegGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#10B981" />
+            <stop offset="100%" stopColor="#059669" />
+          </linearGradient>
+
+          {/* Halos */}
+          <radialGradient id="haloUser" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#1B6FE8" stopOpacity="0.25" />
             <stop offset="100%" stopColor="#0F2A4A" stopOpacity="0" />
           </radialGradient>
-          <radialGradient id="rg_work" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.2" />
+          <radialGradient id="haloPlatform" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.3" />
             <stop offset="100%" stopColor="#0F2A4A" stopOpacity="0" />
           </radialGradient>
+          <radialGradient id="haloBrief" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#0F2A4A" stopOpacity="0" />
+          </radialGradient>
+
+          {/* Filtros */}
+          <filter id="glowRegBlue">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="glowRegOrange">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
 
+        {/* ═══════════════════════════════════════
+            LÍNEAS DE CONEXIÓN
+            ═══════════════════════════════════════ */}
+        
+        {/* Usuario → Plataforma (línea azul ondeada) */}
         <motion.path
-          d="M 100 210 C 150 210, 210 210, 260 210"
-          stroke="url(#lg_reg)" strokeWidth="1.5" strokeDasharray="6 6"
-          strokeLinecap="round" fill="none"
+          d={`M ${USER.cx} ${USER.cy + USER.r} C ${USER.cx - 40} ${USER.cy + 100}, ${PLATFORM.cx - 60} ${PLATFORM.cy - 40}, ${PLATFORM.cx - PLATFORM.r} ${PLATFORM.cy}`}
+          stroke="url(#gradRegBlue)" 
+          strokeWidth="2.2" 
+          strokeDasharray="10 7"
+          strokeLinecap="round" 
+          fill="none"
           initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 0.5 }}
-          transition={{ duration: 1.5, delay: 0.2, ease: "easeInOut" }}
+          animate={{ pathLength: 1, opacity: 0.55 }}
+          transition={{ duration: 2.2, delay: 0.4, ease: "easeInOut" }}
         />
 
+        {/* Plataforma → Empresa (línea naranja ondeada) */}
+        <motion.path
+          d={`M ${PLATFORM.cx + PLATFORM.r} ${PLATFORM.cy} C ${PLATFORM.cx + 60} ${PLATFORM.cy - 40}, ${BRIEFCASE.cx + 40} ${BRIEFCASE.cy + 100}, ${BRIEFCASE.cx} ${BRIEFCASE.cy + BRIEFCASE.r}`}
+          stroke="url(#gradRegOrange)" 
+          strokeWidth="2.2" 
+          strokeDasharray="10 7"
+          strokeLinecap="round" 
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 0.55 }}
+          transition={{ duration: 2.2, delay: 0.4, ease: "easeInOut" }}
+        />
+
+        {/* ═══════════════════════════════════════
+            NODO USUARIO (arriba-izquierda)
+            ═══════════════════════════════════════ */}
         <motion.g
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.1, ease }}
-          style={{ transformOrigin: "100px 210px" }}
+          transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          style={{ transformOrigin: `${USER.cx}px ${USER.cy}px` }}
         >
-          <circle cx="100" cy="210" r="50" fill="url(#rg_user)" />
-          <motion.circle cx="100" cy="210" r="38"
-            stroke="#1B6FE8" strokeWidth="1" fill="none" opacity="0.3"
-            animate={{ r: [38, 45, 38] }}
+          {/* Halo */}
+          <motion.circle cx={USER.cx} cy={USER.cy} r={75} fill="url(#haloUser)"
+            animate={{ scale: [1, 1.08, 1], opacity: [0.6, 0.4, 0.6] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          {/* Anillos decorativos */}
+          <motion.circle cx={USER.cx} cy={USER.cy} r={56} stroke="#1B6FE8" strokeWidth="1.5" fill="none" opacity="0.25"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: `${USER.cx}px ${USER.cy}px` }}
+          />
+          <circle cx={USER.cx} cy={USER.cy} r={50} stroke="#1B6FE8" strokeWidth="1" fill="none" opacity="0.3" />
+          
+          {/* Círculo principal */}
+          <circle cx={USER.cx} cy={USER.cy} r={USER.r} fill="#0F2A4A" stroke="#1B6FE8" strokeWidth="2.5" />
+          
+          {/* Ícono persona */}
+          <circle cx={USER.cx} cy={USER.cy - 8} r="11" fill="none" stroke="#1B6FE8" strokeWidth="2" />
+          <path d={`M ${USER.cx - 15} ${USER.cy + 14} C ${USER.cx - 15} ${USER.cy + 4} ${USER.cx + 15} ${USER.cy + 4} ${USER.cx + 15} ${USER.cy + 14}`}
+            fill="none" stroke="#1B6FE8" strokeWidth="2" strokeLinecap="round" />
+          
+          {/* Pulso de registro exitoso */}
+          <motion.circle cx={USER.cx} cy={USER.cy} r={USER.r}
+            stroke="#10B981" strokeWidth="2.5" fill="none" opacity="0"
+            animate={{ 
+              r: [USER.r, USER.r + 22, USER.r + 38],
+              opacity: [0, 0.7, 0],
+              strokeWidth: [2.5, 1.5, 0.5]
+            }}
+            transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 7.2, delay: 4.5, ease: "easeOut" }}
+          />
+          
+          <text x={USER.cx} y={USER.cy + USER.r + 24} textAnchor="middle" fontSize="13" fontWeight="700"
+            fill="rgba(255,255,255,0.7)" fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif" letterSpacing="1.2">
+            TÚ
+          </text>
+        </motion.g>
+
+        {/* ═══════════════════════════════════════
+            NODO EMPRESA (arriba-derecha)
+            ═══════════════════════════════════════ */}
+        <motion.g
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.7, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          style={{ transformOrigin: `${BRIEFCASE.cx}px ${BRIEFCASE.cy}px` }}
+        >
+          {/* Halo */}
+          <motion.circle cx={BRIEFCASE.cx} cy={BRIEFCASE.cy} r={75} fill="url(#haloBrief)"
+            animate={{ scale: [1, 1.08, 1], opacity: [0.6, 0.4, 0.6] }}
+            transition={{ duration: 4, delay: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          {/* Anillos decorativos */}
+          <motion.circle cx={BRIEFCASE.cx} cy={BRIEFCASE.cy} r={56} stroke="#06B6D4" strokeWidth="1.5" fill="none" opacity="0.25"
+            animate={{ rotate: -360 }}
+            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: `${BRIEFCASE.cx}px ${BRIEFCASE.cy}px` }}
+          />
+          <circle cx={BRIEFCASE.cx} cy={BRIEFCASE.cy} r={50} stroke="#06B6D4" strokeWidth="1" fill="none" opacity="0.3" />
+          
+          {/* Círculo principal */}
+          <circle cx={BRIEFCASE.cx} cy={BRIEFCASE.cy} r={BRIEFCASE.r} fill="#0F2A4A" stroke="#06B6D4" strokeWidth="2.5" />
+          
+          {/* Ícono edificio/empresa */}
+          <rect x={BRIEFCASE.cx - 12} y={BRIEFCASE.cy - 10} width="9" height="16" rx="1.5" fill="none" stroke="#06B6D4" strokeWidth="2" />
+          <rect x={BRIEFCASE.cx + 2} y={BRIEFCASE.cy - 16} width="13" height="22" rx="1.5" fill="none" stroke="#06B6D4" strokeWidth="2" />
+          <line x1={BRIEFCASE.cx - 16} y1={BRIEFCASE.cy + 8} x2={BRIEFCASE.cx + 18} y2={BRIEFCASE.cy + 8} stroke="#06B6D4" strokeWidth="2" strokeLinecap="round" />
+          
+          {/* Pulso de confirmación */}
+          <motion.circle cx={BRIEFCASE.cx} cy={BRIEFCASE.cy} r={BRIEFCASE.r}
+            stroke="#10B981" strokeWidth="2.5" fill="none" opacity="0"
+            animate={{ 
+              r: [BRIEFCASE.r, BRIEFCASE.r + 22, BRIEFCASE.r + 38],
+              opacity: [0, 0.7, 0],
+              strokeWidth: [2.5, 1.5, 0.5]
+            }}
+            transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 7.2, delay: 6.3, ease: "easeOut" }}
+          />
+          
+          <text x={BRIEFCASE.cx} y={BRIEFCASE.cy + BRIEFCASE.r + 24} textAnchor="middle" fontSize="13" fontWeight="700"
+            fill="rgba(255,255,255,0.7)" fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif" letterSpacing="1.2">
+            EMPRESA
+          </text>
+        </motion.g>
+
+        {/* ═══════════════════════════════════════
+            NODO PLATAFORMA (centro-abajo) - LINKUY
+            ═══════════════════════════════════════ */}
+        <motion.g
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          style={{ transformOrigin: `${PLATFORM.cx}px ${PLATFORM.cy}px` }}
+        >
+          {/* Halo grande */}
+          <motion.circle cx={PLATFORM.cx} cy={PLATFORM.cy} r={95} fill="url(#haloPlatform)"
+            animate={{ scale: [1, 1.1, 1], opacity: [0.55, 0.35, 0.55] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          {/* Anillos concéntricos */}
+          <motion.circle cx={PLATFORM.cx} cy={PLATFORM.cy} r={66} stroke="#F59E0B" strokeWidth="1.5" fill="none" opacity="0.3"
+            animate={{ r: [66, 72, 66], opacity: [0.3, 0.2, 0.3] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           />
-          <circle cx="100" cy="210" r="30" fill="#0F2A4A" stroke="#1B6FE8" strokeWidth="1.5" />
-          <circle cx="100" cy="205" r="7" stroke="#1B6FE8" strokeWidth="1.5" fill="none"/>
-          <path d="M 88 223 C 88 215, 112 215, 112 223" stroke="#1B6FE8" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-        </motion.g>
-
-        <motion.g
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.3, ease }}
-          style={{ transformOrigin: "260px 210px" }}
-        >
-          <circle cx="260" cy="210" r="50" fill="url(#rg_work)" />
-          <motion.circle cx="260" cy="210" r="38"
-            stroke="#06B6D4" strokeWidth="1" fill="none" opacity="0.3"
-            animate={{ r: [38, 45, 38] }}
-            transition={{ duration: 3, delay: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          <motion.circle cx={PLATFORM.cx} cy={PLATFORM.cy} r={58} stroke="#F59E0B" strokeWidth="1" fill="none" opacity="0.35"
+            animate={{ r: [58, 62, 58], opacity: [0.35, 0.25, 0.35] }}
+            transition={{ duration: 3, delay: 0.5, repeat: Infinity, ease: "easeInOut" }}
           />
-          <circle cx="260" cy="210" r="30" fill="#0F2A4A" stroke="#06B6D4" strokeWidth="1.5" />
-          <rect x="248" y="202" width="24" height="17" rx="2" stroke="#06B6D4" strokeWidth="1.5" fill="none"/>
-          <path d="M 255 202 V 197 C 255 195, 265 195, 265 197 V 202" stroke="#06B6D4" strokeWidth="1.5" fill="none"/>
+          
+          {/* Círculo principal */}
+          <circle cx={PLATFORM.cx} cy={PLATFORM.cy} r={PLATFORM.r} fill="#0F2A4A" stroke="#F59E0B" strokeWidth="2.5" />
+          
+          {/* Letra M grande */}
+          <text x={PLATFORM.cx} y={PLATFORM.cy + 9} textAnchor="middle" fontSize="30" fontWeight="900"
+            fill="url(#gradRegOrange)" fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif">
+            M
+          </text>
+          
+          {/* Pulso de procesamiento (cuando recibe) */}
+          <motion.circle cx={PLATFORM.cx} cy={PLATFORM.cy} r={PLATFORM.r}
+            stroke="#10B981" strokeWidth="3" fill="none" opacity="0"
+            animate={{ 
+              r: [PLATFORM.r, PLATFORM.r + 28, PLATFORM.r + 50],
+              opacity: [0, 0.8, 0],
+              strokeWidth: [3, 2, 0.5]
+            }}
+            transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 7.2, delay: 2.2, ease: "easeOut" }}
+          />
+          
+          <text x={PLATFORM.cx} y={PLATFORM.cy + PLATFORM.r + 26} textAnchor="middle" fontSize="14" fontWeight="700"
+            fill="rgba(255,255,255,0.8)" fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif" letterSpacing="2">
+            LINKUY
+          </text>
         </motion.g>
 
-        <motion.circle r="4.5" fill="#67E8F9" opacity="0.9"
-          filter="drop-shadow(0 0 5px #06B6D4)"
-          animate={{ offsetDistance: ["0%", "100%"], opacity: [0, 1, 1, 0] }}
-          style={{ offsetPath: "path('M 100 210 C 150 210, 210 210, 260 210')" }}
-          transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 0.8, ease: "easeInOut" }}
-        />     
+        {/* ═══════════════════════════════════════
+            PARTÍCULAS VIAJERAS
+            ═══════════════════════════════════════ */}
+
+        {/* Partícula azul: TÚ → LINKUY (registro de usuario) */}
+        <motion.circle 
+          r="5.5" 
+          fill="#1B6FE8" 
+          filter="url(#glowRegBlue)"
+          animate={{ 
+            offsetDistance: ["0%", "100%"], 
+            opacity: [0, 1, 1, 0],
+            scale: [0.8, 1.3, 0.8]
+          }}
+          style={{ 
+            offsetPath: `path('M ${USER.cx} ${USER.cy + USER.r} C ${USER.cx - 40} ${USER.cy + 100}, ${PLATFORM.cx - 60} ${PLATFORM.cy - 40}, ${PLATFORM.cx - PLATFORM.r} ${PLATFORM.cy}')` 
+          }}
+          transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 6.5, delay: 0.5, ease: "easeInOut" }}
+        />
+
+        {/* Partícula naranja: LINKUY → EMPRESA (conexión) */}
+        <motion.circle 
+          r="5.5" 
+          fill="#F59E0B" 
+          filter="url(#glowRegOrange)"
+          animate={{ 
+            offsetDistance: ["0%", "100%"], 
+            opacity: [0, 1, 1, 0],
+            scale: [0.8, 1.3, 0.8]
+          }}
+          style={{ 
+            offsetPath: `path('M ${PLATFORM.cx + PLATFORM.r} ${PLATFORM.cy} C ${PLATFORM.cx + 60} ${PLATFORM.cy - 40}, ${BRIEFCASE.cx + 40} ${BRIEFCASE.cy + 100}, ${BRIEFCASE.cx} ${BRIEFCASE.cy + BRIEFCASE.r}')` 
+          }}
+          transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 6.5, delay: 3.2, ease: "easeInOut" }}
+        />
+
+        {/* ═══════════════════════════════════════
+            ETIQUETAS ANIMADAS
+            ═══════════════════════════════════════ */}
+        
+        {/* Etiqueta "REGISTRO" */}
+        <motion.g
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.8, 0.8, 0] }}
+          transition={{ duration: 5, repeat: Infinity, delay: 0.3, ease: "easeInOut" }}
+        >
+          <rect x="38" y="82" width="84" height="22" rx="6" fill="rgba(27,111,232,0.12)" stroke="rgba(27,111,232,0.3)" strokeWidth="1" />
+          <text x="80" y="97" textAnchor="middle" fontSize="9" fontWeight="700"
+            fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif" letterSpacing="1.5"
+            fill="#67d4f8">REGISTRO</text>
+        </motion.g>
+
+        {/* Etiqueta "CONEXIÓN" */}
+        <motion.g
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.8, 0.8, 0] }}
+          transition={{ duration: 5, repeat: Infinity, delay: 2.8, ease: "easeInOut" }}
+        >
+          <rect x="276" y="82" width="84" height="22" rx="6" fill="rgba(245,158,11,0.12)" stroke="rgba(245,158,11,0.3)" strokeWidth="1" />
+          <text x="318" y="97" textAnchor="middle" fontSize="9" fontWeight="700"
+            fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif" letterSpacing="1.5"
+            fill="#F59E0B">CONEXIÓN</text>
+        </motion.g>
+
+        {/* Check verde en nodo central */}
+        <motion.g
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: [0, 1, 1, 0], scale: [0, 1, 1, 0] }}
+          transition={{ duration: 3, repeat: Infinity, delay: 1.8, ease: "easeInOut" }}
+        >
+          <circle cx={PLATFORM.cx + 30} cy={PLATFORM.cy - 25} r="14" fill="rgba(16,185,129,0.15)" stroke="#10B981" strokeWidth="1.5" />
+          <path d={`M ${PLATFORM.cx + 24} ${PLATFORM.cy - 25} L ${PLATFORM.cx + 30} ${PLATFORM.cy - 20} L ${PLATFORM.cx + 37} ${PLATFORM.cy - 31}`}
+            stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        </motion.g>
+
+        {/* ── Puntos ambientales ── */}
+        {[[30,50], [370,60], [40,450], [360,440], [200,80], [200,440]].map(([x,y], i) => (
+          <motion.circle
+            key={i}
+            cx={x} cy={y} r="2.2"
+            fill="rgba(255,255,255,0.12)"
+            animate={{ opacity: [0.15, 0.35, 0.15] }}
+            transition={{ duration: 2.5 + i * 0.2, repeat: Infinity, delay: i * 0.3, ease: "easeInOut" }}
+          />
+        ))}
       </svg>
       
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.6 }}
-        transition={{ delay: 1, duration: 0.8 }}
-        style={{ color: "white", fontSize: 13, fontWeight: 300, textAlign: "center", marginTop: -20, maxWidth: 220, lineHeight: 1.5, fontFamily: "'Outfit', sans-serif" }}
-      >
-        Regístrate y conéctate con las mejores oportunidades de Cajamarca.
-      </motion.p>
     </div>
   );
 }
@@ -105,10 +347,8 @@ export function RegisterPage() {
   const currentTipo = tipo === "mype" ? "mype" : "estudiante";
   const esEstudiante = currentTipo === "estudiante";
 
-  // Estados para controlar los cambios y el Modal
   const [isFormDirty, setIsFormDirty] = useState(false);
   const [targetTipo, setTargetTipo] = useState(null);
-
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
 
@@ -133,24 +373,6 @@ export function RegisterPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-
-        @font-face {
-          font-family: 'Angro Std';
-          src: local('Angro Std Light'), local('AngroStd-Light');
-          font-weight: 300; font-style: normal; font-display: swap;
-        }
-        @font-face {
-          font-family: 'Angro Std';
-          src: local('Angro Std Regular'), local('AngroStd-Regular');
-          font-weight: 400; font-style: normal; font-display: swap;
-        }
-        @font-face {
-          font-family: 'Angro Std';
-          src: local('Angro Std Bold'), local('AngroStd-Bold');
-          font-weight: 700; font-style: normal; font-display: swap;
-        }
-
         @keyframes gridScroll_reg {
           from { transform: translateY(0); }
           to   { transform: translateY(48px); }
@@ -164,82 +386,231 @@ export function RegisterPage() {
           pointer-events: none;
         }
 
+        /* Tabs compactos */
         .tab-btn {
-          flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
-          height: 40px; font-size: 13px; font-weight: 600;
-          font-family: 'Angro Std', 'Outfit', sans-serif; border: none; cursor: pointer;
-          border-radius: 8px; transition: all 0.3s ease; color: #6B7280;
+          flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+          height: 36px; font-size: 12px; font-weight: 500;
+          font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; 
+          border: none; cursor: pointer;
+          border-radius: 6px; transition: all 0.25s ease; 
+          color: #6B7280;
           background: transparent;
+          letter-spacing: -0.01em;
         }
         .tab-active {
-          background: #EFF6FF !important;
-          color: #1B6FE8 !important;
-          border: 1px solid #BFDBFE !important;
+          background: #FFFFFF !important;
+          color: #0F1F3D !important;
+          border: 1.5px solid #E5E7EB !important;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+          font-weight: 600;
         }
 
-        /* Botón fantasma para el Modal */
+        /* Modal */
         .modal-ghost-btn {
-          height: 44px; border: 1px solid #E5E7EB; background: white;
-          color: #4B5563; font-size: 14px; font-weight: 600;
-          font-family: 'Angro Std', 'Outfit', sans-serif; cursor: pointer;
-          border-radius: 10px; width: 100%; transition: all 0.2s ease;
+          height: 40px; border: 1.5px solid #E5E7EB; background: white;
+          color: #4B5563; font-size: 13px; font-weight: 500;
+          font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; 
+          cursor: pointer;
+          border-radius: 7px; width: 100%; transition: all 0.2s ease;
         }
-        .modal-ghost-btn:hover { background: #F3F4F6; }
+        .modal-ghost-btn:hover { 
+          background: #F9FAFB; 
+          border-color: #D1D5DB;
+        }
 
         @media (max-width: 1023px) {
           .login-left { display: none !important; }
+          .login-right { padding: 60px 24px 40px !important; }
           .mobile-logo { display: flex !important; }
         }
         @media (min-width: 1024px) {
           .mobile-logo { display: none !important; }
         }
         @media (max-width: 480px) {
-          .login-right { padding: 72px 20px 40px !important; }
+          .login-right { padding: 56px 20px 32px !important; }
         }
       `}</style>
 
       {/* ── Modal de Confirmación ── */}
-      <AnimatePresence>
-        {targetTipo && (
-          <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(15, 42, 74, 0.5)", backdropFilter: "blur(4px)" }}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ duration: 0.2 }}
-              style={{ background: "white", padding: 32, borderRadius: 16, width: "90%", maxWidth: 400, boxShadow: "0 20px 40px rgba(0,0,0,0.15)", fontFamily: "'Angro Std', 'Outfit', sans-serif" }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 10, background: "#FEF2F2", display: "flex", alignItems: "center", justifyContent: "center", color: "#EF4444" }}>
-                  <AlertCircle size={22} />
-                </div>
-                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#111827" }}>
-                  ¿Cambiar de registro?
-                </h3>
-              </div>
-              <p style={{ margin: "0 0 24px", color: "#6B7280", fontSize: 14, lineHeight: 1.6, fontWeight: 300 }}>
-                Si cambias a <strong>{targetTipo === "mype" ? "MYPE" : "Estudiante"}</strong> ahora, perderás los datos que ya has ingresado en este formulario. ¿Estás seguro de continuar?
+<AnimatePresence>
+  {targetTipo && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      style={{ 
+        position: "fixed", 
+        inset: 0, 
+        zIndex: 9999, 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center", 
+        background: "rgba(15, 42, 74, 0.6)", 
+        backdropFilter: "blur(6px)",
+        padding: 20
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        style={{ 
+          background: "white", 
+          padding: 0, 
+          borderRadius: 12, 
+          width: "100%", 
+          maxWidth: 420, 
+          boxShadow: "0 25px 50px rgba(0,0,0,0.15)", 
+          fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+          overflow: "hidden"
+        }}
+      >
+        {/* Header con icono */}
+        <div style={{ 
+          padding: "28px 28px 20px",
+          borderBottom: "1px solid #F3F4F6"
+        }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+            <div style={{ 
+              width: 44, 
+              height: 44, 
+              borderRadius: 10, 
+              background: "#FEF3C7", 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center",
+              flexShrink: 0
+            }}>
+              <AlertCircle size={22} color="#F59E0B" />
+            </div>
+            <div>
+              <h3 style={{ 
+                margin: "0 0 4px", 
+                fontSize: 17, 
+                fontWeight: 600, 
+                color: "#0F1F3D", 
+                letterSpacing: "-0.02em",
+                lineHeight: 1.3
+              }}>
+                ¿Cambiar tipo de registro?
+              </h3>
+              <p style={{ 
+                margin: 0, 
+                color: "#6B7280", 
+                fontSize: 13, 
+                lineHeight: 1.5, 
+                fontWeight: 400 
+              }}>
+                Perderás los datos ingresados en el formulario actual
               </p>
-              <div style={{ display: "flex", gap: 12 }}>
-                <button onClick={() => setTargetTipo(null)} className="modal-ghost-btn" style={{ flex: 1 }}>
-                  Cancelar
-                </button>
-                <button onClick={confirmToggle} style={{ flex: 1, height: 44, borderRadius: 10, border: "none", color: "white", background: "#EF4444", fontWeight: 600, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>
-                  Sí, cambiar
-                </button>
-              </div>
-            </motion.div>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
 
-      <div style={{ minHeight: "100svh", display: "flex", fontFamily: "'Angro Std', 'Outfit', sans-serif", overflow: "hidden" }}>
+        {/* Contenido */}
+        <div style={{ padding: "20px 28px 24px" }}>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "12px 14px",
+            background: "#F9FAFB",
+            borderRadius: 8,
+            border: "1px solid #E5E7EB",
+            marginBottom: 20
+          }}>
+            <div style={{
+              width: 32,
+              height: 32,
+              borderRadius: 6,
+              background: targetTipo === "mype" ? "#FEF3C7" : "#DBEAFE",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}>
+              {targetTipo === "mype" ? 
+                <Building2 size={16} color="#F59E0B" /> : 
+                <GraduationCap size={16} color="#1B6FE8" />
+              }
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: "#0F1F3D" }}>
+                Cambiando a {targetTipo === "mype" ? "Empresa (MYPE)" : "Estudiante"}
+              </p>
+              <p style={{ margin: "2px 0 0", fontSize: 12, color: "#9CA3AF" }}>
+                Se reiniciará todo el formulario
+              </p>
+            </div>
+          </div>
 
-        {/* ── LEFT panel (Diagrama de Registro Animado) ───────────────────────── */}
+          <div style={{ display: "flex", gap: 10 }}>
+            <button 
+              onClick={() => setTargetTipo(null)} 
+              style={{ 
+                flex: 1, 
+                height: 42, 
+                borderRadius: 8, 
+                border: "1.5px solid #E5E7EB", 
+                background: "white",
+                color: "#4B5563", 
+                fontSize: 14, 
+                fontWeight: 500,
+                fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+                cursor: "pointer",
+                transition: "all 0.2s"
+              }}
+              onMouseEnter={e => { 
+                e.currentTarget.style.background = "#F9FAFB"; 
+                e.currentTarget.style.borderColor = "#D1D5DB"; 
+              }}
+              onMouseLeave={e => { 
+                e.currentTarget.style.background = "white"; 
+                e.currentTarget.style.borderColor = "#E5E7EB"; 
+              }}
+            >
+              Cancelar
+            </button>
+            <button 
+              onClick={confirmToggle} 
+              style={{ 
+                flex: 1, 
+                height: 42, 
+                borderRadius: 8, 
+                border: "none", 
+                color: "white", 
+                background: "#EF4444", 
+                fontWeight: 600, 
+                fontSize: 14, 
+                cursor: "pointer", 
+                fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif", 
+                transition: "all 0.2s" 
+              }}
+              onMouseEnter={e => { 
+                e.currentTarget.style.background = "#DC2626"; 
+              }}
+              onMouseLeave={e => { 
+                e.currentTarget.style.background = "#EF4444"; 
+              }}
+            >
+              Sí, cambiar
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
+      <div style={{ minHeight: "100svh", display: "flex", fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif", overflow: "hidden" }}>
+
+        {/* ── LEFT panel ─────────────────────────────────────────────────── */}
         <div
           className="login-left"
           style={{
-            width: "46%", flexShrink: 0,
+            width: "55%", flexShrink: 0,
             position: "relative", overflow: "hidden",
             display: "flex", flexDirection: "column",
             background: "linear-gradient(150deg, #081828 0%, #0F2A4A 55%, #0C3260 100%)",
@@ -249,77 +620,82 @@ export function RegisterPage() {
           <div style={{ position: "absolute", top: -160, right: -160, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle,#06B6D4,transparent 70%)", opacity: 0.15, filter: "blur(80px)", pointerEvents: "none" }} />
           <div style={{ position: "absolute", bottom: -100, left: -80, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle,#1B6FE8,transparent)", opacity: 0.08, filter: "blur(60px)", pointerEvents: "none" }} />
 
-          <div style={{ position: "relative", zIndex: 10, padding: "40px 48px 0" }}>
+          <div style={{ position: "relative", zIndex: 10, padding: "48px 56px 0" }}>
             <Logo />
           </div>
 
-          <div style={{ position: "relative", zIndex: 10, flex: 1, display: "flex", flexDirection: "column", padding: "20px 32px 40px" }}>
+          <div style={{ position: "relative", zIndex: 10, flex: 1, display: "flex", flexDirection: "column", padding: "30px 40px 50px" }}>
             <RegisterDiagram />
           </div>
         </div>
 
-        {/* ── RIGHT panel (Formulario) ────────────────────────────────────────── */}
+        {/* ── RIGHT panel ────────────────────────────────────────────────── */}
         <div
           className="login-right"
           style={{
             flex: 1, display: "flex", flexDirection: "column",
-            background: "#F8FAFC", padding: "48px 32px",
+            background: "#F8FAFC", padding: "40px 36px",
             position: "relative", overflow: "hidden",
             overflowY: "auto"
           }}
         >
           <div style={{ position: "absolute", top: 0, right: 0, width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle,#1B6FE8,transparent)", opacity: 0.03, filter: "blur(80px)", pointerEvents: "none" }} />
 
-          <div className="mobile-logo" style={{ position: "absolute", top: 24, left: 24, alignItems: "center" }}>
+          <div className="mobile-logo" style={{ position: "absolute", top: 20, left: 20, alignItems: "center" }}>
             <Logo />
           </div>
 
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease }}
-            style={{ width: "100%", maxWidth: 440, position: "relative", zIndex: 10, margin: "auto" }}
+            transition={{ duration: 0.5, ease }}
+            style={{ width: "100%", maxWidth: 420, position: "relative", zIndex: 10, margin: "auto" }}
           >
-            <div style={{ marginBottom: 30 }}>
+            {/* Header más compacto */}
+            <div style={{ marginBottom: 24 }}>
               <h1 style={{
-                fontSize: 32, fontWeight: 700, fontFamily: "inherit",
-                color: "#111827", letterSpacing: "-0.02em", marginBottom: 8, lineHeight: 1.2,
+                fontSize: 26, fontWeight: 700, 
+                fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+                color: "#0F1F3D", letterSpacing: "-0.02em", marginBottom: 6, lineHeight: 1.2,
               }}>
                 Crea tu cuenta
               </h1>
+              <p style={{ fontSize: 13, color: "#6B7280", fontWeight: 400, lineHeight: 1.5, margin: 0, fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif" }}>
+                {esEstudiante ? "Únete como estudiante y construye tu portafolio" : "Registra tu empresa y publica proyectos"}
+              </p>
             </div>
 
+            {/* Tabs más compactos */}
             <div style={{
-              display: "flex", padding: 4, marginBottom: 24, gap: 4,
-              background: "#F3F4F6", border: "1px solid #E5E7EB", borderRadius: "10px"
+              display: "flex", padding: 3, marginBottom: 22, gap: 3,
+              background: "#F3F4F6", border: "1.5px solid #E5E7EB", borderRadius: "7px"
             }}>
               <button type="button" onClick={() => handleToggle("estudiante")} className={`tab-btn ${esEstudiante ? "tab-active" : ""}`}>
-                <GraduationCap size={16} /> Soy Estudiante
+                <GraduationCap size={14} /> Soy Estudiante
               </button>
               <button type="button" onClick={() => handleToggle("mype")} className={`tab-btn ${!esEstudiante ? "tab-active" : ""}`}>
-                <Building2 size={16} /> Soy Empresa
+                <Building2 size={14} /> Soy Empresa
               </button>
             </div>
 
             <AnimatePresence mode="wait">
               <motion.div 
                 key={currentTipo}
-                initial={{ opacity: 0, x: esEstudiante ? -10 : 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: esEstudiante ? 10 : -10 }}
-                transition={{ duration: 0.3, ease }}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2, ease }}
               >
                 <RegisterForm 
                   tipo={currentTipo} 
                   onDirtyChange={setIsFormDirty}
-                  // ✨ NUEVAS PROPS:
                   hasAcceptedTerms={hasAcceptedTerms}
                   onOpenTerms={() => setIsTermsModalOpen(true)}
                 />
               </motion.div>
             </AnimatePresence>
 
-            <p style={{ marginTop: 30, textAlign: "center", fontSize: 14, color: "#9CA3AF", fontWeight: 400 }}>
+            <p style={{ marginTop: 24, textAlign: "center", fontSize: 13, color: "#9CA3AF", fontWeight: 400, fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif" }}>
               ¿Ya tienes cuenta?{" "}
               <Link to="/login" style={{ color: "#1B6FE8", textDecoration: "none", fontWeight: 600, transition: "color 0.2s" }}
                 onMouseEnter={e => e.target.style.color = "#0E54C4"}

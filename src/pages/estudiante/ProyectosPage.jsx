@@ -1,483 +1,1167 @@
-import React, { useState } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
+import { useAuthStore } from '../../store/authStore';
+import { useProyectos } from '../../features/proyectos-list/useProyectos';
+import { useMisPostulaciones } from '../../features/postulaciones-list/useMisPostulaciones';
+import { usePerfil } from '../../features/perfil/usePerfil';
 import {
-  Briefcase,
-  Search,
-  SlidersHorizontal,
-  Calendar,
   ArrowRight,
-  Filter,
-  X,
-  Terminal,
+  Search,
   Building2,
-  TrendingUp,
-  Palette,
-  BarChart2,
-  ShoppingBag,
-  Megaphone,
-  ChevronDown,
-  Lightbulb,
-  Loader2,
-  CheckCircle,
-  Clock,
-  Sparkles,
+  X,
   MapPin,
   Users,
   Target,
-  Package,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles,
+  Clock,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Briefcase,
+  Globe,
+  Mail,
+  Phone,
+  ExternalLink,
+  Filter,
+  SlidersHorizontal,
+  Network,
+  Shield,
+  Server,
+  Wifi,
+  Monitor,
+  Send,
+  FileText,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { useProyectos } from '@features/proyectos-list/useProyectos';
-import { useMisPostulaciones } from '@features/postulaciones-list/useMisPostulaciones';
-import { usePerfil } from '@features/perfil/usePerfil';
+import { Link, useNavigate } from 'react-router-dom';
 import PostularButton from '../../features/proyecto-postular/PostularButton';
 
-const getAreaStyle = (area) => {
-  switch (area) {
-    case 'DESARROLLO_WEB':
-      return 'bg-blue-50 text-blue-700 border border-blue-100';
-    case 'DESARROLLO_MOVIL':
-      return 'bg-emerald-50 text-emerald-700 border border-emerald-100';
-    case 'DESARROLLO_SOFTWARE':
-      return 'bg-violet-50 text-violet-700 border border-violet-100';
-    case 'BASE_DE_DATOS': 
-      return 'bg-amber-50 text-amber-700 border border-amber-100';
-    case 'ANALISIS_DATOS':
-      return 'bg-pink-50 text-pink-700 border border-pink-100';
-    case 'SOPORTE_TI':
-      return 'bg-slate-50 text-slate-700 border border-slate-200';
-    default:
-      return 'bg-indigo-50 text-indigo-700 border border-indigo-100';
-  }
+/* ─── Variantes de animación ─── */
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
+});
+
+/* ─── Colores de área ─── */
+const AREA_STYLES = {
+  WEB: { bg: '#eff6ff', color: '#1B6FE8' },
+  DATA: { bg: '#f0fdf4', color: '#059669' },
+  UX: { bg: '#f5f3ff', color: '#8B5CF6' },
+  INFRAESTRUCTURA: { bg: '#fef3c7', color: '#d97706' },
+  SOPORTE_TI: { bg: '#fff1f2', color: '#e11d48' },
+  REDES: { bg: '#f0f9ff', color: '#0284c7' },
+  DEFAULT: { bg: '#eff6ff', color: '#1B6FE8' },
 };
 
-const getAreaIcon = (area) => {
-  switch (area) {
-    case 'DESARROLLO_WEB':
-      return <Terminal size={20} className="text-blue-600" />;
-    case 'DESARROLLO_MOVIL':
-      return <ShoppingBag size={20} className="text-emerald-600" />;
-    case 'DESARROLLO_SOFTWARE':
-      return <Terminal size={20} className="text-violet-600" />;
-    case 'BASE_DE_DATOS':
-      return <BarChart2 size={20} className="text-amber-600" />;
-    case 'ANALISIS_DATOS': 
-      return <TrendingUp size={20} className="text-pink-600" />;
-    case 'SOPORTE_TI':
-      return <Terminal size={20} className="text-slate-600" />;
-    default:
-      return <Briefcase size={20} className="text-indigo-600" />;
-  }
+const getAreaStyle = (area = '') => {
+  const key = area.toUpperCase().replace(/[\s_]/g, '_');
+  return AREA_STYLES[key] || AREA_STYLES.DEFAULT;
 };
 
-const AREAS = [
-  { value: '', label: 'Todos los Proyectos' },
-  { value: 'DESARROLLO_WEB', label: 'Desarrollo Web' },
-  { value: 'DESARROLLO_MOVIL', label: 'Desarrollo Móvil' },
-  { value: 'DESARROLLO_SOFTWARE', label: 'Software' },
-  { value: 'BASE_DE_DATOS', label: 'Base de Datos' },     
-  { value: 'ANALISIS_DATOS', label: 'Análisis de Datos' },
-  { value: 'SOPORTE_TI', label: 'Soporte TI' }
-];
+const getGradient = (area = '') => {
+  const key = area.toUpperCase().replace(/[\s_]/g, '_');
+  const gradients = {
+    WEB: 'linear-gradient(135deg, #1B6FE8, #3b82f6)',
+    DATA: 'linear-gradient(135deg, #059669, #10b981)',
+    UX: 'linear-gradient(135deg, #7c3aed, #8b5cf6)',
+    INFRAESTRUCTURA: 'linear-gradient(135deg, #d97706, #f59e0b)',
+    SOPORTE_TI: 'linear-gradient(135deg, #e11d48, #f43f5e)',
+    REDES: 'linear-gradient(135deg, #0284c7, #38bdf8)',
+  };
+  return gradients[key] || gradients.WEB;
+};
+
+const getAreaIcon = (area = '') => {
+  const key = area.toUpperCase().replace(/[\s_]/g, '_');
+  const icons = {
+    INFRAESTRUCTURA: <Server size={22} />,
+    SOPORTE_TI: <Monitor size={22} />,
+    REDES: <Wifi size={22} />,
+    WEB: <Globe size={22} />,
+  };
+  return icons[key] || <Briefcase size={22} />;
+};
+
+/* ═══════════════════════════════════════════════
+   HERO BANNER - COMPACTO Y ELEGANTE
+═══════════════════════════════════════════════ */
+const ExploreHero = () => {
+  const canvasRef = useRef(null);
+  const heroRef = useRef(null);
+  const [badgeText, setBadgeText] = useState('+28 proyectos activos');
+  const [badgeColor, setBadgeColor] = useState('#67d4f8');
+
+  const messages = [
+    { text: '+28 proyectos activos', color: '#67d4f8' },
+    { text: '+12 empresas registradas', color: '#f59e0b' },
+    { text: '+45 vacantes disponibles', color: '#4ade80' },
+    { text: '3 proyectos urgentes', color: '#f43f5e' },
+  ];
+
+  useEffect(() => {
+    let index = 0;
+    const interval = setInterval(() => {
+      index = (index + 1) % messages.length;
+      setBadgeText(messages[index].text);
+      setBadgeColor(messages[index].color);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const hero = heroRef.current;
+    if (!canvas || !hero) return;
+
+    const ctx = canvas.getContext('2d');
+    let W, H, animId;
+    const mouse = { x: -999, y: -999 };
+
+    const resize = () => {
+      W = canvas.width = hero.offsetWidth;
+      H = canvas.height = hero.offsetHeight;
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(hero);
+
+    const onMove = (e) => {
+      const r = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - r.left;
+      mouse.y = e.clientY - r.top;
+    };
+    const onLeave = () => { mouse.x = -999; mouse.y = -999; };
+
+    hero.addEventListener('mousemove', onMove);
+    hero.addEventListener('mouseleave', onLeave);
+
+    class WaveParticle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H * 0.6;
+        this.size = Math.random() * 2 + 0.8;
+        this.speed = Math.random() * 0.5 + 0.2;
+        this.opacity = Math.random() * 0.3 + 0.15;
+        this.hue = Math.random() > 0.5 ? 210 : 195;
+      }
+      update() {
+        this.y -= this.speed;
+        this.opacity -= 0.002;
+        if (this.y < 0 || this.opacity <= 0) this.reset();
+      }
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = `hsl(${this.hue}, 90%, 65%)`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    const particles = Array.from({ length: 70 }, () => new WaveParticle());
+
+    const animate = () => {
+      ctx.fillStyle = 'rgba(13, 27, 53, 0.1)';
+      ctx.fillRect(0, 0, W, H);
+
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+
+      ctx.strokeStyle = 'rgba(103, 212, 248, 0.06)';
+      ctx.lineWidth = 0.6;
+      for (let i = 0; i < particles.length; i += 4) {
+        for (let j = i + 1; j < particles.length; j += 5) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < 100) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      animId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      ro.disconnect();
+      hero.removeEventListener('mousemove', onMove);
+      hero.removeEventListener('mouseleave', onLeave);
+    };
+  }, []);
+
+  return (
+    <motion.div
+      ref={heroRef}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      style={{
+        position: 'relative',
+        overflow: 'hidden',
+        borderRadius: 16,
+        background: 'linear-gradient(135deg, #0d1b35 0%, #1e3a5f 50%, #1B6FE8 100%)',
+        padding: '32px 36px',
+        color: '#fff',
+        marginBottom: 20,
+        minHeight: 140,
+      }}
+    >
+      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.7, pointerEvents: 'none' }} />
+
+      <div style={{ position: 'relative', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.1)', padding: '4px 14px', borderRadius: 30, fontSize: 11, fontWeight: 600, marginBottom: 16, backdropFilter: 'blur(8px)' }}
+          >
+            <Sparkles size={12} /> OPORTUNIDADES EN TIEMPO REAL
+          </motion.div>
+
+          <h1 style={{ fontSize: 'clamp(22px, 2.5vw, 28px)', fontWeight: 700, lineHeight: 1.15, letterSpacing: '-0.02em', marginBottom: 6 }}>
+            Descubre tu próximo reto profesional
+          </h1>
+
+          <p style={{ fontSize: 13, opacity: 0.8, lineHeight: 1.5, fontWeight: 400, maxWidth: 400 }}>
+            Proyectos reales con empresas locales. Construye experiencia mientras estudias.
+          </p>
+        </div>
+
+        <motion.div
+          animate={{ y: [0, -4, 0] }}
+          transition={{ duration: 3.5, repeat: Infinity }}
+          style={{
+            background: 'rgba(255,255,255,0.08)',
+            backdropFilter: 'blur(12px)',
+            padding: '8px 18px',
+            borderRadius: 40,
+            fontSize: 12,
+            fontWeight: 600,
+            border: `1px solid ${badgeColor}40`,
+            color: badgeColor,
+            flexShrink: 0,
+          }}
+        >
+          {badgeText}
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   PROJECT CARD - COMPACTA ESTILO LINKEDIN
+═══════════════════════════════════════════════ */
+const ProjectCardLinkedIn = ({ proyecto, onClick, yaPostulo, isSelected }) => {
+  const area = proyecto.areaSistemas?.replace(/_/g, ' ') || 'SISTEMAS';
+  const { bg, color } = getAreaStyle(area);
+  const areaIcon = getAreaIcon(area);
+  
+  // Forzar azul para Soporte TI
+  const isSoporteTI = area === 'SOPORTE TI';
+  const displayColor = isSoporteTI ? '#1B6FE8' : color;
+  const displayBg = isSoporteTI ? '#eff6ff' : bg;
+
+  return (
+    <motion.div
+      whileHover={{ backgroundColor: '#f8fafc' }}
+      onClick={onClick}
+      style={{
+        background: isSelected ? '#f0f7ff' : '#fff',
+        border: isSelected ? '1px solid #bfdbfe' : '1px solid transparent',
+        borderBottom: '1px solid #f1f5f9',
+        borderLeft: isSelected ? `3px solid ${displayColor}` : '3px solid transparent',
+        padding: '12px 16px',
+        cursor: 'pointer',
+        transition: 'all 0.12s ease',
+        position: 'relative',
+      }}
+    >
+      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+        {/* Icono de área */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 2 }}>
+            <h3 style={{ 
+              fontSize: 13, 
+              fontWeight: 600, 
+              color: '#0f172a', 
+              margin: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              paddingRight: 6,
+            }}>
+              {proyecto.titulo}
+            </h3>
+            {yaPostulo && (
+              <span style={{ 
+                background: '#f0fdf4', 
+                color: '#059669', 
+                padding: '1px 7px', 
+                borderRadius: 10, 
+                fontSize: 9, 
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+              }}>
+                <CheckCircle2 size={9} />
+                Postulado
+              </span>
+            )}
+          </div>
+
+          <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 4px 0', fontWeight: 500 }}>
+            {proyecto.mypeNombre || 'Empresa'}
+          </p>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 11, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 2 }}>
+              <MapPin size={10} /> {proyecto.ubicacion || 'Cajamarca'}
+            </span>
+            <span style={{ 
+              background: displayBg, 
+              color: displayColor, 
+              padding: '1px 8px', 
+              borderRadius: 10, 
+              fontSize: 10, 
+              fontWeight: 600 
+            }}>
+              {area}
+            </span>
+            <span style={{ fontSize: 11, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Calendar size={10} /> {proyecto.fechaLimite}
+            </span>
+          </div>
+
+          <p style={{ 
+            fontSize: 11, 
+            color: '#94a3b8', 
+            margin: '6px 0 0 0', 
+            lineHeight: 1.4,
+            display: '-webkit-box',
+            WebkitLineClamp: 1,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}>
+            {proyecto.descripcion}
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   PANEL DE DETALLE - SIN ICONOS EN SECCIONES
+═══════════════════════════════════════════════ */
+const ProjectDetailPanel = ({ proyecto, yaPostulo, haSuperadoLimite, onClose }) => {
+  if (!proyecto) {
+    return (
+      <div style={{
+        background: '#fff',
+        borderRadius: 12,
+        border: '1px solid #e5e7eb',
+        padding: 40,
+        textAlign: 'center',
+        color: '#9ca3af',
+      }}>
+        <Briefcase size={40} style={{ margin: '0 auto 14px', opacity: 0.25 }} />
+        <h3 style={{ fontSize: 15, fontWeight: 600, color: '#6b7280', marginBottom: 6 }}>
+          Selecciona un proyecto
+        </h3>
+        <p style={{ fontSize: 12, color: '#9ca3af' }}>
+          Haz clic en un proyecto para ver sus detalles
+        </p>
+      </div>
+    );
+  }
+
+  const area = proyecto.areaSistemas?.replace(/_/g, ' ') || 'SISTEMAS';
+  const { bg, color } = getAreaStyle(area);
+  const gradient = getGradient(area);
+  const areaIcon = getAreaIcon(area);
+
+  return (
+    <div style={{
+      background: '#fff',
+      borderRadius: 12,
+      border: '1px solid #e5e7eb',
+      overflow: 'hidden',
+      position: 'sticky',
+      top: 20,
+      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+    }}>
+      {/* Línea superior azul */}
+      <div style={{
+        height: 4,
+        background: 'linear-gradient(90deg, #1B6FE8, #3b82f6, #60a5fa)',
+        width: '100%',
+      }} />
+
+      {/* Header blanco */}
+      <div style={{
+        padding: '24px 20px 20px',
+        position: 'relative',
+        borderBottom: '1px solid #f1f5f9',
+      }}>
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            background: '#f1f5f9',
+            border: 'none',
+            borderRadius: '50%',
+            width: 28,
+            height: 28,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: '#64748b',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = '#e2e8f0';
+            e.target.style.color = '#0f172a';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = '#f1f5f9';
+            e.target.style.color = '#64748b';
+          }}
+        >
+          <X size={14} />
+        </button>
+
+        {/* Badge del área sin icono */}
+        <div style={{ 
+          display: 'inline-flex',
+          alignItems: 'center',
+          background: area === 'SOPORTE TI' ? '#eff6ff' : bg,
+          color: area === 'SOPORTE TI' ? '#1B6FE8' : color,
+          padding: '4px 12px', 
+          borderRadius: 16, 
+          fontSize: 11, 
+          fontWeight: 700,
+          marginBottom: 14,
+          letterSpacing: '0.02em',
+        }}>
+          {area}
+        </div>
+
+        {/* Título */}
+        <h2 style={{ 
+          fontSize: 18, 
+          fontWeight: 700, 
+          color: '#0f172a', 
+          lineHeight: 1.3, 
+          marginBottom: 6,
+        }}>
+          {proyecto.titulo}
+        </h2>
+
+        {/* Empresa */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748b' }}>
+          <Building2 size={14} style={{ color: '#1B6FE8' }} />
+          <span style={{ fontWeight: 500 }}>{proyecto.mypeNombre || 'Empresa'}</span>
+        </div>
+      </div>
+
+      {/* Contenido */}
+      <div style={{ padding: 20 }}>
+        {/* Métricas */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(3, 1fr)', 
+          gap: 8, 
+          marginBottom: 20,
+        }}>
+          {[
+            { 
+              label: 'Fecha límite', 
+              value: proyecto.fechaLimite, 
+              icon: <Calendar size={13} />, 
+              valueColor: '#1e40af',
+              bg: '#f8fafc',
+            },
+            { 
+              label: 'Cupos', 
+              value: proyecto.cupos || 'Ilimitado', 
+              icon: <Users size={13} />, 
+              valueColor: '#1e40af',
+              bg: '#f8fafc',
+            },
+            { 
+              label: 'Ubicación', 
+              value: proyecto.ubicacion || 'Cajamarca', 
+              icon: <MapPin size={13} />, 
+              valueColor: '#1e40af',
+              bg: '#f8fafc',
+            },
+          ].map((metric, idx) => (
+            <div key={idx} style={{
+              background: metric.bg,
+              padding: '10px 8px',
+              borderRadius: 8,
+              border: '1px solid #dbeafe',
+              textAlign: 'center',
+            }}>
+              <div style={{ fontSize: 9, color: '#020f21', fontWeight: 500, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {metric.label}
+              </div>
+              <div style={{ 
+                fontSize: 12, 
+                fontWeight: 600, 
+                color: metric.valueColor,
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                gap: 4,
+              }}>
+                {metric.icon}
+                {metric.value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Descripción - SIN ICONO */}
+        <div style={{ marginBottom: 20 }}>
+          <h4 style={{ 
+            fontSize: 11, 
+            fontWeight: 700, 
+            color: '#000000', 
+            marginBottom: 8,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}>
+            Descripción
+          </h4>
+          <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, margin: 0 }}>
+            {proyecto.descripcion}
+          </p>
+        </div>
+
+        {/* Objetivo - SIN ICONO */}
+        {proyecto.objetivo && (
+          <div style={{ marginBottom: 20 }}>
+            <h4 style={{ 
+              fontSize: 11, 
+              fontWeight: 700, 
+              color: '#000000', 
+              marginBottom: 8,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}>
+              Objetivo
+            </h4>
+            <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.6, margin: 0 }}>
+              {proyecto.objetivo}
+            </p>
+          </div>
+        )}
+
+        {/* Empresa - SIN ICONO EN HEADER, SIN COMPUTADORA */}
+        <div style={{ 
+          marginBottom: 20,
+          background: '#f8fafc',
+          borderRadius: 10,
+          border: '1px solid #dbeafe',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            padding: '12px 14px',
+            borderBottom: '1px solid #dbeafe',
+            background: '#eff6ff',
+          }}>
+            <h4 style={{ 
+              fontSize: 11, 
+              fontWeight: 700, 
+              color: '#000000',
+              margin: 0,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}>
+              Sobre la empresa
+            </h4>
+          </div>
+          <div style={{ padding: '14px' }}>
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#1e293b', marginBottom: 4 }}>
+                {proyecto.mypeNombre || 'Empresa'}
+              </div>
+              <div style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <MapPin size={10} style={{ color: '#3b82f6' }} />
+                {proyecto.ubicacion || 'Cajamarca'}
+              </div>
+            </div>
+            {proyecto.mypeDescripcion && (
+              <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5, margin: 0 }}>
+                {proyecto.mypeDescripcion}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Botón de postulación */}
+        <div style={{ marginTop: 4 }}>
+          <button
+            disabled={yaPostulo}
+            style={{
+              width: '100%',
+              padding: '12px 20px',
+              borderRadius: 10,
+              border: yaPostulo ? '1px solid #d1d5db' : 'none',
+              background: yaPostulo 
+                ? '#f9fafb' 
+                : 'linear-gradient(135deg, #1B6FE8, #2563eb)',
+              color: yaPostulo ? '#6b7280' : '#fff',
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: yaPostulo ? 'default' : 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              boxShadow: yaPostulo ? 'none' : '0 2px 8px rgba(27,111,232,0.25)',
+              letterSpacing: '0.01em',
+            }}
+            onMouseEnter={(e) => {
+              if (!yaPostulo) {
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 4px 14px rgba(27,111,232,0.35)';
+                e.target.style.background = 'linear-gradient(135deg, #2563eb, #1d4ed8)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!yaPostulo) {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 2px 8px rgba(27,111,232,0.25)';
+                e.target.style.background = 'linear-gradient(135deg, #1B6FE8, #2563eb)';
+              }
+            }}
+          >
+            {yaPostulo ? (
+              <>
+                <CheckCircle2 size={16} style={{ color: '#059669' }} />
+                Ya has postulado
+              </>
+            ) : (
+              <>
+                <Send size={14} />
+                Postular ahora
+              </>
+            )}
+          </button>
+          {haSuperadoLimite && !yaPostulo && (
+            <p style={{ 
+              fontSize: 10, 
+              color: '#64748b', 
+              marginTop: 6, 
+              textAlign: 'center',
+              background: '#eff6ff',
+              padding: '6px 10px',
+              borderRadius: 8,
+              border: '1px solid #dbeafe',
+            }}>
+              Has alcanzado el límite de proyectos activos
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   PAGINACIÓN
+═══════════════════════════════════════════════ */
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  if (totalPages <= 1) return null;
+
+  const getVisiblePages = () => {
+    const pages = [];
+    const maxVisible = 5;
+    
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    return pages;
+  };
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      padding: '12px 0',
+      borderTop: '1px solid #f1f5f9',
+    }}>
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        style={{
+          padding: '5px 10px',
+          borderRadius: 6,
+          border: '1px solid #e5e7eb',
+          background: '#fff',
+          cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+          opacity: currentPage === 1 ? 0.4 : 1,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 3,
+          fontSize: 12,
+          fontWeight: 500,
+          color: '#374151',
+        }}
+      >
+        <ChevronLeft size={13} /> Ant
+      </button>
+
+      {getVisiblePages().map((page, index) => (
+        page === '...' ? (
+          <span key={`dots-${index}`} style={{ padding: '5px 6px', color: '#9ca3af', fontSize: 12 }}>...</span>
+        ) : (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            style={{
+              padding: '5px 10px',
+              borderRadius: 6,
+              border: currentPage === page ? '1px solid #1B6FE8' : '1px solid transparent',
+              background: currentPage === page ? '#eff6ff' : 'transparent',
+              cursor: 'pointer',
+              fontSize: 12,
+              fontWeight: currentPage === page ? 700 : 500,
+              color: currentPage === page ? '#1B6FE8' : '#374151',
+              minWidth: 32,
+            }}
+          >
+            {page}
+          </button>
+        )
+      ))}
+
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        style={{
+          padding: '5px 10px',
+          borderRadius: 6,
+          border: '1px solid #e5e7eb',
+          background: '#fff',
+          cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+          opacity: currentPage === totalPages ? 0.4 : 1,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 3,
+          fontSize: 12,
+          fontWeight: 500,
+          color: '#374151',
+        }}
+      >
+        Sig <ChevronRight size={13} />
+      </button>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   COMPONENTE PRINCIPAL
+═══════════════════════════════════════════════ */
+const ITEMS_PER_PAGE = 10;
 
 const ProyectosPage = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedArea, setSelectedArea] = useState('');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedProyecto, setSelectedProyecto] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const { data: userProfile } = usePerfil();
-  const { data, isLoading, isError } = useProyectos();
+  const { data: proyectosData, isLoading } = useProyectos();
   const { data: postulaciones } = useMisPostulaciones();
+  const { data: userProfile } = usePerfil();
 
-  const proyectos = data?.content || [];
+  const proyectos = proyectosData?.content || [];
 
-  // Mapear postulaciones previas para evitar postular de nuevo
-  const yaPostuloMap = React.useMemo(() => {
+  const yaPostuloMap = useMemo(() => {
     const map = {};
-    postulaciones?.forEach(p => {
-      map[p.proyectoId] = true;
-    });
+    postulaciones?.forEach(p => { map[p.proyectoId] = true; });
     return map;
   }, [postulaciones]);
 
-  // Validar límite de proyectos activos
-  const proyectosActivos = React.useMemo(() => {
+  const proyectosActivos = useMemo(() => {
     return postulaciones?.filter(p => p.estado === 'ACEPTADO' || p.estado === 'Aceptado') || [];
   }, [postulaciones]);
 
   const limiteProyectos = userProfile?.limiteProyectos ?? 1;
   const haSuperadoLimite = proyectosActivos.length >= limiteProyectos;
 
-  // Filtrado combinado: Búsqueda + Área
-  const filteredProyectos = proyectos.filter(proyecto => {
-    const matchesSearch =
-      proyecto.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      proyecto.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      proyecto.mypeNombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      proyecto.areaSistemas?.toLowerCase().includes(searchTerm.toLowerCase());
+  const areasFiltro = [
+    { value: '', label: 'Todas las áreas' },
+    { value: 'DESARROLLO_WEB', label: 'Desarrollo Web' },
+    { value: 'DATA', label: 'Ciencia de Datos' },
+    { value: 'UX', label: 'Diseño UX/UI' },
+    { value: 'INFRAESTRUCTURA', label: 'Infraestructura' },
+    { value: 'SOPORTE_TI', label: 'Soporte TI' },
+    { value: 'REDES', label: 'Redes' },
+  ];
 
-    const matchesArea = selectedArea ? proyecto.areaSistemas === selectedArea : true;
+  const filteredProyectos = useMemo(() => {
+    return proyectos.filter(proyecto => {
+      const matchesSearch = 
+        !searchTerm || 
+        proyecto.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        proyecto.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        proyecto.mypeNombre?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesSearch && matchesArea;
-  });
+      const matchesArea = !selectedArea || proyecto.areaSistemas?.toUpperCase().includes(selectedArea);
+      return matchesSearch && matchesArea;
+    });
+  }, [proyectos, searchTerm, selectedArea]);
+
+  const totalPages = Math.ceil(filteredProyectos.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedProyectos = filteredProyectos.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedArea]);
+
+  useEffect(() => {
+    if (paginatedProyectos.length > 0 && !selectedProyecto) {
+      setSelectedProyecto(paginatedProyectos[0]);
+    }
+  }, [paginatedProyectos]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    const currentStillExists = paginatedProyectos.find(p => p.id === selectedProyecto?.id);
+    if (!currentStillExists && paginatedProyectos.length > 0) {
+      setSelectedProyecto(paginatedProyectos[0]);
+    }
+  };
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1440px] mx-auto">
+    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", background: '#f8fafc', minHeight: '100vh', padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
 
-      {/* Dynamic Mesh Search Banner */}
-      <section className="mb-8">
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-tr from-[#1a2d42] via-[#1e3a5f] to-[#4648d4] p-8 lg:p-12 text-white shadow-xl min-h-[220px] flex flex-col justify-center">
-          {/* Abstract Fluid Mesh Orbs */}
-          <div className="absolute top-[-40%] right-[-10%] w-96 h-96 bg-[#4648d4]/30 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-[-20%] left-[-10%] w-72 h-72 bg-[#1e3a5f]/40 rounded-full blur-2xl"></div>
-
-          <div className="relative z-10 max-w-2xl">
-            <h1 className="text-4xl lg:text-5xl font-extrabold mb-4 tracking-tight leading-tight">
-              Descubre tu próximo reto profesional
-            </h1>
-            <p className="text-base lg:text-lg opacity-90 mb-8 font-medium">
-              Conecta con MYPEs que necesitan tu talento académico para impulsar su transformación digital.
-            </p>
-            <div className="relative group max-w-xl">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={22} />
-              <input
-                className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white text-on-surface border border-outline-variant/30 focus:outline-none focus:ring-4 focus:ring-primary/20 shadow-md focus:shadow-xl transition-all text-base text-slate-800 font-medium"
-                placeholder="Buscar por tecnología, empresa o rol..."
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
+      {/* Top Bar */}
+      <motion.div {...fadeUp(0)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', margin: 0 }}>
+            Proyectos disponibles
+          </h1>
+          <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0 0' }}>
+            {filteredProyectos.length} proyecto{filteredProyectos.length !== 1 ? 's' : ''} encontrado{filteredProyectos.length !== 1 ? 's' : ''}
+          </p>
         </div>
-      </section>
+        <Link 
+          to="/dashboard" 
+          style={{ 
+            color: '#475569', 
+            fontWeight: 500, 
+            fontSize: 12,
+            textDecoration: 'none',
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 5,
+            padding: '7px 14px',
+            borderRadius: 20,
+            border: '1px solid #e2e8f0',
+            transition: 'all 0.2s',
+            background: '#fff',
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = '#f1f5f9';
+            e.target.style.borderColor = '#cbd5e1';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = '#fff';
+            e.target.style.borderColor = '#e2e8f0';
+          }}
+        >
+          ← Dashboard
+        </Link>
+      </motion.div>
 
-      {/* Categories Row */}
-      <section className="mb-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {AREAS.map(area => (
-              <button
-                key={area.value}
-                onClick={() => setSelectedArea(area.value)}
-                className={`px-5 py-2.5 rounded-full font-bold text-sm whitespace-nowrap transition-all ${selectedArea === area.value
-                  ? 'bg-primary text-white shadow-md'
-                  : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest border border-outline-variant/20'
-                  }`}
-              >
-                {area.label}
-              </button>
-            ))}
-          </div>
+      {/* Hero Banner */}
+      <ExploreHero />
+
+      {/* Barra de búsqueda */}
+      <div style={{
+        background: '#fff',
+        borderRadius: 10,
+        border: '1px solid #e2e8f0',
+        padding: '10px 14px',
+        marginBottom: 14,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+      }}>
+        <Search size={16} style={{ color: '#94a3b8', flexShrink: 0 }} />
+        <input
+          type="text"
+          placeholder="Buscar por título, empresa o palabra clave..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            flex: 1,
+            padding: '8px 0',
+            border: 'none',
+            background: 'transparent',
+            fontSize: 13,
+            fontWeight: 400,
+            outline: 'none',
+            color: '#1e293b',
+          }}
+        />
+        {searchTerm && (
           <button
-            onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container-low transition-colors font-bold text-sm"
+            onClick={() => setSearchTerm('')}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#94a3b8',
+              padding: 3,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+            }}
           >
-            <SlidersHorizontal size={18} />
-            Filtros Avanzados
+            <X size={14} />
           </button>
-        </div>
-      </section>
-
-      {/* Projects Bento Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {isLoading && (
-          <div className="col-span-full text-center text-slate-500 py-12 flex flex-col items-center gap-2">
-            <Loader2 className="animate-spin text-primary" size={28} />
-            <span className="font-semibold text-sm">Cargando proyectos disponibles...</span>
-          </div>
         )}
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            padding: '7px 14px',
+            borderRadius: 20,
+            border: `1px solid ${showFilters || selectedArea ? '#1B6FE8' : '#e2e8f0'}`,
+            background: showFilters || selectedArea ? '#eff6ff' : '#fff',
+            cursor: 'pointer',
+            fontSize: 12,
+            fontWeight: 500,
+            color: showFilters || selectedArea ? '#1B6FE8' : '#475569',
+            whiteSpace: 'nowrap',
+            transition: 'all 0.15s',
+          }}
+        >
+          <SlidersHorizontal size={13} />
+          Filtros
+          {selectedArea && (
+            <span style={{
+              background: '#1B6FE8',
+              color: '#fff',
+              borderRadius: '50%',
+              width: 16,
+              height: 16,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 9,
+              fontWeight: 700,
+            }}>
+              1
+            </span>
+          )}
+        </button>
+      </div>
 
-        {isError && (
-          <div className="col-span-full text-center text-red-500 py-12">
-            Error al cargar proyectos. Inténtalo de nuevo más tarde.
-          </div>
-        )}
-
-        {!isLoading && !isError && filteredProyectos.length === 0 && (
-          <div className="col-span-full text-center text-slate-500 py-16 bg-white rounded-3xl border border-dashed border-outline-variant/60">
-            <Search size={48} className="mx-auto mb-4 text-slate-300" />
-            <p className="text-lg font-bold text-slate-800 mb-1">No se encontraron proyectos</p>
-            <p className="text-sm text-slate-400">Intenta con otros términos de búsqueda o filtros.</p>
-          </div>
-        )}
-
-        {!isLoading && !isError && filteredProyectos.map((proyecto, index) => (
+      {/* Panel de filtros */}
+      <AnimatePresence>
+        {showFilters && (
           <motion.div
-            key={proyecto.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            onClick={() => setSelectedProyecto(proyecto)}
-            className="bg-surface-container-lowest rounded-3xl border border-outline-variant/50 p-6 shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-300 group cursor-pointer flex flex-col h-full"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            style={{ overflow: 'hidden', marginBottom: 14 }}
           >
-            <div className="flex justify-between items-start mb-4">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${getAreaStyle(proyecto.areaSistemas)}`}>
-                {getAreaIcon(proyecto.areaSistemas)}
+            <div style={{
+              background: '#fff',
+              borderRadius: 10,
+              border: '1px solid #e2e8f0',
+              padding: 14,
+            }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 10 }}>
+                Filtrar por área
               </div>
-              {yaPostuloMap[proyecto.id] ? (
-                <span className="px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-600 font-bold text-[9px] uppercase tracking-wider border border-emerald-100 flex items-center gap-1">
-                  <CheckCircle size={10} /> Postulado
-                </span>
-              ) : (
-                <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-600 font-bold text-[9px] uppercase tracking-wider border border-blue-100">
-                  Activo
-                </span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {areasFiltro.map((area) => (
+                  <button
+                    key={area.value}
+                    onClick={() => setSelectedArea(area.value)}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 20,
+                      fontSize: 12,
+                      fontWeight: 500,
+                      border: selectedArea === area.value ? '2px solid #1B6FE8' : '1px solid #e2e8f0',
+                      background: selectedArea === area.value ? '#eff6ff' : '#fff',
+                      color: selectedArea === area.value ? '#1B6FE8' : '#475569',
+                      cursor: 'pointer',
+                      transition: 'all 0.12s',
+                    }}
+                  >
+                    {area.label}
+                  </button>
+                ))}
+              </div>
+              {selectedArea && (
+                <button
+                  onClick={() => setSelectedArea('')}
+                  style={{
+                    marginTop: 10,
+                    fontSize: 11,
+                    color: '#dc2626',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                  }}
+                >
+                  Limpiar filtro
+                </button>
               )}
             </div>
-
-            <h3 className="text-lg font-bold text-on-surface group-hover:text-primary transition-colors mb-2 leading-tight">
-              {proyecto.titulo}
-            </h3>
-
-            <p className="text-slate-400 text-xs mb-4 flex items-center gap-1.5 font-semibold">
-              <Building2 size={14} className="text-slate-400" />
-              {proyecto.mypeNombre || 'MYPE'}
-            </p>
-
-            <p className="text-slate-500 text-sm mb-6 line-clamp-3 font-medium">
-              {proyecto.descripcion}
-            </p>
-
-            <div className="mt-auto space-y-4">
-              <div className="flex flex-wrap gap-1.5">
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${getAreaStyle(proyecto.areaSistemas)}`}>
-                  {proyecto.areaSistemas?.replaceAll('_', ' ')} 
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between pt-4 border-t border-outline-variant/20">
-                <div className="flex flex-col">
-                  <span className="text-slate-400 font-bold text-[9px] uppercase">Límite</span>
-                  <span className="text-error text-sm font-bold flex items-center gap-1">
-                    <Calendar size={14} />
-                    {proyecto.fechaLimite}
-                  </span>
-                </div>
-
-                <span className="w-10 h-10 bg-slate-50 text-slate-700 rounded-xl flex items-center justify-center hover:bg-primary hover:text-white transition-all group-hover:translate-x-1">
-                  <ArrowRight size={18} />
-                </span>
-              </div>
-            </div>
           </motion.div>
-        ))}
-      </section>
-
-      {/* Vercel-style Interactive "All-in-One" Slide-over Drawer Panel */}
-      <AnimatePresence>
-        {selectedProyecto && (
-          <div className="fixed inset-0 z-50 flex justify-end overflow-hidden">
-            {/* Backdrop Blur Overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in"
-              onClick={() => setSelectedProyecto(null)}
-            />
-
-            {/* Drawer Panel Container */}
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="relative w-full max-w-xl bg-white shadow-2xl h-full flex flex-col z-10"
-            >
-              {/* Header */}
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between shrink-0">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${getAreaStyle(selectedProyecto.areaSistemas)}`}>
-                  {selectedProyecto.areaSistemas?.replaceAll('_', ' ')}
-                </span>
-                <button
-                  onClick={() => setSelectedProyecto(null)}
-                  className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* Scrollable Body - 100% of the Details integrated */}
-              <div className="p-6 overflow-y-auto grow space-y-6">
-                <div>
-                  <h2 className="text-2xl font-extrabold text-slate-900 leading-tight">{selectedProyecto.titulo}</h2>
-                  <p className="text-sm text-slate-500 mt-2 flex items-center gap-1.5 font-semibold">
-                    <Building2 size={16} />
-                    {selectedProyecto.mypeNombre || 'MYPE'}
-                  </p>
-                </div>
-
-                {/* Unified Horizontal Metadata Bar - Usando flex-wrap para evitar que las fechas traducidas se amontonen */}
-                <div className="flex flex-wrap gap-x-6 gap-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs text-slate-500 font-semibold shrink-0">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase">Ubicación</span>
-                    <span className="text-[#1e3a5f] flex items-center gap-1 text-[11px] whitespace-nowrap">
-                      <MapPin size={12} className="text-slate-400" />
-                      Remoto
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase">Vacantes</span>
-                    <span className="text-[#1e3a5f] flex items-center gap-1 text-[11px] whitespace-nowrap">
-                      <Users size={12} className="text-slate-400" />
-                      {selectedProyecto.cupos} Libres
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase">Inicio</span>
-                    <span className="text-[#1e3a5f] flex items-center gap-1 text-[11px] whitespace-nowrap">
-                      <Calendar size={12} className="text-slate-400" />
-                      {selectedProyecto.fechaInicio || 'Por definir'}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase">Límite</span>
-                    <span className="text-error flex items-center gap-1 text-[11px] whitespace-nowrap">
-                      <Calendar size={12} className="text-error" />
-                      {selectedProyecto.fechaLimite}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Descripción */}
-                <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Descripción del Proyecto</h4>
-                  <p className="text-sm text-slate-600 leading-relaxed font-medium whitespace-pre-line">
-                    {selectedProyecto.descripcion}
-                  </p>
-                </div>
-
-                {/* Objetivo */}
-                {selectedProyecto.objetivo && (
-                  <div className="pt-4 border-t border-slate-100">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
-                      <Target size={14} className="text-blue-600 animate-pulse" />
-                      Objetivo del Proyecto
-                    </h4>
-                    <p className="text-sm text-slate-600 leading-relaxed font-medium whitespace-pre-line">
-                      {selectedProyecto.objetivo}
-                    </p>
-                  </div>
-                )}
-
-                {/* Dynamically checking student's profile compatibility */}
-                <div className="pt-4 border-t border-slate-100 space-y-3">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                    <Sparkles className="text-primary" size={14} />
-                    Compatibilidad con tu Perfil
-                  </h4>
-                  <p className="text-[11px] text-slate-500">
-                    Validando las habilidades del proyecto con tu perfil académico:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProyecto.requisitos ? (
-                      selectedProyecto.requisitos.split(',').map((req, idx) => {
-                        const reqClean = req.trim().toLowerCase();
-                        // Obtener habilidades frescas del perfil y buscar coincidencias inteligentes
-                        const studentSkillsList = userProfile?.skills?.toLowerCase().split(',').map(s => s.trim()).filter(Boolean) || [];
-                        const matches = studentSkillsList.some(uSkill => uSkill.includes(reqClean) || reqClean.includes(uSkill));
-                        return (
-                          <span
-                            key={idx}
-                            className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border transition-all ${matches
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm'
-                              : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/20'
-                              }`}
-                          >
-                            {matches ? <CheckCircle size={12} className="text-emerald-600" /> : <Lightbulb size={12} className="text-slate-400" />}
-                            {req.trim()}
-                          </span>
-                        );
-                      })
-                    ) : (
-                      <span className="text-xs text-slate-400 italic">No se especifican requisitos para este proyecto.</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Checklist of Suggested Deliverables */}
-                {selectedProyecto.entregablesSugeridos && (
-                  <div className="pt-4 border-t border-slate-100">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1">
-                      <Package size={14} className="text-orange-500" />
-                      Entregables Sugeridos
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {/* ✨ SOLUCIÓN: Separamos por salto de línea (\n) y filtramos líneas vacías */}
-                      {selectedProyecto.entregablesSugeridos
-                        .split('\n')
-                        .filter(linea => linea.trim())
-                        .map((entregable, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-100 group cursor-default hover:border-primary/20 transition-all"
-                          >
-                            <div className="w-5 h-5 rounded bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                              <CheckCircle2 size={12} />
-                            </div>
-                            {/* Limpiamos el símbolo '•' para que no se duplique con tu icono */}
-                            <span className="text-xs text-slate-700 font-bold truncate">
-                              {entregable.replace('•', '').trim()}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Drawer Footer Actions - Unified Single prominent PostularButton */}
-              <div className="p-6 border-t border-slate-100 flex flex-col gap-3 bg-slate-50 shrink-0">
-                {haSuperadoLimite && !yaPostuloMap[selectedProyecto.id] && (
-                  <div className="p-3 bg-amber-50 rounded-2xl border border-amber-100 flex items-start gap-2 text-left">
-                    <span className="text-amber-600 mt-0.5 text-xs">⚠️</span>
-                    <div>
-                      <p className="text-xs font-bold text-amber-900 leading-snug">Límite alcanzado ({proyectosActivos.length} de {limiteProyectos})</p>
-                      <p className="text-[10px] text-amber-700 font-semibold leading-relaxed mt-0.5">
-                        No puedes postular a más proyectos. Solicita un incremento al administrador o finaliza tu trabajo actual.
-                      </p>
-                    </div>
-                  </div>
-                )}
-                <div className="w-full flex justify-center">
-                  <PostularButton
-                    proyectoId={selectedProyecto.id}
-                    yaPostulo={yaPostuloMap[selectedProyecto.id]}
-                    disabled={haSuperadoLimite && !yaPostuloMap[selectedProyecto.id]}
-                  />
-                </div>
-                <button
-                  onClick={() => setSelectedProyecto(null)}
-                  className="text-xs text-slate-400 font-bold hover:text-slate-600 hover:underline transition-colors text-center w-full mt-1"
-                >
-                  Seguir explorando otros proyectos
-                </button>
-              </div>
-            </motion.div>
-          </div>
         )}
       </AnimatePresence>
 
-      {/* Bottom banner Contextual Info */}
-      <div className="mt-12">
-        <div className="bg-surface-container-high rounded-3xl p-6 lg:p-8 flex flex-col md:flex-row items-center gap-6 border border-outline-variant/30">
-          <div className="w-16 h-16 shrink-0 bg-primary-container/20 rounded-full flex items-center justify-center">
-            <Lightbulb className="text-primary text-[32px]" size={32} />
+      {/* Layout dos columnas */}
+      <div style={{ display: 'grid', gridTemplateColumns: '490px 1fr', gap: 14, alignItems: 'start' }}>
+        
+        {/* Lista de proyectos */}
+        <div style={{
+          background: '#fff',
+          borderRadius: 10,
+          border: '1px solid #e2e8f0',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            padding: '10px 16px',
+            borderBottom: '1px solid #f1f5f9',
+            fontSize: 12,
+            fontWeight: 600,
+            color: '#475569',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+            <span>
+              {filteredProyectos.length} resultado{filteredProyectos.length !== 1 ? 's' : ''}
+            </span>
+            {totalPages > 1 && (
+              <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 400 }}>
+                Pág. {currentPage}/{totalPages}
+              </span>
+            )}
           </div>
-          <div>
-            <h4 className="text-xl font-bold text-on-surface mb-1">¿No encuentras lo que buscas?</h4>
-            <p className="text-sm text-on-surface-variant font-medium">
-              Puedes configurar alertas personalizadas para que te avisemos cuando se publique un proyecto que coincida con tus habilidades e intereses académicos.
-            </p>
-          </div>
-          <button className="md:ml-auto whitespace-nowrap bg-on-background text-white px-6 h-12 rounded-xl font-bold hover:opacity-90 transition-opacity text-sm">
-            Configurar Alertas
-          </button>
+
+          {isLoading ? (
+            <div style={{ textAlign: 'center', padding: 50 }}>
+              <div style={{ 
+                width: 28, 
+                height: 28, 
+                border: '3px solid #e2e8f0', 
+                borderTopColor: '#1B6FE8', 
+                borderRadius: '50%', 
+                animation: 'spin 0.8s linear infinite',
+                margin: '0 auto 14px',
+              }} />
+              <p style={{ color: '#64748b', fontSize: 13 }}>Cargando proyectos...</p>
+            </div>
+          ) : paginatedProyectos.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 50 }}>
+              <Search size={32} style={{ margin: '0 auto 12px', color: '#cbd5e1' }} />
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: '#475569', marginBottom: 4 }}>
+                Sin resultados
+              </h3>
+              <p style={{ fontSize: 12, color: '#94a3b8' }}>
+                Intenta ajustar los filtros
+              </p>
+            </div>
+          ) : (
+            <div>
+              {paginatedProyectos.map((proyecto) => (
+                <ProjectCardLinkedIn
+                  key={proyecto.id}
+                  proyecto={proyecto}
+                  onClick={() => setSelectedProyecto(proyecto)}
+                  yaPostulo={!!yaPostuloMap[proyecto.id]}
+                  isSelected={selectedProyecto?.id === proyecto.id}
+                />
+              ))}
+            </div>
+          )}
+
+          <Pagination 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+
+        {/* Panel de detalle */}
+        <div>
+          <ProjectDetailPanel 
+            proyecto={selectedProyecto}
+            yaPostulo={selectedProyecto ? !!yaPostuloMap[selectedProyecto.id] : false}
+            haSuperadoLimite={haSuperadoLimite}
+            onClose={() => setSelectedProyecto(null)}
+          />
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };

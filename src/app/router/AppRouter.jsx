@@ -8,6 +8,9 @@ import {
 import { LandingPage } from "@pages/auth/LandingPage";
 import { LoginPage } from "@pages/auth/LoginPage";
 import { RegisterPage } from "@pages/auth/RegisterPage";
+import { ForgotPasswordPage } from "@pages/auth/ForgotPasswordPage"; // ✨ NUEVA
+import { VerifyOtpPage } from "@pages/auth/VerifyOtpPage"; // ✨ NUEVA
+import { ResetPasswordPage } from "@pages/auth/ResetPasswordPage"; // ✨ NUEVA
 
 // MYPE pages
 import { MypeDashboardPage } from "@pages/mype/MypeDashboardPage";
@@ -48,6 +51,9 @@ const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
   { path: "/login", element: <LoginPage /> },
   { path: "/register/:tipo", element: <RegisterPage /> },
+  { path: "/forgot-password", element: <ForgotPasswordPage /> },
+  { path: "/verify-otp", element: <VerifyOtpPage /> },
+  { path: "/reset-password", element: <ResetPasswordPage /> },
 
   /* ===========================================================================================
                                         RUTAS MYPEs
