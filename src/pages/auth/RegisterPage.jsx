@@ -5,6 +5,7 @@ import { RegisterForm } from "@features/auth-register/RegisterForm";
 import { Logo } from "@shared/ui/Logo";
 import { GraduationCap, Building2, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { TerminosCondicionesModal } from "./TerminosCondicionesModal";
 
 const ease = [0.22, 1, 0.36, 1];
 
@@ -106,7 +107,10 @@ export function RegisterPage() {
 
   // Estados para controlar los cambios y el Modal
   const [isFormDirty, setIsFormDirty] = useState(false);
-  const [targetTipo, setTargetTipo] = useState(null); // Guarda el tipo al que quiere cambiar
+  const [targetTipo, setTargetTipo] = useState(null);
+
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
 
   const handleToggle = (nuevoTipo) => {
     if (nuevoTipo === currentTipo) return;
@@ -306,9 +310,13 @@ export function RegisterPage() {
                 exit={{ opacity: 0, x: esEstudiante ? 10 : -10 }}
                 transition={{ duration: 0.3, ease }}
               >
-                {/* ¡Aquí le pasamos el prop onDirtyChange al formulario! 
-                */}
-                <RegisterForm tipo={currentTipo} onDirtyChange={setIsFormDirty} />
+                <RegisterForm 
+                  tipo={currentTipo} 
+                  onDirtyChange={setIsFormDirty}
+                  // ✨ NUEVAS PROPS:
+                  hasAcceptedTerms={hasAcceptedTerms}
+                  onOpenTerms={() => setIsTermsModalOpen(true)}
+                />
               </motion.div>
             </AnimatePresence>
 
@@ -323,6 +331,11 @@ export function RegisterPage() {
           </motion.div>
         </div>
       </div>
+      <TerminosCondicionesModal 
+        isOpen={isTermsModalOpen}
+        onClose={() => setIsTermsModalOpen(false)}
+        onAccept={() => setHasAcceptedTerms(true)}
+      />
     </>
   );
 }

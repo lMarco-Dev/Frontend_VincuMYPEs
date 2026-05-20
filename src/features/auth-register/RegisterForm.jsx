@@ -177,7 +177,7 @@ const inputStyle = (hasErr, hasRight = false) => ({
 });
 
 // ── Main form ─────────────────────────────────────────────────────────────────
-export function RegisterForm({ tipo, onDirtyChange }) {
+export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerms }) {
   const esEstudiante = tipo === "estudiante";
   const colorTema = esEstudiante ? "#1B6FE8" : "#F97316";
 
@@ -227,7 +227,12 @@ export function RegisterForm({ tipo, onDirtyChange }) {
   const rucValue = watch("ruc", "");
   const formValues = watch();
 
-  // ── AVISAR A LA PÁGINA SI HAY CAMBIOS ──
+  const isStep3Valid = esEstudiante
+    ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
+    : (formValues.rubro && formValues.telefono?.length === 9);
+
+  const canSubmit = hasAcceptedTerms && isStep3Valid;
+    // ── AVISAR A LA PÁGINA SI HAY CAMBIOS ──
   useEffect(() => {
     const hasData = Object.values(formValues).some(v => typeof v === 'string' && v.trim().length > 0);
     if (onDirtyChange) onDirtyChange(hasData);
@@ -852,7 +857,7 @@ export function RegisterForm({ tipo, onDirtyChange }) {
 
               {/* TELÉFONO Y CÓDIGO DE ESTUDIANTE EN LA MISMA LÍNEA */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Field label="Teléfono Celular" icon={Phone} error={errors.telefono} hint="9 dígitos — Empieza con 9">
+                <Field label="Teléfono Celular" icon={Phone} error={errors.telefono}>
                   <input
                     type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
                     {...register("telefono", {
@@ -863,7 +868,7 @@ export function RegisterForm({ tipo, onDirtyChange }) {
                   />
                 </Field>
 
-                <Field label="Código de estudiante" icon={BadgeInfo} error={errors.codigoEstudiante} hint="Ej: N00123456">
+                <Field label="Código de estudiante" icon={BadgeInfo} error={errors.codigoEstudiante}>
                   <input
                     type="text" 
                     maxLength={9} 
@@ -902,7 +907,7 @@ export function RegisterForm({ tipo, onDirtyChange }) {
       </div>
     </Field>
 
-    <Field label="Teléfono Celular" icon={Phone} error={errors.telefono} hint="9 dígitos — Empezando con 9">
+    <Field label="Teléfono Celular" icon={Phone} error={errors.telefono}>
       <input
         type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
         {...register("telefono", {
@@ -928,6 +933,36 @@ export function RegisterForm({ tipo, onDirtyChange }) {
           )}
         </AnimatePresence>
 
+        {/* ── SECCIÓN TÉRMINOS Y CONDICIONES (Solo Paso Final) ── */}
+        {step === 2 && (
+          <div style={{ marginTop: 24, marginBottom: 12, display: "flex", alignItems: "center", gap: 8, padding: "0 4px" }}>
+            <input 
+              type="checkbox" 
+              checked={hasAcceptedTerms}
+              readOnly
+              onClick={() => {
+                if (!hasAcceptedTerms) onOpenTerms();
+              }}
+              style={{ width: 16, height: 16, cursor: "pointer", accentColor: "#1B6FE8", margin: 0 }} 
+            />
+            <p style={{ margin: 0, fontSize: 14, color: "#4B5563" }}>
+              He leído y acepto los {" "}
+              <button 
+                type="button"
+                onClick={onOpenTerms}
+                style={{ 
+                  background: "none", border: "none", padding: 0, 
+                  color: "#1B6FE8", textDecoration: "underline", 
+                  fontWeight: 600, cursor: "pointer", fontSize: 14, 
+                  fontFamily: "inherit" 
+                }}
+              >
+                Términos y Condiciones
+              </button>
+            </p>
+          </div>
+        )}
+
         {/* ── BOTONES DE NAVEGACIÓN ── */}
         <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
           {step > 0 && (
@@ -946,19 +981,23 @@ export function RegisterForm({ tipo, onDirtyChange }) {
               Continuar <ArrowRight size={18} />
             </button>
           ) : (
-            <button type="submit" disabled={isLoading} style={{ flex: 1, height: 50, borderRadius: 10, border: "none", color: "white", background: esEstudiante ? "linear-gradient(135deg,#1B6FE8,#0E54C4)" : "linear-gradient(135deg,#F97316,#DC4A00)", cursor: "pointer", fontFamily: "inherit", fontWeight: 600, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "transform 0.2s", opacity: isLoading ? 0.7 : 1 }}
-              onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"}
+            <button 
+              type="submit" 
+              disabled={isLoading || !canSubmit} 
+              style={{ 
+                flex: 1, height: 50, borderRadius: 10, border: "none", color: "white", 
+                background: esEstudiante ? "linear-gradient(135deg,#1B6FE8,#0E54C4)" : "linear-gradient(135deg,#F97316,#DC4A00)", 
+                cursor: (isLoading || !canSubmit) ? "not-allowed" : "pointer", 
+                fontFamily: "inherit", fontWeight: 600, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, 
+                transition: "all 0.2s", 
+                opacity: (isLoading || !canSubmit) ? 0.5 : 1 
+              }}
+              onMouseEnter={e => { if(!isLoading && canSubmit) e.currentTarget.style.transform = "translateY(-2px)" }}
               onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
               {isLoading ? <><Loader2 size={18} className="animate-spin" /> Registrando...</> : <>Crear cuenta</>}
             </button>
           )}
         </div>
-
-        {step === 2 && (
-          <p style={{ fontSize: 11, color: "#9CA3AF", textAlign: "center", fontWeight: 300, fontFamily: "inherit", lineHeight: 1.6, margin: "8px 0 0" }}>
-            Al registrarte aceptas los términos de uso de MYPElink. Solo usamos tus datos para conectarte con {esEstudiante ? "empresas" : "estudiantes"} de Cajamarca.
-          </p>
-        )}
       </form>
     </>
   );
