@@ -8,6 +8,9 @@ import {
 import { LandingPage } from "@pages/auth/LandingPage";
 import { LoginPage } from "@pages/auth/LoginPage";
 import { RegisterPage } from "@pages/auth/RegisterPage";
+import { ForgotPasswordPage } from "@pages/auth/ForgotPasswordPage";   // ✨ NUEVA
+import { VerifyOtpPage } from "@pages/auth/VerifyOtpPage";             // ✨ NUEVA
+import { ResetPasswordPage } from "@pages/auth/ResetPasswordPage";     // ✨ NUEVA
 
 // MYPE pages
 import { MypeDashboardPage } from "@pages/mype/MypeDashboardPage";
@@ -23,10 +26,10 @@ import DetalleProyectoPage from "@pages/estudiante/DetalleProyectoPage";
 import MisPostulacionesPage from "@pages/estudiante/MisPostulacionesPage";
 import CertificadosPage from "@pages/estudiante/CertificadosPage";
 import PerfilPage from "@pages/estudiante/PerfilPage";
-import ProyectoWorkspacePage from "@pages/estudiante/ProyectoWorkspacePage"; // ✨ NUEVA: Workspace del proyecto activo
-import WorkspaceSelectorPage from "@pages/estudiante/WorkspaceSelectorPage"; // ✨ Selector de workspaces activos
+import ProyectoWorkspacePage from "@pages/estudiante/ProyectoWorkspacePage";
+import WorkspaceSelectorPage from "@pages/estudiante/WorkspaceSelectorPage";
 
-// Admin pages (✨ NUEVAS IMPORTACIONES)
+// Admin pages
 import AdminDashboardPage from "@pages/admin/AdminDashboardPage";
 import AdminProyectosPage from "@pages/admin/AdminProyectosPage";
 import AdminUsuariosPage from "@pages/admin/AdminUsuariosPage";
@@ -37,7 +40,7 @@ import AdminConfiguracionPage from "@pages/admin/AdminConfiguracionPage";
 // Layouts
 import StudentLayout from "@shared/layouts/StudentLayout";
 import { MypeLayout } from "@shared/layouts/MypeLayout";
-import AdminLayout from "@shared/layouts/AdminLayout"; // ✨ NUEVO LAYOUT
+import AdminLayout from "@shared/layouts/AdminLayout";
 
 // Guard
 import { ProtectedRoute } from "./ProtectedRoute";
@@ -47,6 +50,9 @@ const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
   { path: "/login", element: <LoginPage /> },
   { path: "/register/:tipo", element: <RegisterPage /> },
+  { path: "/forgot-password", element: <ForgotPasswordPage /> },
+{ path: "/verify-otp", element: <VerifyOtpPage /> },
+{ path: "/reset-password", element: <ResetPasswordPage /> },
 
   /* ===========================================================================================
                                           RUTAS MYPEs
@@ -154,7 +160,7 @@ const router = createBrowserRouter([
   },
 
   /* ===========================================================================================
-                                          RUTAS ADMINISTRADOR (NUEVO)
+                                          RUTAS ADMINISTRADOR
      =========================================================================================== */
   {
     element: (
@@ -174,7 +180,7 @@ const router = createBrowserRouter([
 
   // ── Fallbacks ───────────────────────────────────────────────
   { path: "/dashboard", element: <Navigate to="/login" replace /> },
-  { path: "/admin", element: <Navigate to="/admin/dashboard" replace /> }, // ✨ Redirección de ayuda
+  { path: "/admin", element: <Navigate to="/admin/dashboard" replace /> },
   { path: "*", element: <Navigate to="/" replace /> },
 ]);
 

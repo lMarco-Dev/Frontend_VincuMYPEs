@@ -15,109 +15,429 @@ const MAX = 40;
 const ease = [0.22, 1, 0.36, 1];
 
 // ── Connection Diagram ────────────────────────────────────────────────────────
+// ── Connection Diagram ────────────────────────────────────────────────────────
+// ── Connection Diagram ────────────────────────────────────────────────────────
 function ConnectionDiagram() {
+  // Posiciones de los nodos
+  const MYPE = { cx: 80, cy: 130, r: 42 };
+  const LINKUY = { cx: 200, cy: 300, r: 48 };
+  const ESTUDIANTE = { cx: 320, cy: 130, r: 42 };
+
   return (
-    <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ 
+      position: "relative", 
+      flex: 1, 
+      display: "flex", 
+      flexDirection: "column", 
+      alignItems: "center", 
+      justifyContent: "center",
+      padding: "40px 20px"
+    }}>
       <svg
-        viewBox="0 0 360 420"
+        viewBox="0 0 400 500"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        style={{ width: "100%", maxWidth: 320, overflow: "visible" }}
+        style={{ 
+          width: "100%", 
+          maxWidth: 400, 
+          overflow: "visible" 
+        }}
         aria-hidden="true"
       >
         <defs>
-          <linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%">
+          {/* Gradientes */}
+          <linearGradient id="gradMype" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#1B6FE8" />
             <stop offset="100%" stopColor="#06B6D4" />
           </linearGradient>
-          <radialGradient id="rg1" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#1B6FE8" stopOpacity="0.28" />
+          <linearGradient id="gradEst" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#06B6D4" />
+            <stop offset="100%" stopColor="#1B6FE8" />
+          </linearGradient>
+          <linearGradient id="gradLinkuy" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#F59E0B" />
+            <stop offset="100%" stopColor="#D4580A" />
+          </linearGradient>
+          
+          {/* Halos radiales */}
+          <radialGradient id="haloMype" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#1B6FE8" stopOpacity="0.3" />
             <stop offset="100%" stopColor="#0F2A4A" stopOpacity="0" />
           </radialGradient>
-          <radialGradient id="rg2" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.22" />
+          <radialGradient id="haloEst" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.3" />
             <stop offset="100%" stopColor="#0F2A4A" stopOpacity="0" />
           </radialGradient>
-          <path id="mainPath" d="M 100 120 C 100 220 260 200 260 300" />
+          <radialGradient id="haloLinkuy" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#0F2A4A" stopOpacity="0" />
+          </radialGradient>
+          
+          {/* Filtros */}
+          <filter id="glowBlue">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="glowOrange">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
 
-        {/* ── Main connection lines ── */}
+        {/* ── Líneas de conexión fijas ── */}
+        {/* MYPE → LINKUY */}
         <motion.path
-          d="M 100 120 C 100 220 260 200 260 300"
-          stroke="url(#lg1)" strokeWidth="1.5" strokeDasharray="7 5"
-          strokeLinecap="round" fill="none"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 0.65 }}
-          transition={{ duration: 2, delay: 0.3, ease: "easeInOut" }}
-        />
-        <motion.path
-          d="M 100 120 C 180 120 180 300 260 300"
-          stroke="rgba(6,182,212,0.2)" strokeWidth="1" strokeDasharray="4 8"
+          d={`M ${MYPE.cx + 30} ${MYPE.cy + 20} C ${MYPE.cx + 50} ${MYPE.cy + 80}, ${LINKUY.cx - 40} ${LINKUY.cy - 60}, ${LINKUY.cx} ${LINKUY.cy - LINKUY.r}`}
+          stroke="url(#gradLinkuy)" 
+          strokeWidth="2" 
+          strokeDasharray="8 6"
+          strokeLinecap="round" 
           fill="none"
           initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{ duration: 2.5, delay: 0.6, ease: "easeInOut" }}
+          animate={{ pathLength: 1, opacity: 0.5 }}
+          transition={{ duration: 2, delay: 0.5, ease: "easeInOut" }}
+        />
+        
+        {/* LINKUY → ESTUDIANTE */}
+        <motion.path
+          d={`M ${LINKUY.cx + LINKUY.r} ${LINKUY.cy} C ${LINKUY.cx + 40} ${LINKUY.cy - 60}, ${ESTUDIANTE.cx - 50} ${ESTUDIANTE.cy + 80}, ${ESTUDIANTE.cx - 30} ${ESTUDIANTE.cy + 20}`}
+          stroke="url(#gradLinkuy)" 
+          strokeWidth="2" 
+          strokeDasharray="8 6"
+          strokeLinecap="round" 
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 0.5 }}
+          transition={{ duration: 2, delay: 0.5, ease: "easeInOut" }}
+        />
+        
+        {/* ESTUDIANTE → LINKUY (azul) */}
+        <motion.path
+          d={`M ${ESTUDIANTE.cx - 30} ${ESTUDIANTE.cy - 20} C ${ESTUDIANTE.cx - 50} ${ESTUDIANTE.cy - 80}, ${LINKUY.cx + 40} ${LINKUY.cy + 60}, ${LINKUY.cx} ${LINKUY.cy + LINKUY.r}`}
+          stroke="url(#gradEst)" 
+          strokeWidth="2" 
+          strokeDasharray="8 6"
+          strokeLinecap="round" 
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 0.5 }}
+          transition={{ duration: 2, delay: 0.5, ease: "easeInOut" }}
+        />
+        
+        {/* LINKUY → MYPE (azul) */}
+        <motion.path
+          d={`M ${LINKUY.cx - LINKUY.r} ${LINKUY.cy} C ${LINKUY.cx - 40} ${LINKUY.cy + 60}, ${MYPE.cx + 50} ${MYPE.cy - 80}, ${MYPE.cx + 30} ${MYPE.cy - 20}`}
+          stroke="url(#gradMype)" 
+          strokeWidth="2" 
+          strokeDasharray="8 6"
+          strokeLinecap="round" 
+          fill="none"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 0.5 }}
+          transition={{ duration: 2, delay: 0.5, ease: "easeInOut" }}
         />
 
-        {/* ── MYPE node — (100, 120) ── */}
+        {/* ═══════════════════════════════════════
+            NODO MYPE
+            ═══════════════════════════════════════ */}
         <motion.g
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.55, delay: 0.1, ease }}
-          style={{ transformOrigin: "100px 120px" }}
+          transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          style={{ transformOrigin: `${MYPE.cx}px ${MYPE.cy}px` }}
         >
-          <circle cx="100" cy="120" r="52" fill="url(#rg1)" />
-          <motion.circle cx="100" cy="120" r="40"
-            stroke="#1B6FE8" strokeWidth="1" fill="none" opacity="0.3"
-            animate={{ r: [40, 48, 40] }}
-            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+          {/* Halo pulsante */}
+          <motion.circle 
+            cx={MYPE.cx} cy={MYPE.cy} r={75} 
+            fill="url(#haloMype)"
+            animate={{ scale: [1, 1.1, 1], opacity: [0.6, 0.4, 0.6] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           />
-          <circle cx="100" cy="120" r="32" fill="#0F2A4A" stroke="#1B6FE8" strokeWidth="1.5" />
-          <rect x="88" y="109" width="24" height="20" rx="1" fill="none" stroke="#1B6FE8" strokeWidth="1.5" />
-          <rect x="93" y="114" width="5" height="5" rx="0.5" fill="#1B6FE8" opacity="0.7" />
-          <rect x="102" y="114" width="5" height="5" rx="0.5" fill="#1B6FE8" opacity="0.7" />
-          <rect x="97" y="119" width="6" height="10" rx="0.5" fill="#1B6FE8" opacity="0.9" />
-          <text x="100" y="162" textAnchor="middle" fontSize="11" fontWeight="600"
-            fill="rgba(255,255,255,0.55)" fontFamily="'Angro Std', 'Outfit', sans-serif" letterSpacing="0.5">
+          
+          {/* Pulso de recepción (cuando recibe de LINKUY) */}
+          <motion.circle 
+            cx={MYPE.cx} cy={MYPE.cy} r={MYPE.r}
+            stroke="#1B6FE8" strokeWidth="2" fill="none" opacity="0"
+            animate={{ 
+              r: [MYPE.r, MYPE.r + 20, MYPE.r + 40],
+              opacity: [0, 0.6, 0],
+              strokeWidth: [2, 1.5, 1]
+            }}
+            transition={{ 
+              duration: 3.2, 
+              repeat: Infinity, 
+              delay: 5.6,
+              ease: "easeOut"
+            }}
+          />
+          
+          {/* Anillos */}
+          <motion.circle cx={MYPE.cx} cy={MYPE.cy} r={55} stroke="#1B6FE8" strokeWidth="1.5" fill="none" opacity="0.3"
+            animate={{ r: [55, 62, 55], opacity: [0.3, 0.2, 0.3] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.circle cx={MYPE.cx} cy={MYPE.cy} r={48} stroke="#1B6FE8" strokeWidth="1" fill="none" opacity="0.35"
+            animate={{ r: [48, 53, 48], opacity: [0.35, 0.25, 0.35] }}
+            transition={{ duration: 3.5, delay: 0.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          {/* Círculo principal */}
+          <circle cx={MYPE.cx} cy={MYPE.cy} r={MYPE.r} fill="#0F2A4A" stroke="#1B6FE8" strokeWidth="2.5" />
+          
+          {/* Icono edificio */}
+          <rect x={MYPE.cx-14} y={MYPE.cy-12} width="10" height="18" rx="1.5" fill="none" stroke="#1B6FE8" strokeWidth="2" />
+          <rect x={MYPE.cx} y={MYPE.cy-18} width="14" height="24" rx="1.5" fill="none" stroke="#1B6FE8" strokeWidth="2" />
+          <line x1={MYPE.cx-18} y1={MYPE.cy+8} x2={MYPE.cx+18} y2={MYPE.cy+8} stroke="#1B6FE8" strokeWidth="2" strokeLinecap="round" />
+          
+          <text x={MYPE.cx} y={MYPE.cy+MYPE.r+22} textAnchor="middle" fontSize="14" fontWeight="700"
+            fill="rgba(255,255,255,0.7)" fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif" letterSpacing="1.5">
             MYPE
           </text>
         </motion.g>
 
-        {/* ── ESTUDIANTE node — (260, 300) ── */}
+        {/* ═══════════════════════════════════════
+            NODO ESTUDIANTE
+            ═══════════════════════════════════════ */}
         <motion.g
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.55, delay: 0.3, ease }}
-          style={{ transformOrigin: "260px 300px" }}
+          transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          style={{ transformOrigin: `${ESTUDIANTE.cx}px ${ESTUDIANTE.cy}px` }}
         >
-          <circle cx="260" cy="300" r="52" fill="url(#rg2)" />
-          <motion.circle cx="260" cy="300" r="40"
-            stroke="#06B6D4" strokeWidth="1" fill="none" opacity="0.3"
-            animate={{ r: [40, 48, 40] }}
-            transition={{ duration: 3.2, delay: 1.6, repeat: Infinity, ease: "easeInOut" }}
+          {/* Halo pulsante */}
+          <motion.circle 
+            cx={ESTUDIANTE.cx} cy={ESTUDIANTE.cy} r={75} 
+            fill="url(#haloEst)"
+            animate={{ scale: [1, 1.1, 1], opacity: [0.6, 0.4, 0.6] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           />
-          <circle cx="260" cy="300" r="32" fill="#0F2A4A" stroke="#06B6D4" strokeWidth="1.5" />
-          <ellipse cx="260" cy="292" rx="11" ry="3.5" fill="none" stroke="#06B6D4" strokeWidth="1.5" />
-          <path d="M249 292 L249 304 C249 308.5 254 312 260 312 C266 312 271 308.5 271 304 L271 292"
-            fill="none" stroke="#06B6D4" strokeWidth="1.5" strokeLinejoin="round" />
-          <line x1="271" y1="292" x2="275" y2="301" stroke="#06B6D4" strokeWidth="1.5" strokeLinecap="round" />
-          <text x="260" y="342" textAnchor="middle" fontSize="11" fontWeight="600"
-            fill="rgba(255,255,255,0.55)" fontFamily="'Angro Std', 'Outfit', sans-serif" letterSpacing="0.5">
+          
+          {/* Pulso de recepción (cuando recibe de LINKUY) */}
+          <motion.circle 
+            cx={ESTUDIANTE.cx} cy={ESTUDIANTE.cy} r={ESTUDIANTE.r}
+            stroke="#06B6D4" strokeWidth="2" fill="none" opacity="0"
+            animate={{ 
+              r: [ESTUDIANTE.r, ESTUDIANTE.r + 20, ESTUDIANTE.r + 40],
+              opacity: [0, 0.6, 0],
+              strokeWidth: [2, 1.5, 1]
+            }}
+            transition={{ 
+              duration: 3.2, 
+              repeat: Infinity, 
+              delay: 3.4,
+              ease: "easeOut"
+            }}
+          />
+          
+          {/* Anillos */}
+          <motion.circle cx={ESTUDIANTE.cx} cy={ESTUDIANTE.cy} r={55} stroke="#06B6D4" strokeWidth="1.5" fill="none" opacity="0.3"
+            animate={{ r: [55, 62, 55], opacity: [0.3, 0.2, 0.3] }}
+            transition={{ duration: 3.5, delay: 0.8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.circle cx={ESTUDIANTE.cx} cy={ESTUDIANTE.cy} r={48} stroke="#06B6D4" strokeWidth="1" fill="none" opacity="0.35"
+            animate={{ r: [48, 53, 48], opacity: [0.35, 0.25, 0.35] }}
+            transition={{ duration: 3.5, delay: 1.3, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          {/* Círculo principal */}
+          <circle cx={ESTUDIANTE.cx} cy={ESTUDIANTE.cy} r={ESTUDIANTE.r} fill="#0F2A4A" stroke="#06B6D4" strokeWidth="2.5" />
+          
+          {/* Icono persona */}
+          <circle cx={ESTUDIANTE.cx} cy={ESTUDIANTE.cy-10} r="12" fill="none" stroke="#06B6D4" strokeWidth="2" />
+          <path d={`M ${ESTUDIANTE.cx-18} ${ESTUDIANTE.cy+16} C ${ESTUDIANTE.cx-18} ${ESTUDIANTE.cy+4} ${ESTUDIANTE.cx+18} ${ESTUDIANTE.cy+4} ${ESTUDIANTE.cx+18} ${ESTUDIANTE.cy+16}`}
+            fill="none" stroke="#06B6D4" strokeWidth="2" strokeLinecap="round" />
+          
+          <text x={ESTUDIANTE.cx} y={ESTUDIANTE.cy+ESTUDIANTE.r+22} textAnchor="middle" fontSize="14" fontWeight="700"
+            fill="rgba(255,255,255,0.7)" fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif" letterSpacing="1.5">
             ESTUDIANTE
           </text>
         </motion.g>
 
-        {/* ── Traveling dot ── */}
-        <motion.circle r="4.5" fill="#06B6D4" opacity="0.95"
-          filter="drop-shadow(0 0 5px rgba(6,182,212,0.9))"
-          animate={{ offsetDistance: ["0%", "100%"], opacity: [0, 1, 1, 0] }}
-          style={{ offsetPath: "path('M 100 120 C 100 220 260 200 260 300')" }}
-          transition={{ duration: 2.8, repeat: Infinity, repeatDelay: 1.2, ease: "easeInOut" }}
-        />     
-      </svg>
+        {/* ═══════════════════════════════════════
+            NODO LINKUY (PLATAFORMA)
+            ═══════════════════════════════════════ */}
+        <motion.g
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          style={{ transformOrigin: `${LINKUY.cx}px ${LINKUY.cy}px` }}
+        >
+          {/* Halo pulsante */}
+          <motion.circle 
+            cx={LINKUY.cx} cy={LINKUY.cy} r={90} 
+            fill="url(#haloLinkuy)"
+            animate={{ scale: [1, 1.12, 1], opacity: [0.6, 0.4, 0.6] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          {/* Pulso de procesamiento (se activa al recibir) */}
+          <motion.circle 
+            cx={LINKUY.cx} cy={LINKUY.cy} r={LINKUY.r}
+            stroke="#F59E0B" strokeWidth="2.5" fill="none" opacity="0"
+            animate={{ 
+              r: [LINKUY.r, LINKUY.r + 25, LINKUY.r + 45],
+              opacity: [0, 0.8, 0],
+              strokeWidth: [2.5, 2, 1]
+            }}
+            transition={{ 
+              duration: 3, 
+              repeat: Infinity, 
+              delay: 0.8,
+              ease: "easeOut"
+            }}
+          />
+          
+          {/* Segundo pulso (para cuando recibe de estudiante) */}
+          <motion.circle 
+            cx={LINKUY.cx} cy={LINKUY.cy} r={LINKUY.r}
+            stroke="#F59E0B" strokeWidth="2.5" fill="none" opacity="0"
+            animate={{ 
+              r: [LINKUY.r, LINKUY.r + 25, LINKUY.r + 45],
+              opacity: [0, 0.8, 0],
+              strokeWidth: [2.5, 2, 1]
+            }}
+            transition={{ 
+              duration: 3, 
+              repeat: Infinity, 
+              delay: 4,
+              ease: "easeOut"
+            }}
+          />
+          
+          {/* Anillos */}
+          <motion.circle cx={LINKUY.cx} cy={LINKUY.cy} r={62} stroke="#F59E0B" strokeWidth="1.5" fill="none" opacity="0.3"
+            animate={{ r: [62, 70, 62], opacity: [0.3, 0.2, 0.3] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.circle cx={LINKUY.cx} cy={LINKUY.cy} r={54} stroke="#F59E0B" strokeWidth="1" fill="none" opacity="0.35"
+            animate={{ r: [54, 60, 54], opacity: [0.35, 0.25, 0.35] }}
+            transition={{ duration: 3, delay: 0.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          {/* Círculo principal */}
+          <circle cx={LINKUY.cx} cy={LINKUY.cy} r={LINKUY.r} fill="#0F2A4A" stroke="#F59E0B" strokeWidth="2.5" />
+          
+          {/* Letra M estilizada */}
+          <text x={LINKUY.cx} y={LINKUY.cy+8} textAnchor="middle" fontSize="28" fontWeight="900"
+            fill="url(#gradLinkuy)" fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif">
+            M
+          </text>
+          
+          <text x={LINKUY.cx} y={LINKUY.cy+LINKUY.r+24} textAnchor="middle" fontSize="14" fontWeight="700"
+            fill="rgba(255,255,255,0.8)" fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif" letterSpacing="2">
+            LINKUY
+          </text>
+        </motion.g>
 
-      {/* ── Bottom stat strip ── */}
-      
+        {/* ═══════════════════════════════════════
+            PARTÍCULAS VIAJERAS
+            ═══════════════════════════════════════ */}
+        
+        {/* Partícula naranja: MYPE → LINKUY */}
+        <motion.circle 
+          r="5.5" 
+          fill="#F59E0B" 
+          filter="url(#glowOrange)"
+          animate={{ 
+            offsetDistance: ["0%", "100%"], 
+            opacity: [0, 1, 1, 0],
+            scale: [0.8, 1.3, 0.8]
+          }}
+          style={{ 
+            offsetPath: `path('M ${MYPE.cx + 30} ${MYPE.cy + 20} C ${MYPE.cx + 50} ${MYPE.cy + 80}, ${LINKUY.cx - 40} ${LINKUY.cy - 60}, ${LINKUY.cx} ${LINKUY.cy - LINKUY.r}')` 
+          }}
+          transition={{ 
+            duration: 2.5, 
+            repeat: Infinity, 
+            repeatDelay: 6.5,
+            delay: 0.3,
+            ease: "easeInOut" 
+          }}
+        />
+
+        {/* Partícula azul: LINKUY → ESTUDIANTE (después del pulso) */}
+        <motion.circle 
+          r="5.5" 
+          fill="#06B6D4" 
+          filter="url(#glowBlue)"
+          animate={{ 
+            offsetDistance: ["0%", "100%"], 
+            opacity: [0, 1, 1, 0],
+            scale: [0.8, 1.3, 0.8]
+          }}
+          style={{ 
+            offsetPath: `path('M ${LINKUY.cx + LINKUY.r} ${LINKUY.cy} C ${LINKUY.cx + 40} ${LINKUY.cy - 60}, ${ESTUDIANTE.cx - 50} ${ESTUDIANTE.cy + 80}, ${ESTUDIANTE.cx - 30} ${ESTUDIANTE.cy + 20}')` 
+          }}
+          transition={{ 
+            duration: 2.5, 
+            repeat: Infinity, 
+            repeatDelay: 6.5,
+            delay: 3.2,
+            ease: "easeInOut" 
+          }}
+        />
+
+        {/* Partícula azul: ESTUDIANTE → LINKUY */}
+        <motion.circle 
+          r="5.5" 
+          fill="#1B6FE8" 
+          filter="url(#glowBlue)"
+          animate={{ 
+            offsetDistance: ["0%", "100%"], 
+            opacity: [0, 1, 1, 0],
+            scale: [0.8, 1.3, 0.8]
+          }}
+          style={{ 
+            offsetPath: `path('M ${ESTUDIANTE.cx - 30} ${ESTUDIANTE.cy - 20} C ${ESTUDIANTE.cx - 50} ${ESTUDIANTE.cy - 80}, ${LINKUY.cx + 40} ${LINKUY.cy + 60}, ${LINKUY.cx} ${LINKUY.cy + LINKUY.r}')` 
+          }}
+          transition={{ 
+            duration: 2.5, 
+            repeat: Infinity, 
+            repeatDelay: 6.5,
+            delay: 5.8,
+            ease: "easeInOut" 
+          }}
+        />
+
+        {/* Partícula naranja: LINKUY → MYPE */}
+        <motion.circle 
+          r="5.5" 
+          fill="#F59E0B" 
+          filter="url(#glowOrange)"
+          animate={{ 
+            offsetDistance: ["0%", "100%"], 
+            opacity: [0, 1, 1, 0],
+            scale: [0.8, 1.3, 0.8]
+          }}
+          style={{ 
+            offsetPath: `path('M ${LINKUY.cx - LINKUY.r} ${LINKUY.cy} C ${LINKUY.cx - 40} ${LINKUY.cy + 60}, ${MYPE.cx + 50} ${MYPE.cy - 80}, ${MYPE.cx + 30} ${MYPE.cy - 20}')` 
+          }}
+          transition={{ 
+            duration: 2.5, 
+            repeat: Infinity, 
+            repeatDelay: 6.5,
+            delay: 8.5,
+            ease: "easeInOut" 
+          }}
+        />
+
+        {/* ── Puntos ambientales ── */}
+        {[[30,50], [370,60], [40,450], [360,440], [200,80], [200,440]].map(([x,y], i) => (
+          <motion.circle
+            key={i}
+            cx={x} cy={y} r="2"
+            fill="rgba(255,255,255,0.12)"
+            animate={{ opacity: [0.15, 0.35, 0.15] }}
+            transition={{ duration: 2.5 + i * 0.2, repeat: Infinity, delay: i * 0.3, ease: "easeInOut" }}
+          />
+        ))}
+      </svg>
     </div>
   );
 }
@@ -127,27 +447,43 @@ function Field({ label, icon: Icon, error, rightEl, children }) {
   return (
     <div>
       <label style={{
-        display: "block", fontSize: 11, fontWeight: 700,
-        color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.07em",
-        marginBottom: 8, fontFamily: "'Angro Std', 'Outfit', sans-serif",
+        display: "block", 
+        fontSize: 12, 
+        fontWeight: 500,
+        color: "#4a4a5a", 
+        textTransform: "none", 
+        letterSpacing: "-0.01em",
+        marginBottom: 8, 
+        fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
       }}>
         {label}
       </label>
       <div style={{ position: "relative", width: "100%" }}>
         <div style={{
-          position: "absolute", left: 0, top: 0, bottom: 0,
-          width: 52, display: "flex", alignItems: "center", justifyContent: "center",
-          pointerEvents: "none", zIndex: 2
+          position: "absolute", 
+          left: 16, 
+          top: 0, 
+          bottom: 0,
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center",
+          pointerEvents: "none", 
+          zIndex: 2
         }}>
-          <Icon size={17} color={error ? "#F87171" : "#9CA3AF"} />
+          <Icon size={16} color={error ? "#EF4444" : "#9CA3AF"} />
         </div>
         
         {children}
         
         {rightEl && (
           <div style={{
-            position: "absolute", right: 0, top: 0, bottom: 0,
-            width: 48, display: "flex", alignItems: "center", justifyContent: "center",
+            position: "absolute", 
+            right: 8, 
+            top: 0, 
+            bottom: 0,
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center",
             zIndex: 2
           }}>
             {rightEl}
@@ -163,9 +499,14 @@ function Field({ label, icon: Icon, error, rightEl, children }) {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2, ease }}
             style={{
-              display: "flex", alignItems: "center", gap: 6,
-              fontSize: 12, color: "#EF4444", marginTop: 6,
-              fontWeight: 500, fontFamily: "'Angro Std', 'Outfit', sans-serif",
+              display: "flex", 
+              alignItems: "center", 
+              gap: 6,
+              fontSize: 12, 
+              color: "#EF4444", 
+              marginTop: 6,
+              fontWeight: 400, 
+              fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
             }}
           >
             <AlertCircle size={12} /> {error.message}
@@ -190,17 +531,21 @@ export function LoginPage() {
   };
 
   const inputStyle = (hasErr, hasRight) => ({
-    width: "100%", height: 48,
-    background: hasErr ? "#FFF5F5" : "#F9FAFB",
-    border: `1.5px solid ${hasErr ? "#FCA5A5" : "#E5E7EB"}`,
-    borderRadius: 10, outline: "none", 
-    paddingLeft: 56, /* <--- Aumentado a 56px para despegar el texto del icono */
-    paddingRight: hasRight ? 48 : 16,
-    fontSize: 14, color: "#111827",
-    fontFamily: "'Angro Std', 'Outfit', sans-serif", fontWeight: 400,
-    transition: "border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease",
-    boxSizing: "border-box",
-  });
+  width: "100%", 
+  height: 48,
+  background: "#FFFFFF",
+  border: `1.5px solid ${hasErr ? "#FCA5A5" : "#E5E7EB"}`,
+  borderRadius: 8, 
+  outline: "none", 
+  paddingLeft: 48,
+  paddingRight: hasRight ? 48 : 16,
+  fontSize: 14, 
+  color: "#0F1F3D",
+  fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif", 
+  fontWeight: 400,
+  transition: "all 0.2s ease",
+  boxSizing: "border-box",
+});
 
   return (
     <>
@@ -232,14 +577,13 @@ export function LoginPage() {
 
         .lp-input:focus {
           border-color: #1B6FE8 !important;
-          box-shadow: 0 0 0 3px rgba(27,111,232,0.12) !important;
+          box-shadow: 0 0 0 3px rgba(27,111,232,0.08) !important;
           background: white !important;
         }
         .lp-input.err:focus {
-          border-color: #F87171 !important;
-          box-shadow: 0 0 0 3px rgba(248,113,113,0.1) !important;
-        }
-
+            border-color: #F87171 !important;
+            box-shadow: 0 0 0 3px rgba(248,113,113,0.08) !important;
+          }
         .dot-bg {
           position: absolute; inset: -48px;
           background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0);
@@ -275,11 +619,20 @@ export function LoginPage() {
         .ghost-btn:hover { border-color: #9CA3AF; color: #1B6FE8; background: #F9FAFB; transform: translateY(-1px); }
 
         .eye-btn {
-          background: none; border: none; cursor: pointer; padding: 4px;
-          color: #9CA3AF; display: flex; align-items: center;
-          transition: color 0.15s ease;
+          background: none; 
+          border: none; 
+          cursor: pointer; 
+          padding: 6px;
+          color: #9CA3AF; 
+          display: flex; 
+          align-items: center;
+          transition: all 0.15s ease;
+          border-radius: 4px;
         }
-        .eye-btn:hover { color: #1B6FE8; }
+        .eye-btn:hover { 
+            color: #1B6FE8; 
+            background: rgba(27,111,232,0.05);
+          }
 
         @media (max-width: 1023px) {
           .login-left { display: none !important; }
@@ -301,24 +654,48 @@ export function LoginPage() {
         <div
           className="login-left"
           style={{
-            width: "46%", flexShrink: 0,
-            position: "relative", overflow: "hidden",
-            display: "flex", flexDirection: "column",
-            background: "linear-gradient(150deg,#081828 0%,#0F2A4A 55%,#0C3260 100%)",
+            width: "55%", // Cambiado de 46% a 60%
+            flexShrink: 0,
+            position: "relative", 
+            overflow: "hidden",
+            display: "flex", 
+            flexDirection: "column",
+            background: "linear-gradient(150deg, #081828 0%, #0F2A4A 55%, #0C3260 100%)",
           }}
         >
-          <div className="dot-bg" />
-          {/* Glow orbs */}
-          <div style={{ position: "absolute", top: -160, right: -160, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle,#06B6D4,transparent 70%)", opacity: 0.18, filter: "blur(80px)", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", bottom: -100, left: -80, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle,#1B6FE8,transparent)", opacity: 0.1, filter: "blur(60px)", pointerEvents: "none" }} />
+          {/* Mantén los glow orbs pero hazlos más grandes */}
+          <div style={{ 
+            position: "absolute", 
+            top: -200, 
+            right: -200, 
+            width: 600, 
+            height: 600, 
+            borderRadius: "50%", 
+            background: "radial-gradient(circle, #06B6D4, transparent 70%)", 
+            opacity: 0.15, 
+            filter: "blur(100px)", 
+            pointerEvents: "none" 
+          }} />
+          <div style={{ 
+            position: "absolute", 
+            bottom: -150, 
+            left: -100, 
+            width: 400, 
+            height: 400, 
+            borderRadius: "50%", 
+            background: "radial-gradient(circle, #1B6FE8, transparent)", 
+            opacity: 0.12, 
+            filter: "blur(80px)", 
+            pointerEvents: "none" 
+          }} />
 
           {/* Logo */}
-          <div style={{ position: "relative", zIndex: 10, padding: "40px 48px 0" }}>
+          <div style={{ position: "relative", zIndex: 10, padding: "48px 56px 0" }}>
             <Logo />
           </div>
 
           {/* Diagram */}
-          <div style={{ position: "relative", zIndex: 10, flex: 1, display: "flex", flexDirection: "column", padding: "20px 32px 40px" }}>
+          <div style={{ position: "relative", zIndex: 10, flex: 1, display: "flex", flexDirection: "column", padding: "30px 40px 50px" }}>
             <ConnectionDiagram />
           </div>
         </div>
@@ -327,10 +704,15 @@ export function LoginPage() {
         <div
           className="login-right"
           style={{
-            flex: 1, display: "flex", flexDirection: "column",
-            justifyContent: "center", alignItems: "center",
-            background: "#F8FAFC", padding: "48px 32px",
-            position: "relative", overflow: "hidden",
+            flex: 1, // Ocupa el 40% restante
+            display: "flex", 
+            flexDirection: "column",
+            justifyContent: "center", 
+            alignItems: "center",
+            background: "#F8FAFC", 
+            padding: "48px 40px",
+            position: "relative", 
+            overflow: "hidden",
           }}
         >
           {/* Subtle bg orb */}
@@ -417,6 +799,15 @@ export function LoginPage() {
                   })}
                 />
               </Field>
+
+              {/* Link de recuperación */}
+              <p style={{ textAlign: "right", marginTop: -12, marginBottom: 0 }}>
+                <Link to="/forgot-password" style={{ 
+                  fontSize: 13, color: "#1B6FE8", textDecoration: "none", fontWeight: 500 
+                }}>
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </p>
 
               {/* Backend error */}
               <AnimatePresence>
