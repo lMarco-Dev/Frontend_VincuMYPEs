@@ -3,6 +3,7 @@ import {
   getPostulacionesApi,
   getPostulacionesAceptadasApi,
   cambiarEstadoPostulacionApi,
+  confirmarPostulacionApi,
 } from "./postulaciones.api";
 import { handleApiError } from "@/shared/api/apiErrors";
 
@@ -59,6 +60,25 @@ export function useCambiarEstadoPostulacion(proyectoId) {
   return {
     cambiarEstado: mutation.mutate,
     isLoading: mutation.isPending,
+    error: mutation.error ? handleApiError(mutation.error) : null,
+  };
+}
+
+//Nuevo
+export function useConfirmarPostulacion() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: confirmarPostulacionApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mis-postulaciones"] });
+    },
+    onError: (error) => console.error(handleApiError(error)),
+  });
+
+  return {
+    confirmar: mutation.mutate,
+    isLoading: mutation.isPending,
+    isSuccess: mutation.isSuccess,
     error: mutation.error ? handleApiError(mutation.error) : null,
   };
 }

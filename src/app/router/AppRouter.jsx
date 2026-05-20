@@ -15,18 +15,19 @@ import { CrearProyectoPage } from "@pages/mype/CrearProyectoPage";
 import { MisProyectosPage } from "@/pages/mype/MisProyectosPage";
 import { RevisionEntregablesPage } from "@/pages/mype/RevisionEntregablesPage";
 import { PostulantesPage } from "@/pages/mype/PostulantesPage";
+import { CertificadosPage as CertificadosMypePage } from "@/pages/mype/CertificadosPage"; // ✨ Importado con alias para la MYPE
 
 // Estudiante pages
 import EstudianteDashboardPage from "@pages/estudiante/EstudianteDashboardPage";
 import ProyectosPage from "@pages/estudiante/ProyectosPage";
 import DetalleProyectoPage from "@pages/estudiante/DetalleProyectoPage";
 import MisPostulacionesPage from "@pages/estudiante/MisPostulacionesPage";
-import CertificadosPage from "@pages/estudiante/CertificadosPage";
+import CertificadosEstudiantePage from "@pages/estudiante/CertificadosPage"; // ✨ Importado con alias para el Estudiante
 import PerfilPage from "@pages/estudiante/PerfilPage";
-import ProyectoWorkspacePage from "@pages/estudiante/ProyectoWorkspacePage"; // ✨ NUEVA: Workspace del proyecto activo
-import WorkspaceSelectorPage from "@pages/estudiante/WorkspaceSelectorPage"; // ✨ Selector de workspaces activos
+import ProyectoWorkspacePage from "@pages/estudiante/ProyectoWorkspacePage";
+import WorkspaceSelectorPage from "@pages/estudiante/WorkspaceSelectorPage";
 
-// Admin pages (✨ NUEVAS IMPORTACIONES)
+// Admin pages
 import AdminDashboardPage from "@pages/admin/AdminDashboardPage";
 import AdminProyectosPage from "@pages/admin/AdminProyectosPage";
 import AdminUsuariosPage from "@pages/admin/AdminUsuariosPage";
@@ -37,7 +38,7 @@ import AdminConfiguracionPage from "@pages/admin/AdminConfiguracionPage";
 // Layouts
 import StudentLayout from "@shared/layouts/StudentLayout";
 import { MypeLayout } from "@shared/layouts/MypeLayout";
-import AdminLayout from "@shared/layouts/AdminLayout"; // ✨ NUEVO LAYOUT
+import AdminLayout from "@shared/layouts/AdminLayout";
 
 // Guard
 import { ProtectedRoute } from "./ProtectedRoute";
@@ -49,7 +50,7 @@ const router = createBrowserRouter([
   { path: "/register/:tipo", element: <RegisterPage /> },
 
   /* ===========================================================================================
-                                          RUTAS MYPEs
+                                        RUTAS MYPEs
      =========================================================================================== */
   {
     path: "/dashboard/mype",
@@ -87,7 +88,7 @@ const router = createBrowserRouter([
     path: "/dashboard/mype/postulantes",
     element: (
       <ProtectedRoute rolesPermitidos={["MYPE"]}>
-        <PostulantesPage></PostulantesPage>
+        <PostulantesPage />
       </ProtectedRoute>
     ),
   },
@@ -111,7 +112,8 @@ const router = createBrowserRouter([
     path: "/dashboard/mype/certificados",
     element: (
       <ProtectedRoute rolesPermitidos={["MYPE"]}>
-        <MypeLayout titulo="Certificados" />
+        <CertificadosMypePage />{" "}
+        {/* ✨ Corregido: Ahora renderiza la página de certificados de la MYPE */}
       </ProtectedRoute>
     ),
   },
@@ -133,7 +135,7 @@ const router = createBrowserRouter([
   },
 
   /* ===========================================================================================
-                                          RUTAS Estudiantes
+                                        RUTAS Estudiantes
      =========================================================================================== */
   {
     element: (
@@ -148,13 +150,13 @@ const router = createBrowserRouter([
       { path: "/mis-postulaciones", element: <MisPostulacionesPage /> },
       { path: "/workspace", element: <WorkspaceSelectorPage /> },
       { path: "/workspace/:proyectoId", element: <ProyectoWorkspacePage /> },
-      { path: "/certificados", element: <CertificadosPage /> },
+      { path: "/certificados", element: <CertificadosEstudiantePage /> }, // ✨ Corregido: Renderiza la página del Estudiante
       { path: "/perfil", element: <PerfilPage /> },
     ],
   },
 
   /* ===========================================================================================
-                                          RUTAS ADMINISTRADOR (NUEVO)
+                                        RUTAS ADMINISTRADOR
      =========================================================================================== */
   {
     element: (
@@ -174,7 +176,7 @@ const router = createBrowserRouter([
 
   // ── Fallbacks ───────────────────────────────────────────────
   { path: "/dashboard", element: <Navigate to="/login" replace /> },
-  { path: "/admin", element: <Navigate to="/admin/dashboard" replace /> }, // ✨ Redirección de ayuda
+  { path: "/admin", element: <Navigate to="/admin/dashboard" replace /> },
   { path: "*", element: <Navigate to="/" replace /> },
 ]);
 

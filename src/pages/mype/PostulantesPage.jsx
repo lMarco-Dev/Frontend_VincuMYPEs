@@ -1,3 +1,5 @@
+// src/pages/mype/PostulantesPage.jsx
+
 import { useState } from "react";
 import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
@@ -20,7 +22,6 @@ import {
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
-// ── Badge de estado ──────────────────────────────────────────
 function EstadoPostBadge({ estado }) {
   const map = {
     PENDIENTE: {
@@ -29,11 +30,23 @@ function EstadoPostBadge({ estado }) {
       border: "#FDE68A",
       label: "Pendiente",
     },
-    ACEPTADO: {
+    PRESELECCIONADO: {
+      bg: "#EFF6FF",
+      color: "#1D4ED8",
+      border: "#BFDBFE",
+      label: "Preseleccionado",
+    },
+    VALIDADO_MYPE: {
       bg: "#F0FDF4",
       color: "#15803D",
       border: "#BBF7D0",
-      label: "Aceptado",
+      label: "Validado ✓",
+    },
+    CONFIRMADO: {
+      bg: "#ECFDF5",
+      color: "#065F46",
+      border: "#6EE7B7",
+      label: "Confirmado ✓✓",
     },
     RECHAZADO: {
       bg: "#FEF2F2",
@@ -46,6 +59,12 @@ function EstadoPostBadge({ estado }) {
       color: "#6B7280",
       border: "#E5E7EB",
       label: "Retirado",
+    },
+    EXPIRADO: {
+      bg: "#FFF7ED",
+      color: "#C2410C",
+      border: "#FED7AA",
+      label: "Expirado",
     },
   };
   const s = map[estado] ?? map.PENDIENTE;
@@ -67,7 +86,6 @@ function EstadoPostBadge({ estado }) {
   );
 }
 
-// ── Fila de postulante ───────────────────────────────────────
 function FilaPostulante({ postulacion, proyectoId, verTodos }) {
   const { cambiarEstado, isLoading } = useCambiarEstadoPostulacion(proyectoId);
 
@@ -79,25 +97,29 @@ function FilaPostulante({ postulacion, proyectoId, verTodos }) {
       .join("")
       .toUpperCase() ?? "?";
 
-  const puedeAccionar = verTodos && postulacion.estado === "PENDIENTE";
+  // Botones de acción legítimos para la MYPE según tu flujo trilateral:
+  // La MYPE valida o rechaza lo que el Admin ya PRESELECCIONÓ
+  const puedeValidar = postulacion.estado === "PRESELECCIONADO";
+  const puedeRechazar =
+    postulacion.estado === "PRESELECCIONADO" ||
+    (verTodos && postulacion.estado === "PENDIENTE");
 
   return (
     <div
       style={{
         display: "grid",
         gridTemplateColumns: verTodos
-          ? "2fr 3fr 1fr 1fr 1.5fr"
+          ? "2fr 3fr 1fr 1fr 2fr"
           : "2fr 3fr 1fr 1fr",
         gap: 12,
         padding: "10px 16px",
         alignItems: "center",
-        borderBottom: "0.5px solid #F9FAFB",
+        borderBottom: "0.5px solid #F3F4F6",
         transition: "background 0.15s",
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = "#FAFAFA")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >
-      {/* Avatar + nombre */}
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <div
           style={{
@@ -132,7 +154,6 @@ function FilaPostulante({ postulacion, proyectoId, verTodos }) {
           >
             {postulacion.estudianteNombre}
           </span>
-          {/* CV — cuando esté disponible */}
           {postulacion.estudianteCvUrl ? (
             <a
               href={postulacion.estudianteCvUrl}
@@ -148,7 +169,6 @@ function FilaPostulante({ postulacion, proyectoId, verTodos }) {
                 alignItems: "center",
                 gap: 3,
                 marginTop: 2,
-                transition: "color 0.15s",
               }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#06B6D4")}
               onMouseLeave={(e) => (e.currentTarget.style.color = "#1B6FE8")}
@@ -165,13 +185,12 @@ function FilaPostulante({ postulacion, proyectoId, verTodos }) {
                 marginTop: 1,
               }}
             >
-              Sin CV adjunto
+              Sin CV
             </span>
           )}
         </div>
       </div>
 
-      {/* Mensaje */}
       <span
         style={{
           fontFamily: FONT,
@@ -189,135 +208,134 @@ function FilaPostulante({ postulacion, proyectoId, verTodos }) {
         )}
       </span>
 
-      {/* Fecha */}
       <span style={{ fontFamily: FONT, fontSize: 11, color: "#9CA3AF" }}>
         {new Date(postulacion.fechaPostulacion).toLocaleDateString("es-PE")}
       </span>
 
-      {/* Estado */}
       <EstadoPostBadge estado={postulacion.estado} />
 
-      {/* Acciones — solo en modo ver todos */}
-      {verTodos && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 6,
-            alignItems: "center",
-          }}
-        >
-          {puedeAccionar && !isLoading && (
-            <>
-              <button
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `¿Aceptar a ${postulacion.estudianteNombre}?`,
-                    )
-                  )
-                    cambiarEstado({
-                      proyectoId,
-                      postulacionId: postulacion.id,
-                      estado: "ACEPTADO",
-                    });
-                }}
-                style={{
-                  fontFamily: FONT,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#15803D",
-                  background: "rgba(21,128,61,0.06)",
-                  border: "1px solid rgba(21,128,61,0.2)",
-                  padding: "4px 10px",
-                  borderRadius: 7,
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "rgba(21,128,61,0.12)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "rgba(21,128,61,0.06)")
-                }
-              >
-                <CheckCircle size={11} /> Aceptar
-              </button>
-              <button
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `¿Rechazar a ${postulacion.estudianteNombre}?`,
-                    )
-                  )
-                    cambiarEstado({
-                      proyectoId,
-                      postulacionId: postulacion.id,
-                      estado: "RECHAZADO",
-                    });
-                }}
-                style={{
-                  fontFamily: FONT,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#DC2626",
-                  background: "rgba(220,38,38,0.05)",
-                  border: "1px solid rgba(220,38,38,0.15)",
-                  padding: "4px 10px",
-                  borderRadius: 7,
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "rgba(220,38,38,0.1)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "rgba(220,38,38,0.05)")
-                }
-              >
-                <XCircle size={11} /> Rechazar
-              </button>
-            </>
-          )}
-          {isLoading && (
-            <Loader2
-              size={14}
-              color="#9CA3AF"
-              style={{ animation: "spin 1s linear infinite" }}
-            />
-          )}
-        </div>
-      )}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 6,
+          alignItems: "center",
+        }}
+      >
+        {isLoading && (
+          <Loader2 size={14} className="animate-spin text-slate-400" />
+        )}
+
+        {/* Validar la propuesta del Administrador */}
+        {puedeValidar && !isLoading && (
+          <button
+            onClick={() => {
+              if (
+                window.confirm(
+                  `¿Validar la selección de ${postulacion.estudianteNombre}? Pasa a oferta pendiente para el alumno.`,
+                )
+              )
+                cambiarEstado({
+                  proyectoId,
+                  postulacionId: postulacion.id,
+                  estado: "VALIDADO_MYPE",
+                });
+            }}
+            style={{
+              fontFamily: FONT,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#15803D",
+              background: "rgba(21,128,61,0.06)",
+              border: "1px solid rgba(21,128,61,0.2)",
+              padding: "4px 10px",
+              borderRadius: 7,
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "rgba(21,128,61,0.12)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "rgba(21,128,61,0.06)")
+            }
+          >
+            <CheckCircle size={11} /> Validar
+          </button>
+        )}
+
+        {/* Rechazar la propuesta del Administrador */}
+        {puedeRechazar && !isLoading && (
+          <button
+            onClick={() => {
+              if (
+                window.confirm(
+                  `¿Rechazar a ${postulacion.estudianteNombre}? Se notificará al Administrador.`,
+                )
+              )
+                cambiarEstado({
+                  proyectoId,
+                  postulacionId: postulacion.id,
+                  estado: "RECHAZADO",
+                });
+            }}
+            style={{
+              fontFamily: FONT,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#DC2626",
+              background: "rgba(220,38,38,0.05)",
+              border: "1px solid rgba(220,38,38,0.15)",
+              padding: "4px 10px",
+              borderRadius: 7,
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "rgba(220,38,38,0.1)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "rgba(220,38,38,0.05)")
+            }
+          >
+            <XCircle size={11} /> Rechazar
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
-// ── Bloque por proyecto ──────────────────────────────────────
 function BloqueProyecto({ proyecto, verTodos }) {
   const [abierto, setAbierto] = useState(true);
 
-  // Usa el hook correcto según el modo
-  const hookAceptadas = usePostulacionesAceptadas(proyecto.id);
-  const hookTodas = usePostulaciones(verTodos ? proyecto.id : null);
+  const { postulaciones, isLoading } = usePostulaciones(proyecto.id);
 
-  // En modo normal usa solo aceptadas, en modo completo usa todas
-  const { postulaciones, isLoading } = verTodos ? hookTodas : hookAceptadas;
+  // Filtros de negocio reactivos en el front:
+  const preseleccionados = postulaciones.filter(
+    (p) => p.estado === "PRESELECCIONADO",
+  );
+  const confirmados = postulaciones.filter((p) => p.estado === "CONFIRMADO");
 
-  const pendientes = hookTodas.postulaciones.filter(
-    (p) => p.estado === "PENDIENTE",
-  ).length;
-  const aceptados = hookAceptadas.postulaciones.length;
+  const postulantesVisibles = verTodos
+    ? postulaciones
+    : postulaciones.filter(
+        (p) =>
+          p.estado === "PRESELECCIONADO" ||
+          p.estado === "CONFIRMADO" ||
+          p.estado === "VALIDADO_MYPE",
+      );
 
-  // En modo normal, si no hay aceptados no mostramos el bloque
-  if (!verTodos && !hookAceptadas.isLoading && aceptados === 0) return null;
+  // El bloque solo se oculta si verdaderamente no hay registros en la base de datos
+  if (!isLoading && postulaciones.length === 0 && !verTodos) return null;
 
-  const cols = verTodos ? "2fr 3fr 1fr 1fr 1.5fr" : "2fr 3fr 1fr 1fr";
+  const cols = verTodos ? "2fr 3fr 1fr 1fr 2fr" : "2fr 3fr 1fr 1fr";
 
   return (
     <div
@@ -343,8 +361,6 @@ function BloqueProyecto({ proyecto, verTodos }) {
           transition: "background 0.15s",
           fontFamily: FONT,
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "#F9FAFB")}
-        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span
@@ -358,24 +374,25 @@ function BloqueProyecto({ proyecto, verTodos }) {
             {proyecto.titulo}
           </span>
 
-          {!verTodos && aceptados > 0 && (
+          {confirmados.length > 0 && (
             <span
               style={{
                 fontFamily: FONT,
                 fontSize: 10,
                 fontWeight: 700,
-                background: "#F0FDF4",
-                color: "#15803D",
-                border: "1px solid #BBF7D0",
+                background: "#ECFDF5",
+                color: "#065F46",
+                border: "1px solid #6EE7B7",
                 padding: "1px 8px",
                 borderRadius: 10,
               }}
             >
-              {aceptados} aceptado{aceptados > 1 ? "s" : ""}
+              {confirmados.length} confirmado{confirmados.length > 1 ? "s" : ""}{" "}
+              ✓✓
             </span>
           )}
 
-          {verTodos && pendientes > 0 && (
+          {preseleccionados.length > 0 && (
             <span
               style={{
                 fontFamily: FONT,
@@ -388,16 +405,11 @@ function BloqueProyecto({ proyecto, verTodos }) {
                 borderRadius: 10,
               }}
             >
-              {pendientes} pendiente{pendientes > 1 ? "s" : ""}
+              {preseleccionados.length} asignado por filtrar ⚠
             </span>
           )}
-
           {isLoading && (
-            <Loader2
-              size={12}
-              color="#9CA3AF"
-              style={{ animation: "spin 1s linear infinite" }}
-            />
+            <Loader2 size={12} className="animate-spin text-slate-400" />
           )}
         </div>
         <ChevronDown
@@ -427,7 +439,7 @@ function BloqueProyecto({ proyecto, verTodos }) {
                 />
               ))}
             </div>
-          ) : postulaciones.length === 0 ? (
+          ) : postulantesVisibles.length === 0 ? (
             <div
               style={{
                 padding: "24px 16px",
@@ -437,9 +449,7 @@ function BloqueProyecto({ proyecto, verTodos }) {
             >
               <Clock size={22} color="#D1D5DB" style={{ marginBottom: 6 }} />
               <p style={{ fontFamily: FONT, fontSize: 12, color: "#9CA3AF" }}>
-                {verTodos
-                  ? "Nadie se ha postulado todavía"
-                  : "Sin estudiantes aceptados aún"}
+                Sin candidatos pendientes de validación en este momento.
               </p>
             </div>
           ) : (
@@ -459,8 +469,8 @@ function BloqueProyecto({ proyecto, verTodos }) {
                   "Mensaje",
                   "Fecha",
                   "Estado",
-                  ...(verTodos ? ["Acciones"] : []),
-                ].map((h, i) => (
+                  ...(verTodos ? [] : []),
+                ].map((h) => (
                   <span
                     key={h}
                     style={{
@@ -470,14 +480,13 @@ function BloqueProyecto({ proyecto, verTodos }) {
                       color: "#9CA3AF",
                       textTransform: "uppercase",
                       letterSpacing: "0.5px",
-                      textAlign: verTodos && i === 4 ? "right" : "left",
                     }}
                   >
                     {h}
                   </span>
                 ))}
               </div>
-              {postulaciones.map((p) => (
+              {postulantesVisibles.map((p) => (
                 <FilaPostulante
                   key={p.id}
                   postulacion={p}
@@ -493,7 +502,6 @@ function BloqueProyecto({ proyecto, verTodos }) {
   );
 }
 
-// ── Página principal ─────────────────────────────────────────
 export function PostulantesPage() {
   const { proyectos, isLoading } = useMisProyectos();
   const [verTodos, setVerTodos] = useState(false);
@@ -504,7 +512,6 @@ export function PostulantesPage() {
 
   return (
     <MypeLayout titulo="Postulantes">
-      {/* Header con subtítulo y toggle */}
       <div
         style={{
           display: "flex",
@@ -524,10 +531,9 @@ export function PostulantesPage() {
           }}
         >
           {verTodos
-            ? "Estás viendo todos los postulantes. Puedes aceptar o rechazar manualmente."
-            : "Solo se muestran los estudiantes ya aprobados por el equipo de MYPElink."}
+            ? "Estás viendo el registro histórico completo de solicitudes (Pendientes, Preseleccionados, Rechazados y Expirados)."
+            : "Bandeja de Entrada: Visualiza a los candidatos asignados por el administrador pendientes de tu validación."}
         </p>
-
         <button
           onClick={() => setVerTodos(!verTodos)}
           style={{
@@ -554,61 +560,29 @@ export function PostulantesPage() {
                   border: "1px solid #E5E7EB",
                 }),
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = verTodos
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.background = verTodos
               ? "rgba(27,111,232,0.14)"
-              : "#F3F4F6";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = verTodos
+              : "#F3F4F6")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.background = verTodos
               ? "rgba(27,111,232,0.08)"
-              : "#F9FAFB";
-          }}
+              : "#F9FAFB")
+          }
         >
           {verTodos ? (
             <>
-              <EyeOff size={14} /> Ver solo aceptados
+              <EyeOff size={14} /> Ver bandeja de entrada
             </>
           ) : (
             <>
-              <Eye size={14} /> Solicitar ver todos
+              <Eye size={14} /> Solicitar ver historial
             </>
           )}
         </button>
       </div>
 
-      {/* Aviso cuando está en modo ver todos */}
-      {verTodos && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 10,
-            background: "rgba(27,111,232,0.05)",
-            border: "1px solid rgba(27,111,232,0.15)",
-            borderRadius: 10,
-            padding: "10px 14px",
-            marginBottom: 16,
-          }}
-        >
-          <span style={{ fontSize: 15, flexShrink: 0 }}>ℹ️</span>
-          <p
-            style={{
-              fontFamily: FONT,
-              fontSize: 12,
-              color: "#374151",
-              margin: 0,
-              lineHeight: 1.6,
-            }}
-          >
-            Estás viendo <strong>todos los postulantes</strong>, incluyendo los
-            pendientes de revisión del equipo MYPElink. Si aceptas o rechazas
-            manualmente, tu decisión tiene prioridad.
-          </p>
-        </div>
-      )}
-
-      {/* Contenido principal */}
       {isLoading ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {[1, 2, 3].map((i) => (
@@ -624,7 +598,6 @@ export function PostulantesPage() {
           ))}
         </div>
       ) : proyectos.length === 0 ? (
-        // No tiene ningún proyecto creado
         <div
           style={{
             textAlign: "center",
@@ -645,12 +618,8 @@ export function PostulantesPage() {
           >
             No tienes proyectos creados aún
           </p>
-          <p style={{ fontFamily: FONT, fontSize: 12, color: "#D1D5DB" }}>
-            Publica un proyecto para empezar a recibir postulantes
-          </p>
         </div>
       ) : proyectosActivos.length === 0 ? (
-        // Tiene proyectos pero todos son BORRADOR o COMPLETADO
         <div
           style={{
             textAlign: "center",
@@ -671,13 +640,8 @@ export function PostulantesPage() {
           >
             Ningún proyecto está publicado actualmente
           </p>
-          <p style={{ fontFamily: FONT, fontSize: 12, color: "#D1D5DB" }}>
-            Solo los proyectos en estado <strong>Publicado</strong> o{" "}
-            <strong>En desarrollo</strong> pueden recibir postulantes
-          </p>
         </div>
       ) : (
-        // Muestra los bloques por proyecto
         proyectosActivos.map((p) => (
           <BloqueProyecto key={p.id} proyecto={p} verTodos={verTodos} />
         ))

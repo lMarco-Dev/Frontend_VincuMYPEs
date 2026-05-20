@@ -1,3 +1,4 @@
+import { queryClient } from "@/shared/api/queryClient";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -30,13 +31,15 @@ export const useAuthStore = create(
         }));
       },
 
-      logout: () =>
+      logout: () => {
+        queryClient.clear();
         set({
           token: null,
           user: null,
           rol: null,
           isAuthenticated: false,
-        }),
+        });
+      },
     }),
     { name: "vincumypes-auth" }, // Zustand persist maneja localStorage solo
   ),

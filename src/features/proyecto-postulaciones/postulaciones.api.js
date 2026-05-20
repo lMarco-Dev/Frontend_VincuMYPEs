@@ -21,3 +21,10 @@ export const cambiarEstadoPostulacionApi = ({
     { estado },
   );
 };
+
+export const confirmarPostulacionApi = ({ postulacionId, confirmar }) => {
+  return httpClient.patch(
+    `/proyectos/postulaciones/${postulacionId}/confirmar`,
+    { confirmar },
+  );
+};

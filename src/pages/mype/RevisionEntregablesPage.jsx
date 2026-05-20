@@ -3,18 +3,26 @@ import { useParams, Link } from "react-router-dom";
 import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useEntregables } from "@/features/proyecto-entregables/useEntregables";
 import { Skeleton } from "@/shared/ui/Skeleton";
-import { FileText, CheckCircle, XCircle, ExternalLink, ArrowLeft, Loader2 } from "lucide-react";
+import {
+  FileText,
+  CheckCircle,
+  XCircle,
+  ExternalLink,
+  ArrowLeft,
+  Loader2,
+} from "lucide-react";
 
 export function RevisionEntregablesPage() {
   const { id: proyectoId } = useParams();
-  const { entregables, isLoading, revisarEntregable, isRevisando } = useEntregables(proyectoId);
+  const { entregables, isLoading, revisarEntregable, isRevisando } =
+    useEntregables(proyectoId);
   const [observacion, setObservacion] = useState("");
   const [entregableSeleccionado, setEntregableSeleccionado] = useState(null);
 
   const handleRevisar = (entregableId, estado) => {
     revisarEntregable({
       entregableId,
-      payload: { estado, observaciones: observacion }
+      payload: { estado, observaciones: observacion },
     });
     setEntregableSeleccionado(null);
     setObservacion("");
@@ -23,71 +31,101 @@ export function RevisionEntregablesPage() {
   return (
     <MypeLayout titulo="Revisión de Entregables">
       <div className="max-w-4xl mx-auto">
-        <Link to="/dashboard/mype/proyectos" className="flex items-center gap-2 text-sm text-brand-cyan hover:text-cyan-400 mb-6 w-fit transition-colors">
+        <Link
+          to="/dashboard/mype/proyectos"
+          className="flex items-center gap-2 text-sm text-brand-cyan hover:text-cyan-400 mb-6 w-fit transition-colors"
+        >
           <ArrowLeft size={16} /> Volver a mis proyectos
         </Link>
 
         <div className="bg-[#0F2A4A] rounded-xl border border-slate-700/50 p-6 shadow-xl">
           <div className="flex justify-between items-end mb-6 border-b border-slate-700/50 pb-4">
             <div>
-              <h2 className="text-lg font-bold text-white">Checklist de Seguimiento</h2>
-              <p className="text-xs text-slate-400 mt-1">Revisa los documentos PDF subidos por tu equipo asignado.</p>
+              <h2 className="text-lg font-bold text-white">
+                Checklist de Seguimiento
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Revisa los documentos PDF subidos por tu equipo asignado.
+              </p>
             </div>
           </div>
 
           {isLoading ? (
             <div className="space-y-4">
-              {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 bg-[#081828] rounded-xl" />)}
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-20 bg-[#081828] rounded-xl" />
+              ))}
             </div>
           ) : entregables.length === 0 ? (
             <div className="text-center py-12 bg-[#081828]/50 rounded-xl border border-dashed border-slate-700/50">
               <FileText size={32} className="mx-auto text-slate-500 mb-3" />
-              <p className="text-sm text-slate-400">Los estudiantes aún no han subido ningún entregable.</p>
+              <p className="text-sm text-slate-400">
+                Los estudiantes aún no han subido ningún entregable.
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
               {entregables.map((ent) => (
-                <div key={ent.id} className="bg-[#081828] border border-slate-700/40 rounded-xl p-5 flex flex-col md:flex-row gap-5 items-start md:items-center justify-between transition-all hover:border-brand-orange/50">
-                  
+                <div
+                  key={ent.id}
+                  className="bg-[#081828] border border-slate-700/40 rounded-xl p-5 flex flex-col md:flex-row gap-5 items-start md:items-center justify-between transition-all hover:border-brand-orange/50"
+                >
                   {/* Info del Entregable */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2.5 mb-1.5">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                        ent.estado === 'ACEPTADO' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                        ent.estado === 'RECHAZADO' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-                        'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                      }`}>
-                        {ent.estado}
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                          ent.estado === "APROBADO"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            : ent.estado === "RECHAZADO"
+                              ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                              : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                        }`}
+                      >
+                        {ent.estado === "APROBADO"
+                          ? "Aprobado"
+                          : ent.estado === "RECHAZADO"
+                            ? "Rechazado"
+                            : "Pendiente"}
                       </span>
-                      <span className="text-xs text-slate-500 font-medium">Por: {ent.estudianteNombre}</span>
+                      <span className="text-xs text-slate-500 font-medium">
+                        Por: {ent.estudianteNombre}
+                      </span>
                     </div>
-                    <h4 className="text-sm font-bold text-slate-200">{ent.titulo}</h4>
-                    <p className="text-xs text-slate-400 mt-1 line-clamp-2">{ent.descripcion}</p>
+                    <h4 className="text-sm font-bold text-slate-200">
+                      {ent.titulo}
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                      {ent.descripcion}
+                    </p>
                   </div>
 
                   {/* Acciones */}
                   <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-                    {/* Botón para ver el PDF en AWS S3 */}
-                    <a 
-                      href={ent.archivo} 
-                      target="_blank" 
+                    <a
+                      href={ent.archivo}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-lg transition-colors border border-slate-600"
                     >
                       <ExternalLink size={14} /> Ver PDF
                     </a>
 
-                    {ent.estado === 'PENDIENTE' && (
+                    {ent.estado === "PENDIENTE" && (
                       <div className="flex gap-2 w-full sm:w-auto">
-                        <button 
-                          onClick={() => handleRevisar(ent.id, 'ACEPTADO')}
+                        <button
+                          onClick={() => handleRevisar(ent.id, "APROBADO")}
                           disabled={isRevisando}
                           className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-bold rounded-lg transition-colors border border-emerald-500/30 w-full sm:w-auto"
                         >
                           <CheckCircle size={14} /> Aprobar
                         </button>
-                        <button 
-                          onClick={() => setEntregableSeleccionado(ent.id === entregableSeleccionado ? null : ent.id)}
+                        <button
+                          onClick={() =>
+                            setEntregableSeleccionado(
+                              ent.id === entregableSeleccionado ? null : ent.id,
+                            )
+                          }
                           className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-lg transition-colors border border-red-500/20 w-full sm:w-auto"
                         >
                           <XCircle size={14} /> Observar
@@ -96,10 +134,12 @@ export function RevisionEntregablesPage() {
                     )}
                   </div>
 
-                  {/* Caja de Observación Desplegable (Solo si hace clic en Observar) */}
+                  {/* Caja de Observación Desplegable */}
                   {entregableSeleccionado === ent.id && (
                     <div className="w-full mt-4 bg-[#0F2A4A] p-4 rounded-lg border border-red-500/20 col-span-full">
-                      <label className="block text-xs font-bold text-slate-300 mb-2">Motivo de la corrección:</label>
+                      <label className="block text-xs font-bold text-slate-300 mb-2">
+                        Motivo de la corrección:
+                      </label>
                       <textarea
                         className="w-full bg-[#081828] border border-slate-600 rounded-lg p-2.5 text-sm text-white focus:border-brand-orange outline-none resize-none mb-3"
                         rows="2"
@@ -108,13 +148,22 @@ export function RevisionEntregablesPage() {
                         onChange={(e) => setObservacion(e.target.value)}
                       />
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => setEntregableSeleccionado(null)} className="px-3 py-1.5 text-xs text-slate-400 hover:text-white">Cancelar</button>
-                        <button 
-                          onClick={() => handleRevisar(ent.id, 'RECHAZADO')}
+                        <button
+                          onClick={() => setEntregableSeleccionado(null)}
+                          className="px-3 py-1.5 text-xs text-slate-400 hover:text-white"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => handleRevisar(ent.id, "RECHAZADO")}
                           disabled={!observacion.trim() || isRevisando}
                           className="px-4 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 disabled:opacity-50 flex items-center gap-2"
                         >
-                          {isRevisando ? <Loader2 size={12} className="animate-spin" /> : "Enviar corrección"}
+                          {isRevisando ? (
+                            <Loader2 size={12} className="animate-spin" />
+                          ) : (
+                            "Enviar corrección"
+                          )}
                         </button>
                       </div>
                     </div>

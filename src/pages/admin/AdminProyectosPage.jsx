@@ -42,21 +42,30 @@ function ModalPostulantesBody({ proyectoId, onClose }) {
   const pendientes = postulaciones.filter((p) => p.estado === "PENDIENTE");
   const otros = postulaciones.filter((p) => p.estado !== "PENDIENTE");
 
-  const handleAceptar = (postulacion) => {
-    if (window.confirm(`¿Aceptar a ${postulacion.estudianteNombre}?`)) {
+  const handleAceptarPostulante = (postulacion) => {
+    if (
+      window.confirm(
+        `¿Preseleccionar a ${postulacion.estudianteNombre}? Se enviará a la MYPE para validación.`,
+      )
+    ) {
+      // ✨ REGLA DEL FLUJO CUMPLIDA: El Admin selecciona -> PRESELECCIONADO
       cambiarEstado({
-        proyectoId,
-        postulacionId: postulacion.id,
-        estado: "ACEPTADO",
+        proyectoId: Number(proyectoId), // 👈 Corregido: Usa la prop directa
+        postulacionId: Number(postulacion.id),
+        estado: "PRESELECCIONADO",
       });
     }
   };
 
-  const handleRechazar = (postulacion) => {
-    if (window.confirm(`¿Rechazar a ${postulacion.estudianteNombre}?`)) {
+  const handleRechazarPostulante = (postulacion) => {
+    if (
+      window.confirm(
+        `¿Seguro que deseas rechazar la postulación de ${postulacion.estudianteNombre}?`,
+      )
+    ) {
       cambiarEstado({
-        proyectoId,
-        postulacionId: postulacion.id,
+        proyectoId: Number(proyectoId), // 👈 Corregido
+        postulacionId: Number(postulacion.id),
         estado: "RECHAZADO",
       });
     }
@@ -73,11 +82,14 @@ function ModalPostulantesBody({ proyectoId, onClose }) {
   const badgeEstado = (estado) => {
     const map = {
       PENDIENTE: "bg-amber-50 text-amber-700 border-amber-200",
-      ACEPTADO: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      PRESELECCIONADO: "bg-blue-50 text-blue-700 border-blue-200",
+      VALIDADO_MYPE: "bg-purple-50 text-purple-700 border-purple-200",
+      CONFIRMADO: "bg-emerald-50 text-emerald-700 border-emerald-200",
       RECHAZADO: "bg-red-50 text-red-600 border-red-200",
       RETIRADO: "bg-slate-100 text-slate-500 border-slate-200",
+      EXPIRADO: "bg-orange-50 text-orange-600 border-orange-200",
     };
-    return map[estado] ?? map.PENDIENTE;
+    return map[estado] ?? "bg-slate-100 text-slate-500 border-slate-200";
   };
 
   return (
@@ -122,14 +134,14 @@ function ModalPostulantesBody({ proyectoId, onClose }) {
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-4">
                       <button
-                        onClick={() => handleAceptar(p)}
+                        onClick={() => handleAceptarPostulante(p)}
                         disabled={isCambiando}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
                       >
                         <CheckCircle2 size={13} /> Aceptar
                       </button>
                       <button
-                        onClick={() => handleRechazar(p)}
+                        onClick={() => handleRechazarPostulante(p)}
                         disabled={isCambiando}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white transition-colors disabled:opacity-50"
                       >
