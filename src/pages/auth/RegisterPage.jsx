@@ -116,14 +116,16 @@ export function RegisterPage() {
     if (nuevoTipo === currentTipo) return;
     
     if (isFormDirty) {
-      setTargetTipo(nuevoTipo); // Lanza el modal
+      setTargetTipo(nuevoTipo); 
     } else {
-      navigate(`/register/${nuevoTipo}`, { replace: true }); // Cambia directo
+      setHasAcceptedTerms(false);
+      navigate(`/register/${nuevoTipo}`, { replace: true });
     }
   };
 
   const confirmToggle = () => {
     setIsFormDirty(false);
+    setHasAcceptedTerms(false); 
     navigate(`/register/${targetTipo}`, { replace: true });
     setTargetTipo(null);
   };
@@ -285,9 +287,6 @@ export function RegisterPage() {
               }}>
                 Crea tu cuenta
               </h1>
-              <p style={{ fontSize: 15, color: "#6B7280", fontWeight: 300, lineHeight: 1.6, margin: 0 }}>
-                Únete a MYPElink Cajamarca hoy mismo.
-              </p>
             </div>
 
             <div style={{
