@@ -11,6 +11,7 @@ import {
   Loader2,
   X,
   Save,
+  AlertTriangle,
 } from "lucide-react";
 import { EstadoBadge } from "./MypeDashboardPage";
 import {
@@ -87,7 +88,6 @@ function ModalEditar({ proyecto, onClose }) {
   };
 
   return (
-    // Fondo overlay — posición fija simulada con flex en el layout
     <div
       style={{
         position: "fixed",
@@ -114,7 +114,7 @@ function ModalEditar({ proyecto, onClose }) {
           boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
         }}
       >
-        {/* Header del modal */}
+        {/* Header */}
         <div
           style={{
             padding: "16px 20px",
@@ -157,7 +157,6 @@ function ModalEditar({ proyecto, onClose }) {
               color: "#9CA3AF",
               padding: 4,
               borderRadius: 6,
-              transition: "color 0.15s",
             }}
             onMouseEnter={(e) => (e.currentTarget.style.color = "#374151")}
             onMouseLeave={(e) => (e.currentTarget.style.color = "#9CA3AF")}
@@ -166,13 +165,12 @@ function ModalEditar({ proyecto, onClose }) {
           </button>
         </div>
 
-        {/* Formulario con scroll */}
+        {/* Formulario */}
         <form
           onSubmit={handleSubmit}
           style={{ flex: 1, overflowY: "auto", padding: 20 }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {/* Título */}
             <div>
               <label
                 style={{
@@ -198,7 +196,6 @@ function ModalEditar({ proyecto, onClose }) {
               />
             </div>
 
-            {/* Descripción */}
             <div>
               <label
                 style={{
@@ -225,7 +222,6 @@ function ModalEditar({ proyecto, onClose }) {
               />
             </div>
 
-            {/* Área + Cupos en dos columnas */}
             <div
               style={{
                 display: "grid",
@@ -290,7 +286,6 @@ function ModalEditar({ proyecto, onClose }) {
               </div>
             </div>
 
-            {/* Fechas en dos columnas */}
             <div
               style={{
                 display: "grid",
@@ -350,7 +345,6 @@ function ModalEditar({ proyecto, onClose }) {
               </div>
             </div>
 
-            {/* Objetivo */}
             <div>
               <label
                 style={{
@@ -375,7 +369,6 @@ function ModalEditar({ proyecto, onClose }) {
               />
             </div>
 
-            {/* Error */}
             {error && (
               <div
                 style={{
@@ -394,7 +387,7 @@ function ModalEditar({ proyecto, onClose }) {
           </div>
         </form>
 
-        {/* Footer del modal */}
+        {/* Footer */}
         <div
           style={{
             padding: "14px 20px",
@@ -430,7 +423,6 @@ function ModalEditar({ proyecto, onClose }) {
           </button>
           <button
             onClick={(e) => {
-              // Llamamos al submit del form manualmente
               e.currentTarget
                 .closest("div")
                 .previousSibling.dispatchEvent(
@@ -483,22 +475,247 @@ function ModalEditar({ proyecto, onClose }) {
   );
 }
 
+// ── Modal de confirmación eliminar ───────────────────────────
+function ModalEliminar({ proyecto, onConfirm, onClose, isLoading }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        background: "rgba(15,42,74,0.55)",
+        backdropFilter: "blur(3px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 16,
+          width: "100%",
+          maxWidth: 420,
+          boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+          overflow: "hidden",
+        }}
+      >
+        {/* Franja roja */}
+        <div
+          style={{
+            height: 4,
+            background: "linear-gradient(90deg,#DC2626,#EF4444)",
+          }}
+        />
+
+        <div style={{ padding: "24px 24px 20px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                flexShrink: 0,
+                background: "#FEF2F2",
+                border: "1px solid #FECACA",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Trash2 size={20} color="#DC2626" />
+            </div>
+            <div>
+              <h3
+                style={{
+                  fontFamily: FONT,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: "#111827",
+                  margin: 0,
+                }}
+              >
+                Eliminar proyecto
+              </h3>
+              <p
+                style={{
+                  fontFamily: FONT,
+                  fontSize: 12,
+                  color: "#9CA3AF",
+                  margin: "2px 0 0",
+                }}
+              >
+                Esta acción no se puede deshacer
+              </p>
+            </div>
+          </div>
+
+          {/* Nombre del proyecto */}
+          <div
+            style={{
+              background: "#F9FAFB",
+              border: "1px solid #E5E7EB",
+              borderRadius: 10,
+              padding: "12px 14px",
+              marginBottom: 16,
+            }}
+          >
+            <p
+              style={{
+                fontFamily: FONT,
+                fontSize: 11,
+                fontWeight: 700,
+                color: "#9CA3AF",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+                margin: "0 0 4px",
+              }}
+            >
+              Proyecto a eliminar
+            </p>
+            <p
+              style={{
+                fontFamily: FONT,
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#111827",
+                margin: 0,
+              }}
+            >
+              {proyecto.titulo}
+            </p>
+          </div>
+
+          {/* Advertencia */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              background: "#FEF2F2",
+              border: "1px solid #FECACA",
+              borderRadius: 10,
+              padding: "10px 14px",
+              marginBottom: 20,
+            }}
+          >
+            <AlertTriangle
+              size={15}
+              color="#DC2626"
+              style={{ flexShrink: 0, marginTop: 1 }}
+            />
+            <p
+              style={{
+                fontFamily: FONT,
+                fontSize: 12,
+                color: "#991B1B",
+                margin: 0,
+                lineHeight: 1.6,
+              }}
+            >
+              Se eliminarán permanentemente el proyecto y todos sus datos
+              asociados. Los estudiantes postulados serán notificados.
+            </p>
+          </div>
+
+          {/* Botones */}
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              style={{
+                fontFamily: FONT,
+                flex: 1,
+                height: 40,
+                borderRadius: 9,
+                background: "transparent",
+                border: "1px solid #E5E7EB",
+                color: "#6B7280",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "#F9FAFB")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "transparent")
+              }
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={isLoading}
+              style={{
+                fontFamily: FONT,
+                flex: 1,
+                height: 40,
+                borderRadius: 9,
+                background: "linear-gradient(135deg,#DC2626,#B91C1C)",
+                color: "#fff",
+                border: "none",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: isLoading ? "not-allowed" : "pointer",
+                opacity: isLoading ? 0.7 : 1,
+                transition: "all 0.2s",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading)
+                  e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2
+                    size={14}
+                    style={{ animation: "spin 1s linear infinite" }}
+                  />{" "}
+                  Eliminando...
+                </>
+              ) : (
+                <>
+                  <Trash2 size={14} /> Sí, eliminar
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Página principal ─────────────────────────────────────────
 export function MisProyectosPage() {
   const { proyectos, isLoading } = useMisProyectos();
   const navigate = useNavigate();
   const { eliminarProyecto, isLoading: eliminando } = useEliminarProyecto();
 
-  // Control del modal de edición
   const [proyectoEditando, setProyectoEditando] = useState(null);
+  const [proyectoEliminando, setProyectoEliminando] = useState(null); // ← nombre consistente
 
-  const handleEliminar = (id, titulo) => {
-    if (
-      window.confirm(
-        `¿Eliminar el proyecto "${titulo}"?\nEsta acción no se puede deshacer.`,
-      )
-    )
-      eliminarProyecto(id);
+  const handleConfirmarEliminar = () => {
+    eliminarProyecto(proyectoEliminando.id, {
+      onSuccess: () => setProyectoEliminando(null), // ← cierra el modal correcto
+    });
   };
 
   return (
@@ -506,11 +723,20 @@ export function MisProyectosPage() {
       titulo="Mis proyectos"
       accion={{ to: "/dashboard/mype/crear", label: "Nuevo proyecto" }}
     >
-      {/* Modal de edición — se monta sobre todo */}
       {proyectoEditando && (
         <ModalEditar
           proyecto={proyectoEditando}
           onClose={() => setProyectoEditando(null)}
+        />
+      )}
+
+      {/* ← proyecto correcto, no la función setter */}
+      {proyectoEliminando && (
+        <ModalEliminar
+          proyecto={proyectoEliminando}
+          onConfirm={handleConfirmarEliminar}
+          onClose={() => setProyectoEliminando(null)}
+          isLoading={eliminando}
         />
       )}
 
@@ -620,7 +846,6 @@ export function MisProyectosPage() {
                 (e.currentTarget.style.background = "transparent")
               }
             >
-              {/* Título + descripción */}
               <div style={{ minWidth: 0 }}>
                 <p
                   style={{
@@ -651,7 +876,6 @@ export function MisProyectosPage() {
                 </p>
               </div>
 
-              {/* Área */}
               <span
                 style={{
                   fontFamily: FONT,
@@ -688,7 +912,6 @@ export function MisProyectosPage() {
                 )}
               </span>
 
-              {/* Acciones */}
               <div
                 style={{
                   display: "flex",
@@ -697,7 +920,6 @@ export function MisProyectosPage() {
                   gap: 4,
                 }}
               >
-                {/* Botón dinámico: Postulantes o Revisar entregables */}
                 {p.estado === "EN_DESARROLLO" ? (
                   <Link
                     to={`/dashboard/mype/proyectos/${p.id}/entregables`}
@@ -760,7 +982,6 @@ export function MisProyectosPage() {
                   </button>
                 )}
 
-                {/* Editar — deshabilitado si está EN_DESARROLLO o COMPLETADO */}
                 <button
                   title={
                     p.estado === "EN_DESARROLLO" || p.estado === "COMPLETADO"
@@ -809,7 +1030,6 @@ export function MisProyectosPage() {
                   <Pencil size={13} />
                 </button>
 
-                {/* Eliminar — deshabilitado si está EN_DESARROLLO */}
                 <button
                   title={
                     p.estado === "EN_DESARROLLO"
@@ -817,7 +1037,7 @@ export function MisProyectosPage() {
                       : "Eliminar proyecto"
                   }
                   disabled={eliminando || p.estado === "EN_DESARROLLO"}
-                  onClick={() => handleEliminar(p.id, p.titulo)}
+                  onClick={() => setProyectoEliminando(p)} // ← abre el modal con el proyecto correcto
                   style={{
                     background: "transparent",
                     border: "1px solid transparent",

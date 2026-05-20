@@ -304,7 +304,7 @@ function BloqueProyecto({ proyecto, verTodos }) {
 
   // Usa el hook correcto según el modo
   const hookAceptadas = usePostulacionesAceptadas(proyecto.id);
-  const hookTodas = usePostulaciones(proyecto.id);
+  const hookTodas = usePostulaciones(verTodos ? proyecto.id : null);
 
   // En modo normal usa solo aceptadas, en modo completo usa todas
   const { postulaciones, isLoading } = verTodos ? hookTodas : hookAceptadas;
@@ -498,8 +498,6 @@ export function PostulantesPage() {
   const { proyectos, isLoading } = useMisProyectos();
   const [verTodos, setVerTodos] = useState(false);
 
-  // Filtra proyectos que pueden tener postulantes activos
-  // IMPORTANTE: incluye PENDIENTE y EN_DESARROLLO — excluye solo BORRADOR y COMPLETADO
   const proyectosActivos = proyectos.filter(
     (p) => p.estado === "PENDIENTE" || p.estado === "EN_DESARROLLO",
   );

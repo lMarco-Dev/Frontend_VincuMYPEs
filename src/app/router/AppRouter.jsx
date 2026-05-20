@@ -14,6 +14,7 @@ import { MypeDashboardPage } from "@pages/mype/MypeDashboardPage";
 import { CrearProyectoPage } from "@pages/mype/CrearProyectoPage";
 import { MisProyectosPage } from "@/pages/mype/MisProyectosPage";
 import { RevisionEntregablesPage } from "@/pages/mype/RevisionEntregablesPage";
+import { PostulantesPage } from "@/pages/mype/PostulantesPage";
 
 // Estudiante pages
 import EstudianteDashboardPage from "@pages/estudiante/EstudianteDashboardPage";
@@ -86,7 +87,7 @@ const router = createBrowserRouter([
     path: "/dashboard/mype/postulantes",
     element: (
       <ProtectedRoute rolesPermitidos={["MYPE"]}>
-        <MypeLayout titulo="Postulantes" />
+        <PostulantesPage></PostulantesPage>
       </ProtectedRoute>
     ),
   },
