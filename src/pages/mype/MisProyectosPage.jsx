@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import { AREA_SISTEMAS_LABELS } from "@/entities/proyecto/proyecto.constants";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   Users,
   Pencil,
@@ -12,6 +13,10 @@ import {
   X,
   Save,
   AlertTriangle,
+  Plus,
+  Briefcase,
+  Calendar,
+  FolderOpen,
 } from "lucide-react";
 import { EstadoBadge } from "./MypeDashboardPage";
 import {
@@ -21,30 +26,600 @@ import {
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
-const AREAS = [
-  { value: "DESARROLLO_WEB", label: "Desarrollo Web" },
-  { value: "DESARROLLO_MOVIL", label: "Desarrollo Móvil" },
-  { value: "DESARROLLO_SOFTWARE", label: "Desarrollo Software" },
-  { value: "BASE_DE_DATOS", label: "Base de Datos" },
-  { value: "ANALISIS_DATOS", label: "Análisis de Datos" },
-  { value: "SOPORTE_TI", label: "Soporte TI" },
-  { value: "OTRO", label: "Otro" },
-];
+/* ─── Animaciones ─── */
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
+});
 
-const hoy = () => new Date().toISOString().split("T")[0];
+/* ═══════════════════════════════════════════════
+   HERO BANNER ANIMADO PARA MIS PROYECTOS
+═══════════════════════════════════════════════ */
+const MisProyectosHeroBanner = ({ totalProyectos }) => {
+  const canvasRef = useRef(null);
+  const heroRef = useRef(null);
 
-function Sk() {
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const hero = heroRef.current;
+    if (!canvas || !hero) return;
+    const ctx = canvas.getContext("2d");
+    let W, H, animId;
+    const mouse = { x: -999, y: -999 };
+    const COLORS = ["rgba(27,111,232,", "rgba(6,182,212,", "rgba(245,158,11,"];
+
+    const resize = () => {
+      W = canvas.width = hero.offsetWidth;
+      H = canvas.height = hero.offsetHeight;
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(hero);
+
+    hero.addEventListener("mousemove", (e) => {
+      const r = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - r.left;
+      mouse.y = e.clientY - r.top;
+    });
+    hero.addEventListener("mouseleave", () => {
+      mouse.x = -999;
+      mouse.y = -999;
+    });
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.size = Math.random() * 2 + 0.8;
+        this.speedX = (Math.random() - 0.5) * 0.4;
+        this.speedY = (Math.random() - 0.5) * 0.4;
+        this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        this.alpha = Math.random() * 0.5 + 0.2;
+      }
+      update() {
+        const dx = this.x - mouse.x;
+        const dy = this.y - mouse.y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 100) {
+          this.x += dx * 0.02;
+          this.y += dy * 0.02;
+        }
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > W) this.speedX *= -1;
+        if (this.y < 0 || this.y > H) this.speedY *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color + this.alpha + ")";
+        ctx.fill();
+      }
+    }
+
+    const particles = Array.from({ length: 50 }, () => new Particle());
+
+    const animate = () => {
+      ctx.clearRect(0, 0, W, H);
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 80) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(27,111,232,${0.1 * (1 - dist / 80)})`;
+            ctx.stroke();
+          }
+        }
+      }
+      animId = requestAnimationFrame(animate);
+    };
+    animate();
+    return () => {
+      cancelAnimationFrame(animId);
+      ro.disconnect();
+    };
+  }, []);
+
   return (
-    <div
+    <motion.div
+      ref={heroRef}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       style={{
-        height: 60,
-        borderRadius: 10,
-        background: "#E5E7EB",
-        animation: "pulse 1.5s ease-in-out infinite",
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: "2rem",
+        background:
+          "linear-gradient(135deg, #0A1628 0%, #0F2A4A 60%, #1E3A5F 100%)",
+        padding: "40px 48px",
+        color: "#fff",
+        marginBottom: 28,
+        minHeight: 200,
+        display: "flex",
+        alignItems: "center",
       }}
-    />
+    >
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Luces Ambientales */}
+      <div
+        style={{
+          position: "absolute",
+          top: -50,
+          right: -50,
+          width: 250,
+          height: 250,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, #F59E0B, transparent 70%)",
+          opacity: 0.12,
+          filter: "blur(40px)",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: -50,
+          left: 100,
+          width: 200,
+          height: 200,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, #06B6D4, transparent 70%)",
+          opacity: 0.1,
+          filter: "blur(40px)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div
+        style={{
+          position: "relative",
+          zIndex: 10,
+          display: "flex",
+          justifyContent: "space-between",
+          width: "100%",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 24,
+        }}
+      >
+        <div style={{ maxWidth: 500 }}>
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              borderRadius: 20,
+              padding: "6px 14px",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "#fff",
+              marginBottom: 16,
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <FolderOpen size={12} style={{ color: "#06B6D4" }} /> Gestión de
+            Proyectos
+          </motion.div>
+          <h1
+            style={{
+              fontSize: "clamp(26px, 3vw, 36px)",
+              fontWeight: 800,
+              lineHeight: 1.1,
+              letterSpacing: "-0.02em",
+              marginBottom: 12,
+            }}
+          >
+            Tus <span style={{ color: "#F59E0B" }}>proyectos tecnológicos</span>
+          </h1>
+          <p
+            style={{
+              fontSize: 14,
+              color: "rgba(255,255,255,0.6)",
+              lineHeight: 1.6,
+              margin: 0,
+              fontWeight: 400,
+            }}
+          >
+            Administra, edita y da seguimiento a todas las iniciativas que has
+            publicado para conectar con el mejor talento.
+          </p>
+        </div>
+
+        <div
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: 16,
+            padding: "16px 28px",
+            textAlign: "center",
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 32,
+              fontWeight: 800,
+              color: "#06B6D4",
+              lineHeight: 1,
+            }}
+          >
+            {totalProyectos}
+          </div>
+          <div
+            style={{
+              fontSize: 10,
+              color: "rgba(255,255,255,0.5)",
+              textTransform: "uppercase",
+              letterSpacing: "1px",
+              marginTop: 4,
+              fontWeight: 600,
+            }}
+          >
+            Total Proyectos
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
-}
+};
+
+/* ═══════════════════════════════════════════════
+   TARJETA DE PROYECTO
+═══════════════════════════════════════════════ */
+const ProjectCard = ({
+  proyecto,
+  onEdit,
+  onDelete,
+  onViewPostulantes,
+  onReviewEntregables,
+}) => {
+  const areaLabel =
+    AREA_SISTEMAS_LABELS[proyecto.areaSistemas] ?? proyecto.areaSistemas;
+
+  const getAreaColor = (area) => {
+    const colors = {
+      DESARROLLO_WEB: { bg: "#EFF6FF", color: "#1B6FE8", border: "#BFDBFE" },
+      DESARROLLO_MOVIL: { bg: "#F0FDF4", color: "#059669", border: "#BBF7D0" },
+      DESARROLLO_SOFTWARE: {
+        bg: "#F5F3FF",
+        color: "#7C3AED",
+        border: "#DDD6FE",
+      },
+      BASE_DE_DATOS: { bg: "#FFFBEB", color: "#D97706", border: "#FDE68A" },
+      ANALISIS_DATOS: { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
+      SOPORTE_TI: { bg: "#F0F9FF", color: "#0284C7", border: "#BAE6FD" },
+      OTRO: { bg: "#F3F4F6", color: "#6B7280", border: "#E5E7EB" },
+    };
+    return colors[area] || colors.OTRO;
+  };
+
+  const areaStyle = getAreaColor(proyecto.areaSistemas);
+  const isEnDesarrollo = proyecto.estado === "EN_DESARROLLO";
+  const isCompletado = proyecto.estado === "COMPLETADO";
+  const isEditable = !isEnDesarrollo && !isCompletado;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4 }}
+      style={{
+        background: "#fff",
+        border: "1px solid #E5E7EB",
+        borderRadius: "1.5rem",
+        padding: 20,
+        transition: "all 0.3s ease",
+        position: "relative",
+        overflow: "hidden",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.08)";
+        e.currentTarget.style.borderColor = "#BFDBFE";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.boxShadow = "none";
+        e.currentTarget.style.borderColor = "#E5E7EB";
+      }}
+    >
+      {/* Esquina decorativa */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          width: 80,
+          height: 80,
+          background: `linear-gradient(135deg, transparent 50%, ${areaStyle.bg} 50%)`,
+          pointerEvents: "none",
+          borderRadius: "0 1.5rem 0 0",
+        }}
+      />
+
+      <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+        {/* Icono del área */}
+        <div
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: "1rem",
+            background: areaStyle.bg,
+            border: `1px solid ${areaStyle.border}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <Briefcase size={24} color={areaStyle.color} />
+        </div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Header con título y estado */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 8,
+              marginBottom: 8,
+            }}
+          >
+            <h3
+              style={{
+                fontSize: 15,
+                fontWeight: 700,
+                color: "#0F1F3D",
+                margin: 0,
+                lineHeight: 1.3,
+              }}
+            >
+              {proyecto.titulo}
+            </h3>
+            <EstadoBadge estado={proyecto.estado} />
+          </div>
+
+          {/* Descripción */}
+          <p
+            style={{
+              fontSize: 12,
+              color: "#6B7280",
+              margin: "0 0 12px 0",
+              lineHeight: 1.5,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {proyecto.descripcion}
+          </p>
+
+          {/* Metadata */}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 16,
+              marginBottom: 16,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 11,
+                color: "#9CA3AF",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  background: areaStyle.bg,
+                  color: areaStyle.color,
+                  padding: "2px 8px",
+                  borderRadius: 6,
+                  fontSize: 10,
+                  fontWeight: 600,
+                }}
+              >
+                {areaLabel}
+              </span>
+            </span>
+            {proyecto.fechaLimite && (
+              <span
+                style={{
+                  fontSize: 11,
+                  color: "#9CA3AF",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <Calendar size={12} />
+                Límite:{" "}
+                {new Date(proyecto.fechaLimite).toLocaleDateString("es-PE")}
+              </span>
+            )}
+            {proyecto.cupos && (
+              <span
+                style={{
+                  fontSize: 11,
+                  color: "#9CA3AF",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <Users size={12} />
+                {proyecto.cupos} cupo{proyecto.cupos > 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+
+          {/* Acciones */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 8,
+              borderTop: "1px solid #F3F4F6",
+              paddingTop: 14,
+            }}
+          >
+            {isEnDesarrollo ? (
+              <button
+                onClick={onReviewEntregables}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "6px 14px",
+                  borderRadius: "0.75rem",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#0891B2",
+                  background: "rgba(8,145,178,0.06)",
+                  border: "1px solid rgba(8,145,178,0.15)",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(8,145,178,0.12)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(8,145,178,0.06)";
+                }}
+              >
+                <FileText size={12} /> Revisar entregables
+              </button>
+            ) : (
+              <button
+                onClick={onViewPostulantes}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "6px 14px",
+                  borderRadius: "0.75rem",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#1B6FE8",
+                  background: "rgba(27,111,232,0.06)",
+                  border: "1px solid rgba(27,111,232,0.15)",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(27,111,232,0.12)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(27,111,232,0.06)";
+                }}
+              >
+                <Users size={12} /> Ver postulantes
+              </button>
+            )}
+
+            <button
+              onClick={onEdit}
+              disabled={!isEditable}
+              title={
+                !isEditable
+                  ? "No se puede editar en este estado"
+                  : "Editar proyecto"
+              }
+              style={{
+                background: "transparent",
+                border: "1px solid transparent",
+                borderRadius: "0.5rem",
+                padding: 6,
+                cursor: isEditable ? "pointer" : "not-allowed",
+                color: isEditable ? "#9CA3AF" : "#D1D5DB",
+                transition: "all 0.2s",
+                opacity: isEditable ? 1 : 0.4,
+              }}
+              onMouseEnter={(e) => {
+                if (isEditable) {
+                  e.currentTarget.style.color = "#D97706";
+                  e.currentTarget.style.background = "#FFFBEB";
+                  e.currentTarget.style.borderColor = "#FDE68A";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "#9CA3AF";
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.borderColor = "transparent";
+              }}
+            >
+              <Pencil size={14} />
+            </button>
+
+            <button
+              onClick={onDelete}
+              disabled={isEnDesarrollo}
+              title={
+                isEnDesarrollo
+                  ? "No se puede eliminar un proyecto con estudiantes asignados"
+                  : "Eliminar proyecto"
+              }
+              style={{
+                background: "transparent",
+                border: "1px solid transparent",
+                borderRadius: "0.5rem",
+                padding: 6,
+                cursor: isEnDesarrollo ? "not-allowed" : "pointer",
+                color: "#9CA3AF",
+                transition: "all 0.2s",
+                opacity: isEnDesarrollo ? 0.4 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!isEnDesarrollo) {
+                  e.currentTarget.style.color = "#DC2626";
+                  e.currentTarget.style.background = "#FEF2F2";
+                  e.currentTarget.style.borderColor = "#FECACA";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "#9CA3AF";
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.borderColor = "transparent";
+              }}
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 // ── Modal de edición ─────────────────────────────────────────
 function ModalEditar({ proyecto, onClose }) {
@@ -75,8 +650,8 @@ function ModalEditar({ proyecto, onClose }) {
 
   const inputSt = {
     width: "100%",
-    padding: "9px 12px",
-    borderRadius: 8,
+    padding: "12px 14px",
+    borderRadius: 12,
     fontFamily: FONT,
     fontSize: 13,
     border: "1px solid #E5E7EB",
@@ -87,38 +662,63 @@ function ModalEditar({ proyecto, onClose }) {
     boxSizing: "border-box",
   };
 
+  const labelSt = {
+    fontFamily: FONT,
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#6B7280",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+    display: "block",
+    marginBottom: 6,
+  };
+
+  const AREAS = [
+    { value: "DESARROLLO_WEB", label: "Desarrollo Web" },
+    { value: "DESARROLLO_MOVIL", label: "Desarrollo Móvil" },
+    { value: "DESARROLLO_SOFTWARE", label: "Desarrollo Software" },
+    { value: "BASE_DE_DATOS", label: "Base de Datos" },
+    { value: "ANALISIS_DATOS", label: "Análisis de Datos" },
+    { value: "SOPORTE_TI", label: "Soporte TI" },
+    { value: "OTRO", label: "Otro" },
+  ];
+
+  const hoy = () => new Date().toISOString().split("T")[0];
+
   return (
     <div
       style={{
         position: "fixed",
         inset: 0,
         zIndex: 50,
-        background: "rgba(15,42,74,0.55)",
-        backdropFilter: "blur(3px)",
+        background: "rgba(15,42,74,0.6)",
+        backdropFilter: "blur(4px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: 24,
       }}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
         style={{
           background: "#fff",
-          borderRadius: 16,
+          borderRadius: "2rem",
           width: "100%",
-          maxWidth: 560,
+          maxWidth: 600,
           maxHeight: "90vh",
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+          boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
         }}
       >
-        {/* Header */}
         <div
           style={{
-            padding: "16px 20px",
-            borderBottom: "0.5px solid #E5E7EB",
+            padding: "20px 24px",
+            background: "linear-gradient(135deg, #F8FAFC, #fff)",
+            borderBottom: "1px solid #E5E7EB",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -129,9 +729,9 @@ function ModalEditar({ proyecto, onClose }) {
             <h2
               style={{
                 fontFamily: FONT,
-                fontSize: 15,
-                fontWeight: 700,
-                color: "#111827",
+                fontSize: 18,
+                fontWeight: 800,
+                color: "#0F1F3D",
                 margin: 0,
               }}
             >
@@ -140,8 +740,8 @@ function ModalEditar({ proyecto, onClose }) {
             <p
               style={{
                 fontFamily: FONT,
-                fontSize: 11,
-                color: "#9CA3AF",
+                fontSize: 12,
+                color: "#6B7280",
                 margin: "2px 0 0",
               }}
             >
@@ -155,37 +755,25 @@ function ModalEditar({ proyecto, onClose }) {
               border: "none",
               cursor: "pointer",
               color: "#9CA3AF",
-              padding: 4,
-              borderRadius: 6,
+              padding: 6,
+              borderRadius: "0.5rem",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#374151")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#9CA3AF")}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#F3F4F6")}
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "transparent")
+            }
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
-        {/* Formulario */}
         <form
           onSubmit={handleSubmit}
-          style={{ flex: 1, overflowY: "auto", padding: 20 }}
+          style={{ flex: 1, overflowY: "auto", padding: 24 }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div>
-              <label
-                style={{
-                  fontFamily: FONT,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#6B7280",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  display: "block",
-                  marginBottom: 6,
-                }}
-              >
-                Título
-              </label>
+              <label style={labelSt}>Título del proyecto</label>
               <input
                 required
                 value={form.titulo}
@@ -197,20 +785,7 @@ function ModalEditar({ proyecto, onClose }) {
             </div>
 
             <div>
-              <label
-                style={{
-                  fontFamily: FONT,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#6B7280",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  display: "block",
-                  marginBottom: 6,
-                }}
-              >
-                Descripción del problema
-              </label>
+              <label style={labelSt}>Descripción del problema</label>
               <textarea
                 required
                 rows={3}
@@ -226,30 +801,15 @@ function ModalEditar({ proyecto, onClose }) {
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: 12,
+                gap: 14,
               }}
             >
               <div>
-                <label
-                  style={{
-                    fontFamily: FONT,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "#6B7280",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    display: "block",
-                    marginBottom: 6,
-                  }}
-                >
-                  Área de sistemas
-                </label>
+                <label style={labelSt}>Área de sistemas</label>
                 <select
                   value={form.areaSistemas}
                   onChange={(e) => handleChange("areaSistemas", e.target.value)}
                   style={{ ...inputSt, cursor: "pointer" }}
-                  onFocus={(e) => (e.target.style.borderColor = "#1B6FE8")}
-                  onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
                 >
                   {AREAS.map((a) => (
                     <option key={a.value} value={a.value}>
@@ -259,20 +819,7 @@ function ModalEditar({ proyecto, onClose }) {
                 </select>
               </div>
               <div>
-                <label
-                  style={{
-                    fontFamily: FONT,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "#6B7280",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    display: "block",
-                    marginBottom: 6,
-                  }}
-                >
-                  Cupos de estudiantes
-                </label>
+                <label style={labelSt}>Cupos</label>
                 <input
                   type="number"
                   min={1}
@@ -280,8 +827,6 @@ function ModalEditar({ proyecto, onClose }) {
                   value={form.cupos}
                   onChange={(e) => handleChange("cupos", e.target.value)}
                   style={inputSt}
-                  onFocus={(e) => (e.target.style.borderColor = "#1B6FE8")}
-                  onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
                 />
               </div>
             </div>
@@ -290,82 +835,37 @@ function ModalEditar({ proyecto, onClose }) {
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: 12,
+                gap: 14,
               }}
             >
               <div>
-                <label
-                  style={{
-                    fontFamily: FONT,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "#6B7280",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    display: "block",
-                    marginBottom: 6,
-                  }}
-                >
-                  Fecha de inicio
-                </label>
+                <label style={labelSt}>Fecha de inicio</label>
                 <input
                   type="date"
                   value={form.fechaInicio?.split("T")[0] ?? ""}
                   min={hoy()}
                   onChange={(e) => handleChange("fechaInicio", e.target.value)}
                   style={inputSt}
-                  onFocus={(e) => (e.target.style.borderColor = "#1B6FE8")}
-                  onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
                 />
               </div>
               <div>
-                <label
-                  style={{
-                    fontFamily: FONT,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "#6B7280",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    display: "block",
-                    marginBottom: 6,
-                  }}
-                >
-                  Fecha límite de entrega
-                </label>
+                <label style={labelSt}>Fecha límite</label>
                 <input
                   type="date"
                   value={form.fechaLimite?.split("T")[0] ?? ""}
                   min={form.fechaInicio || hoy()}
                   onChange={(e) => handleChange("fechaLimite", e.target.value)}
                   style={inputSt}
-                  onFocus={(e) => (e.target.style.borderColor = "#1B6FE8")}
-                  onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
                 />
               </div>
             </div>
 
             <div>
-              <label
-                style={{
-                  fontFamily: FONT,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#6B7280",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  display: "block",
-                  marginBottom: 6,
-                }}
-              >
-                Objetivo (opcional)
-              </label>
+              <label style={labelSt}>Objetivo (opcional)</label>
               <input
                 value={form.objetivo}
                 onChange={(e) => handleChange("objetivo", e.target.value)}
                 style={inputSt}
-                onFocus={(e) => (e.target.style.borderColor = "#1B6FE8")}
-                onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
               />
             </div>
 
@@ -377,25 +877,30 @@ function ModalEditar({ proyecto, onClose }) {
                   gap: 8,
                   background: "#FEF2F2",
                   border: "1px solid #FECACA",
-                  borderRadius: 8,
-                  padding: "10px 12px",
+                  borderRadius: 10,
+                  padding: "10px 14px",
                 }}
               >
-                <span style={{ fontSize: 13, color: "#DC2626" }}>{error}</span>
+                <AlertTriangle size={14} color="#DC2626" />
+                <span
+                  style={{ fontSize: 12, color: "#DC2626", fontWeight: 500 }}
+                >
+                  {error}
+                </span>
               </div>
             )}
           </div>
         </form>
 
-        {/* Footer */}
         <div
           style={{
-            padding: "14px 20px",
-            borderTop: "0.5px solid #E5E7EB",
+            padding: "16px 24px",
+            borderTop: "1px solid #E5E7EB",
             display: "flex",
             justifyContent: "flex-end",
-            gap: 10,
+            gap: 12,
             flexShrink: 0,
+            background: "#F8FAFC",
           }}
         >
           <button
@@ -403,16 +908,14 @@ function ModalEditar({ proyecto, onClose }) {
             disabled={isLoading}
             style={{
               fontFamily: FONT,
-              padding: "0 18px",
-              height: 38,
-              borderRadius: 8,
+              padding: "10px 20px",
+              borderRadius: 10,
               background: "transparent",
               border: "1px solid #E5E7EB",
               color: "#6B7280",
               fontSize: 13,
               fontWeight: 600,
               cursor: "pointer",
-              transition: "all 0.15s",
             }}
             onMouseEnter={(e) => (e.currentTarget.style.background = "#F9FAFB")}
             onMouseLeave={(e) =>
@@ -422,10 +925,10 @@ function ModalEditar({ proyecto, onClose }) {
             Cancelar
           </button>
           <button
-            onClick={(e) => {
-              e.currentTarget
-                .closest("div")
-                .previousSibling.dispatchEvent(
+            onClick={() => {
+              const formEl = document.querySelector("form");
+              if (formEl)
+                formEl.dispatchEvent(
                   new Event("submit", { cancelable: true, bubbles: true }),
                 );
             }}
@@ -434,34 +937,32 @@ function ModalEditar({ proyecto, onClose }) {
               fontFamily: FONT,
               display: "flex",
               alignItems: "center",
-              gap: 6,
-              padding: "0 18px",
-              height: 38,
-              borderRadius: 8,
-              background: "linear-gradient(135deg,#1B6FE8,#0E54C4)",
+              gap: 8,
+              padding: "10px 24px",
+              borderRadius: 10,
+              background: "linear-gradient(135deg, #1B6FE8, #0E54C4)",
               color: "#fff",
               border: "none",
               fontSize: 13,
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: isLoading ? "not-allowed" : "pointer",
               opacity: isLoading ? 0.7 : 1,
-              transition: "all 0.2s",
             }}
             onMouseEnter={(e) => {
-              if (!isLoading)
+              if (!isLoading) {
                 e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 14px rgba(27,111,232,0.3)";
+              }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "none";
             }}
           >
             {isLoading ? (
               <>
-                <Loader2
-                  size={14}
-                  style={{ animation: "spin 1s linear infinite" }}
-                />{" "}
-                Guardando...
+                <Loader2 size={14} className="animate-spin" /> Guardando...
               </>
             ) : (
               <>
@@ -470,7 +971,7 @@ function ModalEditar({ proyecto, onClose }) {
             )}
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -483,46 +984,47 @@ function ModalEliminar({ proyecto, onConfirm, onClose, isLoading }) {
         position: "fixed",
         inset: 0,
         zIndex: 50,
-        background: "rgba(15,42,74,0.55)",
-        backdropFilter: "blur(3px)",
+        background: "rgba(15,42,74,0.6)",
+        backdropFilter: "blur(4px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: 24,
       }}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
         style={{
           background: "#fff",
-          borderRadius: 16,
+          borderRadius: "2rem",
           width: "100%",
           maxWidth: 420,
-          boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+          boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
           overflow: "hidden",
         }}
       >
-        {/* Franja roja */}
         <div
           style={{
             height: 4,
-            background: "linear-gradient(90deg,#DC2626,#EF4444)",
+            background: "linear-gradient(90deg, #DC2626, #EF4444)",
           }}
         />
 
-        <div style={{ padding: "24px 24px 20px" }}>
+        <div style={{ padding: "28px 28px 24px" }}>
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: 14,
-              marginBottom: 14,
+              marginBottom: 20,
             }}
           >
             <div
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: 12,
+                width: 48,
+                height: 48,
+                borderRadius: "1rem",
                 flexShrink: 0,
                 background: "#FEF2F2",
                 border: "1px solid #FECACA",
@@ -531,15 +1033,15 @@ function ModalEliminar({ proyecto, onConfirm, onClose, isLoading }) {
                 justifyContent: "center",
               }}
             >
-              <Trash2 size={20} color="#DC2626" />
+              <Trash2 size={22} color="#DC2626" />
             </div>
             <div>
               <h3
                 style={{
                   fontFamily: FONT,
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: "#111827",
+                  fontSize: 18,
+                  fontWeight: 800,
+                  color: "#0F1F3D",
                   margin: 0,
                 }}
               >
@@ -558,20 +1060,19 @@ function ModalEliminar({ proyecto, onConfirm, onClose, isLoading }) {
             </div>
           </div>
 
-          {/* Nombre del proyecto */}
           <div
             style={{
               background: "#F9FAFB",
               border: "1px solid #E5E7EB",
-              borderRadius: 10,
-              padding: "12px 14px",
-              marginBottom: 16,
+              borderRadius: 12,
+              padding: "14px 16px",
+              marginBottom: 18,
             }}
           >
             <p
               style={{
                 fontFamily: FONT,
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: 700,
                 color: "#9CA3AF",
                 textTransform: "uppercase",
@@ -594,7 +1095,6 @@ function ModalEliminar({ proyecto, onConfirm, onClose, isLoading }) {
             </p>
           </div>
 
-          {/* Advertencia */}
           <div
             style={{
               display: "flex",
@@ -602,13 +1102,13 @@ function ModalEliminar({ proyecto, onConfirm, onClose, isLoading }) {
               gap: 10,
               background: "#FEF2F2",
               border: "1px solid #FECACA",
-              borderRadius: 10,
-              padding: "10px 14px",
-              marginBottom: 20,
+              borderRadius: 12,
+              padding: "12px 14px",
+              marginBottom: 24,
             }}
           >
             <AlertTriangle
-              size={15}
+              size={16}
               color="#DC2626"
               style={{ flexShrink: 0, marginTop: 1 }}
             />
@@ -618,7 +1118,7 @@ function ModalEliminar({ proyecto, onConfirm, onClose, isLoading }) {
                 fontSize: 12,
                 color: "#991B1B",
                 margin: 0,
-                lineHeight: 1.6,
+                lineHeight: 1.5,
               }}
             >
               Se eliminarán permanentemente el proyecto y todos sus datos
@@ -626,23 +1126,21 @@ function ModalEliminar({ proyecto, onConfirm, onClose, isLoading }) {
             </p>
           </div>
 
-          {/* Botones */}
-          <div style={{ display: "flex", gap: 10 }}>
+          <div style={{ display: "flex", gap: 12 }}>
             <button
               onClick={onClose}
               disabled={isLoading}
               style={{
                 fontFamily: FONT,
                 flex: 1,
-                height: 40,
-                borderRadius: 9,
+                height: 44,
+                borderRadius: 10,
                 background: "transparent",
                 border: "1px solid #E5E7EB",
                 color: "#6B7280",
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: "pointer",
-                transition: "all 0.15s",
               }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.background = "#F9FAFB")
@@ -659,36 +1157,35 @@ function ModalEliminar({ proyecto, onConfirm, onClose, isLoading }) {
               style={{
                 fontFamily: FONT,
                 flex: 1,
-                height: 40,
-                borderRadius: 9,
-                background: "linear-gradient(135deg,#DC2626,#B91C1C)",
+                height: 44,
+                borderRadius: 10,
+                background: "linear-gradient(135deg, #DC2626, #B91C1C)",
                 color: "#fff",
                 border: "none",
                 fontSize: 13,
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: isLoading ? "not-allowed" : "pointer",
                 opacity: isLoading ? 0.7 : 1,
-                transition: "all 0.2s",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 6,
+                gap: 8,
               }}
               onMouseEnter={(e) => {
-                if (!isLoading)
+                if (!isLoading) {
                   e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 14px rgba(220,38,38,0.3)";
+                }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
               {isLoading ? (
                 <>
-                  <Loader2
-                    size={14}
-                    style={{ animation: "spin 1s linear infinite" }}
-                  />{" "}
-                  Eliminando...
+                  <Loader2 size={14} className="animate-spin" /> Eliminando...
                 </>
               ) : (
                 <>
@@ -698,7 +1195,7 @@ function ModalEliminar({ proyecto, onConfirm, onClose, isLoading }) {
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -710,13 +1207,15 @@ export function MisProyectosPage() {
   const { eliminarProyecto, isLoading: eliminando } = useEliminarProyecto();
 
   const [proyectoEditando, setProyectoEditando] = useState(null);
-  const [proyectoEliminando, setProyectoEliminando] = useState(null); // ← nombre consistente
+  const [proyectoEliminando, setProyectoEliminando] = useState(null);
 
   const handleConfirmarEliminar = () => {
     eliminarProyecto(proyectoEliminando.id, {
-      onSuccess: () => setProyectoEliminando(null), // ← cierra el modal correcto
+      onSuccess: () => setProyectoEliminando(null),
     });
   };
+
+  const totalProyectos = proyectos?.length || 0;
 
   return (
     <MypeLayout
@@ -730,7 +1229,6 @@ export function MisProyectosPage() {
         />
       )}
 
-      {/* ← proyecto correcto, no la función setter */}
       {proyectoEliminando && (
         <ModalEliminar
           proyecto={proyectoEliminando}
@@ -740,345 +1238,171 @@ export function MisProyectosPage() {
         />
       )}
 
-      {isLoading ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {[1, 2, 3].map((i) => (
-            <Sk key={i} />
-          ))}
-        </div>
-      ) : proyectos.length === 0 ? (
-        <div
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        {/* Hero Banner */}
+        <MisProyectosHeroBanner totalProyectos={totalProyectos} />
+
+        {/* Botón de acción rápido */}
+        <motion.div
+          {...fadeUp(0.1)}
           style={{
-            textAlign: "center",
-            padding: "60px 24px",
-            border: "1px dashed #E5E7EB",
-            borderRadius: 12,
-            background: "#fff",
+            marginBottom: 28,
+            display: "flex",
+            justifyContent: "flex-end",
           }}
         >
-          <p
-            style={{
-              fontFamily: FONT,
-              fontSize: 14,
-              color: "#9CA3AF",
-              marginBottom: 16,
-            }}
-          >
-            Aún no has publicado ningún proyecto
-          </p>
-          <Link to="/dashboard/mype/crear">
+          <Link to="/dashboard/mype/crear" style={{ textDecoration: "none" }}>
             <button
               style={{
                 fontFamily: FONT,
-                padding: "0 20px",
-                height: 38,
-                borderRadius: 9,
-                background: "linear-gradient(135deg,#1B6FE8,#0E54C4)",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "10px 20px",
+                borderRadius: "0.75rem",
+                background: "linear-gradient(135deg, #1B6FE8, #0E54C4)",
                 color: "#fff",
                 border: "none",
                 fontSize: 13,
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: "pointer",
+                transition: "all 0.3s ease",
+                boxShadow: "0 4px 12px rgba(27,111,232,0.2)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px rgba(27,111,232,0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 12px rgba(27,111,232,0.2)";
               }}
             >
-              Publicar mi primer proyecto
+              <Plus size={16} /> Nuevo proyecto
             </button>
           </Link>
-        </div>
-      ) : (
-        <div
-          style={{
-            background: "#fff",
-            border: "0.5px solid #E5E7EB",
-            borderRadius: 12,
-            overflow: "hidden",
-          }}
-        >
-          {/* Cabecera */}
-          <div
+        </motion.div>
+
+        {/* Lista de proyectos */}
+        {isLoading ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                style={{
+                  height: 160,
+                  borderRadius: "1.5rem",
+                  background: "#E5E7EB",
+                  animation: "pulse 1.5s ease-in-out infinite",
+                }}
+              />
+            ))}
+          </div>
+        ) : totalProyectos === 0 ? (
+          <motion.div
+            {...fadeUp(0.15)}
             style={{
-              display: "grid",
-              gridTemplateColumns: "2fr 1.2fr 1fr 1fr 1.4fr",
-              gap: 12,
-              padding: "10px 20px",
-              background: "#F9FAFB",
-              borderBottom: "0.5px solid #E5E7EB",
+              textAlign: "center",
+              padding: "80px 40px",
+              border: "1px dashed #E5E7EB",
+              borderRadius: "2rem",
+              background: "#fff",
             }}
           >
-            {["Proyecto", "Área", "Estado", "Fecha límite", "Acciones"].map(
-              (h, i) => (
-                <span
-                  key={h}
-                  style={{
-                    fontFamily: FONT,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: "#9CA3AF",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    textAlign: i === 4 ? "right" : "left",
-                  }}
-                >
-                  {h}
-                </span>
-              ),
-            )}
-          </div>
-
-          {/* Filas */}
-          {proyectos.map((p, i) => (
             <div
-              key={p.id}
               style={{
-                display: "grid",
-                gridTemplateColumns: "2fr 1.2fr 1fr 1fr 1.4fr",
-                gap: 12,
-                padding: "12px 20px",
+                width: 80,
+                height: 80,
+                borderRadius: "2rem",
+                background: "#F3F4F6",
+                display: "flex",
                 alignItems: "center",
-                borderBottom:
-                  i < proyectos.length - 1 ? "0.5px solid #F3F4F6" : "none",
-                transition: "background 0.15s",
+                justifyContent: "center",
+                margin: "0 auto 20px",
               }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "#FAFAFA")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.background = "transparent")
-              }
             >
-              <div style={{ minWidth: 0 }}>
-                <p
-                  style={{
-                    fontFamily: FONT,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: "#111827",
-                    margin: 0,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {p.titulo}
-                </p>
-                <p
-                  style={{
-                    fontFamily: FONT,
-                    fontSize: 11,
-                    color: "#9CA3AF",
-                    margin: "2px 0 0",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {p.descripcion}
-                </p>
-              </div>
-
-              <span
-                style={{
-                  fontFamily: FONT,
-                  fontSize: 10,
-                  fontWeight: 600,
-                  background: "#F1F5F9",
-                  color: "#475569",
-                  border: "1px solid #E2E8F0",
-                  padding: "2px 8px",
-                  borderRadius: 6,
-                  display: "block",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {AREA_SISTEMAS_LABELS[p.areaSistemas] ?? p.areaSistemas}
-              </span>
-
-              <EstadoBadge estado={p.estado} />
-
-              <span
-                style={{
-                  fontFamily: FONT,
-                  fontSize: 12,
-                  color: "#6B7280",
-                  fontWeight: 500,
-                }}
-              >
-                {p.fechaLimite ? (
-                  new Date(p.fechaLimite).toLocaleDateString("es-PE")
-                ) : (
-                  <span style={{ color: "#D1D5DB" }}>—</span>
-                )}
-              </span>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-end",
-                  gap: 4,
-                }}
-              >
-                {p.estado === "EN_DESARROLLO" ? (
-                  <Link
-                    to={`/dashboard/mype/proyectos/${p.id}/entregables`}
-                    style={{
-                      fontFamily: FONT,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 5,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: "#0891B2",
-                      background: "rgba(8,145,178,0.06)",
-                      border: "1px solid rgba(8,145,178,0.15)",
-                      padding: "4px 10px",
-                      borderRadius: 7,
-                      textDecoration: "none",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(8,145,178,0.12)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(8,145,178,0.06)")
-                    }
-                  >
-                    <FileText size={12} /> Revisar
-                  </Link>
-                ) : (
-                  <button
-                    onClick={() =>
-                      navigate(`/dashboard/mype/postulantes?proyecto=${p.id}`)
-                    }
-                    style={{
-                      fontFamily: FONT,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 5,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: "#1B6FE8",
-                      background: "rgba(27,111,232,0.06)",
-                      border: "1px solid rgba(27,111,232,0.15)",
-                      padding: "4px 10px",
-                      borderRadius: 7,
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(27,111,232,0.12)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(27,111,232,0.06)")
-                    }
-                  >
-                    <Users size={12} /> Postulantes
-                  </button>
-                )}
-
-                <button
-                  title={
-                    p.estado === "EN_DESARROLLO" || p.estado === "COMPLETADO"
-                      ? "No se puede editar en este estado"
-                      : "Editar proyecto"
-                  }
-                  disabled={
-                    p.estado === "EN_DESARROLLO" || p.estado === "COMPLETADO"
-                  }
-                  onClick={() => setProyectoEditando(p)}
-                  style={{
-                    background: "transparent",
-                    border: "1px solid transparent",
-                    borderRadius: 7,
-                    padding: 5,
-                    cursor:
-                      p.estado === "EN_DESARROLLO" || p.estado === "COMPLETADO"
-                        ? "not-allowed"
-                        : "pointer",
-                    color:
-                      p.estado === "EN_DESARROLLO" || p.estado === "COMPLETADO"
-                        ? "#D1D5DB"
-                        : "#9CA3AF",
-                    transition: "all 0.2s",
-                    opacity:
-                      p.estado === "EN_DESARROLLO" || p.estado === "COMPLETADO"
-                        ? 0.4
-                        : 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (
-                      p.estado !== "EN_DESARROLLO" &&
-                      p.estado !== "COMPLETADO"
-                    ) {
-                      e.currentTarget.style.color = "#D97706";
-                      e.currentTarget.style.background = "#FFFBEB";
-                      e.currentTarget.style.borderColor = "#FDE68A";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "#9CA3AF";
-                    e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.borderColor = "transparent";
-                  }}
-                >
-                  <Pencil size={13} />
-                </button>
-
-                <button
-                  title={
-                    p.estado === "EN_DESARROLLO"
-                      ? "No se puede eliminar un proyecto con estudiantes asignados"
-                      : "Eliminar proyecto"
-                  }
-                  disabled={eliminando || p.estado === "EN_DESARROLLO"}
-                  onClick={() => setProyectoEliminando(p)} // ← abre el modal con el proyecto correcto
-                  style={{
-                    background: "transparent",
-                    border: "1px solid transparent",
-                    borderRadius: 7,
-                    padding: 5,
-                    cursor:
-                      eliminando || p.estado === "EN_DESARROLLO"
-                        ? "not-allowed"
-                        : "pointer",
-                    color: "#9CA3AF",
-                    transition: "all 0.2s",
-                    opacity:
-                      eliminando || p.estado === "EN_DESARROLLO" ? 0.4 : 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!eliminando && p.estado !== "EN_DESARROLLO") {
-                      e.currentTarget.style.color = "#DC2626";
-                      e.currentTarget.style.background = "#FEF2F2";
-                      e.currentTarget.style.borderColor = "#FECACA";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "#9CA3AF";
-                    e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.borderColor = "transparent";
-                  }}
-                >
-                  {eliminando ? (
-                    <Loader2
-                      size={13}
-                      style={{ animation: "spin 1s linear infinite" }}
-                    />
-                  ) : (
-                    <Trash2 size={13} />
-                  )}
-                </button>
-              </div>
+              <FolderOpen size={40} color="#D1D5DB" />
             </div>
-          ))}
-        </div>
-      )}
+            <h3
+              style={{
+                fontFamily: FONT,
+                fontSize: 18,
+                fontWeight: 800,
+                color: "#0F1F3D",
+                marginBottom: 8,
+              }}
+            >
+              Aún no has publicado proyectos
+            </h3>
+            <p
+              style={{
+                fontFamily: FONT,
+                fontSize: 13,
+                color: "#9CA3AF",
+                maxWidth: 400,
+                margin: "0 auto 20px",
+              }}
+            >
+              Publica tu primer proyecto y comienza a conectar con talento
+              universitario.
+            </p>
+            <Link to="/dashboard/mype/crear">
+              <button
+                style={{
+                  fontFamily: FONT,
+                  padding: "10px 24px",
+                  borderRadius: "0.75rem",
+                  background: "linear-gradient(135deg, #1B6FE8, #0E54C4)",
+                  color: "#fff",
+                  border: "none",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Publicar mi primer proyecto
+              </button>
+            </Link>
+          </motion.div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {proyectos.map((proyecto) => (
+              <ProjectCard
+                key={proyecto.id}
+                proyecto={proyecto}
+                onEdit={() => setProyectoEditando(proyecto)}
+                onDelete={() => setProyectoEliminando(proyecto)}
+                onViewPostulantes={() =>
+                  navigate(
+                    `/dashboard/mype/postulantes?proyecto=${proyecto.id}`,
+                  )
+                }
+                onReviewEntregables={() =>
+                  navigate(
+                    `/dashboard/mype/proyectos/${proyecto.id}/entregables`,
+                  )
+                }
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </MypeLayout>
   );
 }
