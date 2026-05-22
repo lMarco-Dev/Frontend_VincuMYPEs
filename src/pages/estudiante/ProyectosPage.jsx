@@ -883,7 +883,7 @@ const ProyectosPage = () => {
   };
 
   return (
-    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", background: '#f8fafc', minHeight: '100vh', padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
+    <div style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", background: '#fcfaf8', minHeight: '100vh', padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
 
       {/* Top Bar */}
       <motion.div {...fadeUp(0)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
