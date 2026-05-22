@@ -29,6 +29,7 @@ const PHONE_RE   = /^9\d{8}$/;
 const CODIGO_RE  = /^N00\d{6}$/i;
 const PASS_RE    = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-_#])[A-Za-z\d@$!%*?&\-_#]{8,}$/;
 
+
 const UNIVERSIDADES = [
   "Universidad Privada del Norte (UPN)" 
 ];
@@ -96,7 +97,7 @@ function PasswordStrength({ value = "" }) {
 // ── Input field wrapper ───────────────────────────────────────────────────────
 function Field({ label, icon: Icon, error, rightEl, hint, children }) {
   return (
-    <div>
+    <div style={{ paddingBottom: error?.message ? 20 : 14 }}>
       <label style={{
         display: "block", fontSize: 11, fontWeight: 700,
         color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.07em",
@@ -204,7 +205,7 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
       dni: "", nombres: "", apellidoPaterno: "", apellidoMaterno: "",
       email: "", telefono: "", password: "", confirmPassword: "",
       universidad: "", carrera: "", codigoEstudiante: "",
-      nombre: "", nombreComercial: "", ruc: "", rubro: "",
+      nombre: "", nombreComercial: "", ruc: "", rubro: "", direccion: "",
     }
   });
 
@@ -234,8 +235,8 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
 
   // ── LÓGICA DE VALIDACIÓN REACTIVA POR PASO ──
   const isStep0Valid = esEstudiante 
-    ? (dniConsultado && formValues.nombres && formValues.apellidoPaterno && formValues.apellidoMaterno)
-    : (rucConsultado && formValues.nombre && formValues.nombreComercial);
+    ? (formValues.dni?.length === 8 && formValues.nombres && formValues.apellidoPaterno && formValues.apellidoMaterno)
+    : (formValues.ruc?.length === 11 && formValues.nombre && formValues.nombreComercial && formValues.direccion);
 
   const isStep1Valid = EMAIL_RE.test(formValues.email) && 
                        PASS_RE.test(formValues.password) && 
@@ -295,7 +296,6 @@ const isNextDisabled = !isCurrentStepValid || isLoading;
     }, 1000);
   };
 
-  // ── FUNCIÓN PARA CONSULTAR DNI ──
 const handleConsultarDni = async () => {
   if (dniValue.length !== 8 || dniCooldown) return;
   
@@ -313,6 +313,9 @@ const handleConsultarDni = async () => {
   } else {
     setDniConsultado(false);
     setDniData(null);
+    setValue("nombres", "", { shouldValidate: false });
+    setValue("apellidoPaterno", "", { shouldValidate: false });
+    setValue("apellidoMaterno", "", { shouldValidate: false });
   }
 };
 
@@ -329,7 +332,8 @@ const handleConsultarRuc = async () => {
     setRucData(data);
     setRucConsultado(true);
     setValue("nombre", data.razonSocial, { shouldValidate: true });
-    setValue("nombreComercial", data.direccion, { shouldValidate: true });
+    setValue("nombreComercial", data.razonSocial, { shouldValidate: false });
+    setValue("direccion", data.direccion, { shouldValidate: true });
   } else {
     setRucConsultado(false);
     setRucData(null);
@@ -354,6 +358,7 @@ const handleConsultarRuc = async () => {
       setRucData(null);
       setValue("nombre", "", { shouldValidate: false });
       setValue("nombreComercial", "", { shouldValidate: false });
+      setValue("direccion", "", { shouldValidate: false });
     }
   }, [rucValue, rucConsultado, setValue]);
 
@@ -456,14 +461,22 @@ const handleConsultarRuc = async () => {
     </button>
   );
 
-  const onChangeStrip = (e) => {
-    e.target.value = stripXSS(e.target.value).toUpperCase();
-  };
+  const onChangeNombre = (e) => {
+  e.target.value = e.target.value
+    .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "")
+    .toUpperCase();
+};
+
+const onChangeApellido = (e) => {
+  e.target.value = e.target.value
+    .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/g, "")
+    .toUpperCase();
+};
 
   const isDniSearchBlocked = dniCooldown || isLoadingDni;
   const isRucSearchBlocked = rucCooldown || isLoadingRuc;
-  const nombresBloqueados = true;
-  const empresaBloqueados = true;
+  const nombresBloqueados = false;
+  const empresaBloqueados = false;
 
   return (
     <>
@@ -609,7 +622,6 @@ const handleConsultarRuc = async () => {
                     )}
                   </Field>
 
-                  {/* NOMBRES - SIEMPRE BLOQUEADO PARA EDICIÓN MANUAL */}
                   <div style={{ marginTop: dniConsultado ? 12 : 0 }}>
                     <Field 
                       label="Nombres" 
@@ -617,22 +629,33 @@ const handleConsultarRuc = async () => {
                       error={errors.nombres}
                     >
                       <input
-                        type="text" maxLength={40} disabled={nombresBloqueados} readOnly
+                        type="text" maxLength={40}
                         className={`rf-input${errors.nombres ? " err" : ""}`}
                         style={{
                           ...inputStyle(!!errors.nombres),
-                          background: dniConsultado ? "#F0FDF4" : "#F3F4F6",
-                          borderColor: dniConsultado ? "#86EFAC" : "#D1D5DB",
-                          color: dniConsultado ? "#065F46" : "#9CA3AF",
-                          cursor: "not-allowed", opacity: dniConsultado ? 0.9 : 0.7
+                          background: dniConsultado ? "#F0FDF4" : "#F9FAFB",
+                          borderColor: dniConsultado ? "#86EFAC" : "#E5E7EB",
+                          color: "#111827",
                         }}
-                        placeholder={dniConsultado ? "" : "Autocompletado por DNI"}
+                        placeholder="Autocompletado por DNI o escribe aquí"
                         {...register("nombres", {
                           required: "Los nombres son obligatorios",
                           minLength: { value: 2, message: "Mínimo 2 caracteres" },
                           maxLength: { value: 40, message: "Máximo 40 caracteres" },
-                          validate: { soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(v) || "Solo letras y espacios" },
-                          onChange: onChangeStrip,
+                          validate: {
+                            soloLetras: (v) =>
+                              /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(v) || "Solo se permiten letras",
+                            sinEspaciosExcesivos: (v) =>
+                              (v.trim().split(/\s+/).length <= 4) || "Máximo 4 nombres",
+                            sinEspaciosBordes: (v) =>
+                              v.trim() === v || "No debe empezar ni terminar con espacios",
+                            nombreReal: (v) => {
+                              const palabras = v.trim().split(/\s+/);
+                              const patronValido = /^[bcdfghjklmnñpqrstvwxyz]*[aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2}([aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2})*[aeiouáéíóúü]?$/i;
+                              return palabras.every(p => p.length >= 2 && patronValido.test(p)) || "Ingresa un nombre real";
+                            },
+                          },
+                          onChange: onChangeNombre,
                         })}
                       />
                     </Field>
@@ -641,44 +664,60 @@ const handleConsultarRuc = async () => {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <Field label="Apellido Paterno" icon={User} error={errors.apellidoPaterno}>
                       <input
-                        type="text" maxLength={40} disabled={nombresBloqueados} readOnly
+                        type="text" maxLength={40}
                         className={`rf-input${errors.apellidoPaterno ? " err" : ""}`}
                         style={{
                           ...inputStyle(!!errors.apellidoPaterno),
-                          background: dniConsultado ? "#F0FDF4" : "#F3F4F6",
-                          borderColor: dniConsultado ? "#86EFAC" : "#D1D5DB",
-                          color: dniConsultado ? "#065F46" : "#9CA3AF",
-                          cursor: "not-allowed", opacity: dniConsultado ? 0.9 : 0.7
+                          background: dniConsultado ? "#F0FDF4" : "#F9FAFB",
+                          borderColor: dniConsultado ? "#86EFAC" : "#E5E7EB",
+                          color: "#111827",
                         }}
-                        placeholder={dniConsultado ? "" : "Autocompletado"}
+                        placeholder="Autocompletado o escribe aquí"
                         {...register("apellidoPaterno", {
                           required: "El apellido paterno es obligatorio",
                           minLength: { value: 2, message: "Mínimo 2 caracteres" },
                           maxLength: { value: 40, message: "Máximo 40 caracteres" },
-                          validate: { soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/.test(v) || "Solo letras" },
-                          onChange: onChangeStrip,
+                          validate: {
+                            soloLetras: (v) =>
+                              /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/.test(v) || "Solo letras, sin espacios",
+                            sinEspacios: (v) =>
+                              !/\s/.test(v) || "El apellido no debe contener espacios",
+                            apellidoReal: (v) => {
+                              const patron = /^[bcdfghjklmnñpqrstvwxyz]*[aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2}([aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2})*[aeiouáéíóúü]?$/i;
+                              return (v.length >= 2 && patron.test(v)) || "Ingresa un apellido real";
+                            },
+                          },
+                          onChange: onChangeApellido,
                         })}
                       />
                     </Field>
 
                     <Field label="Apellido Materno" icon={User} error={errors.apellidoMaterno}>
                       <input
-                        type="text" maxLength={40} disabled={nombresBloqueados} readOnly
+                        type="text" maxLength={40}
                         className={`rf-input${errors.apellidoMaterno ? " err" : ""}`}
                         style={{
                           ...inputStyle(!!errors.apellidoMaterno),
-                          background: dniConsultado ? "#F0FDF4" : "#F3F4F6",
-                          borderColor: dniConsultado ? "#86EFAC" : "#D1D5DB",
-                          color: dniConsultado ? "#065F46" : "#9CA3AF",
-                          cursor: "not-allowed", opacity: dniConsultado ? 0.9 : 0.7
+                          background: dniConsultado ? "#F0FDF4" : "#F9FAFB",
+                          borderColor: dniConsultado ? "#86EFAC" : "#E5E7EB",
+                          color: "#111827",
                         }}
-                        placeholder={dniConsultado ? "" : "Autocompletado"}
+                        placeholder="Autocompletado o escribe aquí"
                         {...register("apellidoMaterno", {
                           required: "El apellido materno es obligatorio",
                           minLength: { value: 2, message: "Mínimo 2 caracteres" },
                           maxLength: { value: 40, message: "Máximo 40 caracteres" },
-                          validate: { soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/.test(v) || "Solo letras" },
-                          onChange: onChangeStrip,
+                          validate: {
+                            soloLetras: (v) =>
+                              /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/.test(v) || "Solo letras, sin espacios",
+                            sinEspacios: (v) =>
+                              !/\s/.test(v) || "El apellido no debe contener espacios",
+                            apellidoReal: (v) => {
+                              const patron = /^[bcdfghjklmnñpqrstvwxyz]*[aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2}([aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2})*[aeiouáéíóúü]?$/i;
+                              return (v.length >= 2 && patron.test(v)) || "Ingresa un apellido real";
+                            },
+                          },
+                          onChange: onChangeApellido,
                         })}
                       />
                     </Field>
@@ -686,133 +725,160 @@ const handleConsultarRuc = async () => {
                 </>
               ) : (
                 <>
-                  {/* CAMPO RUC CON BOTÓN DE CONSULTA */}
-                  <Field 
-                    label="RUC" 
-                    icon={FileText} 
-                    error={errors.ruc || (rucError ? { message: rucError } : null)}
-                    hint={rucConsultado ? "" : "Ingresa tu RUC y haz clic en buscar"}
-                  >
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <div style={{ position: "relative", flex: 1 }}>
-                        <input
-                          type="text" inputMode="numeric" maxLength={11} placeholder="20123456789"
-                          className={`rf-input${errors.ruc || rucError ? " err" : ""} ${rucConsultado ? " dni-input-success" : ""}`}
-                          style={{ ...inputStyle(!!errors.ruc || !!rucError), paddingRight: 16 }}
-                          {...register("ruc", {
-                            required: "El RUC es obligatorio",
-                            minLength: { value: 11, message: "El RUC debe tener 11 dígitos" },
-                            maxLength: { value: 11, message: "El RUC debe tener 11 dígitos" },
-                            validate: { formato: (v) => RUC_RE.test(v) || "Debe empezar con 10 o 20" },
-                            onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 11); },
-                          })}
-                        />
-                      </div>
-                      <button
-                        type="button" onClick={handleConsultarRuc}
-                        disabled={rucValue.length !== 11 || isRucSearchBlocked}
-                        style={{
-                          width: 48, height: 48, borderRadius: 10,
-                          border: `1.5px solid ${rucConsultado ? "#86EFAC" : rucCooldown ? "#FCD34D" : "#E5E7EB"}`,
-                          background: rucConsultado ? "#F0FDF4" : rucCooldown ? "#FFFBEB" : "white",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          cursor: (rucValue.length === 11 && !isRucSearchBlocked) ? "pointer" : "not-allowed",
-                          opacity: (rucValue.length === 11 && !isRucSearchBlocked) ? 1 : 0.5,
-                          transition: "all 0.2s ease",
-                          color: rucConsultado ? "#22C55E" : rucCooldown ? "#D97706" : "#9CA3AF",
-                          position: "relative",
-                        }}
-                        className="dni-button"
-                        title={rucCooldown ? `Espera ${rucCooldownTime}s` : rucConsultado ? "RUC ya consultado" : "Consultar RUC"}
-                      >
-                        {isLoadingRuc ? (
-                          <Loader2 size={18} className="animate-spin" />
-                        ) : rucCooldown ? (
-                          <>
-                            <Clock size={18} />
-                            <span style={{
-                              position: "absolute", top: -8, right: -8,
-                              background: "#F97316", color: "white", borderRadius: "50%",
-                              width: 20, height: 20, fontSize: 10, fontWeight: 700,
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              fontFamily: "inherit",
-                            }}>
-                              {rucCooldownTime}
-                            </span>
-                          </>
-                        ) : rucConsultado ? (
-                          <CheckCircle2 size={18} />
-                        ) : (
-                          <Search size={18} />
-                        )}
-                      </button>
-                    </div>
-                    {rucConsultado && rucData && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-                        style={{ fontSize: 12, color: "#22C55E", marginTop: 6, display: "flex", alignItems: "center", gap: 4, fontWeight: 500, fontFamily: "inherit" }}
-                      >
-                        <CheckCircle2 size={12} /> RUC encontrado y verificado
-                      </motion.p>
-                    )}
-                  </Field>
-
-                  {/* Razón Social - SIEMPRE BLOQUEADO PARA EDICIÓN MANUAL */}
-                  <div style={{ marginTop: rucConsultado ? 12 : 0 }}>
-                    <Field 
-                      label="Razón Social" 
-                      icon={Building2} 
-                      error={errors.nombre}
-                    >
+                {/* CAMPO RUC CON BOTÓN DE CONSULTA */}
+                <Field
+                  label="RUC"
+                  icon={FileText}
+                  error={errors.ruc || (rucError ? { message: rucError } : null)}
+                  hint={rucConsultado ? "" : "Ingresa tu RUC y haz clic en buscar"}
+                >
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <div style={{ position: "relative", flex: 1 }}>
                       <input
-                        type="text" maxLength={MAX} disabled={empresaBloqueados} readOnly
-                        className={`rf-input${errors.nombre ? " err" : ""}`}
-                        style={{
-                          ...inputStyle(!!errors.nombre),
-                          background: rucConsultado ? "#F0FDF4" : "#F3F4F6",
-                          borderColor: rucConsultado ? "#86EFAC" : "#D1D5DB",
-                          color: rucConsultado ? "#065F46" : "#9CA3AF",
-                          cursor: "not-allowed", opacity: rucConsultado ? 0.9 : 0.7
-                        }}
-                        placeholder={rucConsultado ? "" : "Autocompletado por RUC"}
-                        {...register("nombre", {
-                          required: "La razón social es obligatoria",
-                          minLength: { value: 2, message: "Mínimo 2 caracteres" },
-                          maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` },
-                          validate: { noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos" },
-                          onChange: onChangeStrip,
+                        type="text" inputMode="numeric" maxLength={11} placeholder="20123456789"
+                        className={`rf-input${errors.ruc || rucError ? " err" : ""} ${rucConsultado ? " dni-input-success" : ""}`}
+                        style={{ ...inputStyle(!!errors.ruc || !!rucError), paddingRight: 16 }}
+                        {...register("ruc", {
+                          required: "El RUC es obligatorio",
+                          minLength: { value: 11, message: "El RUC debe tener 11 dígitos" },
+                          maxLength: { value: 11, message: "El RUC debe tener 11 dígitos" },
+                          validate: { formato: (v) => RUC_RE.test(v) || "Debe empezar con 10 o 20" },
+                          onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 11); },
                         })}
                       />
-                    </Field>
-                  </div>
-                  
-                  {/* Dirección - SIEMPRE BLOQUEADO PARA EDICIÓN MANUAL */}
-                  <Field 
-                    label="Dirección" 
-                    icon={Building2} 
-                    error={errors.nombreComercial}
-                  >
-                    <input
-                      type="text" maxLength={MAX} disabled={empresaBloqueados} readOnly
-                      className={`rf-input${errors.nombreComercial ? " err" : ""}`}
+                    </div>
+                    <button
+                      type="button" onClick={handleConsultarRuc}
+                      disabled={rucValue.length !== 11 || isRucSearchBlocked}
                       style={{
-                        ...inputStyle(!!errors.nombreComercial),
-                        background: rucConsultado ? "#F0FDF4" : "#F3F4F6",
-                        borderColor: rucConsultado ? "#86EFAC" : "#D1D5DB",
-                        color: rucConsultado ? "#065F46" : "#9CA3AF",
-                        cursor: "not-allowed", opacity: rucConsultado ? 0.9 : 0.7
+                        width: 48, height: 48, borderRadius: 10,
+                        border: `1.5px solid ${rucConsultado ? "#86EFAC" : rucCooldown ? "#FCD34D" : "#E5E7EB"}`,
+                        background: rucConsultado ? "#F0FDF4" : rucCooldown ? "#FFFBEB" : "white",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        cursor: (rucValue.length === 11 && !isRucSearchBlocked) ? "pointer" : "not-allowed",
+                        opacity: (rucValue.length === 11 && !isRucSearchBlocked) ? 1 : 0.5,
+                        transition: "all 0.2s ease",
+                        color: rucConsultado ? "#22C55E" : rucCooldown ? "#D97706" : "#9CA3AF",
+                        position: "relative",
                       }}
-                      placeholder={rucConsultado ? "" : "Autocompletado por RUC"}
-                      {...register("nombreComercial", {
-                        required: "El nombre comercial es obligatorio",
-                        minLength: { value: 2, message: "Mínimo 2 caracteres" },
-                        maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` },
-                        validate: { noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos" },
-                        onChange: onChangeStrip,
-                      })}
-                    />
-                  </Field>
-                </>
+                      className="dni-button"
+                      title={rucCooldown ? `Espera ${rucCooldownTime}s` : rucConsultado ? "RUC ya consultado" : "Consultar RUC"}
+                    >
+                      {isLoadingRuc ? (
+                        <Loader2 size={18} className="animate-spin" />
+                      ) : rucCooldown ? (
+                        <>
+                          <Clock size={18} />
+                          <span style={{
+                            position: "absolute", top: -8, right: -8,
+                            background: "#F97316", color: "white", borderRadius: "50%",
+                            width: 20, height: 20, fontSize: 10, fontWeight: 700,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontFamily: "inherit",
+                          }}>
+                            {rucCooldownTime}
+                          </span>
+                        </>
+                      ) : rucConsultado ? (
+                        <CheckCircle2 size={18} />
+                      ) : (
+                        <Search size={18} />
+                      )}
+                    </button>
+                  </div>
+                  {rucConsultado && rucData && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+                      style={{ fontSize: 12, color: "#22C55E", marginTop: 6, display: "flex", alignItems: "center", gap: 4, fontWeight: 500, fontFamily: "inherit" }}
+                    >
+                      <CheckCircle2 size={12} /> RUC encontrado y verificado
+                    </motion.p>
+                  )}
+                </Field>
+
+                {/* Razón Social - editable, precargado por RUC */}
+                <Field label="Razón Social" icon={Building2} error={errors.nombre}>
+                  <input
+                    type="text" maxLength={100}
+                    className={`rf-input${errors.nombre ? " err" : ""}`}
+                    style={{
+                      ...inputStyle(!!errors.nombre),
+                      background: rucConsultado ? "#F0FDF4" : "#F9FAFB",
+                      borderColor: rucConsultado ? "#86EFAC" : "#E5E7EB",
+                      color: "#111827",
+                    }}
+                    placeholder="Autocompletado por RUC o escribe aquí"
+                    {...register("nombre", {
+                      required: "La razón social es obligatoria",
+                      minLength: { value: 2, message: "Mínimo 2 caracteres" },
+                      maxLength: { value: 100, message: "Máximo 100 caracteres" },
+                      validate: {
+                        soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,\-]+$/.test(v.trim()) || "Solo letras, puntos y comas",
+                        sinEspaciosBordes: (v) => v.trim() === v || "Sin espacios al inicio o final",
+                      },
+                      onChange: (e) => {
+                        e.target.value = e.target.value
+                          .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,\-]/g, "")
+                          .toUpperCase();
+                      },
+                    })}
+                  />
+                </Field>
+
+                {/* Nombre Comercial - editable, ingreso manual */}
+                <Field label="Nombre Comercial" icon={Building2} error={errors.nombreComercial}
+                  hint="Nombre que verán los usuarios en la plataforma">
+                  <input
+                    type="text" maxLength={50}
+                    className={`rf-input${errors.nombreComercial ? " err" : ""}`}
+                    style={inputStyle(!!errors.nombreComercial)}
+                    placeholder="Ej: Restaurante El Sabor"
+                    {...register("nombreComercial", {
+                      required: "El nombre comercial es obligatorio",
+                      minLength: { value: 2, message: "Mínimo 2 caracteres" },
+                      maxLength: { value: 50, message: "Máximo 50 caracteres" },
+                      validate: {
+                        soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,\-]+$/.test(v.trim()) || "Solo letras, puntos y comas",
+                        sinEspaciosBordes: (v) => v.trim() === v || "Sin espacios al inicio o final",
+                      },
+                      onChange: (e) => {
+                        e.target.value = e.target.value
+                          .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,\-]/g, "")
+                          .toUpperCase();
+                      },
+                    })}
+                  />
+                </Field>
+
+                {/* Dirección - editable, precargado por RUC */}
+                <Field label="Dirección" icon={Building2} error={errors.direccion}>
+                  <input
+                    type="text" maxLength={100}
+                    className={`rf-input${errors.direccion ? " err" : ""}`}
+                    style={{
+                      ...inputStyle(!!errors.direccion),
+                      background: rucConsultado ? "#F0FDF4" : "#F9FAFB",
+                      borderColor: rucConsultado ? "#86EFAC" : "#E5E7EB",
+                      color: "#111827",
+                    }}
+                    placeholder="Autocompletado por RUC o escribe aquí"
+                    {...register("direccion", {
+                      required: "La dirección es obligatoria",
+                      minLength: { value: 5, message: "Mínimo 5 caracteres" },
+                      maxLength: { value: 100, message: "Máximo 100 caracteres" },
+                      validate: {
+                        soloLetrasYNumeros: (v) => /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.,\-]+$/.test(v.trim()) || "Solo letras, números, puntos y comas",
+                        sinEspaciosBordes: (v) => v.trim() === v || "Sin espacios al inicio o final",
+                      },
+                      onChange: (e) => {
+                        e.target.value = e.target.value
+                          .replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.,\-]/g, "")
+                          .toUpperCase();
+                      },
+                    })}
+                  />
+                </Field>
+              </>
               )}
             </motion.div>
           )}
@@ -902,7 +968,7 @@ const handleConsultarRuc = async () => {
               </Field>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Field label="Teléfono Celular" icon={Phone} error={errors.telefono} hint="9 dígitos — Empezando con 9">
+                <Field label="Teléfono Celular" icon={Phone} error={errors.telefono}>
                   <input
                     type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
                     {...register("telefono", {
@@ -913,7 +979,7 @@ const handleConsultarRuc = async () => {
                   />
                 </Field>
 
-                <Field label="Código de estudiante" icon={BadgeInfo} error={errors.codigoEstudiante} hint="Ej: N00123456">
+                <Field label="Código de estudiante" icon={BadgeInfo} error={errors.codigoEstudiante}>
                   <input
                     type="text" 
                     maxLength={9} 
@@ -952,7 +1018,7 @@ const handleConsultarRuc = async () => {
                 </div>
               </Field>
 
-              <Field label="Teléfono Celular" icon={Phone} error={errors.telefono} hint="9 dígitos — Empezando con 9">
+              <Field label="Teléfono Celular" icon={Phone} error={errors.telefono}>
                 <input
                   type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
                   {...register("telefono", {
@@ -978,28 +1044,29 @@ const handleConsultarRuc = async () => {
           )}
         </AnimatePresence>
 
-        {/* ── SECCIÓN TÉRMINOS Y CONDICIONES (Solo Paso Final) ── */}
+        {/* ── Términos y Condiciones (solo paso final) ── */}
         {step === 2 && (
-          <div style={{ marginTop: 24, marginBottom: 12, display: "flex", alignItems: "center", gap: 8, padding: "0 4px" }}>
-            <input 
-              type="checkbox" 
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+            <input
+              type="checkbox"
               checked={hasAcceptedTerms}
               readOnly
-              onClick={() => {
-                if (!hasAcceptedTerms) onOpenTerms();
+              onClick={() => { if (!hasAcceptedTerms) onOpenTerms(); }}
+              style={{
+                width: 16, height: 16,
+                cursor: "pointer", accentColor: "#1B6FE8", flexShrink: 0,
               }}
-              style={{ width: 16, height: 16, cursor: "pointer", accentColor: "#1B6FE8", margin: 0 }} 
             />
-            <p style={{ margin: 0, fontSize: 14, color: "#4B5563" }}>
-              He leído y acepto los {" "}
-              <button 
+            <p style={{ margin: 0, fontFamily: "inherit", fontSize: 13, color: "#4B5563", lineHeight: 1.55 }}>
+              He leído y acepto los{" "}
+              <button
                 type="button"
                 onClick={onOpenTerms}
-                style={{ 
-                  background: "none", border: "none", padding: 0, 
-                  color: "#1B6FE8", textDecoration: "underline", 
-                  fontWeight: 600, cursor: "pointer", fontSize: 14, 
-                  fontFamily: "inherit" 
+                style={{
+                  background: "none", border: "none", padding: 0,
+                  color: "#1B6FE8", textDecoration: "underline",
+                  fontWeight: 600, cursor: "pointer",
+                  fontSize: 13, fontFamily: "inherit",
                 }}
               >
                 Términos y Condiciones

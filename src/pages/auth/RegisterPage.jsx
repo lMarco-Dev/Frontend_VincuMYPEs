@@ -2,14 +2,13 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { RegisterForm } from "@features/auth-register/RegisterForm";
+import { TerminosCondicionesModal } from "../auth/TerminosCondicionesModal";
 import { Logo } from "@shared/ui/Logo";
 import { GraduationCap, Building2, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TerminosCondicionesModal } from "./TerminosCondicionesModal";
 
 const ease = [0.22, 1, 0.36, 1];
 
-// ── Diagrama de Registro (SVG Animado en Bucle) ──────────────────────────
 // ── Diagrama de Registro (Animación mejorada) ──────────────────────────
 function RegisterDiagram() {
   // Posiciones - triángulo visual
@@ -348,9 +347,9 @@ export function RegisterPage() {
   const esEstudiante = currentTipo === "estudiante";
 
   const [isFormDirty, setIsFormDirty] = useState(false);
+  const [terminosModalOpen, setTerminosModalOpen] = useState(false);
+  const [hasAcceptedTerms, setHasAcceptedTerms]   = useState(false);
   const [targetTipo, setTargetTipo] = useState(null);
-  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
-  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false);
 
   const handleToggle = (nuevoTipo) => {
     if (nuevoTipo === currentTipo) return;
@@ -690,7 +689,7 @@ export function RegisterPage() {
                   tipo={currentTipo} 
                   onDirtyChange={setIsFormDirty}
                   hasAcceptedTerms={hasAcceptedTerms}
-                  onOpenTerms={() => setIsTermsModalOpen(true)}
+                  onOpenTerms={() => setTerminosModalOpen(true)}
                 />
               </motion.div>
             </AnimatePresence>
@@ -706,10 +705,14 @@ export function RegisterPage() {
           </motion.div>
         </div>
       </div>
-      <TerminosCondicionesModal 
-        isOpen={isTermsModalOpen}
-        onClose={() => setIsTermsModalOpen(false)}
-        onAccept={() => setHasAcceptedTerms(true)}
+      {/* Modal de Términos y Condiciones */}
+      <TerminosCondicionesModal
+        isOpen={terminosModalOpen}
+        onClose={() => setTerminosModalOpen(false)}
+        onAccept={() => {
+          setHasAcceptedTerms(true);
+          setTerminosModalOpen(false);
+        }}
       />
     </>
   );

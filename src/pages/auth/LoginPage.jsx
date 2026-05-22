@@ -470,7 +470,7 @@ function Field({ label, icon: Icon, error, rightEl, children }) {
           pointerEvents: "none", 
           zIndex: 2
         }}>
-          <Icon size={16} color={error ? "#EF4444" : "#9CA3AF"} />
+          <Icon size={16} color={error && error.message ? "#EF4444" : "#9CA3AF"} />
         </div>
         
         {children}
@@ -491,7 +491,7 @@ function Field({ label, icon: Icon, error, rightEl, children }) {
         )}
       </div>
       <AnimatePresence mode="wait">
-        {error && (
+        {error && error.message && error.message.trim() && (
           <motion.p
             key="err"
             initial={{ opacity: 0, y: -4, height: 0 }}
