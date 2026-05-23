@@ -1,4 +1,4 @@
-import httpClient from "@/shared/api/httpClient";
+import { httpClient } from "@/shared/api/httpClient";
 
 // MYPE emite un certificado
 export const emitirCertificadoApi = (data) => {

@@ -3,6 +3,7 @@ import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import {
   usePostulaciones,
+  usePostulacionesAceptadas,
   useCambiarEstadoPostulacion,
 } from "@/features/proyecto-postulaciones/usePostulaciones";
 import { motion, AnimatePresence } from "framer-motion";
@@ -661,7 +662,9 @@ function ProjectSection({ proyecto, verTodos }) {
   const [expanded, setExpanded] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const { postulaciones, isLoading } = usePostulaciones(proyecto.id);
+  const hookNormal = usePostulacionesAceptadas(proyecto.id);
+  const hookCompleto = usePostulaciones(verTodos ? proyecto.id : null);
+  const { postulaciones, isLoading } = verTodos ? hookCompleto : hookNormal;
 
   const preseleccionados = postulaciones.filter(
     (p) => p.estado === "PRESELECCIONADO",

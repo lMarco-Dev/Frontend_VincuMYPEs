@@ -8,9 +8,9 @@ import {
 import { LandingPage } from "@pages/auth/LandingPage";
 import { LoginPage } from "@pages/auth/LoginPage";
 import { RegisterPage } from "@pages/auth/RegisterPage";
-import { ForgotPasswordPage } from "@pages/auth/ForgotPasswordPage"; // ✨ NUEVA
-import { VerifyOtpPage } from "@pages/auth/VerifyOtpPage"; // ✨ NUEVA
-import { ResetPasswordPage } from "@pages/auth/ResetPasswordPage"; // ✨ NUEVA
+import { ForgotPasswordPage } from "@pages/auth/ForgotPasswordPage";
+import { VerifyOtpPage } from "@pages/auth/VerifyOtpPage";
+import { ResetPasswordPage } from "@pages/auth/ResetPasswordPage";
 
 // MYPE pages
 import { MypeDashboardPage } from "@pages/mype/MypeDashboardPage";
@@ -18,17 +18,20 @@ import { CrearProyectoPage } from "@pages/mype/CrearProyectoPage";
 import { MisProyectosPage } from "@/pages/mype/MisProyectosPage";
 import { RevisionEntregablesPage } from "@/pages/mype/RevisionEntregablesPage";
 import { PostulantesPage } from "@/pages/mype/PostulantesPage";
-import { CertificadosPage as CertificadosMypePage } from "@/pages/mype/CertificadosPage"; // ✨ Importado con alias para la MYPE
+import { CertificadosPage as CertificadosMypePage } from "@/pages/mype/CertificadosPage";
+import { MypePerfilPage } from "@/pages/mype/MypePerfilPage";
+import { MypeConfiguracionPage } from "@/pages/mype/MypeConfiguracionPage";
 
 // Estudiante pages
 import EstudianteDashboardPage from "@pages/estudiante/EstudianteDashboardPage";
 import ProyectosPage from "@pages/estudiante/ProyectosPage";
 import DetalleProyectoPage from "@pages/estudiante/DetalleProyectoPage";
 import MisPostulacionesPage from "@pages/estudiante/MisPostulacionesPage";
-import CertificadosEstudiantePage from "@pages/estudiante/CertificadosPage"; // ✨ Importado con alias para el Estudiante
+import CertificadosEstudiantePage from "@pages/estudiante/CertificadosPage";
 import PerfilPage from "@pages/estudiante/PerfilPage";
 import ProyectoWorkspacePage from "@pages/estudiante/ProyectoWorkspacePage";
 import WorkspaceSelectorPage from "@pages/estudiante/WorkspaceSelectorPage";
+import MypePublicProfilePage from "@pages/estudiante/MypePublicProfilePage";
 
 // Admin pages
 import AdminDashboardPage from "@pages/admin/AdminDashboardPage";
@@ -127,7 +130,7 @@ const router = createBrowserRouter([
     path: "/dashboard/mype/perfil",
     element: (
       <ProtectedRoute rolesPermitidos={["MYPE"]}>
-        <MypeLayout titulo="Mi perfil" />
+        <MypePerfilPage />
       </ProtectedRoute>
     ),
   },
@@ -135,9 +138,13 @@ const router = createBrowserRouter([
     path: "/dashboard/mype/configuracion",
     element: (
       <ProtectedRoute rolesPermitidos={["MYPE"]}>
-        <MypeLayout titulo="Configuración" />
+        <MypeConfiguracionPage />
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/empresas/:id",
+    element: <MypePublicProfilePage />,
   },
 
   /* ===========================================================================================
