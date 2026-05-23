@@ -23,6 +23,19 @@ import {
   Send,
   SlidersHorizontal,
   Filter,
+  UserPlus,
+  UserCheck,
+  AlertCircle,
+  TrendingUp,
+  Zap,
+  Eye,
+  Star,
+  Hash,
+  Target,
+  GraduationCap,
+  Award,
+  Bell,
+  RefreshCw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
@@ -75,6 +88,58 @@ const getAreaIcon = (area = "") => {
   return icons[key] || <Briefcase size={22} />;
 };
 
+/* ─── Función para calcular estado de vacantes ─── */
+const getVacancyStatus = (proyecto, postulacionesCount = 0) => {
+  const totalVacantes = proyecto.cupos || 1;
+  const vacantesDisponibles = totalVacantes - postulacionesCount;
+  
+  if (vacantesDisponibles <= 0) {
+    return {
+      status: "complete",
+      message: "¡Equipo completo! Todas las vacantes han sido cubiertas",
+      icon: <UserCheck size={14} />,
+      color: "#059669",
+      bg: "#ecfdf5",
+      border: "#a7f3d0",
+      remaining: 0
+    };
+  }
+  
+  if (vacantesDisponibles === 1) {
+    return {
+      status: "urgent",
+      message: "¡Última oportunidad! Solo queda 1 vacante disponible",
+      icon: <Zap size={14} />,
+      color: "#dc2626",
+      bg: "#fef2f2",
+      border: "#fecaca",
+      remaining: 1
+    };
+  }
+  
+  if (vacantesDisponibles <= 3) {
+    return {
+      status: "limited",
+      message: `¡Apresúrate! Solo quedan ${vacantesDisponibles} vacantes`,
+      icon: <AlertCircle size={14} />,
+      color: "#f59e0b",
+      bg: "#fffbeb",
+      border: "#fde68a",
+      remaining: vacantesDisponibles
+    };
+  }
+  
+  return {
+    status: "available",
+    message: `${vacantesDisponibles} vacantes disponibles`,
+    icon: <UserPlus size={14} />,
+    color: "#1B6FE8",
+    bg: "#eff6ff",
+    border: "#bfdbfe",
+    remaining: vacantesDisponibles
+  };
+};
+
 /* ═══════════════════════════════════════════════
    HERO BANNER - COMPACTO Y ELEGANTE
 ═══════════════════════════════════════════════ */
@@ -89,6 +154,7 @@ const ExploreHero = () => {
     { text: "+12 empresas registradas", color: "#f59e0b" },
     { text: "+45 vacantes disponibles", color: "#4ade80" },
     { text: "3 proyectos urgentes", color: "#f43f5e" },
+    { text: "Nuevas oportunidades cada semana", color: "#8b5cf6" },
   ];
 
   useEffect(() => {
@@ -309,9 +375,10 @@ const ExploreHero = () => {
 /* ═══════════════════════════════════════════════
    PROJECT CARD - COMPACTA ESTILO LINKEDIN
 ═══════════════════════════════════════════════ */
-const ProjectCardLinkedIn = ({ proyecto, onClick, yaPostulo, isSelected }) => {
+const ProjectCardLinkedIn = ({ proyecto, onClick, yaPostulo, isSelected, postulacionesCount }) => {
   const area = proyecto.areaSistemas?.replace(/_/g, " ") || "SISTEMAS";
   const { bg, color } = getAreaStyle(area);
+  const vacancyStatus = getVacancyStatus(proyecto, postulacionesCount);
 
   const isSoporteTI = area === "SOPORTE TI";
   const displayColor = isSoporteTI ? "#1B6FE8" : color;
@@ -358,26 +425,46 @@ const ProjectCardLinkedIn = ({ proyecto, onClick, yaPostulo, isSelected }) => {
             >
               {proyecto.titulo}
             </h3>
-            {yaPostulo && (
+            <div style={{ display: "flex", gap: 4, alignItems: "center", flexShrink: 0 }}>
+              {yaPostulo && (
+                <span
+                  style={{
+                    background: "#f0fdf4",
+                    color: "#059669",
+                    padding: "1px 7px",
+                    borderRadius: 10,
+                    fontSize: 9,
+                    fontWeight: 600,
+                    whiteSpace: "nowrap",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                  }}
+                >
+                  <CheckCircle2 size={9} />
+                  Postulado
+                </span>
+              )}
+              {/* Badge de vacantes */}
               <span
                 style={{
-                  background: "#f0fdf4",
-                  color: "#059669",
+                  background: vacancyStatus.bg,
+                  color: vacancyStatus.color,
                   padding: "1px 7px",
                   borderRadius: 10,
                   fontSize: 9,
                   fontWeight: 600,
                   whiteSpace: "nowrap",
-                  flexShrink: 0,
                   display: "flex",
                   alignItems: "center",
                   gap: 2,
+                  border: `1px solid ${vacancyStatus.border}`,
                 }}
               >
-                <CheckCircle2 size={9} />
-                Postulado
+                {vacancyStatus.icon}
+                {vacancyStatus.remaining > 0 ? `${vacancyStatus.remaining} vacante${vacancyStatus.remaining !== 1 ? 's' : ''}` : 'Completo'}
               </span>
-            )}
+            </div>
           </div>
 
           <p
@@ -456,13 +543,14 @@ const ProjectCardLinkedIn = ({ proyecto, onClick, yaPostulo, isSelected }) => {
 };
 
 /* ═══════════════════════════════════════════════
-   PANEL DE DETALLE
+   PANEL DE DETALLE - MEJORADO
 ═══════════════════════════════════════════════ */
 const ProjectDetailPanel = ({
   proyecto,
   yaPostulo,
   haSuperadoLimite,
   onClose,
+  postulacionesCount = 0,
 }) => {
   if (!proyecto) {
     return (
@@ -488,7 +576,7 @@ const ProjectDetailPanel = ({
           Selecciona un proyecto
         </h3>
         <p style={{ fontSize: 12, color: "#9ca3af" }}>
-          Haz clic en un proyecto para ver sus detalles
+          Haz clic en un proyecto para ver sus detalles y postularte
         </p>
       </div>
     );
@@ -496,6 +584,9 @@ const ProjectDetailPanel = ({
 
   const area = proyecto.areaSistemas?.replace(/_/g, " ") || "SISTEMAS";
   const { bg, color } = getAreaStyle(area);
+  const vacancyStatus = getVacancyStatus(proyecto, postulacionesCount);
+  const totalVacantes = proyecto.cupos || 1;
+  const esProyectoCompleto = vacancyStatus.status === "complete";
 
   return (
     <div
@@ -583,23 +674,24 @@ const ProjectDetailPanel = ({
           {proyecto.titulo}
         </h2>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: 13,
-            color: "#64748b",
-          }}
-        >
-          <Building2 size={14} style={{ color: "#1B6FE8" }} />
-          <span style={{ fontWeight: 500 }}>
-            {proyecto.mypeNombre || "Empresa"}
-          </span>
-        </div>
+       <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontSize: 13,
+          color: "#64748b",
+        }}
+      >
+  <span style={{ fontWeight: 500 }}>
+    {proyecto.mypeNombre || "Empresa"}
+  </span>
+</div>
       </div>
 
       <div style={{ padding: 20 }}>
+       
+
         <div
           style={{
             display: "grid",
@@ -615,8 +707,8 @@ const ProjectDetailPanel = ({
               icon: <Calendar size={13} />,
             },
             {
-              label: "Cupos",
-              value: proyecto.cupos || "Ilimitado",
+              label: "Cupos totales",
+              value: totalVacantes,
               icon: <Users size={13} />,
             },
             {
@@ -663,6 +755,34 @@ const ProjectDetailPanel = ({
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Barra de progreso de vacantes - NUEVO */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>
+              Progreso de vacantes
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: vacancyStatus.color }}>
+              {postulacionesCount}/{totalVacantes} ocupadas
+            </span>
+          </div>
+          <div style={{ height: 6, background: "#f1f5f9", borderRadius: 3, overflow: "hidden" }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${(postulacionesCount / totalVacantes) * 100}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              style={{
+                height: "100%",
+                background: esProyectoCompleto
+                  ? "linear-gradient(90deg, #059669, #10b981)"
+                  : postulacionesCount / totalVacantes > 0.7
+                  ? "linear-gradient(90deg, #f59e0b, #d97706)"
+                  : "linear-gradient(90deg, #1B6FE8, #3b82f6)",
+                borderRadius: 3,
+              }}
+            />
+          </div>
         </div>
 
         <div style={{ marginBottom: 20 }}>
@@ -717,6 +837,48 @@ const ProjectDetailPanel = ({
           </div>
         )}
 
+        {/* Requisitos del proyecto - NUEVO */}
+        <div style={{ marginBottom: 20 }}>
+          <h4
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#000000",
+              marginBottom: 8,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+           
+            Habilidades requeridas
+          </h4>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            {[
+              "Trabajo en equipo",
+              "Comunicación",
+              "Proactividad",
+              "Responsabilidad",
+            ].map((skill, idx) => (
+              <span
+                key={idx}
+                style={{
+                  background: "#f1f5f9",
+                  color: "#475569",
+                  padding: "3px 10px",
+                  borderRadius: 12,
+                  fontSize: 11,
+                  fontWeight: 500,
+                }}
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+
         <div
           style={{
             marginBottom: 20,
@@ -733,18 +895,18 @@ const ProjectDetailPanel = ({
               background: "#eff6ff",
             }}
           >
-            <h4
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                color: "#000000",
-                margin: 0,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Sobre la empresa
-            </h4>
+           <h4
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#000000",
+              margin: 0,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
+            Sobre la empresa
+          </h4>
           </div>
           <div style={{ padding: "14px" }}>
             <div style={{ marginBottom: 8 }}>
@@ -787,27 +949,53 @@ const ProjectDetailPanel = ({
         </div>
 
         <div style={{ marginTop: 4 }}>
-          <PostularButton
-            proyectoId={proyecto.id}
-            yaPostulo={yaPostulo}
-            disabled={haSuperadoLimite && !yaPostulo}
-          />
-
-          {haSuperadoLimite && !yaPostulo && (
-            <p
+          {esProyectoCompleto ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
               style={{
-                fontSize: 10,
-                color: "#64748b",
-                marginTop: 6,
+                background: "#ecfdf5",
+                border: "2px solid #a7f3d0",
+                borderRadius: 10,
+                padding: "16px",
                 textAlign: "center",
-                background: "#eff6ff",
-                padding: "6px 10px",
-                borderRadius: 8,
-                border: "1px solid #dbeafe",
               }}
             >
-              Has alcanzado el límite de proyectos activos
-            </p>
+              <UserCheck size={24} style={{ color: "#059669", marginBottom: 8 }} />
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#059669", marginBottom: 4 }}>
+                ¡Proyecto completado!
+              </div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>
+                Todas las vacantes han sido cubiertas. ¡Sigue explorando otras oportunidades!
+              </div>
+            </motion.div>
+          ) : (
+            <>
+              <PostularButton
+                proyectoId={proyecto.id}
+                yaPostulo={yaPostulo}
+                disabled={haSuperadoLimite && !yaPostulo}
+              />
+
+              {haSuperadoLimite && !yaPostulo && (
+                <motion.p
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    fontSize: 10,
+                    color: "#64748b",
+                    marginTop: 6,
+                    textAlign: "center",
+                    background: "#eff6ff",
+                    padding: "6px 10px",
+                    borderRadius: 8,
+                    border: "1px solid #dbeafe",
+                  }}
+                >
+                  Has alcanzado el límite de {limiteProyectos} proyecto{limiteProyectos !== 1 ? 's' : ''} activo{limiteProyectos !== 1 ? 's' : ''}
+                </motion.p>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -937,6 +1125,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   );
 };
 
+
 /* ═══════════════════════════════════════════════
    COMPONENTE PRINCIPAL
 ═══════════════════════════════════════════════ */
@@ -949,12 +1138,37 @@ const ProyectosPage = () => {
   const [selectedProyecto, setSelectedProyecto] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  const { data: proyectosData, isLoading } = useProyectos();
+  const { data: proyectosData, isLoading, refetch } = useProyectos();
   const { data: postulaciones } = useMisPostulaciones();
   const { data: userProfile } = usePerfil();
 
   const proyectos = proyectosData?.content || [];
+
+  // Auto-refresh cada 30 segundos
+  useEffect(() => {
+    if (!autoRefresh) return;
+    
+    const interval = setInterval(() => {
+      refetch();
+      setLastRefresh(new Date());
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [autoRefresh, refetch]);
+
+  const postulacionesPorProyecto = useMemo(() => {
+    const map = {};
+    postulaciones?.forEach((p) => {
+      if (!map[p.proyectoId]) {
+        map[p.proyectoId] = [];
+      }
+      map[p.proyectoId].push(p);
+    });
+    return map;
+  }, [postulaciones]);
 
   const yaPostuloMap = useMemo(() => {
     const map = {};
@@ -1031,19 +1245,23 @@ const ProyectosPage = () => {
     }
   };
 
+  const getPostulacionesCount = (proyectoId) => {
+    return postulacionesPorProyecto[proyectoId]?.length || 0;
+  };
+
   return (
     <div
       style={{
         fontFamily:
           "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-        background: "#fcfaf8",
+        background: '#f8fafc',
         minHeight: "100vh",
         padding: "20px",
         maxWidth: 1200,
         margin: "0 auto",
       }}
     >
-      {/* Top Bar */}
+      {/* Top Bar */} 
       <motion.div
         {...fadeUp(0)}
         style={{
@@ -1060,47 +1278,87 @@ const ProyectosPage = () => {
               fontWeight: 700,
               color: "#0f172a",
               margin: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
             }}
           >
             Proyectos disponibles
+            <motion.span
+              animate={{ rotate: autoRefresh ? 360 : 0 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              style={{ display: "inline-flex" }}
+            >
+              <RefreshCw size={14} style={{ color: autoRefresh ? "#059669" : "#94a3b8" }} />
+            </motion.span>
           </h1>
           <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0 0 0" }}>
             {filteredProyectos.length} proyecto
             {filteredProyectos.length !== 1 ? "s" : ""} encontrado
             {filteredProyectos.length !== 1 ? "s" : ""}
+            {autoRefresh && (
+              <span style={{ color: "#059669", marginLeft: 8 }}>
+                • Actualización automática activada
+              </span>
+            )}
           </p>
         </div>
-        <Link
-          to="/dashboard"
-          style={{
-            color: "#475569",
-            fontWeight: 500,
-            fontSize: 12,
-            textDecoration: "none",
-            display: "flex",
-            alignItems: "center",
-            gap: 5,
-            padding: "7px 14px",
-            borderRadius: 20,
-            border: "1px solid #e2e8f0",
-            transition: "all 0.2s",
-            background: "#fff",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#f1f5f9";
-            e.currentTarget.style.borderColor = "#cbd5e1";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "#fff";
-            e.currentTarget.style.borderColor = "#e2e8f0";
-          }}
-        >
-          ← Dashboard
-        </Link>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            style={{
+              color: autoRefresh ? "#059669" : "#64748b",
+              fontWeight: 500,
+              fontSize: 11,
+              textDecoration: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              padding: "7px 14px",
+              borderRadius: 20,
+              border: `1px solid ${autoRefresh ? "#a7f3d0" : "#e2e8f0"}`,
+              transition: "all 0.2s",
+              background: autoRefresh ? "#ecfdf5" : "#fff",
+              cursor: "pointer",
+            }}
+          >
+            <RefreshCw size={12} />
+            {autoRefresh ? "Auto ON" : "Auto OFF"}
+          </button>
+          <Link
+            to="/dashboard"
+            style={{
+              color: "#475569",
+              fontWeight: 500,
+              fontSize: 12,
+              textDecoration: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "7px 14px",
+              borderRadius: 20,
+              border: "1px solid #e2e8f0",
+              transition: "all 0.2s",
+              background: "#fff",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#f1f5f9";
+              e.currentTarget.style.borderColor = "#cbd5e1";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#fff";
+              e.currentTarget.style.borderColor = "#e2e8f0";
+            }}
+          >
+            ← Dashboard
+          </Link>
+        </div>
       </motion.div>
 
       {/* Hero Banner */}
       <ExploreHero />
+
+      
 
       {/* Barra de búsqueda */}
       <div
@@ -1351,6 +1609,7 @@ const ProyectosPage = () => {
                   onClick={() => setSelectedProyecto(proyecto)}
                   yaPostulo={!!yaPostuloMap[proyecto.id]}
                   isSelected={selectedProyecto?.id === proyecto.id}
+                  postulacionesCount={getPostulacionesCount(proyecto.id)}
                 />
               ))}
             </div>
@@ -1372,6 +1631,9 @@ const ProyectosPage = () => {
             }
             haSuperadoLimite={haSuperadoLimite}
             onClose={() => setSelectedProyecto(null)}
+            postulacionesCount={
+              selectedProyecto ? getPostulacionesCount(selectedProyecto.id) : 0
+            }
           />
         </div>
       </div>

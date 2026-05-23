@@ -112,9 +112,7 @@ const MetricCard = ({ label, value, sub, linkTo, linkLabel, color, accentColor, 
   </Link>
 );
 
-/* ═══════════════════════════════════════════════
-   SUB: Project Card
-═══════════════════════════════════════════════ */
+/* ─── SUB: Project Card (MODIFICADO PARA NAVEGAR CON ESTADO) ─── */
 const ProjectCard = ({ proyecto }) => {
   const area = proyecto.areaSistemas?.replace('_', ' ') || 'SISTEMAS';
   const { bg, color } = getAreaStyle(area);
@@ -124,51 +122,56 @@ const ProjectCard = ({ proyecto }) => {
     UX:   'linear-gradient(90deg,#8B5CF6,#1B6FE8)',
   };
   const gradient = gradients[area.toUpperCase().replace(/[\s_]/g, '')] || gradients.WEB;
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    // Navegar a proyectos con el ID del proyecto seleccionado
+    navigate(`/proyectos?selected=${proyecto.id}`);
+  };
 
   return (
-    <Link to={`/proyectos/${proyecto.id}`} style={{ textDecoration: 'none' }}>
-      <div
-        style={{
-          background: '#fff', border: '0.5px solid #e8e8e4', borderRadius: 14,
-          padding: 18, display: 'flex', flexDirection: 'column',
-          justifyContent: 'space-between', minHeight: 160,
-          cursor: 'pointer', transition: 'all 0.25s',
-          position: 'relative', overflow: 'hidden',
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.transform = 'translateY(-3px)';
-          e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.08)';
-          e.currentTarget.style.borderColor = 'rgba(27,111,232,0.3)';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.transform = 'none';
-          e.currentTarget.style.boxShadow = 'none';
-          e.currentTarget.style.borderColor = '#e8e8e4';
-        }}
-      >
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: gradient }} />
-        <div>
-          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 4, background: bg, color, display: 'inline-flex', alignItems: 'center', marginBottom: 10 }}>
-            {area}
-          </span>
-          <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.01em', color: '#0f1f3d', lineHeight: 1.35, marginBottom: 6 }}>
-            {proyecto.titulo}
-          </div>
-          <div style={{ fontSize: 11, color: '#6b6b7a', fontWeight: 400, display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Building2 size={11} />
-           {proyecto.mypeNombre || proyecto.nombre || 'MYPE'}
-          </div>
+    <div
+      onClick={handleClick}
+      style={{
+        background: '#fff', border: '0.5px solid #e8e8e4', borderRadius: 14,
+        padding: 18, display: 'flex', flexDirection: 'column',
+        justifyContent: 'space-between', minHeight: 160,
+        cursor: 'pointer', transition: 'all 0.25s',
+        position: 'relative', overflow: 'hidden',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-3px)';
+        e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.08)';
+        e.currentTarget.style.borderColor = 'rgba(27,111,232,0.3)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'none';
+        e.currentTarget.style.boxShadow = 'none';
+        e.currentTarget.style.borderColor = '#e8e8e4';
+      }}
+    >
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: gradient }} />
+      <div>
+        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 4, background: bg, color, display: 'inline-flex', alignItems: 'center', marginBottom: 10 }}>
+          {area}
+        </span>
+        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.01em', color: '#0f1f3d', lineHeight: 1.35, marginBottom: 6 }}>
+          {proyecto.titulo}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: '0.5px solid #e8e8e4', marginTop: 'auto' }}>
-          <div style={{ fontSize: 10, color: '#6b6b7a' }}>
-            Límite: <span style={{ color: '#e24b4a', fontWeight: 600 }}>{proyecto.fechaLimite}</span>
-          </div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#1B6FE8', display: 'flex', alignItems: 'center', gap: 3 }}>
-            Postular <ArrowRight size={11} />
-          </div>
+        <div style={{ fontSize: 11, color: '#6b6b7a', fontWeight: 400, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Building2 size={11} />
+          {proyecto.mypeNombre || proyecto.nombre || 'MYPE'}
         </div>
       </div>
-    </Link>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: '0.5px solid #e8e8e4', marginTop: 'auto' }}>
+        <div style={{ fontSize: 10, color: '#6b6b7a' }}>
+          Límite: <span style={{ color: '#e24b4a', fontWeight: 600 }}>{proyecto.fechaLimite}</span>
+        </div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#1B6FE8', display: 'flex', alignItems: 'center', gap: 3 }}>
+          Postular <ArrowRight size={11} />
+        </div>
+      </div>
+    </div>
   );
 };
 
