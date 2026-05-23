@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   FileText,
   Upload,
@@ -16,7 +16,19 @@ const MAX_BYTES = MAX_MB * 1024 * 1024;
 export function CvUploader({ cvUrl, compact = false }) {
   const inputRef = useRef(null);
   const [localError, setLocalError] = useState(null);
+  const [showSuccessIcon, setShowSuccessIcon] = useState(false);
   const { subirCv, isLoading, isSuccess, error: serverError } = useSubirCv();
+
+  // Mostrar el check por 5 segundos cuando se actualiza el CV
+  useEffect(() => {
+    if (isSuccess && cvUrl) {
+      setShowSuccessIcon(true);
+      const timer = setTimeout(() => {
+        setShowSuccessIcon(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, cvUrl]);
 
   const handleClick = () => {
     setLocalError(null);
@@ -70,40 +82,48 @@ export function CvUploader({ cvUrl, compact = false }) {
   // ── Modo completo: para PerfilPage del estudiante ─────────────
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-      {/* Encabezado */}
-      <div className="flex items-center gap-2 mb-4">
-        <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
-          <FileText size={16} className="text-indigo-600" />
+      {/* Encabezado con check de éxito a la derecha - tamaño reducido */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+            <FileText size={16} className="text-indigo-600" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-slate-800">Currículum Vitae</p>
+            <p className="text-xs text-slate-400">PDF · máx {MAX_MB}MB</p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm font-bold text-slate-800">Currículum Vitae</p>
-          <p className="text-xs text-slate-400">PDF · máx {MAX_MB}MB</p>
-        </div>
+        
+        {/* Check de éxito pequeño que no altera el diseño */}
+        {showSuccessIcon && (
+          <div className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 animate-in fade-in duration-300">
+            <CheckCircle2 size={12} className="text-emerald-600" />
+            <span className="text-[10px] font-medium text-emerald-700">Actualizado</span>
+          </div>
+        )}
       </div>
 
-      {/* Si ya tiene CV: mostrar estado y opción de reemplazar */}
+      {/* Opción alternativa: botón debajo del enlace */}
       {cvUrl ? (
-        <div className="flex items-center justify-between bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 mb-3">
-          <div className="flex items-center gap-2">
+        <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 mb-3">
+          <div className="flex items-center gap-2 mb-2">
             <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-            <div>
-              <p className="text-xs font-bold text-emerald-700">
-                CV subido correctamente
-              </p>
-              <a
-                href={cvUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-emerald-600 underline underline-offset-2 hover:text-emerald-800 flex items-center gap-1 mt-0.5"
-              >
-                Ver mi CV actual <ExternalLink size={10} />
-              </a>
-            </div>
+            <p className="text-xs font-bold text-emerald-700">CV subido correctamente</p>
+          </div>
+          <div className="mb-3">
+            <a
+              href={cvUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-emerald-600 underline underline-offset-2 hover:text-emerald-800 flex items-center gap-1"
+            >
+              Ver mi CV actual <ExternalLink size={10} />
+            </a>
           </div>
           <button
             onClick={handleClick}
             disabled={isLoading}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
           >
             <RefreshCw size={12} className={isLoading ? "animate-spin" : ""} />
             {isLoading ? "Subiendo..." : "Reemplazar"}
@@ -139,13 +159,6 @@ export function CvUploader({ cvUrl, compact = false }) {
             </p>
           </div>
         </button>
-      )}
-
-      {/* Mensaje de éxito al reemplazar (cuando ya había CV) */}
-      {isSuccess && cvUrl && (
-        <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1.5 mt-2">
-          <CheckCircle2 size={12} /> CV actualizado correctamente
-        </p>
       )}
 
       {/* Error de validación o del servidor */}
