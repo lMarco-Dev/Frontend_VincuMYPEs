@@ -12,6 +12,7 @@ import { useRegister } from "./useRegister";
 import { useConsultaDni } from "./hooks/useConsultaDni";
 import { useConsultaRuc } from "./hooks/useConsultaRuc";
 import { checkEmailApi, checkCodigoApi } from "./authRegister.api";
+import { authRecoveryApi } from "@features/auth-recovery/authRecovery.api";
 
 // ── Security ──────────────────────────────────────────────────────────────────
 const stripXSS = (v = "") =>
@@ -172,8 +173,11 @@ const inputStyle = (hasErr, hasRight = false) => ({
 export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerms }) {
   const esEstudiante = tipo === "estudiante";
   const colorTema = esEstudiante ? "#1B6FE8" : "#F97316";
+  const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION_ENABLED === "true";
+  const TOTAL_STEPS = EMAIL_VERIFICATION_ENABLED ? 4 : 3;
 
   const { register: registerUser, isLoading, error: backendError } = useRegister(tipo);
+const [showBackendError, setShowBackendError] = useState(false);
   const { buscarDni, isLoading: isLoadingDni, error: dniError, clearError: clearDniError } = useConsultaDni();
   const { buscarRuc, isLoading: isLoadingRuc, error: rucError, clearError: clearRucError } = useConsultaRuc();
   
@@ -191,6 +195,12 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
   const [dniCooldownTime, setDniCooldownTime] = useState(0);
   const [rucCooldown, setRucCooldown] = useState(false);
   const [rucCooldownTime, setRucCooldownTime] = useState(0);
+    // ── ESTADOS OTP (VERIFICACIÓN) ──
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [otpSending, setOtpSending] = useState(false);
+  const otpRefs = useRef([]);
   
   const dniTimerRef = useRef(null);
   const rucTimerRef = useRef(null);
@@ -218,38 +228,52 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
   }, []);
 
   useEffect(() => {
+  if (backendError) {
+    setShowBackendError(true);
+  } else {
     clearErrors();
-  }, [step, clearErrors]);
+    setShowBackendError(false);
+  }
+}, [step, backendError, clearErrors]);
 
   const passValue = watch("password", "");
   const dniValue = watch("dni", "");
   const rucValue = watch("ruc", "");
   const formValues = watch();
 
-  // ── VALIDACIÓN ESTRICTA DEL PASO 3 ──
-  const isStep3Valid = esEstudiante
-    ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
-    : (formValues.rubro && formValues.telefono?.length === 9);
-
-  const canSubmit = hasAcceptedTerms && isStep3Valid;
-
-  // ── LÓGICA DE VALIDACIÓN REACTIVA POR PASO ──
+    // ── LÓGICA DE VALIDACIÓN REACTIVA POR PASO ──
   const isStep0Valid = esEstudiante 
     ? (formValues.dni?.length === 8 && formValues.nombres && formValues.apellidoPaterno && formValues.apellidoMaterno)
     : (formValues.ruc?.length === 11 && formValues.nombre && formValues.nombreComercial && formValues.direccion);
 
-  const isStep1Valid = EMAIL_RE.test(formValues.email) && 
-                       PASS_RE.test(formValues.password) && 
-                       (formValues.confirmPassword === formValues.password && formValues.password.length > 0);
+  const isStep1Valid = EMAIL_VERIFICATION_ENABLED
+    ? (esEstudiante
+        ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
+        : (formValues.rubro && formValues.telefono?.length === 9))
+    : (EMAIL_RE.test(formValues.email) && PASS_RE.test(formValues.password) && 
+       (formValues.confirmPassword === formValues.password && formValues.password.length > 0));
 
-  const isStep2Valid = esEstudiante
-    ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
-    : (formValues.rubro && formValues.telefono?.length === 9);
+  const isStep2Valid = EMAIL_VERIFICATION_ENABLED
+    ? (EMAIL_RE.test(formValues.email) && PASS_RE.test(formValues.password) && 
+       (formValues.confirmPassword === formValues.password && formValues.password.length > 0))
+    : (esEstudiante
+        ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
+        : (formValues.rubro && formValues.telefono?.length === 9));
 
-  // Determinar si el paso actual es válido
-const isCurrentStepValid = step === 0 ? isStep0Valid : (step === 1 ? isStep1Valid : isStep2Valid);  
-  // Condición para deshabilitar el botón
-const isNextDisabled = !isCurrentStepValid || isLoading;
+  const isStep3Valid = true;
+
+  const isCurrentStepValid = step === 0 ? isStep0Valid 
+    : (step === 1 ? isStep1Valid 
+    : (step === 2 ? isStep2Valid 
+    : isStep3Valid));
+
+  const canSubmit = EMAIL_VERIFICATION_ENABLED
+    ? (hasAcceptedTerms && otpVerified)
+    : (hasAcceptedTerms && (esEstudiante
+        ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
+        : (formValues.rubro && formValues.telefono?.length === 9)));
+
+  const isNextDisabled = !isCurrentStepValid || isLoading;
   // ── AVISAR A LA PÁGINA SI HAY CAMBIOS ──
   useEffect(() => {
     const hasData = Object.values(formValues).some(v => typeof v === 'string' && v.trim().length > 0);
@@ -362,43 +386,57 @@ const handleConsultarRuc = async () => {
     }
   }, [rucValue, rucConsultado, setValue]);
 
-  const handleNext = async () => {
-    if (step >= 2) return;
+    const handleNext = async () => {
+    const maxStep = TOTAL_STEPS - 1;
+    if (step >= maxStep) return;
 
-    try { // ✨ Agregamos try/catch por seguridad
-      if (step === 1) { 
-         const { data: emailExists } = await checkEmailApi(watch("email"));
-         if (emailExists) {
-           setError("email", { message: "Este correo ya está registrado" });
-           return; 
-         }
-      }
-      
-      if (step === 2 && esEstudiante) { 
-         const { data: codExists } = await checkCodigoApi(watch("codigoEstudiante"));
-         if (codExists) {
-           setError("codigoEstudiante", { message: "Este código ya está registrado" });
-           return; 
-         }
+    try {
+      if (EMAIL_VERIFICATION_ENABLED) {
+        if (step === 2) {
+          const { data: emailExists } = await checkEmailApi(watch("email"));
+          if (emailExists) {
+            setError("email", { message: "Este correo ya está registrado" });
+            return;
+          }
+          // Enviar OTP
+          await authRecoveryApi.sendVerificationOtp(watch("email"));
+        }
+      } else {
+        if (step === 1) {
+          const { data: emailExists } = await checkEmailApi(watch("email"));
+          if (emailExists) {
+            setError("email", { message: "Este correo ya está registrado" });
+            return;
+          }
+        }
+        if (step === 2 && esEstudiante) {
+          const { data: codExists } = await checkCodigoApi(watch("codigoEstudiante"));
+          if (codExists) {
+            setError("codigoEstudiante", { message: "Este código ya está registrado" });
+            return;
+          }
+        }
       }
     } catch (err) {
       console.error("Error validando en backend:", err);
-      return; 
+      return;
     }
 
-    const fieldsToValidate = step === 0 ? (esEstudiante ? ["dni", "nombres"] : ["ruc", "nombre"]) : ["email", "password"];
+    const fieldsToValidate = step === 0 
+      ? (esEstudiante ? ["dni", "nombres"] : ["ruc", "nombre"]) 
+      : ["email", "password"];
     const isStepValid = await trigger(fieldsToValidate);
-    
+
     if (isStepValid) {
       setStep(s => s + 1);
-      setTimeout(() => clearErrors(), 10); 
+      setTimeout(() => clearErrors(), 10);
     }
   };
 
   const checkKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault(); 
-      if (step < 2) handleNext(); 
+      if (step < TOTAL_STEPS - 1) handleNext();
     }
   };
 
@@ -407,7 +445,8 @@ const handleConsultarRuc = async () => {
   };
 
   const onSubmit = (data) => {
-    if (step < 2) {
+    const maxStep = TOTAL_STEPS - 1;
+    if (step < maxStep) {
       handleNext();
       return;
     }
@@ -473,6 +512,61 @@ const onChangeApellido = (e) => {
     .toUpperCase();
 };
 
+  const handleOtpChange = (index, value) => {
+    if (!/^\d*$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    setOtpError("");
+    if (value && index < 5) otpRefs.current[index + 1]?.focus();
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const newOtp = [...otp];
+    paste.split("").forEach((char, i) => { if (i < 6) newOtp[i] = char; });
+    setOtp(newOtp);
+    otpRefs.current[Math.min(paste.length, 5)]?.focus();
+  };
+
+  const handleVerifyOtp = async () => {
+    const code = otp.join("");
+    if (code.length !== 6) { setOtpError("Ingresa el código completo"); return; }
+    setOtpSending(true);
+    try {
+      const { data } = await authRecoveryApi.confirmVerificationOtp(watch("email"), code);
+      if (data.valid) {
+        setOtpVerified(true);
+        setOtpError("");
+      } else {
+        setOtpError("Código inválido o expirado");
+      }
+    } catch {
+      setOtpError("Error al verificar el código");
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setOtpSending(true);
+    try {
+      await authRecoveryApi.sendVerificationOtp(watch("email"));
+      setOtpError("");
+    } catch {
+      setOtpError("Error al reenviar");
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
   const isDniSearchBlocked = dniCooldown || isLoadingDni;
   const isRucSearchBlocked = rucCooldown || isLoadingRuc;
   const nombresBloqueados = false;
@@ -513,11 +607,16 @@ const onChangeApellido = (e) => {
       {/* ── BARRA DE PROGRESO ── */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, color: "#6B7280", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "inherit" }}>
-          <span>{step === 0 ? "1. Contacto" : step === 1 ? "2. Seguridad" : "3. Detalles"}</span>
-          <span>Paso {step + 1} de 3</span>
+          <span>
+            {EMAIL_VERIFICATION_ENABLED
+              ? (step === 0 ? "1. Identidad" : step === 1 ? "2. Perfil" : step === 2 ? "3. Cuenta" : "4. Verificación")
+              : (step === 0 ? "1. Contacto" : step === 1 ? "2. Seguridad" : "3. Detalles")
+            }
+          </span>
+          <span>Paso {step + 1} de {TOTAL_STEPS}</span>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
-          {[0, 1, 2].map(i => (
+          {[...Array(TOTAL_STEPS)].map((_, i) => (
             <div key={i} style={{
               flex: 1, height: 4, borderRadius: 2,
               background: i <= step ? colorTema : "#E5E7EB",
@@ -883,66 +982,113 @@ const onChangeApellido = (e) => {
             </motion.div>
           )}
 
-          {/* ── PASO 2: SEGURIDAD ─────────────────────────────────────────── */}
-          {step === 1 && (
-            <motion.div key="step1" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-              <Field label="Correo electrónico" icon={Mail} error={errors.email}>
-                <input
-                  type="text" inputMode="email" autoComplete="email" maxLength={MAX} className={`rf-input${errors.email ? " err" : ""}`} style={inputStyle(!!errors.email)}
-                  {...register("email", {
-                    required: "El correo es obligatorio",
-                    maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` },
-                    validate: {
-                      format:   (v) => EMAIL_RE.test(stripXSS(v).trim()) || "Formato de correo inválido",
-                      noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos",
-                    },
-                    onChange: (e) => { 
-                      e.target.value = e.target.value.replace(/<[^>]*>/g, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "").replace(/[<>"'`]/g, ""); 
-                    },
-                  })}
-                />
-              </Field>
+                    {/* ── PASO 2: PERFIL (si verification) / SEGURIDAD (si no) ──────── */}
+          {step === 1 && EMAIL_VERIFICATION_ENABLED && (
+            <motion.div key="step1-ver" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              {esEstudiante ? (
+                <>
+                  <Field label="Sede y Universidad" icon={GraduationCap} error={errors.universidad}>
+                    <div style={{ position: "relative" }}>
+                      <select defaultValue="" className={`rf-select rf-input${errors.universidad ? " err" : ""}`}
+                        style={{ ...inputStyle(!!errors.universidad, true), cursor: "pointer", color: watch("universidad") ? "#111827" : "#9CA3AF" }}
+                        {...register("universidad", { required: "Selecciona tu universidad" })}>
+                        <option value="" disabled hidden>Selecciona tu universidad</option>
+                        <option value={UNIVERSIDADES[0]} style={{ color: "#111827" }}>{UNIVERSIDADES[0]} - Cajamarca</option>
+                        <option disabled style={{ color: "#9CA3AF", fontStyle: "italic" }}>Próximamente más sedes...</option>
+                      </select>
+                      <ChevronDown size={16} style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", pointerEvents: "none" }} />
+                    </div>
+                  </Field>
+                  <Field label="Carrera de ingeniería" icon={BookOpen} error={errors.carrera}>
+                    <div style={{ position: "relative" }}>
+                      <select defaultValue="" className={`rf-select rf-input${errors.carrera ? " err" : ""}`}
+                        style={{ ...inputStyle(!!errors.carrera, true), cursor: "pointer", color: watch("carrera") ? "#111827" : "#9CA3AF" }}
+                        {...register("carrera", { required: "Selecciona tu carrera" })}>
+                        <option value="" disabled hidden>Selecciona tu carrera</option>
+                        <option value={CARRERAS[0]} style={{ color: "#111827" }}>{CARRERAS[0]}</option>
+                        <option disabled style={{ color: "#9CA3AF", fontStyle: "italic" }}>Próximamente más carreras...</option>
+                      </select>
+                      <ChevronDown size={16} style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", pointerEvents: "none" }} />
+                    </div>
+                  </Field>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <Field label="Teléfono Celular" icon={Phone} error={errors.telefono}>
+                      <input type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
+                        {...register("telefono", { required: "El celular es obligatorio", validate: { format: (v) => PHONE_RE.test(v.trim()) || "Formato inválido" }, onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 9); } })} />
+                    </Field>
+                    <Field label="Código de estudiante" icon={BadgeInfo} error={errors.codigoEstudiante}>
+                      <input type="text" maxLength={9} className={`rf-input${errors.codigoEstudiante ? " err" : ""}`} style={inputStyle(!!errors.codigoEstudiante)}
+                        {...register("codigoEstudiante", { required: "El código de estudiante es obligatorio", minLength: { value: 9, message: "Debe tener exactamente 9 caracteres" }, maxLength: { value: 9, message: "Debe tener exactamente 9 caracteres" }, validate: { format: (v) => CODIGO_RE.test(v.trim()) || "Formato inválido" }, onChange: (e) => { e.target.value = e.target.value.replace(/[\s-]/g, "").toUpperCase(); } })} />
+                    </Field>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Field label="Rubro del negocio" icon={Briefcase} error={errors.rubro}>
+                    <div style={{ position: "relative" }}>
+                      <select defaultValue="" className={`rf-select rf-input${errors.rubro ? " err" : ""}`} style={{ ...inputStyle(!!errors.rubro, true), cursor: "pointer", color: watch("rubro") ? "#111827" : "#9CA3AF" }} {...register("rubro", { required: "Selecciona el rubro de tu negocio" })}>
+                        <option value="" disabled hidden>Selecciona tu rubro</option>
+                        {RUBROS.map(r => <option key={r} value={r} style={{ color: "#111827" }}>{r}</option>)}
+                      </select>
+                      <ChevronDown size={16} style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", pointerEvents: "none" }} />
+                    </div>
+                  </Field>
+                  <Field label="Teléfono Celular" icon={Phone} error={errors.telefono}>
+                    <input type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
+                      {...register("telefono", { required: "El celular es obligatorio", validate: { format: (v) => PHONE_RE.test(v.trim()) || "Formato inválido" }, onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 9); } })} />
+                  </Field>
+                </>
+              )}
+            </motion.div>
+          )}
 
+          {/* ── PASO 2: SEGURIDAD (flujo sin verificación) ───────────────── */}
+          {step === 1 && !EMAIL_VERIFICATION_ENABLED && (
+            <motion.div key="step1-old" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              <Field label="Correo electrónico" icon={Mail} error={errors.email}>
+                <input type="text" inputMode="email" autoComplete="email" maxLength={MAX} className={`rf-input${errors.email ? " err" : ""}`} style={inputStyle(!!errors.email)}
+                  {...register("email", { required: "El correo es obligatorio", maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` }, validate: { format: (v) => EMAIL_RE.test(stripXSS(v).trim()) || "Formato de correo inválido", noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos" }, onChange: (e) => { e.target.value = e.target.value.replace(/<[^>]*>/g, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "").replace(/[<>"'`]/g, ""); } })} />
+              </Field>
               <Field label="Contraseña" icon={Lock} error={errors.password} rightEl={eye(showPass, setShowPass)}>
-                <input
-                  type={showPass ? "text" : "password"} autoComplete="new-password" maxLength={MAX} className={`rf-input${errors.password ? " err" : ""}`} style={inputStyle(!!errors.password, true)}
-                  {...register("password", {
-                    required: "La contraseña es obligatoria",
-                    minLength: { value: 8, message: " " },
-                    maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` },
-                    validate: {
-                      strong:   (v) => PASS_RE.test(v) || "",
-                      noScript: (v) => !/<script|javascript:|on\w+=/.test(v) || "Caracteres no permitidos",
-                    },
-                  })}
-                />
+                <input type={showPass ? "text" : "password"} autoComplete="new-password" maxLength={MAX} className={`rf-input${errors.password ? " err" : ""}`} style={inputStyle(!!errors.password, true)}
+                  {...register("password", { required: "La contraseña es obligatoria", minLength: { value: 8, message: " " }, maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` }, validate: { strong: (v) => PASS_RE.test(v) || "", noScript: (v) => !/<script|javascript:|on\w+=/.test(v) || "Caracteres no permitidos" } })} />
               </Field>
               <PasswordStrength value={passValue} />
-
               <Field label="Confirmar contraseña" icon={CheckCircle2} error={errors.confirmPassword} rightEl={eye(showConfirm, setShowConfirm)}>
-                <input
-                  type={showConfirm ? "text" : "password"} autoComplete="new-password" maxLength={MAX} className={`rf-input${errors.confirmPassword ? " err" : ""}`} style={inputStyle(!!errors.confirmPassword, true)}
-                  {...register("confirmPassword", {
-                    required: "Confirma tu contraseña",
-                    validate: (v) => v === passValue || "Las contraseñas no coinciden",
-                  })}
-                />
+                <input type={showConfirm ? "text" : "password"} autoComplete="new-password" maxLength={MAX} className={`rf-input${errors.confirmPassword ? " err" : ""}`} style={inputStyle(!!errors.confirmPassword, true)}
+                  {...register("confirmPassword", { required: "Confirma tu contraseña", validate: (v) => v === passValue || "Las contraseñas no coinciden" })} />
               </Field>
             </motion.div>
           )}
 
-          {/* ── PASO 3: DETALLES ──────────────────────────────────────────── */}
-          {step === 2 && esEstudiante && (
+          {/* ── PASO 3: CUENTA (flujo con verificación) ──────────────────── */}
+          {step === 2 && EMAIL_VERIFICATION_ENABLED && (
+            <motion.div key="step2-ver" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              <Field label="Correo electrónico" icon={Mail} error={errors.email}>
+                <input type="text" inputMode="email" autoComplete="email" maxLength={MAX} className={`rf-input${errors.email ? " err" : ""}`}
+                  value={esEstudiante && watch("codigoEstudiante")?.length === 9 ? `${watch("codigoEstudiante").toLowerCase()}@upn.pe` : undefined}
+                  readOnly={esEstudiante}
+                  style={{ ...inputStyle(!!errors.email), background: esEstudiante ? "#F0FDF4" : "#F9FAFB", cursor: esEstudiante ? "not-allowed" : "text" }}
+                  {...register("email", { required: "El correo es obligatorio", maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` }, validate: { format: (v) => EMAIL_RE.test(stripXSS(v).trim()) || "Formato de correo inválido", noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos" }, onChange: (e) => { e.target.value = e.target.value.replace(/<[^>]*>/g, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "").replace(/[<>"'`]/g, ""); } })} />
+              </Field>
+              <Field label="Contraseña" icon={Lock} error={errors.password} rightEl={eye(showPass, setShowPass)}>
+                <input type={showPass ? "text" : "password"} autoComplete="new-password" maxLength={MAX} className={`rf-input${errors.password ? " err" : ""}`} style={inputStyle(!!errors.password, true)}
+                  {...register("password", { required: "La contraseña es obligatoria", minLength: { value: 8, message: " " }, maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` }, validate: { strong: (v) => PASS_RE.test(v) || "", noScript: (v) => !/<script|javascript:|on\w+=/.test(v) || "Caracteres no permitidos" } })} />
+              </Field>
+              <PasswordStrength value={passValue} />
+              <Field label="Confirmar contraseña" icon={CheckCircle2} error={errors.confirmPassword} rightEl={eye(showConfirm, setShowConfirm)}>
+                <input type={showConfirm ? "text" : "password"} autoComplete="new-password" maxLength={MAX} className={`rf-input${errors.confirmPassword ? " err" : ""}`} style={inputStyle(!!errors.confirmPassword, true)}
+                  {...register("confirmPassword", { required: "Confirma tu contraseña", validate: (v) => v === passValue || "Las contraseñas no coinciden" })} />
+              </Field>
+            </motion.div>
+          )}
+
+          {/* ── PASO 3: DETALLES (flujo sin verificación) ────────────────── */}
+          {step === 2 && !EMAIL_VERIFICATION_ENABLED && esEstudiante && (
             <motion.div key="step2-est" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-              
               <Field label="Sede y Universidad" icon={GraduationCap} error={errors.universidad}>
                 <div style={{ position: "relative" }}>
-                  <select
-                    defaultValue=""
-                    className={`rf-select rf-input${errors.universidad ? " err" : ""}`}
-                    style={{ ...inputStyle(!!errors.universidad, true), cursor: "pointer", color: watch("universidad") ? "#111827" : "#9CA3AF" }}
-                    {...register("universidad", { required: "Selecciona tu universidad" })}
-                  >
+                  <select defaultValue="" className={`rf-select rf-input${errors.universidad ? " err" : ""}`} style={{ ...inputStyle(!!errors.universidad, true), cursor: "pointer", color: watch("universidad") ? "#111827" : "#9CA3AF" }} {...register("universidad", { required: "Selecciona tu universidad" })}>
                     <option value="" disabled hidden>Selecciona tu universidad</option>
                     <option value={UNIVERSIDADES[0]} style={{ color: "#111827" }}>{UNIVERSIDADES[0]} - Cajamarca</option>
                     <option disabled style={{ color: "#9CA3AF", fontStyle: "italic" }}>Próximamente más sedes...</option>
@@ -950,15 +1096,9 @@ const onChangeApellido = (e) => {
                   <ChevronDown size={16} style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", pointerEvents: "none" }} />
                 </div>
               </Field>
-
               <Field label="Carrera de ingeniería" icon={BookOpen} error={errors.carrera}>
                 <div style={{ position: "relative" }}>
-                  <select
-                    defaultValue=""
-                    className={`rf-select rf-input${errors.carrera ? " err" : ""}`}
-                    style={{ ...inputStyle(!!errors.carrera, true), cursor: "pointer", color: watch("carrera") ? "#111827" : "#9CA3AF" }}
-                    {...register("carrera", { required: "Selecciona tu carrera" })}
-                  >
+                  <select defaultValue="" className={`rf-select rf-input${errors.carrera ? " err" : ""}`} style={{ ...inputStyle(!!errors.carrera, true), cursor: "pointer", color: watch("carrera") ? "#111827" : "#9CA3AF" }} {...register("carrera", { required: "Selecciona tu carrera" })}>
                     <option value="" disabled hidden>Selecciona tu carrera</option>
                     <option value={CARRERAS[0]} style={{ color: "#111827" }}>{CARRERAS[0]}</option>
                     <option disabled style={{ color: "#9CA3AF", fontStyle: "italic" }}>Próximamente más carreras...</option>
@@ -966,78 +1106,89 @@ const onChangeApellido = (e) => {
                   <ChevronDown size={16} style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", pointerEvents: "none" }} />
                 </div>
               </Field>
-
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <Field label="Teléfono Celular" icon={Phone} error={errors.telefono}>
-                  <input
-                    type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
-                    {...register("telefono", {
-                      required: "El celular es obligatorio",
-                      validate: { format: (v) => PHONE_RE.test(v.trim()) || "Formato inválido. Debe empezar con 9 y tener 9 dígitos" },
-                      onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 9); },
-                    })}
-                  />
+                  <input type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
+                    {...register("telefono", { required: "El celular es obligatorio", validate: { format: (v) => PHONE_RE.test(v.trim()) || "Formato inválido" }, onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 9); } })} />
                 </Field>
-
                 <Field label="Código de estudiante" icon={BadgeInfo} error={errors.codigoEstudiante}>
-                  <input
-                    type="text" 
-                    maxLength={9} 
-                    className={`rf-input${errors.codigoEstudiante ? " err" : ""}`} 
-                    style={inputStyle(!!errors.codigoEstudiante)}
-                    {...register("codigoEstudiante", {
-                      required: "El código de estudiante es obligatorio",
-                      minLength: { value: 9, message: "Debe tener exactamente 9 caracteres" },
-                      maxLength: { value: 9, message: "Debe tener exactamente 9 caracteres" },
-                      validate: {
-                        format:   (v) => CODIGO_RE.test(v.trim()) || "Formato inválido. Debe empezar con 'N00' y tener 6 números más",
-                        noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos",
-                      },
-                      onChange: (e) => { e.target.value = e.target.value.replace(/[\s-]/g, "").toUpperCase(); },
-                    })}
-                  />
+                  <input type="text" maxLength={9} className={`rf-input${errors.codigoEstudiante ? " err" : ""}`} style={inputStyle(!!errors.codigoEstudiante)}
+                    {...register("codigoEstudiante", { required: "El código de estudiante es obligatorio", minLength: { value: 9, message: "Debe tener exactamente 9 caracteres" }, maxLength: { value: 9, message: "Debe tener exactamente 9 caracteres" }, validate: { format: (v) => CODIGO_RE.test(v.trim()) || "Formato inválido" }, onChange: (e) => { e.target.value = e.target.value.replace(/[\s-]/g, "").toUpperCase(); } })} />
                 </Field>
               </div>
             </motion.div>
           )}
 
-          {step === 2 && !esEstudiante && (
+          {step === 2 && !EMAIL_VERIFICATION_ENABLED && !esEstudiante && (
             <motion.div key="step2-mype" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               <Field label="Rubro del negocio" icon={Briefcase} error={errors.rubro}>
                 <div style={{ position: "relative" }}>
-                  <select
-                    defaultValue=""
-                    className={`rf-select rf-input${errors.rubro ? " err" : ""}`}
-                    style={{ ...inputStyle(!!errors.rubro, true), cursor: "pointer", color: watch("rubro") ? "#111827" : "#9CA3AF" }}
-                    {...register("rubro", { required: "Selecciona el rubro de tu negocio" })}
-                  >
+                  <select defaultValue="" className={`rf-select rf-input${errors.rubro ? " err" : ""}`} style={{ ...inputStyle(!!errors.rubro, true), cursor: "pointer", color: watch("rubro") ? "#111827" : "#9CA3AF" }} {...register("rubro", { required: "Selecciona el rubro de tu negocio" })}>
                     <option value="" disabled hidden>Selecciona tu rubro</option>
                     {RUBROS.map(r => <option key={r} value={r} style={{ color: "#111827" }}>{r}</option>)}
                   </select>
                   <ChevronDown size={16} style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", pointerEvents: "none" }} />
                 </div>
               </Field>
-
               <Field label="Teléfono Celular" icon={Phone} error={errors.telefono}>
-                <input
-                  type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
-                  {...register("telefono", {
-                    required: "El celular es obligatorio",
-                    validate: { format: (v) => PHONE_RE.test(v.trim()) || "Formato inválido. Debe empezar con 9 y tener 9 dígitos" },
-                    onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 9); },
-                  })}
-                />
+                <input type="text" inputMode="numeric" autoComplete="tel" maxLength={9} className={`rf-input${errors.telefono ? " err" : ""}`} style={inputStyle(!!errors.telefono)}
+                  {...register("telefono", { required: "El celular es obligatorio", validate: { format: (v) => PHONE_RE.test(v.trim()) || "Formato inválido" }, onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 9); } })} />
               </Field>
+            </motion.div>
+          )}
+
+          {/* ── PASO 4: VERIFICACIÓN OTP ────────────────────────────────── */}
+          {EMAIL_VERIFICATION_ENABLED && step === 3 && (
+            <motion.div key="step3-otp" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, textAlign: "center" }}>
+              <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+                <Mail size={28} color="#1B6FE8" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#0F1F3D", marginBottom: 8 }}>Verifica tu correo</h3>
+                <p style={{ fontSize: 13, color: "#6B7280", margin: 0 }}>Enviamos un código de 6 dígitos a <strong>{watch("email")}</strong></p>
+              </div>
+              <div style={{ display: "flex", gap: 10, justifyContent: "center" }} onPaste={handleOtpPaste}>
+                {otp.map((digit, index) => (
+                  <input key={index} ref={el => otpRefs.current[index] = el} type="text" inputMode="numeric" maxLength={1} value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)} onKeyDown={(e) => handleOtpKeyDown(index, e)} autoFocus={index === 0}
+                    style={{ width: 48, height: 56, textAlign: "center", fontSize: 22, fontWeight: 700, border: `1.5px solid ${otpError ? "#FCA5A5" : "#E5E7EB"}`, borderRadius: 8, background: otpError ? "#FFF5F5" : "white", color: "#0F1F3D", fontFamily: "Arial, sans-serif", outline: "none", transition: "all 0.2s ease" }} />
+                ))}
+              </div>
+              {otpError && <p style={{ fontSize: 13, color: "#EF4444", margin: 0 }}>{otpError}</p>}
+              {otpVerified ? (
+                <p style={{ fontSize: 14, color: "#22C55E", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle2 size={18} /> Email verificado</p>
+              ) : (
+                <button type="button" onClick={handleVerifyOtp} disabled={otp.some(d => !d) || otpSending}
+                  style={{ width: "100%", height: 48, border: "none", borderRadius: 8, background: otp.some(d => !d) ? "#D1D5DB" : "linear-gradient(135deg, #1B6FE8 0%, #0E54C4 100%)", color: "white", fontWeight: 600, fontSize: 14, cursor: otp.some(d => !d) ? "not-allowed" : "pointer", fontFamily: "Arial, sans-serif" }}>
+                  {otpSending ? <Loader2 size={18} className="animate-spin" /> : "Verificar código"}
+                </button>
+              )}
+              <button type="button" onClick={handleResendOtp} disabled={otpSending}
+                style={{ background: "none", border: "none", color: "#1B6FE8", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "Arial, sans-serif" }}>
+                Reenviar código
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Backend error display */}
+                {/* Backend error display - solo si no hay errores de campo específicos */}
         <AnimatePresence>
-          {backendError && (
+          {showBackendError && backendError && !errors.dni && !errors.ruc && !errors.email && !errors.codigoEstudiante && (
             <motion.div
-              initial={{ opacity: 0, y: -8, height: 0 }} animate={{ opacity: 1, y: 0, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.25, ease }}
-              style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", marginTop: 8, background: "#FFF5F5", borderLeft: "4px solid #F87171", borderRadius: "0 8px 8px 0", fontSize: 13, color: "#EF4444", fontWeight: 500, fontFamily: "inherit" }}
+              initial={{ opacity: 0, y: -8, height: 0 }} 
+              animate={{ opacity: 1, y: 0, height: "auto" }} 
+              exit={{ opacity: 0, height: 0 }} 
+              transition={{ duration: 0.25, ease }}
+              style={{ 
+                display: "flex", alignItems: "center", gap: 10, 
+                padding: "12px 16px", 
+                background: "#FFF5F5", 
+                borderLeft: "4px solid #F87171", 
+                borderRadius: "0 8px 8px 0", 
+                fontSize: 13, color: "#EF4444", 
+                fontWeight: 500, fontFamily: "inherit" 
+              }}
             >
               <AlertCircle size={15} style={{ flexShrink: 0 }} /> {backendError}
             </motion.div>
@@ -1045,7 +1196,7 @@ const onChangeApellido = (e) => {
         </AnimatePresence>
 
         {/* ── Términos y Condiciones (solo paso final) ── */}
-        {step === 2 && (
+        {(EMAIL_VERIFICATION_ENABLED ? step === 3 : step === 2) && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
             <input
               type="checkbox"
@@ -1086,7 +1237,7 @@ const onChangeApellido = (e) => {
             </button>
           )}
           
-          {step < 2 ? (
+          {step < TOTAL_STEPS - 1 ? (
             <button 
               type="button" 
               onClick={handleNext} 
