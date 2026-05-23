@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useAuthStore } from "@/store/authStore";
+import { useUsuarioMe } from "@/features/configuracion/useConfiguracion";
+
 import {
   useActualizarInfo,
   useCambiarPassword,
@@ -1329,7 +1331,36 @@ function SeccionPeligro() {
 
 // ── Página principal ──────────────────────────────────────────
 export function MypeConfiguracionPage() {
-  const { user } = useAuthStore();
+  const { usuario: user, isLoading: loadingUser } = useUsuarioMe();
+
+  if (loadingUser) {
+    return (
+      <MypeLayout titulo="Configuración">
+        <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
+        <div
+          style={{
+            maxWidth: 760,
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+          }}
+        >
+          {[100, 80, 80, 120, 80].map((h, i) => (
+            <div
+              key={i}
+              style={{
+                height: h,
+                borderRadius: "1rem",
+                background: "#E5E7EB",
+                animation: "pulse 1.5s ease-in-out infinite",
+              }}
+            />
+          ))}
+        </div>
+      </MypeLayout>
+    );
+  }
 
   return (
     <MypeLayout titulo="Configuración">

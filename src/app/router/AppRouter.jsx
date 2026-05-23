@@ -21,6 +21,8 @@ import { PostulantesPage } from "@/pages/mype/PostulantesPage";
 import { CertificadosPage as CertificadosMypePage } from "@/pages/mype/CertificadosPage";
 import { MypePerfilPage } from "@/pages/mype/MypePerfilPage";
 import { MypeConfiguracionPage } from "@/pages/mype/MypeConfiguracionPage";
+import { MensajesPage } from "@/pages/mype/MensajesPage";
+import { EjecucionPage } from "@/pages/mype/EjecucionPage";
 
 // Estudiante pages
 import EstudianteDashboardPage from "@pages/estudiante/EstudianteDashboardPage";
@@ -105,7 +107,7 @@ const router = createBrowserRouter([
     path: "/dashboard/mype/mensajes",
     element: (
       <ProtectedRoute rolesPermitidos={["MYPE"]}>
-        <MypeLayout titulo="Mensajes" />
+        <MensajesPage />
       </ProtectedRoute>
     ),
   },
@@ -113,7 +115,7 @@ const router = createBrowserRouter([
     path: "/dashboard/mype/ejecucion",
     element: (
       <ProtectedRoute rolesPermitidos={["MYPE"]}>
-        <MypeLayout titulo="En ejecución" />
+        <EjecucionPage />
       </ProtectedRoute>
     ),
   },
