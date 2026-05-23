@@ -467,11 +467,11 @@ const EstudianteDashboardPage = () => {
   const { data: proyectosData,  isLoading: loadingProyectos      } = useProyectos();
 
   const totalPostulaciones    = postulaciones?.length || 0;
-  const aceptados             = postulaciones?.filter(p => p.estado === 'ACEPTADO' || p.estado === 'Aceptado').length || 0;
+  const aceptados             = postulaciones?.filter(p => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado').length || 0;
   const totalCertificados     = certificados?.length || 0;
   const activityItems         = notificaciones?.slice(0, 3) || [];
   const proyectosRecomendados = proyectosData?.content?.slice(0, 3) || [];
-  const proyectosActivos      = postulaciones?.filter(p => p.estado === 'ACEPTADO' || p.estado === 'Aceptado') || [];
+  const proyectosActivos      = postulaciones?.filter(p => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado') || [];
 
   let completitud = 20;
   if (user?.bio)                               completitud += 20;

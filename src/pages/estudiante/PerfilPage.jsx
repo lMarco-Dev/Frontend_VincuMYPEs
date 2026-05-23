@@ -578,7 +578,7 @@ const PerfilPage = () => {
   const { rol: storeRol } = useAuthStore();
   const isEstudiante = storeRol === 'ESTUDIANTE';
   const { data: postulaciones = [] } = useMisPostulaciones({ enabled: isEstudiante });
-  const proyectosAceptados = postulaciones.filter(p => p.estado === 'ACEPTADO');
+  const proyectosAceptados = postulaciones.filter(p => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado');
 
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false);

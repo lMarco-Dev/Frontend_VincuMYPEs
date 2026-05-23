@@ -1,66 +1,21 @@
 import React, { useState } from 'react';
-import { 
-  Search, 
-  Filter, 
-  ShieldAlert, 
-  CheckCircle2, 
-  Users, 
-  Building2, 
+import {
+  Search,
+  Filter,
+  ShieldAlert,
+  CheckCircle2,
+  Users,
+  Building2,
   GraduationCap,
   MoreVertical,
   ShieldCheck,
   Ban,
-  Zap
+  Zap,
+  ArrowRight,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// =========================================================================
-// MOCK DATA (Usuarios del ecosistema)
-// =========================================================================
-const MOCK_USUARIOS = [
-  {
-    id: 1,
-    nombre: "Ana López",
-    email: "ana.lopez@upn.pe",
-    rol: "ESTUDIANTE",
-    estado: "ACTIVO",
-    carrera: "Ingeniería de Sistemas",
-    limiteProyectos: 1
-  },
-  {
-    id: 2,
-    nombre: "Transportes Regionales Cajamarca",
-    email: "contacto@transportescajamarca.com",
-    rol: "MYPE",
-    estado: "ACTIVO",
-    sector: "Logística y Transporte"
-  },
-  {
-    id: 3,
-    nombre: "Luis Pérez",
-    email: "luis.perez@upn.pe",
-    rol: "ESTUDIANTE",
-    estado: "SUSPENDIDO",
-    carrera: "Ingeniería Industrial",
-    limiteProyectos: 1
-  },
-  {
-    id: 4,
-    nombre: "Agroveterinaria El Norteño",
-    email: "ventas@elnorteno.pe",
-    rol: "MYPE",
-    estado: "ACTIVO",
-    sector: "Comercio Agrícola"
-  },
-  {
-    id: 5,
-    nombre: "Enzo Francisco Bazan",
-    email: "enzobazang@gmail.com",
-    rol: "ADMIN",
-    estado: "ACTIVO",
-    sector: "MYPElink Core"
-  }
-];
+import { useAdminUsuarios } from '@/features/admin/useAdminUsuarios';
 
 // =========================================================================
 // HELPERS VISUALES
@@ -80,17 +35,60 @@ const getRolConfig = (rol) => {
 export default function AdminUsuariosPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroRol, setFiltroRol] = useState('TODOS');
-  
+
   // Estado para el modal de Bypass (Límite de proyectos)
   const [modalBypass, setModalBypass] = useState({ isOpen: false, usuario: null });
+  const [nuevoLimite, setNuevoLimite] = useState(3);
+
+  const {
+    usuarios,
+    isLoading,
+    cambiarEstado,
+    isCambiandoEstado,
+    cambiarBypassLimite,
+    isCambiandoBypass
+  } = useAdminUsuarios();
+
+  const openBypassModal = (usuario) => {
+    setNuevoLimite((usuario.limiteProyectos || 2) + 1);
+    setModalBypass({ isOpen: true, usuario });
+  };
+
+  const handleToggleEstado = (usuario) => {
+    const actionName = usuario.estado === 'ACTIVO' ? 'suspender' : 'reactivar';
+    if (window.confirm(`¿Estás seguro de que deseas ${actionName} la cuenta de ${usuario.nombre}?`)) {
+      cambiarEstado(usuario.id);
+    }
+  };
+
+  const handleApplyBypass = () => {
+    if (!modalBypass.usuario) return;
+    cambiarBypassLimite({
+      estudianteId: modalBypass.usuario.id,
+      nuevoLimite: nuevoLimite
+    }, {
+      onSuccess: () => {
+        setModalBypass({ isOpen: false, usuario: null });
+      }
+    });
+  };
 
   // Filtrado combinado
-  const filteredUsuarios = MOCK_USUARIOS.filter(u => {
-    const matchesSearch = u.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          u.email.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredUsuarios = usuarios.filter(u => {
+    const matchesSearch = u.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRol = filtroRol === 'TODOS' || u.rol === filtroRol;
     return matchesSearch && matchesRol;
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <Loader2 className="animate-spin text-primary" size={40} />
+        <p className="text-slate-500 font-medium">Cargando usuarios...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -111,11 +109,10 @@ export default function AdminUsuariosPage() {
             <button
               key={rol}
               onClick={() => setFiltroRol(rol)}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                filtroRol === rol 
-                  ? 'bg-white text-primary shadow-sm' 
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${filtroRol === rol
+                  ? 'bg-white text-primary shadow-sm'
                   : 'text-slate-500 hover:text-slate-700'
-              }`}
+                }`}
             >
               {rol}
             </button>
@@ -124,7 +121,7 @@ export default function AdminUsuariosPage() {
 
         <div className="relative flex-1 max-w-md w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
+          <input
             type="text"
             placeholder="Buscar por nombre o correo..."
             value={searchTerm}
@@ -150,7 +147,7 @@ export default function AdminUsuariosPage() {
               {filteredUsuarios.map((usuario) => {
                 const config = getRolConfig(usuario.rol);
                 const Icono = config.icon;
-                
+
                 return (
                   <tr key={usuario.id} className={`hover:bg-slate-50/50 transition-colors group ${usuario.estado === 'SUSPENDIDO' ? 'opacity-60' : ''}`}>
                     <td className="px-6 py-4">
@@ -184,11 +181,11 @@ export default function AdminUsuariosPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        
+
                         {/* Botón de Bypass (Solo para estudiantes activos) */}
                         {usuario.rol === 'ESTUDIANTE' && usuario.estado === 'ACTIVO' && (
-                          <button 
-                            onClick={() => setModalBypass({ isOpen: true, usuario })}
+                          <button
+                            onClick={() => openBypassModal(usuario)}
                             className="p-2 text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors"
                             title="Aumentar límite de proyectos (Bypass)"
                           >
@@ -198,12 +195,13 @@ export default function AdminUsuariosPage() {
 
                         {/* Botón Suspender/Activar (No se puede suspender a sí mismo ni a otros admins en este MVP) */}
                         {usuario.rol !== 'ADMIN' && (
-                          <button 
-                            className={`p-2 rounded-lg transition-colors ${
-                              usuario.estado === 'ACTIVO' 
-                                ? 'text-red-600 bg-red-50 hover:bg-red-100' 
+                          <button
+                            onClick={() => handleToggleEstado(usuario)}
+                            disabled={isCambiandoEstado}
+                            className={`p-2 rounded-lg transition-colors ${usuario.estado === 'ACTIVO'
+                                ? 'text-red-600 bg-red-50 hover:bg-red-100'
                                 : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100'
-                            }`}
+                              }`}
                             title={usuario.estado === 'ACTIVO' ? 'Suspender cuenta' : 'Reactivar cuenta'}
                           >
                             {usuario.estado === 'ACTIVO' ? <Ban size={16} /> : <CheckCircle2 size={16} />}
@@ -214,7 +212,7 @@ export default function AdminUsuariosPage() {
                   </tr>
                 );
               })}
-              
+
               {filteredUsuarios.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center text-slate-500">
@@ -235,7 +233,7 @@ export default function AdminUsuariosPage() {
       <AnimatePresence>
         {modalBypass.isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
               onClick={() => setModalBypass({ isOpen: false, usuario: null })}
             />
@@ -251,15 +249,22 @@ export default function AdminUsuariosPage() {
                   Estás a punto de modificar el límite de proyectos activos para el estudiante <strong className="text-slate-800">{modalBypass.usuario?.nombre}</strong>.
                 </p>
 
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-6 flex items-center justify-between">
+                 <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-6 flex items-center justify-between">
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Límite actual</p>
-                    <p className="text-2xl font-black text-slate-800">{modalBypass.usuario?.limiteProyectos}</p>
+                    <p className="text-2xl font-black text-slate-800">{modalBypass.usuario?.limiteProyectos || 2}</p>
                   </div>
                   <ArrowRight size={20} className="text-slate-300" />
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-amber-500 uppercase tracking-widest">Nuevo límite</p>
-                    <p className="text-2xl font-black text-amber-600">2</p>
+                  <div className="text-right flex flex-col items-end">
+                    <p className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-1">Nuevo límite</p>
+                    <input 
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={nuevoLimite}
+                      onChange={(e) => setNuevoLimite(Number(e.target.value))}
+                      className="w-20 text-center font-black text-2xl text-amber-600 bg-white border border-slate-200 rounded-xl py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                    />
                   </div>
                 </div>
 
@@ -267,8 +272,12 @@ export default function AdminUsuariosPage() {
                   <button onClick={() => setModalBypass({ isOpen: false, usuario: null })} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors">
                     Cancelar
                   </button>
-                  <button className="flex-1 py-3 bg-amber-500 text-white rounded-xl text-sm font-bold hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/20">
-                    Aplicar Excepción
+                  <button 
+                    onClick={handleApplyBypass}
+                    disabled={isCambiandoBypass}
+                    className="flex-1 py-3 bg-amber-500 text-white rounded-xl text-sm font-bold hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/20 disabled:opacity-50"
+                  >
+                    {isCambiandoBypass ? 'Aplicando...' : 'Aplicar Excepción'}
                   </button>
                 </div>
               </div>

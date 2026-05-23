@@ -51,7 +51,7 @@ const StudentLayout = () => {
   const hasCertificados = certificados && certificados.length > 0;
 
   const proyectoAceptado = postulaciones?.find(
-    (p) => p.estado === "CONFIRMADO",
+    (p) => p.estado === "CONFIRMADO" || p.estado === "ACEPTADO" || p.estado === "Aceptado",
   );
   const idProyectoParaWorkspace =
     proyectoAceptado?.proyectoId ||

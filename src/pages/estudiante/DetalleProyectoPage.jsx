@@ -70,7 +70,7 @@ const DetalleProyectoPage = () => {
 
   // Validar límite de proyectos activos
   const proyectosActivos = React.useMemo(() => {
-    return postulaciones?.filter(p => p.estado === 'ACEPTADO' || p.estado === 'Aceptado') || [];
+    return postulaciones?.filter(p => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado') || [];
   }, [postulaciones]);
 
   const limiteProyectos = perfil?.limiteProyectos ?? 1;

@@ -549,6 +549,7 @@ const ProjectDetailPanel = ({
   proyecto,
   yaPostulo,
   haSuperadoLimite,
+  limiteProyectos = 1,
   onClose,
   postulacionesCount = 0,
 }) => {
@@ -1141,7 +1142,7 @@ const ProyectosPage = () => {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  const { data: proyectosData, isLoading, refetch } = useProyectos();
+  const { data: proyectosData, isLoading, refetch } = useProyectos(0, 1000);
   const { data: postulaciones } = useMisPostulaciones();
   const { data: userProfile } = usePerfil();
 
@@ -1181,7 +1182,7 @@ const ProyectosPage = () => {
   const proyectosActivos = useMemo(() => {
     return (
       postulaciones?.filter(
-        (p) => p.estado === "ACEPTADO" || p.estado === "Aceptado",
+        (p) => p.estado === "CONFIRMADO" || p.estado === "ACEPTADO" || p.estado === "Aceptado",
       ) || []
     );
   }, [postulaciones]);
@@ -1630,6 +1631,7 @@ const ProyectosPage = () => {
               selectedProyecto ? !!yaPostuloMap[selectedProyecto.id] : false
             }
             haSuperadoLimite={haSuperadoLimite}
+            limiteProyectos={limiteProyectos}
             onClose={() => setSelectedProyecto(null)}
             postulacionesCount={
               selectedProyecto ? getPostulacionesCount(selectedProyecto.id) : 0

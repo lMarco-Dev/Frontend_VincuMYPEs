@@ -13,9 +13,9 @@ export function WorkspaceSelectorPage() {
   const navigate = useNavigate();
   const { data: postulaciones = [], isLoading } = useMisPostulaciones();
 
-  // Filtrar postulaciones reales en estado ACEPTADO
+  // Filtrar postulaciones reales en estado ACEPTADO o CONFIRMADO
   const proyectosAceptados = postulaciones.filter(
-    (p) => p.estado === 'ACEPTADO' || p.estado === 'Aceptado'
+    (p) => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado'
   );
 
   // Redirección inteligente automática si el estudiante tiene exactamente 1 proyecto activo
