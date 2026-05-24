@@ -11,15 +11,10 @@ export function WorkspaceSelectorPage() {
   const navigate = useNavigate();
   const { data: postulaciones = [], isLoading } = useMisPostulaciones();
 
-<<<<<<< Updated upstream
-  // Filtrar postulaciones reales en estado ACEPTADO o CONFIRMADO
-  const proyectosAceptados = postulaciones.filter(
-    (p) => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado'
-=======
-  // Solo proyectos CONFIRMADOS (tienen workspace)
+  // Filtrar solo proyectos CONFIRMADOS (tienen workspace activo)
+  // Incluimos variaciones de mayúsculas/minúsculas por consistencia
   const proyectosConfirmados = postulaciones.filter(
-    (p) => p.estado === 'CONFIRMADO'
->>>>>>> Stashed changes
+    (p) => p.estado === 'CONFIRMADO' || p.estado === 'Confirmado'
   );
 
   if (isLoading) {

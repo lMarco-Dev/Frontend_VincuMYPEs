@@ -343,7 +343,7 @@ const HeroBanner = ({ proyectosTotal = 0, aceptados = 0 }) => {
           style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:20, padding:'5px 14px', fontSize:10, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', marginBottom:18 }}
         >
           <span style={{ width:7, height:7, borderRadius:'50%', background:'#4ade80', display:'inline-block', animation:'heroPulse 2s ease-in-out infinite' }} />
-          Portal de estudiantes · Beta 2026
+          Portal de estudiantes · 
         </motion.div>
 
         {/* Heading con animación moderna */}
@@ -581,36 +581,6 @@ const EstudianteDashboardPage = () => {
         proyectosTotal={proyectosData?.totalElements}
         aceptados={aceptados}
       />
-
-      {/* ── PROYECTOS ACTIVOS (si existen) ── */}
-      {proyectosActivos.length > 0 && (
-        <motion.div {...fadeUp(0.12)} style={{ marginBottom:20 }}>
-          {proyectosActivos.map((p, idx) => (
-            <Link key={idx} to={`/workspace/${p.proyectoId}`} style={{ textDecoration:'none' }}>
-              <div
-                style={{ background:'linear-gradient(135deg,#0d1b35,#0f2a4a)', borderRadius:14, padding:'16px 22px', marginBottom:10, display:'flex', alignItems:'center', justifyContent:'space-between', position:'relative', overflow:'hidden', cursor:'pointer', transition:'all 0.2s' }}
-                onMouseEnter={e => { e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.boxShadow='0 8px 24px rgba(13,27,53,0.25)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow='none'; }}
-              >
-                <div style={{ position:'absolute', top:-40, right:-40, width:120, height:120, borderRadius:'50%', background:'rgba(27,111,232,0.1)', pointerEvents:'none' }} />
-                <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-                  <div style={{ width:10, height:10, borderRadius:'50%', background:'#4ade80', boxShadow:'0 0 0 3px rgba(74,222,128,0.15)', flexShrink:0 }} />
-                  <div>
-                    <div style={{ fontSize:14, fontWeight:700, color:'#fff', letterSpacing:'-0.01em' }}>{p.proyectoTitulo}</div>
-                    <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginTop:2 }}>Proyecto activo · Ir al workspace</div>
-                  </div>
-                </div>
-                <div style={{ display:'flex', alignItems:'center', gap:10, position:'relative', zIndex:2 }}>
-                  <span style={{ fontSize:9, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', background:'rgba(27,111,232,0.2)', border:'1px solid rgba(27,111,232,0.3)', color:'#67d4f8', padding:'3px 10px', borderRadius:4 }}>
-                    En ejecución
-                  </span>
-                  <ArrowRight size={16} color="rgba(255,255,255,0.3)" />
-                </div>
-              </div>
-            </Link>
-          ))}
-        </motion.div>
-      )}
 
       {/* ── MÉTRICAS ── */}
       <motion.div {...fadeUp(0.16)} style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16, marginBottom:24 }}>
