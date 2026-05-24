@@ -331,10 +331,10 @@ const MisPostulacionesPage = () => {
                       />
                     </Link>
 
-                    {/* Workspace solo si está CONFIRMADO */}
+                    // En MisPostulacionesPage.jsx, línea ~289
                     {postulacion.estado === "CONFIRMADO" && (
                       <Link
-                        to={`/workspace/${postulacion.proyectoId}`}
+                        to={`/workspace/${postulacion.proyectoId}`} // ✅ Ruta correcta
                         className="px-4 py-2.5 bg-primary text-white rounded-xl font-bold text-xs hover:bg-[#3b5998] hover:shadow-lg transition-all flex items-center gap-1.5 whitespace-nowrap"
                       >
                         <Sparkles size={13} className="animate-pulse" />

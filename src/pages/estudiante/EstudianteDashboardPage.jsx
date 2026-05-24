@@ -15,9 +15,11 @@ import {
   Compass,
   ClipboardList,
   BadgeCheck,
+  RefreshCw,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import { NotificacionesPanel } from '../../features/notificaciones/NotificacionesPanel';
 
 /* ─── Variantes de animación ─── */
 const fadeUp = (delay = 0) => ({
@@ -460,6 +462,8 @@ const EstudianteDashboardPage = () => {
   const { user }  = useAuthStore();
   const navigate  = useNavigate();
   const { mutate: leerNotificacion } = useLeerNotificacion();
+  const [isNotifPanelOpen, setIsNotifPanelOpen] = React.useState(false);
+  const [lastUpdate, setLastUpdate] = React.useState(new Date());
 
   const { data: postulaciones,  isLoading: loadingPostulaciones  } = useMisPostulaciones();
   const { data: certificados,   isLoading: loadingCertificados   } = useCertificados();
@@ -499,11 +503,34 @@ const EstudianteDashboardPage = () => {
           <h1 style={{ fontSize:22, fontWeight:800, letterSpacing:'-0.03em', color:'#0f1f3d' }}>
             ¡Hola, {firstName}!
           </h1>
-          <p style={{ fontSize:13, color:'#6b6b7a', marginTop:2 }}>
-            {proyectosRecomendados.length > 0
-              ? `${proyectosRecomendados.length} proyectos nuevos esperándote`
-              : 'Tu panel de control profesional'}
-          </p>
+         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2, flexWrap: 'wrap' }}>
+    <p style={{ fontSize: 13, color: '#6b6b7a', margin: 0 }}>
+        {proyectosRecomendados.length > 0
+            ? `${proyectosRecomendados.length} proyectos nuevos esperándote`
+            : 'Tu panel de control profesional'}
+            </p>
+            <div style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5,
+    background: '#ecfdf5',
+    border: '1px solid #a7f3d0',
+    borderRadius: 12,
+    padding: '3px 10px',
+    fontSize: 10,
+    color: '#059669',
+    fontWeight: 600,
+}}>
+    <motion.span
+        animate={{ rotate: 360 }}
+        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        style={{ display: 'inline-flex' }}
+    >
+        <RefreshCw size={11} />
+    </motion.span>
+    Actualización automática
+</div>
+        </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           <Link to="/proyectos" style={{ textDecoration:'none' }}>
@@ -515,14 +542,35 @@ const EstudianteDashboardPage = () => {
               <Search size={14} /> Buscar proyectos
             </div>
           </Link>
-          <Link to="/notificaciones" style={{ textDecoration:'none' }}>
-            <div style={{ position:'relative', width:36, height:36, borderRadius:8, border:'0.5px solid #e8e8e4', background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-              <Bell size={16} color="#6b6b7a" />
-              {activityItems.some(n => !n.leida) && (
-                <div style={{ position:'absolute', top:7, right:7, width:7, height:7, borderRadius:'50%', background:'#d4580a', border:'1.5px solid #fff' }} />
-              )}
-            </div>
-          </Link>
+          <button
+  onClick={() => setIsNotifPanelOpen(true)}
+  style={{
+    position: 'relative',
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    border: '0.5px solid #e8e8e4',
+    background: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  }}
+>
+  <Bell size={16} color="#6b6b7a" />
+  {activityItems.some(n => !n.leida) && (
+    <div style={{
+      position: 'absolute',
+      top: 7,
+      right: 7,
+      width: 7,
+      height: 7,
+      borderRadius: '50%',
+      background: '#d4580a',
+      border: '1.5px solid #fff',
+    }} />
+  )}
+</button>
         </div>
       </motion.div>
 
@@ -645,29 +693,91 @@ const EstudianteDashboardPage = () => {
             </div>
           ) : (
             activityItems.map((item, index) => {
-              const dotColors = ['#1B6FE8', '#d4580a', '#059669'];
-              return (
-                <div
+    const dotColors = ['#1B6FE8', '#d4580a', '#059669'];
+    
+    const getRutaNotificacion = (notif) => {
+    // Si tiene urlReferencia válida
+    if (notif.urlReferencia && notif.urlReferencia.trim() !== '') {
+        return notif.urlReferencia.startsWith('/') 
+            ? notif.urlReferencia 
+            : `/${notif.urlReferencia}`;
+    }
+    
+    // Si no tiene, ir a mis-postulaciones
+    return '/mis-postulaciones';
+      };
+          
+          return (
+              <div
                   key={item.id || index}
-                  onClick={() => { if (!item.leida) leerNotificacion(item.id); if (item.urlReferencia) navigate(item.urlReferencia); }}
-                  style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'10px 0', borderBottom: index < activityItems.length - 1 ? '0.5px solid #e8e8e4' : 'none', cursor:'pointer', transition:'padding-left 0.2s' }}
-                  onMouseEnter={e => { e.currentTarget.style.paddingLeft = '4px'; }}
-                  onMouseLeave={e => { e.currentTarget.style.paddingLeft = '0'; }}
-                >
-                  <div style={{ width:8, height:8, borderRadius:'50%', background:dotColors[index % dotColors.length], flexShrink:0, marginTop:5 }} />
+                  onClick={() => {
+                      if (!item.leida) {
+                          leerNotificacion(item.id);
+                      }
+                      const ruta = getRutaNotificacion(item);
+                      navigate(ruta);
+                  }}
+                  style={{ 
+                      display:'flex', 
+                      alignItems:'flex-start', 
+                      gap:12, 
+                      padding:'12px 8px', 
+                      borderBottom: index < activityItems.length - 1 ? '0.5px solid #e8e8e4' : 'none', 
+                      cursor:'pointer', 
+                      borderRadius: 8,
+                      transition:'all 0.2s' 
+                  }}
+                  onMouseEnter={e => { 
+                      e.currentTarget.style.paddingLeft = '12px'; 
+                      e.currentTarget.style.background = '#f8fafc'; 
+                  }}
+                  onMouseLeave={e => { 
+                      e.currentTarget.style.paddingLeft = '8px'; 
+                      e.currentTarget.style.background = 'transparent'; 
+                  }}
+              >
+                  <div style={{ 
+                      width:8, 
+                      height:8, 
+                      borderRadius:'50%', 
+                      background: dotColors[index % dotColors.length], 
+                      flexShrink:0, 
+                      marginTop:5 
+                  }} />
                   <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, color:'#0f1f3d', lineHeight:1.45 }}>
-                      <strong style={{ fontWeight:600 }}>{item.titulo}</strong>{' '}
-                      <span style={{ fontWeight:400, color:'#6b6b7a' }}>{item.mensaje}</span>
-                    </div>
-                    <div style={{ fontSize:11, color:'#6b6b7a', marginTop:2 }}>
-                      {new Date(item.fechaCreacion).toLocaleDateString('es-PE', { day:'numeric', month:'short' })}
-                    </div>
+                      <div style={{ fontSize:13, color:'#0f1f3d', lineHeight:1.45 }}>
+                          <strong style={{ fontWeight:600 }}>{item.titulo}</strong>
+                          {item.mensaje && (
+                              <span style={{ fontWeight:400, color:'#6b6b7a', marginLeft: 4 }}>
+                                  {item.mensaje}
+                              </span>
+                          )}
+                      </div>
+                      <div style={{ fontSize:11, color:'#6b6b7a', marginTop:4 }}>
+                          {item.fechaCreacion 
+                              ? new Date(item.fechaCreacion).toLocaleDateString('es-PE', { 
+                                  day:'numeric', 
+                                  month:'short',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })
+                              : 'Fecha no disponible'}
+                      </div>
                   </div>
-                  {!item.leida && <div style={{ width:6, height:6, borderRadius:'50%', background:'#1B6FE8', marginTop:5, flexShrink:0 }} />}
-                </div>
-              );
-            })
+                  {!item.leida && (
+                      <div style={{ 
+                          width:8, 
+                          height:8, 
+                          borderRadius:'50%', 
+                          background:'#1B6FE8', 
+                          marginTop:5, 
+                          flexShrink:0,
+                          boxShadow: '0 0 0 3px rgba(27,111,232,0.15)'
+                      }} />
+                  )}
+              </div>
+          );
+      })
           )}
         </div>
 
@@ -719,8 +829,13 @@ const EstudianteDashboardPage = () => {
             </div>
           </Link>
         </div>
-
+          
       </motion.div>
+      {/* Panel de Notificaciones */}
+      <NotificacionesPanel 
+        isOpen={isNotifPanelOpen} 
+        onClose={() => setIsNotifPanelOpen(false)} 
+      />
     </div>
   );
 };

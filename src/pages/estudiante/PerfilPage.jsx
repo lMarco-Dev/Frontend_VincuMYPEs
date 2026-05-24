@@ -315,28 +315,205 @@ const extractLocationData = (result) => {
 ═══════════════════════════════════════════════ */
 const EditProfileModal = ({ isOpen, onClose, formData, onChange, onSubmit, isUpdating }) => {
   if (!isOpen) return null;
+  
+  // Función helper para toggle de habilidades
+  const handleToggleSkill = (skill) => {
+    const currentSkills = formData.skills
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+    
+    const isSelected = currentSkills.includes(skill);
+    let newSkills;
+    
+    if (isSelected) {
+      newSkills = currentSkills.filter(s => s !== skill).join(', ');
+    } else {
+      newSkills = [...currentSkills, skill].join(', ');
+    }
+    
+    onChange({ target: { name: 'skills', value: newSkills } });
+  };
+
+  const currentSkillsArray = formData.skills
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(13, 27, 53, 0.6)', backdropFilter: 'blur(4px)' }} />
-      <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        style={{ position: 'relative', background: '#fff', borderRadius: 24, padding: '32px 36px', maxWidth: 560, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 25px 60px rgba(13, 27, 53, 0.25)', border: '0.5px solid #e8e8e4' }}>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+        animate={{ opacity: 1, scale: 1, y: 0 }} 
+        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        style={{ 
+          position: 'relative', 
+          background: '#fff', 
+          borderRadius: 24, 
+          padding: '32px 36px', 
+          maxWidth: 900,  // ← MISMO ANCHO QUE UBICACIÓN
+          width: '100%', 
+          maxHeight: '90vh', 
+          overflowY: 'auto', 
+          boxShadow: '0 25px 60px rgba(13, 27, 53, 0.25)', 
+          border: '0.5px solid #e8e8e4' 
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg, #1B6FE8, #06B6D4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Edit2 size={18} color="#fff" /></div>
-            <div><h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f1f3d', margin: 0 }}>Editar Perfil</h3><p style={{ fontSize: 11, color: '#6b6b7a', margin: '2px 0 0', fontWeight: 500 }}>Completa tu información</p></div>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg, #1B6FE8, #06B6D4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Edit2 size={18} color="#fff" />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f1f3d', margin: 0 }}>Editar Perfil</h3>
+              <p style={{ fontSize: 11, color: '#6b6b7a', margin: '2px 0 0', fontWeight: 500 }}>Completa tu información</p>
+            </div>
           </div>
-          <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 10, background: '#f8fafc', border: '0.5px solid #e8e8e4', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontFamily: 'inherit' }}><X size={16} color="#6b6b7a" /></button>
+          <button onClick={onClose} style={{ width: 36, height: 36, borderRadius: 10, background: '#f8fafc', border: '0.5px solid #e8e8e4', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <X size={16} color="#6b6b7a" />
+          </button>
         </div>
-        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div><label style={labelStyle}>Biografía</label><textarea name="bio" value={formData.bio} onChange={onChange} placeholder="Cuéntanos un poco sobre ti..." rows={4} style={inputStyle} /></div>
-          <div><label style={labelStyle}>Habilidades</label><input type="text" name="skills" value={formData.skills} onChange={onChange} placeholder="React, Node.js, Python..." style={inputStyle} /></div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div><label style={labelStyle}>Teléfono</label><input type="tel" name="telefono" value={formData.telefono} onChange={onChange} placeholder="+51 987654321" style={inputStyle} /></div>
-            <div><label style={labelStyle}>LinkedIn URL</label><input type="url" name="linkedinUrl" value={formData.linkedinUrl} onChange={onChange} placeholder="https://linkedin.com/in/..." style={inputStyle} /></div>
+        
+        <form onSubmit={onSubmit}>
+          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+            {/* ─── COLUMNA IZQUIERDA: Campos básicos ─── */}
+            <div style={{ flex: '1 1 55%', minWidth: 300, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={labelStyle}>Biografía</label>
+                <textarea 
+                  name="bio" 
+                  value={formData.bio} 
+                  onChange={onChange} 
+                  placeholder="Cuéntanos un poco sobre ti..." 
+                  rows={4} 
+                  style={inputStyle} 
+                />
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>Teléfono</label>
+                  <input type="tel" name="telefono" value={formData.telefono} onChange={onChange} placeholder="+51 987654321" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>LinkedIn URL</label>
+                  <input type="url" name="linkedinUrl" value={formData.linkedinUrl} onChange={onChange} placeholder="https://linkedin.com/in/..." style={inputStyle} />
+                </div>
+              </div>
+              
+              <div>
+                <label style={labelStyle}>Portafolio URL</label>
+                <input type="url" name="portafolioUrl" value={formData.portafolioUrl} onChange={onChange} placeholder="https://github.com/tuusuario" style={inputStyle} />
+              </div>
+            </div>
+
+            {/* ─── COLUMNA DERECHA: Habilidades ─── */}
+            <div style={{ flex: '1 1 35%', minWidth: 250 }}>
+              <label style={labelStyle}>Habilidades</label>
+              
+              {/* Input editable */}
+              <input 
+                type="text" 
+                name="skills" 
+                value={formData.skills} 
+                onChange={onChange} 
+                placeholder="Tus habilidades..." 
+                style={{ ...inputStyle, marginBottom: 12 }} 
+              />
+
+              {/* Píldoras de sugerencias */}
+              <div style={{ 
+                background: '#fafbfc', 
+                borderRadius: 12, 
+                padding: 14, 
+                border: '0.5px solid #eef0f2',
+                maxHeight: 280,
+                overflowY: 'auto'
+              }}>
+                <p style={{ 
+                  fontSize: 10, 
+                  fontWeight: 600, 
+                  color: '#8b8b9e', 
+                  margin: '0 0 10px',
+                  letterSpacing: '0.03em',
+                  textTransform: 'uppercase',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}>
+                  <Zap size={11} />
+                  Sugerencias
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {[
+                    'JavaScript', 'TypeScript', 'React', 'Next.js', 'Vue.js', 'Angular',
+                    'HTML5', 'CSS3', 'Tailwind CSS', 'Node.js', 'Express.js', 'Python',
+                    'Django', 'Flask', 'FastAPI', 'Java', 'Spring Boot', 'C#', '.NET',
+                    'PHP', 'Laravel', 'Kotlin', 'Swift', 'Flutter', 'React Native',
+                    'Docker', 'Kubernetes', 'AWS', 'Azure', 'PostgreSQL', 'MongoDB',
+                    'MySQL', 'Redis', 'GraphQL', 'REST API', 'Git', 'Figma', 'Scrum',
+                    'CI/CD', 'Linux', 'TensorFlow', 'PyTorch', 'Selenium', 'Jest',
+                    'Cypress', 'Firebase', 'WordPress'
+                  ].map((skill) => {
+                    const isSelected = currentSkillsArray.includes(skill);
+                    
+                    return (
+                      <button
+                        key={skill}
+                        type="button"
+                        onClick={() => handleToggleSkill(skill)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '3px 9px',
+                          borderRadius: 14,
+                          fontSize: 9.5,
+                          fontWeight: 600,
+                          background: isSelected ? '#eff6ff' : '#fff',
+                          color: isSelected ? '#1B6FE8' : '#64748b',
+                          border: isSelected ? '1px solid #bfdbfe' : '1px solid #e8e8e4',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          transition: 'all 0.15s ease',
+                          whiteSpace: 'nowrap',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#bfdbfe';
+                          e.currentTarget.style.background = isSelected ? '#eff6ff' : '#fafcff';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = isSelected ? '#bfdbfe' : '#e8e8e4';
+                          e.currentTarget.style.background = isSelected ? '#eff6ff' : '#fff';
+                        }}
+                      >
+                        {isSelected && (
+                          <span style={{ 
+                            width: 3.5, 
+                            height: 3.5, 
+                            borderRadius: '50%', 
+                            background: '#1B6FE8',
+                            flexShrink: 0 
+                          }} />
+                        )}
+                        {skill}
+                        {isSelected && (
+                          <X size={9} style={{ marginLeft: 1, opacity: 0.6 }} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           </div>
-          <div><label style={labelStyle}>Portafolio URL</label><input type="url" name="portafolioUrl" value={formData.portafolioUrl} onChange={onChange} placeholder="https://github.com/tuusuario" style={inputStyle} /></div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
-            <button type="button" onClick={onClose} style={{ padding: '10px 20px', borderRadius: 12, background: '#f8fafc', border: '0.5px solid #e8e8e4', color: '#6b6b7a', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Cancelar</button>
+
+          {/* Botones al final */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20, paddingTop: 16, borderTop: '0.5px solid #f1f5f9' }}>
+            <button type="button" onClick={onClose} style={{ padding: '10px 20px', borderRadius: 12, background: '#f8fafc', border: '0.5px solid #e8e8e4', color: '#6b6b7a', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              Cancelar
+            </button>
             <button type="submit" disabled={isUpdating} style={{ padding: '10px 24px', borderRadius: 12, background: 'linear-gradient(135deg, #1B6FE8, #06B6D4)', border: 'none', color: '#fff', fontSize: 12, fontWeight: 700, cursor: isUpdating ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6, opacity: isUpdating ? 0.7 : 1, boxShadow: '0 4px 16px rgba(27, 111, 232, 0.25)' }}>
               {isUpdating ? (<><Loader2 size={14} className="animate-spin" />Guardando...</>) : (<><Save size={14} />Guardar Cambios</>)}
             </button>
@@ -534,7 +711,7 @@ const ProfileHeroBanner = ({ user, completitud, displayRol, academicInfo, isEstu
       <div style={{ position:'absolute', bottom:-65, right:140, width:190, height:190, borderRadius:'50%', background:'rgba(212,88,10,0.09)', filter:'blur(40px)', animation:'orbF2 10s ease-in-out infinite' }} />
       <div style={{ position:'absolute', top:10, right:210, width:150, height:150, borderRadius:'50%', background:'rgba(6,182,212,0.07)', filter:'blur(40px)', animation:'orbF3 13s ease-in-out infinite' }} />
       <motion.div initial={{ opacity:0, x:-12 }} animate={{ opacity:1, x:0 }} transition={{ delay:0.1, duration:0.5 }} style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:20, padding:'5px 14px', fontSize:10, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', marginBottom:18 }}>
-        <span style={{ width:7, height:7, borderRadius:'50%', background:'#4ade80', display:'inline-block', animation:'heroPulse 2s ease-in-out infinite' }} />Portal de estudiante
+        <span style={{ width:7, height:7, borderRadius:'50%', background:'#4ade80', display:'inline-block', animation:'heroPulse 2s ease-in-out infinite' }} />información Personal 
       </motion.div>
       <div style={{ position:'relative', zIndex:10, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div style={{ maxWidth:500 }}>
@@ -700,7 +877,7 @@ const PerfilPage = () => {
           {isEstudiante && (
             <motion.section {...fadeUp(0.14)} style={S.card}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
-                <div style={S.sectionTitle}><span style={S.sectionBar} />Portafolio de Proyectos</div>
+                <div style={S.sectionTitle}><span style={S.sectionBar} />Proyectos</div>
                 <Link to="/mis-postulaciones" style={{ fontSize:11, fontWeight:600, color:'#1B6FE8', textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>Ver todos <ArrowRight size={11} /></Link>
               </div>
               {proyectosAceptados.length > 0 ? (
@@ -881,29 +1058,15 @@ const PerfilPage = () => {
                 </button>
               )}
 
-              {/* Email */}
-              <a 
-                href={`mailto:${user.email || ''}`} 
-                style={linkItemStyle('#f8fafc', '#e8e8e4')}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#eff6ff';
-                  e.currentTarget.style.borderColor = '#bfdbfe';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#f8fafc';
-                  e.currentTarget.style.borderColor = '#e8e8e4';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
+              {/* Email - NO CLICKEABLE */}
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, padding:10, borderRadius:10, background:'#f8fafc', border:'0.5px solid #e8e8e4' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                   <div style={{ width:28, height:28, borderRadius:8, background:'#1B6FE8', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                     <Mail size={13} color="#fff" />
                   </div>
                   <span style={{ fontSize:11, fontWeight:600, color:'#0f1f3d', maxWidth:140, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{user.email || 'No disponible'}</span>
                 </div>
-                <Send size={12} color="#94a3b8" />
-              </a>
+              </div>
 
               {/* Teléfono - SIN HOVER */}
               {user.telefono ? (

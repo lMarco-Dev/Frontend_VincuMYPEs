@@ -1148,6 +1148,8 @@ const ProyectosPage = () => {
 
   const proyectos = proyectosData?.content || [];
 
+    
+
   // Auto-refresh cada 30 segundos
   useEffect(() => {
     if (!autoRefresh) return;
@@ -1216,6 +1218,36 @@ const ProyectosPage = () => {
       return matchesSearch && matchesArea;
     });
   }, [proyectos, searchTerm, selectedArea]);
+    // ✅ Detectar proyecto desde URL y seleccionarlo automáticamente
+  const searchParams = new URLSearchParams(window.location.search);
+  const selectedIdFromUrl = searchParams.get('selected');
+
+    useEffect(() => {
+    if (!isLoading && selectedIdFromUrl && proyectos.length > 0) {
+      const proyectoFromUrl = proyectos.find(p => p.id === Number(selectedIdFromUrl));
+      if (proyectoFromUrl) {
+        // Limpiar filtros para asegurar que el proyecto sea visible
+        setSearchTerm('');
+        setSelectedArea('');
+        
+        // Seleccionar el proyecto
+        setSelectedProyecto(proyectoFromUrl);
+        
+        // Buscar en qué página está dentro de TODOS los proyectos (sin filtrar)
+        const allProyectos = proyectos;
+        const index = allProyectos.findIndex(p => p.id === Number(selectedIdFromUrl));
+        if (index >= 0) {
+          const page = Math.floor(index / ITEMS_PER_PAGE) + 1;
+          setCurrentPage(page);
+        }
+        
+        // Scroll después de que se renderice
+        setTimeout(() => {
+          window.scrollTo({ top: 400, behavior: 'smooth' });
+        }, 800);
+      }
+    }
+  }, [isLoading, selectedIdFromUrl, proyectos.length]);
 
   const totalPages = Math.ceil(filteredProyectos.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -1229,12 +1261,12 @@ const ProyectosPage = () => {
     setCurrentPage(1);
   }, [searchTerm, selectedArea]);
 
-  // Seleccionar primer proyecto cuando cambia la lista
+    // Seleccionar primer proyecto cuando cambia la lista (SOLO si no hay proyecto desde URL)
   useEffect(() => {
-    if (paginatedProyectos.length > 0 && !selectedProyecto) {
+    if (paginatedProyectos.length > 0 && !selectedProyecto && !selectedIdFromUrl) {
       setSelectedProyecto(paginatedProyectos[0]);
     }
-  }, [paginatedProyectos, selectedProyecto]);
+  }, [paginatedProyectos, selectedProyecto, selectedIdFromUrl]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -1304,56 +1336,7 @@ const ProyectosPage = () => {
             )}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            onClick={() => setAutoRefresh(!autoRefresh)}
-            style={{
-              color: autoRefresh ? "#059669" : "#64748b",
-              fontWeight: 500,
-              fontSize: 11,
-              textDecoration: "none",
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              padding: "7px 14px",
-              borderRadius: 20,
-              border: `1px solid ${autoRefresh ? "#a7f3d0" : "#e2e8f0"}`,
-              transition: "all 0.2s",
-              background: autoRefresh ? "#ecfdf5" : "#fff",
-              cursor: "pointer",
-            }}
-          >
-            <RefreshCw size={12} />
-            {autoRefresh ? "Auto ON" : "Auto OFF"}
-          </button>
-          <Link
-            to="/dashboard"
-            style={{
-              color: "#475569",
-              fontWeight: 500,
-              fontSize: 12,
-              textDecoration: "none",
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              padding: "7px 14px",
-              borderRadius: 20,
-              border: "1px solid #e2e8f0",
-              transition: "all 0.2s",
-              background: "#fff",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#f1f5f9";
-              e.currentTarget.style.borderColor = "#cbd5e1";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#fff";
-              e.currentTarget.style.borderColor = "#e2e8f0";
-            }}
-          >
-            ← Dashboard
-          </Link>
-        </div>
+       
       </motion.div>
 
       {/* Hero Banner */}

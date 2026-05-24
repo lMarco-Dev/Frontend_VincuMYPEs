@@ -89,7 +89,7 @@ export function CvUploader({ cvUrl, compact = false }) {
             <FileText size={16} className="text-indigo-600" />
           </div>
           <div>
-            <p className="text-sm font-bold text-slate-800">Currículum Vitae</p>
+           
             <p className="text-xs text-slate-400">PDF · máx {MAX_MB}MB</p>
           </div>
         </div>
