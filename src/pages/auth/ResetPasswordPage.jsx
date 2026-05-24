@@ -156,46 +156,37 @@ export function ResetPasswordPage() {
 
         {/* ── LEFT panel ─────────────────────────────────────────────────── */}
         <div className="login-left" style={{
-        width: "55%", flexShrink: 0,
-        position: "relative", overflow: "hidden",
-        display: "flex", flexDirection: "column",
-        background: "linear-gradient(150deg, #081828 0%, #0F2A4A 55%, #0C3260 100%)",
+          width: "55%", flexShrink: 0,
+          position: "relative", overflow: "hidden",
+          display: "flex", flexDirection: "column",
+          background: "linear-gradient(150deg, #081828 0%, #0F2A4A 55%, #0C3260 100%)",
         }}>
-        <div className="dot-bg" />
-        <div style={{ position: "absolute", top: -160, right: -160, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle,#06B6D4,transparent 70%)", opacity: 0.15, filter: "blur(80px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: -100, left: -80, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle,#1B6FE8,transparent)", opacity: 0.08, filter: "blur(60px)", pointerEvents: "none" }} />
+          <div className="dot-bg" />
+          <div style={{ position: "absolute", top: -160, right: -160, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle,#06B6D4,transparent 70%)", opacity: 0.15, filter: "blur(80px)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: -100, left: -80, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle,#1B6FE8,transparent)", opacity: 0.08, filter: "blur(60px)", pointerEvents: "none" }} />
 
-        <div style={{ position: "relative", zIndex: 10, padding: "48px 56px 0" }}>
+          <div style={{ position: "relative", zIndex: 10, padding: "48px 56px 0" }}>
             <Logo />
-        </div>
+          </div>
 
-        <div style={{ 
-            position: "relative", 
-            zIndex: 10, 
-            flex: 1, 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center",
-            padding: "40px 40px 40px 120px"
-        }}>
-            <div style={{ textAlign: "center" }}>
+          <div style={{ position: "relative", zIndex: 10, flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "30px 40px 50px" }}>
             <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.3, ease }}
-            >
-                <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(27,111,232,0.1)", border: "2px solid rgba(27,111,232,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24" }}>
+  initial={{ opacity: 0, scale: 0.9 }}
+  animate={{ opacity: 1, scale: 1 }}
+  transition={{ duration: 0.8, delay: 0.3, ease }}
+  style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}
+>
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(27,111,232,0.1)", border: "2px solid rgba(27,111,232,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24" }}>
                 <ShieldCheck size={36} color="#67d4f8" />
-                </div>
-                <h2 style={{ color: "white", fontSize: 24, fontWeight: 700, marginBottom: 12, letterSpacing: "-0.02em" }}>
+              </div>
+              <h2 style={{ color: "white", fontSize: 24, fontWeight: 700, marginBottom: 12, letterSpacing: "-0.02em" }}>
                 Nueva contraseña
-                </h2>
-                <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 400, lineHeight: 1.6, maxWidth: 280 }}>
+              </h2>
+              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 400, lineHeight: 1.6, maxWidth: 280, margin: "0 auto", textAlign: "center" }}>
                 Crea una contraseña segura para proteger tu cuenta
-                </p>
+              </p>
             </motion.div>
-            </div>
-        </div>
+          </div>
         </div>
 
         {/* ── RIGHT panel ────────────────────────────────────────────────── */}

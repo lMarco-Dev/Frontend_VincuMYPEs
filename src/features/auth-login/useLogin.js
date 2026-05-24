@@ -29,21 +29,20 @@ export function useLogin() {
     },
 
     onError: (error) => {
-      const status = error?.response?.status;
-      if (status === 401 || status === 403) {
-        error.message = "Credenciales incorrectas. Verifica tu email y contraseña.";
-      } else if (status === 429) {
-        error.message = "Demasiados intentos. Espera un momento.";
-      } else if (!error.response) {
-        error.message = "Error de conexión. Verifica tu internet.";
-      }
-      console.error(handleApiError(error));
-    },
+  const status = error?.response?.status;
+  if (status === 401 || status === 403) {
+    error.message = "Credenciales incorrectas. Verifica tu email y contraseña.";
+  } else if (status === 429) {
+    error.message = "Demasiados intentos. Espera un momento.";
+  } else if (!error.response) {
+    error.message = "Error de conexión. Verifica tu internet.";
+  }
+},
   });
 
   return {
     login: mutation.mutate,
     isLoading: mutation.isPending,
-    error: mutation.error ? handleApiError(mutation.error) : null,
-  };
+    error: mutation.error ? mutation.error.message : null,
+};
 }

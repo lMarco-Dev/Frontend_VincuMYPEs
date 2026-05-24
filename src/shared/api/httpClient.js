@@ -62,15 +62,11 @@ httpClient.interceptors.response.use(
         return httpClient(originalRequest);
         
       } catch (refreshError) {
-        // Si falla el refresh, limpiamos tokens y redirigimos al login
-        tokenStorage.clearTokens();
-        
-        // Solo redirigir si no estamos ya en la página de login
-        if (window.location.pathname !== '/login') {
-          window.location.href = "/login";
-        }
-        
-        return Promise.reject(refreshError);
+          tokenStorage.clearTokens();
+          if (window.location.pathname !== '/login') {
+            window.location.href = "/login";
+          }
+          return Promise.reject(error);
       }
     }
 
