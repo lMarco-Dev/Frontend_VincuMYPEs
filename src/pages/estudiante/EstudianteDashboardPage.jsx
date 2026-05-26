@@ -4,6 +4,8 @@ import { useMisPostulaciones } from '../../features/postulaciones-list/useMisPos
 import { useCertificados } from '../../features/certificados/useCertificados';
 import { useNotificaciones, useLeerNotificacion } from '../../features/notificaciones/useNotificaciones';
 import { useProyectos } from '../../features/proyectos-list/useProyectos';
+
+
 import {
   ArrowRight,
   Award,
@@ -20,6 +22,7 @@ import {
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { NotificacionesPanel } from '../../features/notificaciones/NotificacionesPanel';
+//import { useNotificacionesSocket } from '../../features/notificaciones/useNotificacionesSocket';
 
 /* ─── Variantes de animación ─── */
 const fadeUp = (delay = 0) => ({
@@ -47,7 +50,8 @@ const getAreaStyle = (area = '') => {
 const Ring = ({ pct = 0, color = '#1B6FE8', icon: Icon }) => {
   const R = 22;
   const circ = 2 * Math.PI * R;
-  const offset = circ - (circ * Math.min(pct, 100)) / 100;
+  const safePct = pct || 0;
+  const offset = circ - (circ * Math.min(safePct, 100)) / 100;
   return (
     <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
       <svg width="56" height="56" viewBox="0 0 56 56" style={{ transform: 'rotate(-90deg)' }}>
@@ -460,6 +464,7 @@ const HeroBanner = ({ proyectosTotal = 0, aceptados = 0 }) => {
 ═══════════════════════════════════════════════ */
 const EstudianteDashboardPage = () => {
   const { user }  = useAuthStore();
+  //useNotificacionesSocket(user?.id);
   const navigate  = useNavigate();
   const { mutate: leerNotificacion } = useLeerNotificacion();
   const [isNotifPanelOpen, setIsNotifPanelOpen] = React.useState(false);
