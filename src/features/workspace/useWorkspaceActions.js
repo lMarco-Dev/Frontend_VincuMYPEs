@@ -3,10 +3,11 @@ import { httpClient } from "@/shared/api/httpClient";
 import { useState } from "react";
 
 export function useWorkspaceActions(proyectoId) {
+  // ✅ TODOS los Hooks deben llamarse AL INICIO, sin condiciones
   const queryClient = useQueryClient();
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Subir entregable
+  // ✅ Subir entregable
   const subirEntregableMutation = useMutation({
     mutationFn: async ({ formData }) => {
       const { data } = await httpClient.post(
@@ -15,10 +16,12 @@ export function useWorkspaceActions(proyectoId) {
         {
           headers: { "Content-Type": "multipart/form-data" },
           onUploadProgress: (progressEvent) => {
-            const progress = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setUploadProgress(progress);
+            if (progressEvent?.total) {
+              const progress = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              setUploadProgress(progress);
+            }
           },
         }
       );
@@ -38,10 +41,32 @@ export function useWorkspaceActions(proyectoId) {
     },
   });
 
-  // ✅ NUEVO: Crear conversación y enviar primer mensaje
+  // ✅ Eliminar entregable
+  const eliminarEntregableMutation = useMutation({
+    mutationFn: async (entregableId) => {
+      const { data } = await httpClient.delete(
+        `/proyectos/${proyectoId}/entregables/${entregableId}`
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["workspace-entregables", proyectoId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["workspace-proyecto", proyectoId],
+      });
+    },
+    onError: (error) => {
+      console.error("Error al eliminar entregable:", error);
+      const message = error.response?.data?.message || error.message || "Error al eliminar el entregable";
+      alert(message);
+    },
+  });
+
+  // ✅ Crear conversación y enviar primer mensaje
   const crearYEnviarMensajeMutation = useMutation({
     mutationFn: async ({ mensaje }) => {
-      // Crear conversación con el primer mensaje
       const { data } = await httpClient.post("/mensajes/conversaciones", {
         proyectoId: Number(proyectoId),
         mensaje: mensaje,
@@ -55,18 +80,16 @@ export function useWorkspaceActions(proyectoId) {
     },
   });
 
-  // ✅ MODIFICADO: Enviar mensaje (o crear conversación si no existe)
+  // ✅ Enviar mensaje (o crear conversación si no existe)
   const enviarMensajeMutation = useMutation({
     mutationFn: async ({ conversacionId, mensaje }) => {
       if (!conversacionId) {
-        // Si no hay conversación, crear una nueva con el mensaje
         const { data } = await httpClient.post("/mensajes/conversaciones", {
           proyectoId: Number(proyectoId),
           mensaje: mensaje,
         });
         return { data, esNueva: true };
       } else {
-        // Si ya existe, enviar mensaje normalmente
         const { data } = await httpClient.post(
           `/mensajes/conversaciones/${conversacionId}`,
           { mensaje }
@@ -81,7 +104,7 @@ export function useWorkspaceActions(proyectoId) {
     },
   });
 
-  // Descargar archivo
+  // ✅ Descargar archivo (función normal, NO es Hook)
   const descargarArchivo = async (url, nombreArchivo) => {
     try {
       const response = await httpClient.get(url, {
@@ -103,17 +126,28 @@ export function useWorkspaceActions(proyectoId) {
     }
   };
 
+  // ✅ FINAL - Devolver todo
   return {
+    // Subir entregable
     subirEntregable: subirEntregableMutation.mutateAsync,
     isSubiendo: subirEntregableMutation.isPending,
     uploadProgress,
     errorSubida: subirEntregableMutation.error,
 
-    // ✅ Chat
+    // Eliminar entregable
+    eliminarEntregable: eliminarEntregableMutation.mutateAsync,
+    isEliminando: eliminarEntregableMutation.isPending,
+
+    // Chat
     enviarMensaje: enviarMensajeMutation.mutateAsync,
     isEnviandoMensaje: enviarMensajeMutation.isPending,
+    crearYEnviarMensaje: crearYEnviarMensajeMutation.mutateAsync,
+    isCreandoConversacion: crearYEnviarMensajeMutation.isPending,
 
+    // Descargar
     descargarArchivo,
+    
+    // Reset
     resetUpload: () => setUploadProgress(0),
   };
 }
