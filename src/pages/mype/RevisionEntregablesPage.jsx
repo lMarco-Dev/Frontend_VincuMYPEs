@@ -14,9 +14,7 @@ import {
 
 export function RevisionEntregablesPage() {
   const { id: proyectoId } = useParams();
-  const { entregables, isLoading, revisarEntregable, isRevisando } =
-    useEntregables(proyectoId);
-  const [observacion, setObservacion] = useState("");
+const { entregables, isLoading, revisarEntregable, isRevisando, refetch } = useEntregables(proyectoId, false, true);  const [observacion, setObservacion] = useState("");
   const [entregableSeleccionado, setEntregableSeleccionado] = useState(null);
 
   const handleRevisar = (entregableId, estado) => {
@@ -26,6 +24,7 @@ export function RevisionEntregablesPage() {
     });
     setEntregableSeleccionado(null);
     setObservacion("");
+    refetch(); 
   };
 
   return (

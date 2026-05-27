@@ -12,6 +12,12 @@ export const getMisEntregablesPorProyecto = async (proyectoId) => {
   return data;
 };
 
+// ✅ NUEVA FUNCIÓN - Para que la MYPE vea SOLO entregables con archivo (subidos por estudiantes)
+export const getEntregablesSubidosPorProyecto = async (proyectoId) => {
+  const { data } = await httpClient.get(`/proyectos/${proyectoId}/entregables/subidos`);
+  return data;
+};
+
 export const revisarEntregableApi = async (
   proyectoId,
   entregableId,

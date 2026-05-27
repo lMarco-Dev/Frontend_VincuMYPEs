@@ -21,89 +21,102 @@ export function useWorkspaceRealTime(proyectoId) {
       return data;
     },
     enabled: !!proyectoId,
-    retry: 2, // Reintentar 2 veces si falla
-    retryDelay: 1000, // Esperar 1 segundo entre reintentos
+    retry: 2,
+    retryDelay: 1000,
     staleTime: 10000,
-    refetchOnWindowFocus: false, // Evitar llamadas extra
-    refetchInterval: false, // Desactivar polling automático para evitar spam de errores
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 
-  // 2. Obtener entregables del estudiante
- // En la sección de entregables:
-const {
+  // 2. Obtener entregables del estudiante (CORREGIDO)
+  const {
     data: entregables = [],
     isLoading: loadingEntregables,
     refetch: refetchEntregables,
-} = useQuery({
+    error: entregablesError,
+  } = useQuery({
     queryKey: ["workspace-entregables", proyectoId],
     queryFn: async () => {
-        try {
-            // ✅ Endpoint corregido con proyectoId
-            const { data } = await httpClient.get(
-                `/proyectos/${proyectoId}/entregables/mis-entregables`
-            );
-            return Array.isArray(data) ? data : [];
-        } catch (error) {
-            console.warn("⚠️ No se pudieron cargar entregables");
-            return [];
-        }
+      try {
+        // ✅ Usar el endpoint correcto que TIENE el parámetro proyectoId
+        const { data } = await httpClient.get(
+          `/proyectos/${proyectoId}/entregables/mis-entregables`
+        );
+        
+        // Asegurar que data sea un array
+        if (!Array.isArray(data)) return [];
+        
+        // Transformar datos al formato que espera el componente
+        const entregablesFormateados = data.map(ent => ({
+         id: ent.id,
+    titulo: ent.titulo,
+    estado: ent.estado,
+    archivo: ent.archivo,                           // ✅ URL del archivo
+    archivoUrl: ent.archivo,                        // ✅ Alias para compatibilidad
+    archivoNombre: ent.archivoNombre ||            // ✅ Si viene del backend
+                  (ent.archivo ? ent.archivo.split('/').pop() : null),
+    fechaSubida: ent.fechaEntrega || ent.createdAt || new Date().toISOString(),
+    observaciones: ent.observaciones || ent.feedback || null,
+    estudianteNombre: ent.estudianteNombre,
+    descripcion: ent.descripcion
+        }));
+        
+        console.log("✅ Entregables cargados:", entregablesFormateados.length);
+        return entregablesFormateados;
+      } catch (error) {
+        console.warn("⚠️ Error al cargar entregables:", error.response?.status, error.message);
+        return [];
+      }
     },
     enabled: !!proyectoId,
     retry: 1,
     staleTime: 5000,
-});
+  });
 
- // En la sección de mensajes, cambia TODO el bloque por esto:
-
-// 3. Obtener mensajes del chat (MANEJO ROBUSTO DE ERRORES)
-const {
+  // 3. Obtener mensajes del chat
+  const {
     data: conversacion,
     isLoading: loadingMensajes,
     refetch: refetchMensajes,
-} = useQuery({
+  } = useQuery({
     queryKey: ["workspace-mensajes", proyectoId],
     queryFn: async () => {
-        try {
-            // Intentar obtener conversaciones
-            const response = await httpClient.get("/mensajes/conversaciones/estudiante");
-            const conversaciones = response.data || response.data?.data || [];
-            
-            const conversacionesArray = Array.isArray(conversaciones) 
-                ? conversaciones 
-                : [];
+      try {
+        const response = await httpClient.get("/mensajes/conversaciones/estudiante");
+        const conversaciones = response.data || response.data?.data || [];
+        
+        const conversacionesArray = Array.isArray(conversaciones) 
+          ? conversaciones 
+          : [];
 
-            // Buscar la conversación de este proyecto
-            const conversacionProyecto = conversacionesArray.find(
-                (c) => c.proyectoId === Number(proyectoId)
-            );
+        const conversacionProyecto = conversacionesArray.find(
+          (c) => c.proyectoId === Number(proyectoId)
+        );
 
-            // ✅ Si no hay conversación, devolver vacío (NO error)
-            if (!conversacionProyecto) {
-                return { mensajes: [], id: null };
-            }
-
-            // Intentar obtener mensajes
-            const mensajesResponse = await httpClient.get(
-                `/mensajes/conversaciones/${conversacionProyecto.id}`
-            );
-            
-            return {
-                id: conversacionProyecto.id,
-                mensajes: mensajesResponse.data || mensajesResponse.data?.data || [],
-            };
-        } catch (error) {
-            // ✅ Si falla (404, 500, etc.), devolver vacío sin mostrar error
-            console.log("ℹ️ No hay conversación aún para este proyecto");
-            return { mensajes: [], id: null };
+        if (!conversacionProyecto) {
+          return { mensajes: [], id: null };
         }
+
+        const mensajesResponse = await httpClient.get(
+          `/mensajes/conversaciones/${conversacionProyecto.id}`
+        );
+        
+        return {
+          id: conversacionProyecto.id,
+          mensajes: mensajesResponse.data || mensajesResponse.data?.data || [],
+        };
+      } catch (error) {
+        console.log("ℹ️ No hay conversación aún para este proyecto");
+        return { mensajes: [], id: null };
+      }
     },
     enabled: !!proyectoId,
-    retry: 0, // ✅ No reintentar para evitar spam de errores
+    retry: 0,
     staleTime: 30000,
-    refetchInterval: false, // ✅ Sin polling automático
-});
+    refetchInterval: false,
+  });
 
-  // 4. Obtener datos de la MYPE (perfil público)
+  // 4. Obtener datos de la MYPE
   const {
     data: mypeData,
     isLoading: loadingMype,
@@ -124,12 +137,13 @@ const {
     staleTime: 300000,
   });
 
-  // 5. Estadísticas calculadas en tiempo real
+  // 5. Estadísticas calculadas
   const entregablesStats = {
     total: entregables?.length || 0,
     completados: entregables?.filter((e) => e.estado === "APROBADO").length || 0,
     enRevision: entregables?.filter((e) => e.estado === "EN_REVISION" || e.estado === "PENDIENTE_REVISION").length || 0,
     pendientes: entregables?.filter((e) => e.estado === "PENDIENTE").length || 0,
+    rechazados: entregables?.filter((e) => e.estado === "RECHAZADO").length || 0,
     porcentaje: entregables?.length
       ? Math.round(
           ((entregables?.filter((e) => e.estado === "APROBADO").length || 0) /
@@ -139,12 +153,14 @@ const {
       : 0,
   };
 
-  // 6. Función para recargar todo manualmente
+  // 6. Función para recargar todo
   const recargarWorkspace = async () => {
     try {
-      await refetchProyecto();
-      await refetchEntregables();
-      await refetchMensajes();
+      await Promise.all([
+        refetchProyecto(),
+        refetchEntregables(),
+        refetchMensajes(),
+      ]);
     } catch (error) {
       console.warn("Error al recargar workspace:", error);
     }
