@@ -15,7 +15,9 @@ const AdminSidebar = () => {
     { name: 'Directorio de Usuarios', path: '/admin/usuarios', icon: <Users size={20} /> },
     { name: 'Auditoría', path: '/admin/auditoria', icon: <History size={20} /> },
     { name: 'Reportes y Extracción', path: '/admin/reportes', icon: <BarChart size={20} /> },
-    { name: 'Configuración', path: '/admin/configuracion', icon: <Settings size={20} /> }
+    { name: 'Configuración', path: '/admin/configuracion', icon: <Settings size={20} /> },
+    { name: 'Gestión de Postulaciones', path: '/admin/postulaciones', icon: <Users size={20} /> }
+
   ];
 
   const handleLogout = () => {

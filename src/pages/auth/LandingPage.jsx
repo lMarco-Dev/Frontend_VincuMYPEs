@@ -1098,16 +1098,12 @@ export function LandingPage() {
               </div>
 
               <div>
-                <p style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,.18)", marginBottom: 20 }}>Institución</p>
+                <p style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,.18)", marginBottom: 20 }}>Especialidad</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <span style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,.32)", lineHeight: 1.6 }}>
-                    Universidad Privada del Norte<br />
-                    <span style={{ color: "rgba(255,255,255,.18)", fontSize: 12 }}>Ingeniería de Sistemas</span>
+                    Ingeniería de Sistemas<br />
                   </span>
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(103,212,248,.07)", border: "1px solid rgba(103,212,248,.14)", padding: "4px 10px", borderRadius: 3, width: "fit-content" }}>
-                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4ade80" }} />
-                    <span style={{ fontFamily: F, fontSize: 10, fontWeight: 400, letterSpacing: ".06em", color: "#67d4f8" }}>Beta · 2026</span>
-                  </div>
+
                 </div>
               </div>
 

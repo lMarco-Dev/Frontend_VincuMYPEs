@@ -12,7 +12,8 @@ import {
   Ban,
   Zap,
   ArrowRight,
-  Loader2
+  Loader2,
+  Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAdminUsuarios } from '@/features/admin/useAdminUsuarios';
@@ -46,11 +47,12 @@ export default function AdminUsuariosPage() {
     cambiarEstado,
     isCambiandoEstado,
     cambiarBypassLimite,
-    isCambiandoBypass
+    isCambiandoBypass,
+    errorBypass
   } = useAdminUsuarios();
 
   const openBypassModal = (usuario) => {
-    setNuevoLimite((usuario.limiteProyectos || 2) + 1);
+    setNuevoLimite((usuario.limiteProyectos || 1) + 1);
     setModalBypass({ isOpen: true, usuario });
   };
 
@@ -158,6 +160,13 @@ export default function AdminUsuariosPage() {
                         <div>
                           <p className="text-sm font-bold text-slate-900">{usuario.nombre}</p>
                           <p className="text-xs font-medium text-slate-500">{usuario.email}</p>
+                          {usuario.rol === 'ESTUDIANTE' && usuario.promedioEstrellas != null && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <Star size={12} className="text-amber-400 fill-amber-400" />
+                              <span className="text-[10px] font-bold text-slate-500">{usuario.promedioEstrellas}</span>
+                              <span className="text-[10px] text-slate-400">· {usuario.proyectosCompletados || 0} completados</span>
+                            </div>
+                          )}
                           {usuario.carrera && <p className="text-[10px] font-bold text-slate-400 mt-0.5">{usuario.carrera}</p>}
                           {usuario.sector && <p className="text-[10px] font-bold text-slate-400 mt-0.5">{usuario.sector}</p>}
                         </div>
@@ -248,11 +257,16 @@ export default function AdminUsuariosPage() {
                 <p className="text-sm text-slate-500 font-medium mb-6">
                   Estás a punto de modificar el límite de proyectos activos para el estudiante <strong className="text-slate-800">{modalBypass.usuario?.nombre}</strong>.
                 </p>
+                {errorBypass && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 font-medium">
+                    {errorBypass}
+                  </div>
+                )}
 
                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-6 flex items-center justify-between">
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Límite actual</p>
-                    <p className="text-2xl font-black text-slate-800">{modalBypass.usuario?.limiteProyectos || 2}</p>
+                    <p className="text-2xl font-black text-slate-800">{modalBypass.usuario?.limiteProyectos || 1}</p>
                   </div>
                   <ArrowRight size={20} className="text-slate-300" />
                   <div className="text-right flex flex-col items-end">

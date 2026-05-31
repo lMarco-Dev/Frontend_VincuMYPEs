@@ -32,5 +32,6 @@ export function useAdminUsuarios() {
     isCambiandoEstado: mutationCambiarEstado.isPending,
     cambiarBypassLimite: mutationCambiarBypassLimite.mutate,
     isCambiandoBypass: mutationCambiarBypassLimite.isPending,
+    errorBypass: mutationCambiarBypassLimite.error?.response?.data?.message || null,
   };
 }
