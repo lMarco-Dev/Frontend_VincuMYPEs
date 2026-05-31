@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import { queryClient } from "../api/queryClient";
+import { Logo } from "../ui/Logo";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
@@ -181,29 +182,7 @@ export function Sidebar() {
           gap: 8,
         }}
       >
-        <svg
-          viewBox="0 0 100 100"
-          fill="none"
-          style={{ width: 26, height: 26, flexShrink: 0 }}
-        >
-          <path d="M20 15 L50 85 L65 85 L35 15 Z" fill="#1B6FE8" />
-          <path
-            d="M80 15 L50 85 L35 85 L65 15 Z"
-            fill="#06B6D4"
-            opacity="0.9"
-          />
-          <circle cx="50" cy="85" r="8" fill="#F97316" />
-        </svg>
-        <span
-          style={{
-            fontSize: 14,
-            fontWeight: 700,
-            color: "#fff",
-            letterSpacing: -0.3,
-          }}
-        >
-          Vincu<span style={{ color: "#06B6D4" }}>MYPEs</span>
-        </span>
+        <Logo />
       </div>
 
       {/* Usuario */}

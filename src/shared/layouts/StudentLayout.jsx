@@ -102,7 +102,7 @@ const StudentLayout = () => {
       {/* SIDEBAR PARA DESKTOP */}
       <aside className="hidden lg:flex flex-col w-[220px] bg-[#1e3a5f] flex-shrink-0 z-30">
         <div className="px-4 py-4 border-b border-white/10">
-          <div className="bg-white/10 rounded-lg px-3 py-2 flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Logo />
           </div>
         </div>
@@ -159,7 +159,7 @@ const StudentLayout = () => {
 
       {/* MOBILE HEADER */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-100 flex items-center justify-between px-6 z-40">
-        <Logo />
+        <Logo theme="light" />
         <button
           onClick={() => setIsSidebarOpen(true)}
           className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl"
@@ -189,7 +189,7 @@ const StudentLayout = () => {
               className="absolute inset-y-0 left-0 w-[240px] bg-[#1e3a5f] z-10 flex flex-col shadow-2xl h-full"
             >
               <div className="px-4 py-4 border-b border-white/10 flex items-center justify-between">
-                <div className="bg-white/10 rounded-lg px-3 py-2 flex items-center gap-2 flex-1 mr-2">
+                <div className="flex items-center gap-2 flex-1 mr-2">
                   <Logo />
                 </div>
                 <button

@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  Search, 
-  Briefcase, 
-  User, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  Search,
+  Briefcase,
+  User,
+  LogOut,
   X,
   Award,
   FolderOpen
@@ -20,11 +20,10 @@ const NavItem = ({ to, icon: Icon, label, pathname, onClick, badge }) => {
     <Link
       to={to}
       onClick={onClick}
-      className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 w-full ${
-        active
+      className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 w-full ${active
           ? "bg-white/12 text-white font-medium"
           : "text-white/55 hover:bg-white/7 hover:text-white/85"
-      }`}
+        }`}
     >
       <div className="flex items-center gap-2.5">
         <Icon size={17} className="shrink-0" />
@@ -35,14 +34,14 @@ const NavItem = ({ to, icon: Icon, label, pathname, onClick, badge }) => {
   );
 };
 
-const StudentSidebar = ({ 
-  isMobile = false, 
-  onClose, 
-  user, 
-  initials, 
-  logout, 
-  pathname, 
-  hasCertificados, 
+const StudentSidebar = ({
+  isMobile = false,
+  onClose,
+  user,
+  initials,
+  logout,
+  pathname,
+  hasCertificados,
   idProyecto // <-- Lo recibes aquí
 }) => {
 
@@ -58,8 +57,8 @@ const StudentSidebar = ({
       label: "Gestión",
       items: [
         { to: "/mis-postulaciones", icon: Briefcase, label: "Mis Postulaciones" },
-       // ↓ Aquí usamos el ID dinámico para que apunte al proyecto correcto
-        { to: `/workspace/${idProyecto}`, icon: FolderOpen, label: "Mi Workspace" }, 
+        // ↓ Aquí usamos el ID dinámico para que apunte al proyecto correcto
+        { to: `/workspace/${idProyecto}`, icon: FolderOpen, label: "Mi Workspace" },
         { to: "/certificados", icon: Award, label: "Mis Certificados" },
       ],
     },
@@ -91,7 +90,7 @@ const StudentSidebar = ({
           <Logo />
         </div>
         {isMobile && (
-          <button 
+          <button
             onClick={onClose}
             className="p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"
           >
@@ -121,13 +120,13 @@ const StudentSidebar = ({
               {section.label}
             </p>
             {section.items.map((item) => (
-              <NavItem 
-                key={item.to} 
-                to={item.to} 
-                icon={item.icon} 
-                label={item.label} 
-                pathname={pathname} 
-                onClick={isMobile ? onClose : undefined} 
+              <NavItem
+                key={item.to}
+                to={item.to}
+                icon={item.icon}
+                label={item.label}
+                pathname={pathname}
+                onClick={isMobile ? onClose : undefined}
                 badge={renderBadge(item.label)}
               />
             ))}
@@ -169,15 +168,15 @@ const StudentSidebar = ({
   );
 };
 
-export default StudentSidebar;import React from 'react';
+export default StudentSidebar; import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  Search, 
-  Briefcase, 
-  User, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  Search,
+  Briefcase,
+  User,
+  LogOut,
   X,
   Award,
   FolderOpen
@@ -191,11 +190,10 @@ const NavItem = ({ to, icon: Icon, label, pathname, onClick, badge }) => {
     <Link
       to={to}
       onClick={onClick}
-      className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 w-full ${
-        active
+      className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 w-full ${active
           ? "bg-white/12 text-white font-medium"
           : "text-white/55 hover:bg-white/7 hover:text-white/85"
-      }`}
+        }`}
     >
       <div className="flex items-center gap-2.5">
         <Icon size={17} className="shrink-0" />
@@ -206,14 +204,14 @@ const NavItem = ({ to, icon: Icon, label, pathname, onClick, badge }) => {
   );
 };
 
-const StudentSidebar = ({ 
-  isMobile = false, 
-  onClose, 
-  user, 
-  initials, 
-  logout, 
-  pathname, 
-  hasCertificados, 
+const StudentSidebar = ({
+  isMobile = false,
+  onClose,
+  user,
+  initials,
+  logout,
+  pathname,
+  hasCertificados,
   idProyecto // <-- Lo recibes aquí
 }) => {
 
@@ -229,8 +227,8 @@ const StudentSidebar = ({
       label: "Gestión",
       items: [
         { to: "/mis-postulaciones", icon: Briefcase, label: "Mis Postulaciones" },
-       // ↓ Aquí usamos el ID dinámico para que apunte al proyecto correcto
-        { to: `/workspace/${idProyecto}`, icon: FolderOpen, label: "Mi Workspace" }, 
+        // ↓ Aquí usamos el ID dinámico para que apunte al proyecto correcto
+        { to: `/workspace/${idProyecto}`, icon: FolderOpen, label: "Mi Workspace" },
         { to: "/certificados", icon: Award, label: "Mis Certificados" },
       ],
     },
@@ -262,7 +260,7 @@ const StudentSidebar = ({
           <Logo />
         </div>
         {isMobile && (
-          <button 
+          <button
             onClick={onClose}
             className="p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"
           >
@@ -292,13 +290,13 @@ const StudentSidebar = ({
               {section.label}
             </p>
             {section.items.map((item) => (
-              <NavItem 
-                key={item.to} 
-                to={item.to} 
-                icon={item.icon} 
-                label={item.label} 
-                pathname={pathname} 
-                onClick={isMobile ? onClose : undefined} 
+              <NavItem
+                key={item.to}
+                to={item.to}
+                icon={item.icon}
+                label={item.label}
+                pathname={pathname}
+                onClick={isMobile ? onClose : undefined}
                 badge={renderBadge(item.label)}
               />
             ))}

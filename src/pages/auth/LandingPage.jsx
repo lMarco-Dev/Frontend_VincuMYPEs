@@ -8,6 +8,7 @@ import {
   ShieldCheck, UserCheck, Layers,
   Mail, MapPin, Menu, X
 } from "lucide-react";
+import { Logo } from "@shared/ui/Logo";
 
 /* ════════════════════════════════════════════
    ANIMACIÓN SVG DEL HERO — red viva MYPE↔Plataforma↔Estudiante
@@ -497,11 +498,7 @@ export function LandingPage() {
           <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 28px", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
 
             <Link to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
-              <img
-                src={scrolled ? "/imagotipo_claro.webp" : "/imagotipo_oscuro.webp"}
-                alt="Linkuy"
-                style={{ height: 36, width: "auto", objectFit: "contain", transition: "opacity .3s" }}
-              />
+              <Logo theme={scrolled ? "light" : "dark"} imgClassName="h-9 w-auto" />
             </Link>
 
             <nav className="nav-desk" style={{ display: "flex", alignItems: "center", gap: 28 }}>
@@ -1064,7 +1061,7 @@ export function LandingPage() {
 
               <div>
                 <div style={{ marginBottom: 16 }}>
-                  <img src="/imagotipo_oscuro.webp" alt="Linkuy" style={{ height: 32, width: "auto", objectFit: "contain" }} />
+                  <Logo theme="dark" imgClassName="h-9 w-auto" />
                 </div>
                 <p style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,.28)", lineHeight: 1.7, maxWidth: 260, marginBottom: 24 }}>
                   Puente académico-empresarial que conecta empresas con talento universitario de ingeniería para resolver necesidades tecnológicas reales.

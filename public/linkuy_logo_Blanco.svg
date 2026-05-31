@@ -1,0 +1,12 @@
+<svg viewBox="220 110 460 180" width="460" height="180" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .main { font-family: Arial, Helvetica, sans-serif; font-weight: bold; font-size: 140px; fill: #1e2a4f; }
+  </style>
+
+  <!-- Utilizamos 'ı' (la letra i sin punto) para poder colocar nuestro propio punto naranja -->
+  <!-- Usamos dx para ajustar el espaciado si es necesario, pero text-anchor middle centra todo el bloque -->
+  <text x="450" y="240" text-anchor="middle" class="main">lınkuy</text>
+  
+  <!-- El punto naranja de la 'i'. Las coordenadas cx y cy se ajustan para que caiga justo sobre la 'ı' -->
+  <circle cx="305" cy="130" r="15" fill="#dc5a28" />
+</svg>

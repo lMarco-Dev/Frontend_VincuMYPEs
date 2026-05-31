@@ -189,7 +189,13 @@ export function VerifyOtpPage() {
           <div style={{ position: "absolute", bottom: -100, left: -80, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle,#1B6FE8,transparent)", opacity: 0.08, filter: "blur(60px)", pointerEvents: "none" }} />
 
           <div style={{ position: "relative", zIndex: 10, padding: "48px 56px 0" }}>
-            <Logo />
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <Logo imgClassName="h-12 w-auto transition-all hover:scale-105 duration-300" />
+            </motion.div>
           </div>
 
           <div style={{ position: "relative", zIndex: 10, flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "30px 40px 50px" }}>
@@ -221,8 +227,8 @@ export function VerifyOtpPage() {
         }}>
           <div style={{ position: "absolute", top: 0, right: 0, width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle,#1B6FE8,transparent)", opacity: 0.04, filter: "blur(80px)", pointerEvents: "none" }} />
 
-          <div className="mobile-logo" style={{ position: "absolute", top: 24, left: 24, alignItems: "center" }}>
-            <Logo />
+          <div className="mobile-logo" style={{ position: "absolute", top: 24, left: 24, alignItems: "center", zIndex: 20 }}>
+            <Logo theme="light" imgClassName="h-10 w-auto" />
           </div>
 
           <motion.div
