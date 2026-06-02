@@ -13,31 +13,36 @@ import {
   Lock,
   Cpu
 } from 'lucide-react';
-// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+
+/* ─── Animaciones ─── */
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
+});
 
 const CertificadosPage = () => {
   const { data: certificados = [], isLoading, isError, error } = useCertificados();
 
   if (isLoading) {
     return (
-      <div className="p-12 text-center text-slate-500 flex flex-col items-center justify-center gap-2">
-        <svg className="animate-spin h-6 w-6 text-primary" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-        </svg>
-        <span className="font-semibold text-sm">Cargando tus certificados...</span>
+      <div style={{ fontFamily: "Inter, Arial, 'Helvetica Neue', sans-serif", background: '#f8fafc', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#6b6b7a' }}>
+          <div className="animate-spin" style={{ width: 22, height: 22, border: '3px solid #e2e8f0', borderTopColor: '#1B6FE8', borderRadius: '50%' }} />
+          <span style={{ fontWeight: 600, fontSize: 13 }}>Cargando certificados...</span>
+        </div>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="p-6 lg:p-12 lg:pt-0 flex items-center justify-center min-h-[400px]">
-        <div className="text-red-500 bg-red-50 p-5 rounded-2xl border border-red-100 max-w-md text-center">
-          <p className="font-bold mb-1">Error al cargar certificados</p>
-          <p className="text-sm">{error.message || "Error desconocido"}</p>
+      <div style={{ fontFamily: "Inter, Arial, 'Helvetica Neue', sans-serif", background: '#f8fafc', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ background: '#fef2f2', color: '#dc2626', padding: 24, borderRadius: 16, border: '0.5px solid #fecaca', maxWidth: 400, textAlign: 'center' }}>
+          <p style={{ fontWeight: 700, marginBottom: 4 }}>Error al cargar certificados</p>
+          <p style={{ fontSize: 13, opacity: 0.9 }}>{error?.message || "Error desconocido"}</p>
         </div>
       </div>
     );
@@ -47,187 +52,282 @@ const CertificadosPage = () => {
   const hasCertificados = totalCertificados > 0;
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1440px] mx-auto">
+    <div style={{ fontFamily: "Inter, Arial, 'Helvetica Neue', sans-serif", background: '#f8fafc', minHeight: '100vh', padding: '32px 36px', maxWidth: 1440, margin: '0 auto' }}>
       
-      {/* Hero Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">Mis Certificados</h1>
-        <p className="text-base text-slate-500 font-semibold max-w-2xl">
-          Aquí encontrarás tus reconocimientos oficiales con firma digital por tu participación en proyectos MYPE. Valida tus competencias laborales.
+      {/* Header consistente con PerfilPage y WorkspaceSelectorPage */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <div style={{ width: 4, height: 20, borderRadius: 2, background: '#1B6FE8' }} />
+          <h1 style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: '#0f1f3d', margin: 0 }}>
+            Mis Certificados
+          </h1>
+        </div>
+        <p style={{ fontSize: 13, fontWeight: 500, color: '#6b6b7a', margin: 0, marginLeft: 14 }}>
+          Reconocimientos oficiales con firma digital por tu participación en proyectos MYPE
         </p>
       </div>
 
-      {/* Academic Statistics Bento Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-surface-container-lowest p-5 rounded-3xl border border-outline-variant/50 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <Award size={22} className="animate-pulse" />
+      {/* Estadísticas en formato Bento */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
+        <motion.div {...fadeUp(0.05)} style={{ background: '#fff', borderRadius: 20, padding: '20px 24px', border: '0.5px solid #e8e8e4', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Award size={22} color="#d97706" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Credenciales Obtenidas</p>
-            <p className="text-2xl font-extrabold text-slate-800">{totalCertificados}</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Credenciales Obtenidas</p>
+            <p style={{ fontSize: 24, fontWeight: 800, color: '#0f1f3d', margin: 0 }}>{totalCertificados}</p>
           </div>
-        </div>
-        
-        <div className="bg-surface-container-lowest p-5 rounded-3xl border border-outline-variant/50 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <Lock size={20} />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Firma Digital Activa</p>
-            <p className="text-sm font-extrabold text-emerald-600 flex items-center gap-1">
-              <CheckCircle2 size={14} /> 100% Verificada
-            </p>
-          </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-surface-container-lowest p-5 rounded-3xl border border-outline-variant/50 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-primary flex items-center justify-center shrink-0">
-            <Cpu size={20} />
+        <motion.div {...fadeUp(0.1)} style={{ background: '#fff', borderRadius: 20, padding: '20px 24px', border: '0.5px solid #e8e8e4', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Lock size={22} color="#059669" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Competencias Validadas</p>
-            <p className="text-sm font-extrabold text-indigo-700">Habilidades TI Reales</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Firma Digital</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#059669', margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={12} /> 100% Verificada</p>
           </div>
-        </div>
+        </motion.div>
+
+        <motion.div {...fadeUp(0.15)} style={{ background: '#fff', borderRadius: 20, padding: '20px 24px', border: '0.5px solid #e8e8e4', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Cpu size={22} color="#1B6FE8" />
+          </div>
+          <div>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Competencias Validadas</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#1B6FE8', margin: 0 }}>Habilidades TI Reales</p>
+          </div>
+        </motion.div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="space-y-8">
-        
+      {/* Contenido principal */}
+      <div style={{ marginTop: 8 }}>
         {!hasCertificados ? (
-          /* Premium "Gold & Violet" Levitating Sello Empty State */
-          <div className="bg-surface-container-lowest border border-outline-variant/60 rounded-[2.5rem] p-10 lg:p-16 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden min-h-[400px]">
-            {/* Ambient blur lights */}
-            <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-amber-50/40 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-64 h-64 bg-indigo-50/30 rounded-full blur-3xl"></div>
-
-            <div className="relative z-10 flex flex-col items-center">
-              {/* Floating Animated Badge */}
-              <div 
-                className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-[#b48a31] to-[#eac05d] text-white flex items-center justify-center shadow-lg shadow-amber-100 mb-8 animate-bounce shrink-0" 
-                style={{ animationDuration: '3s' }}
-              >
-                <Award size={38} className="text-white" />
-              </div>
-              
-              <h3 className="text-2xl lg:text-3xl font-extrabold text-slate-900 mb-3 tracking-tight">Aún no tienes certificados</h3>
-              <p className="text-sm text-slate-500 font-semibold max-w-sm mb-8 leading-relaxed">
-                Los certificados oficiales se generan automáticamente al finalizar exitosamente tu vinculación con una MYPE.
-              </p>
-              <Link to="/proyectos">
-                <button className="bg-gradient-to-r from-primary to-[#4648d4] text-white font-bold px-8 py-3.5 rounded-2xl shadow-xl shadow-primary/20 hover:opacity-95 hover:shadow-2xl transition-all active:scale-95 flex items-center gap-2 text-sm">
-                  <Rocket size={18} />
-                  Explorar Proyectos Disponibles
-                </button>
-              </Link>
+          /* Empty State consistente */
+          <motion.div {...fadeUp(0.2)} style={{ textAlign: 'center', padding: '80px 40px', background: '#fff', borderRadius: 24, border: '0.5px solid #e8e8e4' }}>
+            <div style={{ width: 80, height: 80, borderRadius: 40, background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+              <Award size={40} color="#94a3b8" strokeWidth={1.5} />
             </div>
-          </div>
-        ) : (
-          /* Filled State - Grid of high-fidelity mini digital credential cards */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {certificados.map((cert, index) => (
-              <motion.div
-                key={cert.id || index}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-                className="bg-surface-container-lowest rounded-3xl p-6 border border-outline-variant/40 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden group flex flex-col justify-between"
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f1f3d', marginBottom: 8 }}>
+              Aún no tienes certificados
+            </h3>
+            <p style={{ fontSize: 13, color: '#6b6b7a', fontWeight: 500, marginBottom: 24, maxWidth: 400, marginLeft: 'auto', marginRight: 'auto' }}>
+              Los certificados oficiales se generan automáticamente al finalizar exitosamente tu vinculación con una MYPE.
+            </p>
+            <Link to="/proyectos" style={{ textDecoration: 'none' }}>
+              <button
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#1B6FE8', color: '#fff', padding: '12px 24px', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#1557B0'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(27,111,232,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#1B6FE8'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
               >
-                <div className="relative z-10 space-y-4">
-                  <div className="flex gap-4 items-start justify-between">
-                    {/* Sello de laurel holográfico */}
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#1e3a5f] to-[#4648d4] text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-50">
-                      <Award size={22} />
-                    </div>
-
-                    <span className="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold flex items-center gap-1 border bg-emerald-50 text-emerald-700 border-emerald-100 shrink-0">
-                      <CheckCircle2 size={12} className="text-emerald-600 animate-pulse" />
-                      VERIFICADO
-                    </span>
-                  </div>
-
-                  <div className="min-w-0">
-                    <h3 className="text-base font-extrabold text-slate-900 leading-snug group-hover:text-primary transition-colors mb-1">{cert.tituloCertificado || "Certificado Académico"}</h3>
-                    <p className="text-xs text-slate-500 font-bold mb-3">Proyecto: {cert.proyectoTitulo || "MYPE vinculada"}</p>
-
-                    <div className="flex items-center gap-3 text-[11px] text-slate-400 font-bold">
-                      <Calendar size={13} className="text-slate-400" />
-                      <span>Emitido el {cert.fechaEmision || "Reciente"}</span>
-                    </div>
-
-                    {/* Hash criptográfico de verificación */}
-                    <div className="mt-3.5 flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-[10px] text-slate-500 font-bold">
-                      <span className="text-[9px] font-extrabold text-slate-400 uppercase">Firma Cripto:</span>
-                      <span className="font-mono text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200/30 truncate flex-1 text-center">
-                        {cert.codigo || "VAL-8291A-DF"}
+                <Rocket size={16} />
+                Explorar Proyectos Disponibles
+              </button>
+            </Link>
+          </motion.div>
+        ) : (
+          /* Grid de certificados estilo tarjetas modernas */
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 20 }}>
+            {certificados.map((cert, index) => {
+              const colores = ['#1B6FE8', '#06B6D4', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444'];
+              const colorFondo = colores[index % colores.length];
+              const iniciales = (cert.tituloCertificado || 'C').slice(0, 2).toUpperCase();
+              
+              return (
+                <motion.div
+                  key={cert.id || index}
+                  {...fadeUp(0.08 + index * 0.05)}
+                  style={{
+                    background: '#fff',
+                    borderRadius: 20,
+                    border: '0.5px solid #e8e8e4',
+                    transition: 'all 0.3s ease',
+                    overflow: 'hidden'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.08)';
+                    e.currentTarget.style.borderColor = `${colorFondo}40`;
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.borderColor = '#e8e8e4';
+                  }}
+                >
+                  {/* Cabecera con gradiente */}
+                  <div style={{
+                    height: 100,
+                    background: `linear-gradient(135deg, ${colorFondo}, ${colorFondo}CC)`,
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <div style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: 16,
+                      background: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
+                    }}>
+                      <span style={{
+                        fontSize: 22,
+                        fontWeight: 800,
+                        background: `linear-gradient(135deg, ${colorFondo}, ${colorFondo}CC)`,
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
+                      }}>
+                        {iniciales}
                       </span>
                     </div>
+                    
+                    {/* Badge flotante */}
+                    <div style={{
+                      position: 'absolute',
+                      top: 12,
+                      right: 12,
+                      background: 'rgba(255,255,255,0.2)',
+                      backdropFilter: 'blur(8px)',
+                      borderRadius: 20,
+                      padding: '4px 10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}>
+                      <CheckCircle2 size={10} color="#fff" />
+                      <span style={{ fontSize: 9, fontWeight: 700, color: '#fff', letterSpacing: '0.05em' }}>VERIFICADO</span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="mt-6 pt-4 border-t border-slate-100/80 flex justify-end relative z-10">
-                  <a
-                    href={cert.urlCertificado}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-50 text-slate-700 rounded-xl font-bold text-xs hover:bg-slate-100 border border-slate-200/50 transition-all shadow-sm active:scale-95 whitespace-nowrap"
-                  >
-                    Ver Credencial
-                    <ExternalLink size={13} className="text-slate-400" />
-                  </a>
-                </div>
+                  {/* Contenido */}
+                  <div style={{ padding: 20 }}>
+                    <h3 style={{
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: '#0f1f3d',
+                      margin: '0 0 6px',
+                      lineHeight: 1.3,
+                      letterSpacing: '-0.01em'
+                    }}>
+                      {cert.tituloCertificado || 'Certificado Académico'}
+                    </h3>
+                    
+                    <p style={{ fontSize: 10, fontWeight: 600, color: '#6b6b7a', margin: '0 0 12px' }}>
+                      Proyecto: {cert.proyectoTitulo || 'MYPE vinculada'}
+                    </p>
 
-                {/* Decorative background visual badge seal */}
-                <div className="absolute top-[-20%] right-[-20%] w-32 h-32 bg-gradient-to-br from-indigo-50/30 to-transparent rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500 origin-top-right pointer-events-none" />
-              </motion.div>
-            ))}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+                      <Calendar size={11} color="#94a3b8" />
+                      <span style={{ fontSize: 10, fontWeight: 500, color: '#94a3b8' }}>
+                        Emitido el {cert.fechaEmision || 'Reciente'}
+                      </span>
+                    </div>
+
+                    {/* Hash criptográfico */}
+                    <div style={{
+                      background: '#f8fafc',
+                      borderRadius: 12,
+                      padding: '10px 12px',
+                      border: '0.5px solid #e8e8e4',
+                      marginBottom: 16
+                    }}>
+                      <span style={{ fontSize: 8, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>
+                        Firma Cripto:
+                      </span>
+                      <span style={{ fontSize: 9, fontWeight: 600, color: '#475569', fontFamily: 'monospace' }}>
+                        {cert.codigo || 'VAL-8291A-DF'}
+                      </span>
+                    </div>
+
+                    {/* Botón Ver Credencial */}
+                    <a
+                      href={cert.urlCertificado}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        width: '100%',
+                        padding: '10px 16px',
+                        borderRadius: 10,
+                        background: '#f1f5f9',
+                        color: '#1B6FE8',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        textDecoration: 'none',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = '#1B6FE8';
+                        e.currentTarget.style.color = '#fff';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = '#f1f5f9';
+                        e.currentTarget.style.color = '#1B6FE8';
+                      }}
+                    >
+                      Ver Credencial
+                      <ExternalLink size={12} />
+                    </a>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
 
-        {/* Step-by-Step Flow Cards */}
-        <div className="bg-gradient-to-tr from-indigo-50/50 via-slate-50/50 to-blue-50/50 border border-slate-100 rounded-[2.5rem] p-8 lg:p-10 flex flex-col md:flex-row items-center gap-8 shadow-sm">
-          <div className="flex-1 space-y-2">
-            <h4 className="text-2xl font-extrabold text-slate-900 tracking-tight">¿Cómo obtener tu certificado oficial?</h4>
-            <p className="text-sm text-slate-500 font-semibold leading-relaxed max-w-xl">
-              Postula a un proyecto MYPE, completa los entregables recomendados y una vez que la empresa valide tu desempeño, tu certificado verificado se emitirá con firma criptográfica.
-            </p>
-          </div>
+        {/* Step-by-Step Flow Cards - Estilo consistente */}
+        <motion.div {...fadeUp(0.3)} style={{
+          marginTop: 32,
+          background: 'linear-gradient(135deg, #f8fafc, #fff)',
+          borderRadius: 24,
+          border: '0.5px solid #e8e8e4',
+          padding: '28px 32px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center'
+        }}>
+          <h4 style={{ fontSize: 15, fontWeight: 700, color: '#0f1f3d', marginBottom: 8 }}>¿Cómo obtener tu certificado oficial?</h4>
+          <p style={{ fontSize: 12, fontWeight: 500, color: '#6b6b7a', marginBottom: 24, maxWidth: 500 }}>
+            Postula a un proyecto MYPE, completa los entregables y una vez que la empresa valide tu desempeño, tu certificado se emitirá con firma criptográfica.
+          </p>
           
-          <div className="flex flex-wrap md:flex-nowrap shrink-0 gap-4 items-center justify-center">
-            {/* Step 1 */}
-            <div className="flex flex-col items-center w-24 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100/50 text-indigo-600 flex items-center justify-center mb-2 shadow-sm transition-all hover:scale-105">
-                <Search size={22} className="animate-pulse" />
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 32 }}>
+            {/* Paso 1 */}
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
+                <Search size={22} color="#1B6FE8" />
               </div>
-              <span className="text-[11px] font-bold text-slate-700">1. Postula</span>
-              <span className="text-[9px] font-bold text-slate-400">Elige proyecto</span>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#0f1f3d', margin: 0 }}>1. Postula</p>
+              <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8' }}>Elige proyecto</p>
             </div>
             
-            <div className="hidden md:block h-[2px] w-6 bg-slate-200"></div>
-            
-            {/* Step 2 */}
-            <div className="flex flex-col items-center w-24 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100/50 text-amber-600 flex items-center justify-center mb-2 shadow-sm transition-all hover:scale-105">
-                <Hammer size={22} />
+            {/* Paso 2 */}
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
+                <Hammer size={22} color="#d97706" />
               </div>
-              <span className="text-[11px] font-bold text-slate-700">2. Ejecuta</span>
-              <span className="text-[9px] font-bold text-slate-400">Trabaja hitos</span>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#0f1f3d', margin: 0 }}>2. Ejecuta</p>
+              <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8' }}>Trabaja hitos</p>
             </div>
             
-            <div className="hidden md:block h-[2px] w-6 bg-slate-200"></div>
-            
-            {/* Step 3 */}
-            <div className="flex flex-col items-center w-24 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100/50 text-emerald-600 flex items-center justify-center mb-2 shadow-sm transition-all hover:scale-105">
-                <PartyPopper size={22} />
+            {/* Paso 3 */}
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ width: 56, height: 56, borderRadius: 16, background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
+                <PartyPopper size={22} color="#059669" />
               </div>
-              <span className="text-[11px] font-bold text-slate-700">3. Recibe</span>
-              <span className="text-[9px] font-bold text-slate-400">Logro oficial</span>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#0f1f3d', margin: 0 }}>3. Recibe</p>
+              <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8' }}>Logro oficial</p>
             </div>
           </div>
-        </div>
-
+        </motion.div>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { useMisPostulaciones } from '../../features/postulaciones-list/useMisPos
 import { useCertificados } from '../../features/certificados/useCertificados';
 import { useNotificaciones, useLeerNotificacion } from '../../features/notificaciones/useNotificaciones';
 import { useProyectos } from '../../features/proyectos-list/useProyectos';
-
+import { usePerfil } from '../../features/perfil/usePerfil';
 
 import {
   ArrowRight,
@@ -463,17 +463,22 @@ const HeroBanner = ({ proyectosTotal = 0, aceptados = 0 }) => {
    COMPONENTE PRINCIPAL
 ═══════════════════════════════════════════════ */
 const EstudianteDashboardPage = () => {
-  const { user }  = useAuthStore();
-  //useNotificacionesSocket(user?.id);
-  const navigate  = useNavigate();
+  const { user: authUser } = useAuthStore(); // renombramos para no confundir
+  const { data: userProfile, isLoading: loadingPerfil } = usePerfil(); // ✅ AGREGAR ESTO
+  const navigate = useNavigate();
   const { mutate: leerNotificacion } = useLeerNotificacion();
   const [isNotifPanelOpen, setIsNotifPanelOpen] = React.useState(false);
   const [lastUpdate, setLastUpdate] = React.useState(new Date());
 
-  const { data: postulaciones,  isLoading: loadingPostulaciones  } = useMisPostulaciones();
-  const { data: certificados,   isLoading: loadingCertificados   } = useCertificados();
+  const { data: postulaciones, isLoading: loadingPostulaciones } = useMisPostulaciones();
+  const { data: certificados, isLoading: loadingCertificados } = useCertificados();
   const { data: notificaciones, isLoading: loadingNotificaciones } = useNotificaciones();
-  const { data: proyectosData,  isLoading: loadingProyectos      } = useProyectos();
+  const { data: proyectosData, isLoading: loadingProyectos } = useProyectos();
+
+  // ✅ Usar userProfile en lugar de authUser para el perfil
+  const user = userProfile || authUser; // fallback si perfil no carga
+
+  // ... resto del código
 
   const totalPostulaciones    = postulaciones?.length || 0;
   const aceptados             = postulaciones?.filter(p => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado').length || 0;
@@ -482,11 +487,18 @@ const EstudianteDashboardPage = () => {
   const proyectosRecomendados = proyectosData?.content?.slice(0, 3) || [];
   const proyectosActivos      = postulaciones?.filter(p => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado') || [];
 
-  let completitud = 20;
-  if (user?.bio)                               completitud += 20;
-  if (user?.skills?.length > 0)               completitud += 20;
-  if (user?.telefono)                         completitud += 20;
-  if (user?.linkedinUrl || user?.portafolioUrl) completitud += 20;
+ // ✅ Misma lógica que en PerfilPage
+let completitud = 10;
+if (user?.bio) completitud += 15;
+if (user?.skills?.length > 0) completitud += 15;
+if (user?.telefono) completitud += 10;
+if (user?.linkedinUrl) completitud += 10;
+if (user?.portafolioUrl) completitud += 10;
+if (user?.ciudad) completitud += 10;
+if (user?.pais) completitud += 10;
+if (user?.cvUrl) completitud += 10;
+// Asegurar que no pase de 100
+if (completitud > 100) completitud = 100;
 
   const porcentajeExito = totalPostulaciones > 0
     ? Math.round((aceptados / totalPostulaciones) * 100) : 0;

@@ -28,7 +28,7 @@ export function useWorkspaceRealTime(proyectoId) {
     refetchInterval: false,
   });
 
-  // 2. Obtener entregables del estudiante (CORREGIDO)
+  // 2. ✅ CORREGIDO: Obtener TODOS los entregables (usa nuevo endpoint /todos)
   const {
     data: entregables = [],
     isLoading: loadingEntregables,
@@ -38,27 +38,26 @@ export function useWorkspaceRealTime(proyectoId) {
     queryKey: ["workspace-entregables", proyectoId],
     queryFn: async () => {
       try {
-        // ✅ Usar el endpoint correcto que TIENE el parámetro proyectoId
+        // ✅ NUEVO ENDPOINT: /todos devuelve TODOS los entregables del proyecto
         const { data } = await httpClient.get(
-          `/proyectos/${proyectoId}/entregables/mis-entregables`
+          `/proyectos/${proyectoId}/entregables/todos`
         );
         
-        // Asegurar que data sea un array
         if (!Array.isArray(data)) return [];
         
-        // Transformar datos al formato que espera el componente
         const entregablesFormateados = data.map(ent => ({
-         id: ent.id,
-    titulo: ent.titulo,
-    estado: ent.estado,
-    archivo: ent.archivo,                           // ✅ URL del archivo
-    archivoUrl: ent.archivo,                        // ✅ Alias para compatibilidad
-    archivoNombre: ent.archivoNombre ||            // ✅ Si viene del backend
-                  (ent.archivo ? ent.archivo.split('/').pop() : null),
-    fechaSubida: ent.fechaEntrega || ent.createdAt || new Date().toISOString(),
-    observaciones: ent.observaciones || ent.feedback || null,
-    estudianteNombre: ent.estudianteNombre,
-    descripcion: ent.descripcion
+          id: ent.id,
+          titulo: ent.titulo,
+          estado: ent.estado,
+          archivo: ent.archivo,
+          archivoUrl: ent.archivo,
+          archivoNombre: ent.archivoNombre ||
+                        (ent.archivo ? ent.archivo.split('/').pop() : null),
+          fechaSubida: ent.fechaEntrega || ent.createdAt || new Date().toISOString(),
+          observaciones: ent.observaciones || ent.feedback || null,
+          estudianteNombre: ent.estudianteNombre,
+          descripcion: ent.descripcion,
+          subidoPorNombre: ent.subidoPorNombre || ent.estudianteNombre,
         }));
         
         console.log("✅ Entregables cargados:", entregablesFormateados.length);
@@ -70,7 +69,9 @@ export function useWorkspaceRealTime(proyectoId) {
     },
     enabled: !!proyectoId,
     retry: 1,
-    staleTime: 5000,
+    staleTime: 3000,
+    refetchInterval: 5000, // ✅ CADA 5 SEGUNDOS - tiempo real
+    refetchOnWindowFocus: true,
   });
 
   // 3. Obtener mensajes del chat
@@ -166,7 +167,6 @@ export function useWorkspaceRealTime(proyectoId) {
     }
   };
 
-  // 7. Última actualización
   const ultimaActualizacion = new Date();
 
   return {

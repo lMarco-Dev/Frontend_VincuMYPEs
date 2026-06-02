@@ -14,6 +14,7 @@ import {
   ExternalLink,
   TrendingUp,
   Calendar,
+  Crown,
 } from "lucide-react";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
@@ -633,6 +634,10 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
                   .slice(0, 2)
                   .join("")
                   .toUpperCase() ?? "E";
+              
+              // ✅ NUEVO: Detectar si es delegado
+              const esDelegado = e.esDelegado === true;
+              
               return (
                 <div
                   key={e.id}
@@ -642,6 +647,7 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
                     gap: 10,
                     padding: "8px 0",
                     borderBottom: "0.5px solid #F9FAFB",
+                    position: "relative",
                   }}
                 >
                   <div
@@ -650,18 +656,37 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
                       height: 32,
                       borderRadius: "50%",
                       flexShrink: 0,
-                      background: colorScheme.avatarBg,
-                      border: `1.5px solid ${colorScheme.avatarBorder}`,
+                      background: esDelegado 
+                        ? "linear-gradient(135deg, #fbbf24, #f59e0b)" 
+                        : colorScheme.avatarBg,
+                      border: esDelegado 
+                        ? "2px solid #f59e0b" 
+                        : `1.5px solid ${colorScheme.avatarBorder}`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       fontFamily: FONT,
                       fontSize: 10,
                       fontWeight: 700,
-                      color: colorScheme.avatarC,
+                      color: esDelegado ? "#fff" : colorScheme.avatarC,
+                      position: "relative",
                     }}
                   >
                     {iniciales}
+                    {/* ✅ Corona para el delegado */}
+                    {esDelegado && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: -8,
+                          right: -4,
+                          fontSize: 12,
+                        }}
+                        title="Delegado del equipo"
+                      >
+                        👑
+                      </span>
+                    )}
                   </div>
                   <div>
                     <p
@@ -671,9 +696,28 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
                         fontWeight: 600,
                         color: "#111827",
                         margin: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
                       }}
                     >
                       {e.estudianteNombre}
+                      {/* ✅ Badge de delegado */}
+                      {esDelegado && (
+                        <span
+                          style={{
+                            fontSize: 9,
+                            fontWeight: 700,
+                            background: "linear-gradient(135deg, #fef3c7, #fde68a)",
+                            color: "#92400e",
+                            padding: "1px 6px",
+                            borderRadius: 8,
+                            border: "1px solid #fbbf24",
+                          }}
+                        >
+                          Delegado
+                        </span>
+                      )}
                     </p>
                     <p
                       style={{
@@ -687,6 +731,11 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
                       }}
                     >
                       <CheckCircle2 size={10} color="#15803D" /> Confirmado
+                      {esDelegado && (
+                        <span style={{ color: "#f59e0b", fontWeight: 600 }}>
+                          · Sube entregables
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>

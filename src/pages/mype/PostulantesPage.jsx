@@ -24,6 +24,7 @@ import {
   Calendar,
   Star,
   Award,
+  Crown,
 } from "lucide-react";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
@@ -342,6 +343,9 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
   const { cambiarEstado, isLoading } = useCambiarEstadoPostulacion(proyectoId);
   const [expanded, setExpanded] = useState(false);
 
+  // ✅ Detectar si es delegado
+  const esDelegado = postulacion.esDelegado === true;
+
   const iniciales =
     postulacion.estudianteNombre
       ?.split(" ")
@@ -392,20 +396,25 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
       whileHover={{ y: -2 }}
       style={{
         background: "#fff",
-        border: "1px solid #E5E7EB",
+        border: esDelegado ? "2px solid #fbbf24" : "1px solid #E5E7EB",
         borderRadius: "1.5rem",
         padding: 20,
         transition: "all 0.3s ease",
         position: "relative",
         overflow: "hidden",
+        boxShadow: esDelegado ? "0 4px 16px rgba(251,191,36,0.15)" : "none",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.08)";
-        e.currentTarget.style.borderColor = "#BFDBFE";
+        e.currentTarget.style.boxShadow = esDelegado 
+          ? "0 12px 24px rgba(251,191,36,0.2)" 
+          : "0 12px 24px rgba(0,0,0,0.08)";
+        e.currentTarget.style.borderColor = esDelegado ? "#f59e0b" : "#BFDBFE";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = "none";
-        e.currentTarget.style.borderColor = "#E5E7EB";
+        e.currentTarget.style.boxShadow = esDelegado 
+          ? "0 4px 16px rgba(251,191,36,0.15)" 
+          : "none";
+        e.currentTarget.style.borderColor = esDelegado ? "#fbbf24" : "#E5E7EB";
       }}
     >
       {/* Esquina decorativa según estado */}
@@ -416,8 +425,9 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
           right: 0,
           width: 60,
           height: 60,
-          background:
-            postulacion.estado === "PRESELECCIONADO"
+          background: esDelegado
+            ? "linear-gradient(135deg, transparent 50%, #fef3c7 50%)"
+            : postulacion.estado === "PRESELECCIONADO"
               ? "linear-gradient(135deg, transparent 50%, #EFF6FF 50%)"
               : postulacion.estado === "VALIDADO_MYPE"
                 ? "linear-gradient(135deg, transparent 50%, #F0FDF4 50%)"
@@ -434,17 +444,38 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
             width: 56,
             height: 56,
             borderRadius: "1rem",
-            background: "linear-gradient(135deg, #EFF6FF, #DBEAFE)",
-            border: "2px solid #BFDBFE",
+            background: esDelegado
+              ? "linear-gradient(135deg, #fbbf24, #f59e0b)"
+              : "linear-gradient(135deg, #EFF6FF, #DBEAFE)",
+            border: esDelegado ? "2px solid #f59e0b" : "2px solid #BFDBFE",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
+            position: "relative",
           }}
         >
-          <span style={{ fontSize: 18, fontWeight: 700, color: "#1D4ED8" }}>
+          <span style={{ 
+            fontSize: 18, 
+            fontWeight: 700, 
+            color: esDelegado ? "#fff" : "#1D4ED8" 
+          }}>
             {iniciales}
           </span>
+          {/* ✅ Corona para el delegado */}
+          {esDelegado && (
+            <span
+              style={{
+                position: "absolute",
+                top: -10,
+                right: -6,
+                fontSize: 16,
+              }}
+              title="Delegado del equipo"
+            >
+              👑
+            </span>
+          )}
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -465,9 +496,32 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
                 fontWeight: 700,
                 color: "#0F1F3D",
                 margin: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
               }}
             >
               {postulacion.estudianteNombre}
+              {/* ✅ Badge de delegado */}
+              {esDelegado && postulacion.cupos !== 1 && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    background: "linear-gradient(135deg, #fef3c7, #fde68a)",
+                    color: "#92400e",
+                    padding: "2px 8px",
+                    borderRadius: 10,
+                    border: "1px solid #fbbf24",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <Crown size={10} /> Delegado
+                </span>
+              )}
             </h3>
             <EstadoPostBadge estado={postulacion.estado} />
           </div>
@@ -516,6 +570,21 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
               >
                 <FileText size={11} /> Ver CV
               </a>
+            )}
+            {/* ✅ Indicador de delegado */}
+            {esDelegado && postulacion.cupos !== 1 && (
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: "#f59e0b",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 3,
+                }}
+              >
+                <Crown size={10} /> Sube los entregables
+              </span>
             )}
           </div>
 
