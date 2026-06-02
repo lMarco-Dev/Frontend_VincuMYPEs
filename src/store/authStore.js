@@ -12,21 +12,24 @@ export const useAuthStore = create(
 
       login: (data) => {
         const { token, nombre, rol, email, usuarioId } = data;
+        // Normalizar: eliminar prefijo "ROLE_" si existe
+        const rolNormalizado = rol?.startsWith("ROLE_") ? rol.substring(5) : rol;
         set({
           token,
           user: { nombre, email, id: usuarioId },
-          rol,
+          rol: rolNormalizado,
           isAuthenticated: true,
         });
       },
 
       setUser: (data) => {
-        const { token, id, rol } = data; // ← "rol" no "role"
+        const { token, id, rol } = data;
+        const rolNormalizado = rol?.startsWith("ROLE_") ? rol.substring(5) : rol;
         const currentUser = get().user || {};
         set((state) => ({
           token: token ?? state.token,
           user: { ...currentUser, id },
-          rol: rol ?? state.rol,
+          rol: rolNormalizado ?? state.rol,
           isAuthenticated: true,
         }));
       },
@@ -41,6 +44,6 @@ export const useAuthStore = create(
         });
       },
     }),
-    { name: "vincumypes-auth" }, // Zustand persist maneja localStorage solo
+    { name: "vincumypes-auth" }
   ),
 );

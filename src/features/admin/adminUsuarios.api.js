@@ -9,7 +9,7 @@ export const cambiarEstadoUsuarioAdmin = async (usuarioId) => {
 };
 
 export const cambiarBypassLimiteAdmin = async ({ estudianteId, nuevoLimite }) => {
-  return await httpClient.patch(`/admin/usuarios/${estudianteId}/bypass-limite`, {
+  return await httpClient.patch(`/admin/estudiantes/usuario/${estudianteId}/limite-proyectos`, {
     nuevoLimite,
   });
 };

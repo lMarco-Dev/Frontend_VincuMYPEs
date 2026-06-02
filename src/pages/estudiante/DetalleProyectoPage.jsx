@@ -26,6 +26,25 @@ import {
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
+const renderDuracion = (proyecto) => {
+  if (proyecto.fechaLimiteCalculada) {
+    return {
+      label: "Fecha límite",
+      value: new Date(proyecto.fechaLimiteCalculada).toLocaleDateString("es-PE"),
+    };
+  }
+  if (proyecto.diasEstimados) {
+    return {
+      label: "Días de duración",
+      value: `${proyecto.diasEstimados} días`,
+    };
+  }
+  return {
+    label: "Duración",
+    value: "Por definir",
+  };
+};
+
 const getAreaStyle = (area) => {
   switch (area) {
     case 'DESARROLLO_WEB':
@@ -158,7 +177,10 @@ const DetalleProyectoPage = () => {
             </span>
             <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/5">
               <Clock size={13} className="text-white/60" />
-              Límite: {proyecto.fechaLimite}
+              {(() => {
+                const dur = renderDuracion(proyecto);
+                return `${dur.label}: ${dur.value}`;
+              })()}
             </span>
           </div>
         </div>
@@ -270,8 +292,12 @@ const DetalleProyectoPage = () => {
                 <div className="flex items-start gap-3">
                   <Calendar className="text-[#1e3a5f] mt-0.5" size={18} />
                   <div>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Fecha Límite de Aplicación</p>
-                    <p className="text-sm font-extrabold text-[#1e3a5f] mt-0.5">{proyecto.fechaLimite}</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                      {renderDuracion(proyecto).label}
+                    </p>
+                    <p className="text-sm font-extrabold text-[#1e3a5f] mt-0.5">
+                      {renderDuracion(proyecto).value}
+                    </p>
                   </div>
                 </div>
               </div>
