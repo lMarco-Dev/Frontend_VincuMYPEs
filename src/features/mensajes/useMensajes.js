@@ -5,14 +5,17 @@ import {
   enviarMensajeApi,
 } from "./mensajes.api";
 import { handleApiError } from "@/shared/api/apiErrors";
+import { useAuthStore } from "@/store/authStore";
 
 // Lista de conversaciones de la MYPE
 export function useConversaciones() {
+  const { isAuthenticated } = useAuthStore();
   const { data, isLoading } = useQuery({
     queryKey: ["conversaciones"],
     queryFn: getConversacionesApi,
     select: (res) => res.data,
-    refetchInterval: 10_000, // polling cada 10s
+    refetchInterval: 10_000,
+    enabled: isAuthenticated,
   });
   return { conversaciones: data ?? [], isLoading };
 }

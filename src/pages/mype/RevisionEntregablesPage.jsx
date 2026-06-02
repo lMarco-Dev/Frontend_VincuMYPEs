@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useEntregables } from "@/features/proyecto-entregables/useEntregables";
+import { useCompletarProyecto } from "@/features/proyecto-edit/useEditarProyecto";
+import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos"; // ✅ Importación agregada
 import { Skeleton } from "@/shared/ui/Skeleton";
 import {
   FileText,
@@ -14,8 +16,17 @@ import {
 
 export function RevisionEntregablesPage() {
   const { id: proyectoId } = useParams();
-const { entregables, isLoading, revisarEntregable, isRevisando, refetch } = useEntregables(proyectoId, false, true);  const [observacion, setObservacion] = useState("");
+  const { entregables, isLoading, revisarEntregable, isRevisando, refetch } =
+    useEntregables(proyectoId, false, true);
+  const [observacion, setObservacion] = useState("");
   const [entregableSeleccionado, setEntregableSeleccionado] = useState(null);
+  const { completar, isLoading: completando } = useCompletarProyecto();
+  const [confirmarCompletado, setConfirmarCompletado] = useState(false);
+
+  // Obtener estado del proyecto para saber si ya está completado
+  const { proyectos } = useMisProyectos();
+  const proyecto = proyectos.find((p) => p.id === Number(proyectoId));
+  const isCompletado = proyecto?.estado === "COMPLETADO";
 
   const handleRevisar = (entregableId, estado) => {
     revisarEntregable({
@@ -24,7 +35,7 @@ const { entregables, isLoading, revisarEntregable, isRevisando, refetch } = useE
     });
     setEntregableSeleccionado(null);
     setObservacion("");
-    refetch(); 
+    refetch();
   };
 
   return (
@@ -49,6 +60,114 @@ const { entregables, isLoading, revisarEntregable, isRevisando, refetch } = useE
             </div>
           </div>
 
+          {/* Boton para completar el proyecto */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: "24px",
+            }}
+          >
+            {!isCompletado ? (
+              confirmarCompletado ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 12, color: "#94A3B8" }}>
+                    ¿Confirmar que el proyecto está completo?
+                  </span>
+                  <button
+                    onClick={() =>
+                      completar(Number(proyectoId), {
+                        onSuccess: () => setConfirmarCompletado(false),
+                      })
+                    }
+                    disabled={completando}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: "6px 14px",
+                      borderRadius: 8,
+                      border: "none",
+                      cursor: "pointer",
+                      background: "linear-gradient(135deg,#059669,#047857)",
+                      color: "#fff",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      opacity: completando ? 0.7 : 1,
+                    }}
+                  >
+                    {completando ? (
+                      <>
+                        <Loader2
+                          size={12}
+                          style={{ animation: "spin 1s linear infinite" }}
+                        />{" "}
+                        Procesando...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle size={12} /> Confirmar
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setConfirmarCompletado(false)}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      padding: "6px 14px",
+                      borderRadius: 8,
+                      border: "1px solid #475569",
+                      background: "transparent",
+                      color: "#94A3B8",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmarCompletado(true)}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: "8px 18px",
+                    borderRadius: 8,
+                    border: "1px solid rgba(5,150,105,0.4)",
+                    background: "rgba(5,150,105,0.1)",
+                    color: "#34D399",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <CheckCircle size={14} /> Marcar proyecto como completado
+                </button>
+              )
+            ) : (
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: "8px 18px",
+                  borderRadius: 8,
+                  background: "rgba(5,150,105,0.1)",
+                  color: "#34D399",
+                  border: "1px solid rgba(5,150,105,0.3)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                <CheckCircle size={14} /> Proyecto completado
+              </span>
+            )}
+          </div>
+
+          {/* Lista de entregables */}
           {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (

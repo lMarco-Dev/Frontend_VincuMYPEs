@@ -2,7 +2,8 @@
 import axios from "axios";
 import { tokenStorage } from "./tokenStorage";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
 export const httpClient = axios.create({
   baseURL: BASE_URL,
@@ -13,19 +14,19 @@ export const httpClient = axios.create({
 httpClient.interceptors.request.use(
   (config) => {
     const token = tokenStorage.getAccessToken();
-    
+
     // No enviar el token para rutas de autenticación (login, register)
-    const isAuthRoute = config.url?.includes('/auth/');
-    
+    const isAuthRoute = config.url?.includes("/auth/");
+
     if (token && !isAuthRoute) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${tokenStorage.getAccessToken()}`;
     }
-    
+
     return config;
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Interceptor de respuestas - Maneja errores y refresh token
@@ -40,7 +41,7 @@ httpClient.interceptors.response.use(
 
       try {
         const refreshToken = tokenStorage.getRefreshToken();
-        
+
         if (!refreshToken) {
           throw new Error("No hay refresh token disponible");
         }
@@ -52,7 +53,10 @@ httpClient.interceptors.response.use(
 
         // Guardamos los nuevos tokens
         if (data.accessToken) {
-          tokenStorage.setTokens(data.accessToken, data.refreshToken || refreshToken);
+          tokenStorage.setTokens(
+            data.accessToken,
+            data.refreshToken || refreshToken,
+          );
         } else {
           throw new Error("No se recibió un nuevo access token");
         }
@@ -60,20 +64,19 @@ httpClient.interceptors.response.use(
         // Reintentamos la petición original con el nuevo token
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return httpClient(originalRequest);
-        
       } catch (refreshError) {
-          tokenStorage.clearTokens();
-          if (window.location.pathname !== '/login') {
-            window.location.href = "/login";
-          }
-          return Promise.reject(error);
+        tokenStorage.clearTokens();
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+        return Promise.reject(error);
       }
     }
 
     // Manejo de otros códigos de error
     if (error.response?.status === 403) {
       // Redirigir a página de prohibido solo si no estamos ya ahí
-      if (window.location.pathname !== '/forbidden') {
+      if (window.location.pathname !== "/forbidden") {
         window.location.href = "/forbidden";
       }
     }
@@ -85,7 +88,7 @@ httpClient.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 // Función auxiliar para verificar si el token está por expirar
@@ -95,13 +98,13 @@ export const isTokenExpiringSoon = () => {
 
   try {
     // Decodificar el payload del JWT (parte del medio)
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(atob(token.split(".")[1]));
     const expirationTime = payload.exp * 1000; // Convertir a milisegundos
     const currentTime = Date.now();
     const fiveMinutes = 5 * 60 * 1000; // 5 minutos en milisegundos
 
     // Retornar true si el token expirará en los próximos 5 minutos
-    return (expirationTime - currentTime) < fiveMinutes;
+    return expirationTime - currentTime < fiveMinutes;
   } catch (error) {
     console.error("Error al verificar expiración del token:", error);
     return true;
@@ -121,7 +124,10 @@ export const refreshTokenIfNeeded = async () => {
     });
 
     if (data.accessToken) {
-      tokenStorage.setTokens(data.accessToken, data.refreshToken || refreshToken);
+      tokenStorage.setTokens(
+        data.accessToken,
+        data.refreshToken || refreshToken,
+      );
       return data.accessToken;
     }
   } catch (error) {

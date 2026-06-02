@@ -7,7 +7,7 @@ import { MypeProfileHeader } from "@/shared/components/mype-perfil/MypeProfileHe
 import { MypeInfoCard } from "@/shared/components/mype-perfil/MypeInfoCard";
 import { MypeContactCard } from "@/shared/components/mype-perfil/MypeContactCard";
 import { MypeProyectosCard } from "@/shared/components/mype-perfil/MypeProyectosCard";
-import { MypeSocialLinks } from "@/shared/components/mype-perfil/MypeSocialLinks"; // ← COMENTADO
+import { MypeSocialLinks } from "@/shared/components/mype-perfil/MypeSocialLinks";
 import { MypeMapaCard } from "@/shared/components/mype-perfil/MypeMapaCard";
 import { MypePerfilEditarModal } from "@/shared/components/mype-perfil/MypePerfilEditarModal";
 import { Building2 } from "lucide-react";

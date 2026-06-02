@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useAuthStore } from "@/store/authStore";
 import { useUsuarioMe } from "@/features/configuracion/useConfiguracion";
@@ -140,10 +140,16 @@ function FeedbackMsg({ success, error }) {
 // ── Sección: Información personal ────────────────────────────
 function SeccionInfo({ user }) {
   const { ejecutar, isLoading, isSuccess, error, reset } = useActualizarInfo();
-  const [form, setForm] = useState({
-    nombre: user?.nombre ?? "",
-    telefono: user?.telefono ?? "",
-  });
+  const [form, setForm] = useState({ nombre: "", telefono: "" });
+
+  useEffect(() => {
+    if (user) {
+      setForm({
+        nombre: user.nombre ?? "",
+        telefono: user.telefono ?? "",
+      });
+    }
+  }, [user]);
   const [editando, setEditando] = useState(false);
 
   const handleGuardar = () => {

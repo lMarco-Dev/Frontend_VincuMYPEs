@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useVotacion, useVotar } from "@/features/votacion/useVotacion";
 import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
+import { es } from "date-fns/locale/es";
 
 export function VotacionModal({ proyectoId, onClose }) {
   const { votacion, isLoading, refetch } = useVotacion(proyectoId);
@@ -72,7 +72,9 @@ export function VotacionModal({ proyectoId, onClose }) {
               <Vote size={24} />
               <div>
                 <h2 className="text-lg font-bold">
-                  {completada ? "✅ Delegado Elegido" : "🗳️ Votación de Delegado"}
+                  {completada
+                    ? "✅ Delegado Elegido"
+                    : "🗳️ Votación de Delegado"}
                 </h2>
                 <p className="text-sm opacity-80">{votacion?.proyectoTitulo}</p>
               </div>
