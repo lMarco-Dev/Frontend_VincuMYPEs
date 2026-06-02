@@ -508,7 +508,7 @@ const handleConsultarRuc = async () => {
 
 const onChangeApellido = (e) => {
   e.target.value = e.target.value
-    .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/g, "")
+    .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]/g, "") 
     .toUpperCase();
 };
 
@@ -743,16 +743,11 @@ const onChangeApellido = (e) => {
                           maxLength: { value: 40, message: "Máximo 40 caracteres" },
                           validate: {
                             soloLetras: (v) =>
-                              /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(v) || "Solo se permiten letras",
+                              /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(v) || "Solo se permiten letras y espacios",
                             sinEspaciosExcesivos: (v) =>
                               (v.trim().split(/\s+/).length <= 4) || "Máximo 4 nombres",
                             sinEspaciosBordes: (v) =>
                               v.trim() === v || "No debe empezar ni terminar con espacios",
-                            nombreReal: (v) => {
-                              const palabras = v.trim().split(/\s+/);
-                              const patronValido = /^[bcdfghjklmnñpqrstvwxyz]*[aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2}([aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2})*[aeiouáéíóúü]?$/i;
-                              return palabras.every(p => p.length >= 2 && patronValido.test(p)) || "Ingresa un nombre real";
-                            },
                           },
                           onChange: onChangeNombre,
                         })}
@@ -777,14 +772,8 @@ const onChangeApellido = (e) => {
                           minLength: { value: 2, message: "Mínimo 2 caracteres" },
                           maxLength: { value: 40, message: "Máximo 40 caracteres" },
                           validate: {
-                            soloLetras: (v) =>
-                              /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/.test(v) || "Solo letras, sin espacios",
-                            sinEspacios: (v) =>
-                              !/\s/.test(v) || "El apellido no debe contener espacios",
-                            apellidoReal: (v) => {
-                              const patron = /^[bcdfghjklmnñpqrstvwxyz]*[aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2}([aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2})*[aeiouáéíóúü]?$/i;
-                              return (v.length >= 2 && patron.test(v)) || "Ingresa un apellido real";
-                            },
+                            soloLetrasEspacios: (v) =>
+                              /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]+$/.test(v) || "Solo letras, espacios y guiones",
                           },
                           onChange: onChangeApellido,
                         })}
@@ -807,14 +796,8 @@ const onChangeApellido = (e) => {
                           minLength: { value: 2, message: "Mínimo 2 caracteres" },
                           maxLength: { value: 40, message: "Máximo 40 caracteres" },
                           validate: {
-                            soloLetras: (v) =>
-                              /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/.test(v) || "Solo letras, sin espacios",
-                            sinEspacios: (v) =>
-                              !/\s/.test(v) || "El apellido no debe contener espacios",
-                            apellidoReal: (v) => {
-                              const patron = /^[bcdfghjklmnñpqrstvwxyz]*[aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2}([aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2})*[aeiouáéíóúü]?$/i;
-                              return (v.length >= 2 && patron.test(v)) || "Ingresa un apellido real";
-                            },
+                            soloLetrasEspacios: (v) =>
+                              /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]+$/.test(v) || "Solo letras, espacios y guiones",
                           },
                           onChange: onChangeApellido,
                         })}

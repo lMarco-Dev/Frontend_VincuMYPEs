@@ -25,8 +25,6 @@ import {
 import { usePerfilPublicoEstudiante } from "@/features/perfil-publico/usePerfilPublicoEstudiante";
 import { useAuthStore } from "@/store/authStore";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyDTDupf0OMm6qC2DP8HTP3qUOmMclUAvMw";
-
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },

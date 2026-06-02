@@ -7,7 +7,7 @@ import { useMisPostulaciones } from '@features/postulaciones-list/useMisPostulac
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDTDupf0OMm6qC2DP8HTP3qUOmMclUAvMw';
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 /* ─── Animaciones ─── */
 const fadeUp = (delay = 0) => ({
@@ -881,115 +881,12 @@ const PerfilPage = () => {
                 <Link to="/mis-postulaciones" style={{ fontSize:11, fontWeight:600, color:'#1B6FE8', textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>Ver todos <ArrowRight size={11} /></Link>
               </div>
               {proyectosAceptados.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {proyectosAceptados.slice(0, 4).map((proyecto, idx) => {
-                  const colores = ['#1B6FE8', '#06B6D4', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444'];
-                  const colorFondo = colores[idx % colores.length];
-                  
-                  // Obtener iniciales (primeras 2 letras del título)
-                  const titulo = proyecto.proyectoTitulo || 'Proyecto';
-                  const iniciales = titulo.slice(0, 2).toUpperCase();
-                  
-                  return (
-                    <Link key={idx} 
-                      to={proyecto.estado === 'CONFIRMADO' || proyecto.estado === 'ACEPTADO' 
-                        ? `/workspace/${proyecto.proyectoId}` 
-                        : `/proyectos/${proyecto.proyectoId}`
-                      } 
-                      style={{ textDecoration: 'none' }}
-                    >
-                      <div style={{ 
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 16,
-                        padding: '14px 18px',
-                        borderRadius: 16,
-                        background: '#fff',
-                        border: '0.5px solid #e8e8e4',
-                        transition: 'all 0.3s ease',
-                        cursor: 'pointer'
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.transform = 'translateX(4px)';
-                        e.currentTarget.style.borderColor = colorFondo;
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.transform = 'translateX(0)';
-                        e.currentTarget.style.borderColor = '#e8e8e4';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
-                      >
-                        {/* Círculo con iniciales */}
-                        <div style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 12,
-                          background: `linear-gradient(135deg, ${colorFondo}, ${colorFondo}CC)`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                        }}>
-                          <span style={{
-                            fontSize: 18,
-                            fontWeight: 800,
-                            color: '#fff',
-                            letterSpacing: '-0.02em'
-                          }}>
-                            {iniciales}
-                          </span>
-                        </div>
-                        
-                        {/* Contenido */}
-                        <div style={{ flex: 1 }}>
-                          <h5 style={{ 
-                            fontSize: 13, 
-                            fontWeight: 700, 
-                            color: '#0f1f3d', 
-                            margin: '0 0 4px'
-                          }}>
-                            {titulo}
-                          </h5>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <span style={{ 
-                              fontSize: 10, 
-                              fontWeight: 600, 
-                              color: '#4ade80', 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              gap: 4 
-                            }}>
-                              <CheckCircle2 size={10} /> Aceptado
-                            </span>
-                            <span style={{ 
-                              fontSize: 10, 
-                              color: '#94a3b8',
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              gap: 4 
-                            }}>
-                              <Briefcase size={10} /> En progreso
-                            </span>
-                          </div>
-                        </div>
-                        
-                        {/* Flecha indicadora */}
-                        <ArrowRight size={16} color={colorFondo} style={{ flexShrink: 0, opacity: 0.7 }} />
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : (
-              <div style={{ padding: 24, textAlign: 'center', background: '#f8fafc', borderRadius: 12, border: '0.5px dashed #e8e8e4' }}>
-                <p style={{ fontSize: 12, color: '#6b6b7a', marginBottom: 12, fontWeight: 500 }}>Aún no tienes proyectos.</p>
-                <Link to="/proyectos" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1B6FE8', color: '#fff', padding: '8px 16px', borderRadius: 8, fontSize: 11, fontWeight: 700, textDecoration: 'none' }}>
-                  Explorar Proyectos <ArrowRight size={12} />
-                </Link>
-              </div>
-            )}
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>{proyectosAceptados.slice(0, 4).map((proyecto, idx) => (
+                  <Link key={idx} to={`/proyectos/${proyecto.proyectoId}`} style={{ textDecoration:'none' }}><div style={{ position:'relative', borderRadius:14, overflow:'hidden', cursor:'pointer', aspectRatio:'16/9', background:'#0d1b35', border:'0.5px solid #e8e8e4', transition:'all 0.2s' }}><div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,#0d1b35,#0f2a4a)', opacity:0.85 }} /><div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' }} /><div style={{ position:'absolute', bottom:0, left:0, right:0, padding:12, zIndex:10 }}><h5 style={{ fontSize:12, fontWeight:700, color:'#fff', margin:'0 0 2px' }}>{proyecto.proyectoTitulo || 'Proyecto'}</h5><span style={{ fontSize:9, fontWeight:600, color:'#4ade80', display:'flex', alignItems:'center', gap:3 }}><CheckCircle2 size={9} />Aceptado</span></div></div></Link>
+                ))}</div>
+              ) : (
+                <div style={{ padding:24, textAlign:'center', background:'#f8fafc', borderRadius:12, border:'0.5px dashed #e8e8e4' }}><p style={{ fontSize:12, color:'#6b6b7a', marginBottom:12, fontWeight:500 }}>Aún no tienes proyectos.</p><Link to="/proyectos" style={{ display:'inline-flex', alignItems:'center', gap:6, background:'#1B6FE8', color:'#fff', padding:'8px 16px', borderRadius:8, fontSize:11, fontWeight:700, textDecoration:'none' }}>Explorar Proyectos <ArrowRight size={12} /></Link></div>
+              )}
             </motion.section>
           )}
         </div>
