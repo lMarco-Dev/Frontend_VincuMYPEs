@@ -43,6 +43,7 @@ import AdminAuditoriaPage from "@pages/admin/AdminAuditoriaPage";
 import AdminReportesPage from "@pages/admin/AdminReportesPage";
 import AdminConfiguracionPage from "@pages/admin/AdminConfiguracionPage";
 import AdminPostulacionesPage from "@pages/admin/AdminPostulacionesPage";
+import PerfilPublicoEstudiantePage from "@pages/perfil-publico/PerfilPublicoEstudiantePage";
 
 
 // Layouts
@@ -150,6 +151,14 @@ const router = createBrowserRouter([
     path: "/empresas/:id",
     element: <MypePublicProfilePage />,
   },
+  {
+    path: "/estudiante/:id",
+    element: (
+      <ProtectedRoute rolesPermitidos={["MYPE", "ADMIN", "ESTUDIANTE"]}>
+        <PerfilPublicoEstudiantePage />
+      </ProtectedRoute>
+    ),
+  },
 
   /* ===========================================================================================
                                         RUTAS Estudiantes
@@ -177,7 +186,7 @@ const router = createBrowserRouter([
      =========================================================================================== */
   {
     element: (
-      <ProtectedRoute rolesPermitidos={["ROLE_ADMIN"]}>
+      <ProtectedRoute rolesPermitidos={["ADMIN"]}>
         <AdminLayout />
       </ProtectedRoute>
     ),

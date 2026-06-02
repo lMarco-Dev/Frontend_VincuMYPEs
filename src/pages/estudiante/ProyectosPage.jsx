@@ -88,6 +88,26 @@ const getAreaIcon = (area = "") => {
   return icons[key] || <Briefcase size={22} />;
 };
 
+const renderDuracion = (proyecto) => {
+  if (proyecto.fechaLimiteCalculada) {
+    return {
+      label: "Fecha límite",
+      value: new Date(proyecto.fechaLimiteCalculada).toLocaleDateString("es-PE"),
+    };
+  }
+  if (proyecto.diasEstimados) {
+    return {
+      label: "Días de duración",
+      value: `${proyecto.diasEstimados} días`,
+    };
+  }
+  return {
+    label: "Duración",
+    value: "Por definir",
+  };
+};
+
+
 /* ─── Función para calcular estado de vacantes ─── */
 const getVacancyStatus = (proyecto, postulacionesCount = 0) => {
   const totalVacantes = proyecto.cupos || 1;
@@ -509,17 +529,14 @@ const ProjectCardLinkedIn = ({ proyecto, onClick, yaPostulo, isSelected, postula
             >
               {area}
             </span>
-            <span
-              style={{
-                fontSize: 11,
-                color: "#94a3b8",
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-              }}
-            >
-              <Calendar size={10} /> {proyecto.fechaLimite}
-            </span>
+            {(() => {
+              const dur = renderDuracion(proyecto);
+              return (
+                <span style={{ fontSize: 11, color: "#94a3b8", display: "flex", alignItems: "center", gap: 2 }}>
+                  <Calendar size={10} /> {dur.value}
+                </span>
+              );
+            })()}
           </div>
 
           <p
@@ -588,6 +605,28 @@ const ProjectDetailPanel = ({
   const vacancyStatus = getVacancyStatus(proyecto, postulacionesCount);
   const totalVacantes = proyecto.cupos || 1;
   const esProyectoCompleto = vacancyStatus.status === "complete";
+
+  // Helper local por si no está definido globalmente
+  const renderDuracionLocal = (proj) => {
+    if (proj.fechaLimiteCalculada) {
+      return {
+        label: "Fecha límite",
+        value: new Date(proj.fechaLimiteCalculada).toLocaleDateString("es-PE"),
+      };
+    }
+    if (proj.diasEstimados) {
+      return {
+        label: "Días de duración",
+        value: `${proj.diasEstimados} días`,
+      };
+    }
+    return {
+      label: "Duración",
+      value: "Por definir",
+    };
+  };
+
+  const duracion = renderDuracionLocal(proyecto);
 
   return (
     <div
@@ -675,24 +714,22 @@ const ProjectDetailPanel = ({
           {proyecto.titulo}
         </h2>
 
-       <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          fontSize: 13,
-          color: "#64748b",
-        }}
-      >
-  <span style={{ fontWeight: 500 }}>
-    {proyecto.mypeNombre || "Empresa"}
-  </span>
-</div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: 13,
+            color: "#64748b",
+          }}
+        >
+          <span style={{ fontWeight: 500 }}>
+            {proyecto.mypeNombre || "Empresa"}
+          </span>
+        </div>
       </div>
 
       <div style={{ padding: 20 }}>
-       
-
         <div
           style={{
             display: "grid",
@@ -703,8 +740,8 @@ const ProjectDetailPanel = ({
         >
           {[
             {
-              label: "Fecha límite",
-              value: proyecto.fechaLimite,
+              label: duracion.label,
+              value: duracion.value,
               icon: <Calendar size={13} />,
             },
             {
@@ -758,7 +795,7 @@ const ProjectDetailPanel = ({
           ))}
         </div>
 
-        {/* Barra de progreso de vacantes - NUEVO */}
+        {/* Barra de progreso de vacantes */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
             <span style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>
@@ -838,7 +875,7 @@ const ProjectDetailPanel = ({
           </div>
         )}
 
-        {/* Requisitos del proyecto - NUEVO */}
+        {/* Habilidades requeridas (placeholder) */}
         <div style={{ marginBottom: 20 }}>
           <h4
             style={{
@@ -853,7 +890,6 @@ const ProjectDetailPanel = ({
               gap: 4,
             }}
           >
-           
             Habilidades requeridas
           </h4>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
@@ -896,18 +932,18 @@ const ProjectDetailPanel = ({
               background: "#eff6ff",
             }}
           >
-           <h4
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: "#000000",
-              margin: 0,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          >
-            Sobre la empresa
-          </h4>
+            <h4
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: "#000000",
+                margin: 0,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Sobre la empresa
+            </h4>
           </div>
           <div style={{ padding: "14px" }}>
             <div style={{ marginBottom: 8 }}>
@@ -1162,17 +1198,6 @@ const ProyectosPage = () => {
     return () => clearInterval(interval);
   }, [autoRefresh, refetch]);
 
-  const postulacionesPorProyecto = useMemo(() => {
-    const map = {};
-    postulaciones?.forEach((p) => {
-      if (!map[p.proyectoId]) {
-        map[p.proyectoId] = [];
-      }
-      map[p.proyectoId].push(p);
-    });
-    return map;
-  }, [postulaciones]);
-
   const yaPostuloMap = useMemo(() => {
     const map = {};
     postulaciones?.forEach((p) => {
@@ -1276,10 +1301,6 @@ const ProyectosPage = () => {
     if (!currentStillExists && paginatedProyectos.length > 0) {
       setSelectedProyecto(paginatedProyectos[0]);
     }
-  };
-
-  const getPostulacionesCount = (proyectoId) => {
-    return postulacionesPorProyecto[proyectoId]?.length || 0;
   };
 
   return (
@@ -1593,7 +1614,7 @@ const ProyectosPage = () => {
                   onClick={() => setSelectedProyecto(proyecto)}
                   yaPostulo={!!yaPostuloMap[proyecto.id]}
                   isSelected={selectedProyecto?.id === proyecto.id}
-                  postulacionesCount={getPostulacionesCount(proyecto.id)}
+                  postulacionesCount={proyecto.cuposOcupados ?? 0}
                 />
               ))}
             </div>
@@ -1610,15 +1631,11 @@ const ProyectosPage = () => {
         <div>
           <ProjectDetailPanel
             proyecto={selectedProyecto}
-            yaPostulo={
-              selectedProyecto ? !!yaPostuloMap[selectedProyecto.id] : false
-            }
+            yaPostulo={selectedProyecto ? !!yaPostuloMap[selectedProyecto.id] : false}
             haSuperadoLimite={haSuperadoLimite}
             limiteProyectos={limiteProyectos}
             onClose={() => setSelectedProyecto(null)}
-            postulacionesCount={
-              selectedProyecto ? getPostulacionesCount(selectedProyecto.id) : 0
-            }
+            postulacionesCount={selectedProyecto?.cuposOcupados ?? 0} 
           />
         </div>
       </div>

@@ -8,24 +8,11 @@ import {
 } from "@/features/proyecto-postulaciones/usePostulaciones";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Users,
-  CheckCircle,
-  XCircle,
-  Clock,
-  ChevronDown,
-  Loader2,
-  Eye,
-  EyeOff,
-  FileText,
-  UserCheck,
-  UserX,
-  UserPlus,
-  Briefcase,
-  Calendar,
-  Star,
-  Award,
-  Crown,
+  Users, CheckCircle, XCircle, Clock, ChevronDown, Loader2,
+  Eye, EyeOff, FileText, UserCheck, UserX, UserPlus,
+  Briefcase, Calendar, Star, Award, Crown, User,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
@@ -295,7 +282,7 @@ function EstadoPostBadge({ estado }) {
       bg: "#FEF2F2",
       color: "#DC2626",
       border: "#FECACA",
-      label: "Rechazado",
+      label: "Oferta rechazada",
       icon: <XCircle size={10} />,
     },
     RETIRADO: {
@@ -329,6 +316,7 @@ function EstadoPostBadge({ estado }) {
         color: s.color,
         border: `1px solid ${s.border}`,
       }}
+      title={estado === "RECHAZADO" ? "El estudiante no aceptó la oferta" : ""}
     >
       {s.icon}
       {s.label}
@@ -336,15 +324,17 @@ function EstadoPostBadge({ estado }) {
   );
 }
 
-/* ═══════════════════════════════════════════════
-   TARJETA DE CANDIDATO (VISTA MODERNA)
-═══════════════════════════════════════════════ */
 function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
   const { cambiarEstado, isLoading } = useCambiarEstadoPostulacion(proyectoId);
   const [expanded, setExpanded] = useState(false);
 
   // ✅ Detectar si es delegado
   const esDelegado = postulacion.esDelegado === true;
+
+  const puedeValidar = postulacion.estado === "PRESELECCIONADO";
+  const puedeRechazar =
+    postulacion.estado === "PRESELECCIONADO" ||
+    (verTodos && postulacion.estado === "PENDIENTE");
 
   const iniciales =
     postulacion.estudianteNombre
@@ -353,11 +343,6 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
       .slice(0, 2)
       .join("")
       .toUpperCase() ?? "?";
-
-  const puedeValidar = postulacion.estado === "PRESELECCIONADO";
-  const puedeRechazar =
-    postulacion.estado === "PRESELECCIONADO" ||
-    (verTodos && postulacion.estado === "PENDIENTE");
 
   const handleValidar = () => {
     if (
@@ -490,39 +475,67 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
               marginBottom: 8,
             }}
           >
-            <h3
-              style={{
-                fontSize: 15,
-                fontWeight: 700,
-                color: "#0F1F3D",
-                margin: 0,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                flexWrap: "wrap",
-              }}
-            >
-              {postulacion.estudianteNombre}
-              {/* ✅ Badge de delegado */}
-              {esDelegado && postulacion.cupos !== 1 && (
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    background: "linear-gradient(135deg, #fef3c7, #fde68a)",
-                    color: "#92400e",
-                    padding: "2px 8px",
-                    borderRadius: 10,
-                    border: "1px solid #fbbf24",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <Crown size={10} /> Delegado
-                </span>
-              )}
-            </h3>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <h3
+                style={{
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: "#0F1F3D",
+                  margin: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  flexWrap: "wrap",
+                }}
+              >
+                {postulacion.estudianteNombre}
+                {/* ✅ Badge de delegado */}
+                {esDelegado && postulacion.cupos !== 1 && (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      background: "linear-gradient(135deg, #fef3c7, #fde68a)",
+                      color: "#92400e",
+                      padding: "2px 8px",
+                      borderRadius: 10,
+                      border: "1px solid #fbbf24",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <Crown size={10} /> Delegado
+                  </span>
+                )}
+              </h3>
+              <Link
+                to={`/estudiante/${postulacion.estudianteId}`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: "#1B6FE8",
+                  background: "rgba(27,111,232,0.08)",
+                  border: "1px solid rgba(27,111,232,0.2)",
+                  borderRadius: 20,
+                  padding: "3px 10px",
+                  textDecoration: "none",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(27,111,232,0.14)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(27,111,232,0.08)";
+                }}
+              >
+                <User size={10} />
+                Ver perfil
+              </Link>
+            </div>
             <EstadoPostBadge estado={postulacion.estado} />
           </div>
 

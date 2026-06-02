@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import {
   getPostulacionesApi,
   getPostulacionesAceptadasApi,
@@ -37,34 +38,51 @@ export function usePostulaciones(proyectoId) {
   };
 }
 
-// Aceptar o rechazar
+// Aceptar o rechazar (con bloqueo por 409)
 export function useCambiarEstadoPostulacion(proyectoId) {
   const queryClient = useQueryClient();
+  const [postulacionesBloqueadas, setPostulacionesBloqueadas] = useState(new Set());
+  const [errorActual, setErrorActual] = useState(null);
 
   const mutation = useMutation({
     mutationFn: cambiarEstadoPostulacionApi,
     onSuccess: () => {
-      // Invalida ambas queries para refrescar las dos vistas
-      queryClient.invalidateQueries({
-        queryKey: ["postulaciones", proyectoId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["postulaciones-aceptadas", proyectoId],
-      });
+      queryClient.invalidateQueries({ queryKey: ["postulaciones", proyectoId] });
+      queryClient.invalidateQueries({ queryKey: ["postulaciones-aceptadas", proyectoId] });
+      setErrorActual(null);
     },
-    onError: (error) => {
-      console.error(handleApiError(error));
+    onError: (error, variables) => {
+      const status = error.response?.status;
+      const mensaje = error.response?.data?.message || error.message;
+      if (status === 409 && variables?.postulacionId) {
+        // Estudiante ocupado: bloqueamos esa postulación en UI.
+        setPostulacionesBloqueadas(prev => {
+          const next = new Set(prev);
+          next.add(variables.postulacionId);
+          return next;
+        });
+        setErrorActual({
+          tipo: "ocupado",
+          postulacionId: variables.postulacionId,
+          mensaje,
+        });
+      } else {
+        setErrorActual({ tipo: "generico", mensaje });
+      }
     },
   });
 
   return {
     cambiarEstado: mutation.mutate,
     isLoading: mutation.isPending,
-    error: mutation.error ? handleApiError(mutation.error) : null,
+    postulacionesBloqueadas,
+    errorActual,
+    limpiarError: () => setErrorActual(null),
+    estaBloqueada: (postulacionId) => postulacionesBloqueadas.has(postulacionId),
   };
 }
 
-//Nuevo
+// Confirmar postulación
 export function useConfirmarPostulacion() {
   const queryClient = useQueryClient();
   const mutation = useMutation({

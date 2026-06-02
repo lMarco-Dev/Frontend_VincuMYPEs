@@ -1,35 +1,47 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { usePostular } from "./usePostular";
-import { Send, Loader2, CheckCircle, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { usePerfil } from "../perfil/usePerfil";
+import { subirCvApi } from "../perfil/cvApi";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  Send, Loader2, CheckCircle, X, FileText, Upload,
+  AlertCircle, Check,
+} from "lucide-react";
+import { motion } from "framer-motion";
 
 const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
   const [mensaje, setMensaje] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [cvOption, setCvOption] = useState(null);
+  const [cvFile, setCvFile] = useState(null);
+  const [subiendoCv, setSubiendoCv] = useState(false);
+  const fileInputRef = useRef(null);
 
   const { postular, estaCargando } = usePostular();
+  const { data: perfil } = usePerfil();
+  const queryClient = useQueryClient();
 
-  // Si ya postuló, mostrar botón deshabilitado
+  const cvActual = perfil?.cvUrl || null;
+  const tieneCvActual = Boolean(cvActual);
+
+  useEffect(() => {
+    if (showForm && cvOption === null) {
+      setCvOption(tieneCvActual ? "actual" : "nuevo");
+    }
+  }, [showForm, tieneCvActual, cvOption]);
+
   if (yaPostulo) {
     return (
       <button
         disabled
         style={{
-          width: "100%",
-          padding: "12px 20px",
-          borderRadius: 10,
-          border: "1px solid #d1d5db",
-          background: "#f9fafb",
-          color: "#6b7280",
-          fontSize: 14,
-          fontWeight: 600,
+          width: "100%", padding: "12px 20px", borderRadius: 10,
+          border: "1px solid #d1d5db", background: "#f9fafb",
+          color: "#6b7280", fontSize: 14, fontWeight: 600,
           cursor: "not-allowed",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
         }}
       >
         <CheckCircle size={16} style={{ color: "#059669" }} />
@@ -38,25 +50,16 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
     );
   }
 
-  // Si está deshabilitado por límite de proyectos
   if (disabled) {
     return (
       <button
         disabled
         style={{
-          width: "100%",
-          padding: "12px 20px",
-          borderRadius: 10,
-          border: "1px solid #d1d5db",
-          background: "#f9fafb",
-          color: "#9ca3af",
-          fontSize: 14,
-          fontWeight: 600,
+          width: "100%", padding: "12px 20px", borderRadius: 10,
+          border: "1px solid #d1d5db", background: "#f9fafb",
+          color: "#9ca3af", fontSize: 14, fontWeight: 600,
           cursor: "not-allowed",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
         }}
       >
         Límite de proyectos alcanzado
@@ -64,90 +67,26 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
     );
   }
 
-  const manejarEnvioDePostulacion = (e) => {
-    e.preventDefault();
-    if (mensaje.length > 200) {
-      setErrorMessage("El mensaje no puede superar los 200 caracteres");
-      setTimeout(() => setErrorMessage(""), 4000);
-      return;
-    }
-    if (mensaje.trim().length === 0) {
-      setErrorMessage("Por favor, escribe un mensaje de presentación");
-      setTimeout(() => setErrorMessage(""), 4000);
-      return;
-    }
-
-    postular(
-      {
-        proyectoId: proyectoId,
-        datos: {
-          mensajePostulacion: mensaje,
-          archivoAdjunto: "",
-        },
-      },
-      {
-        onSuccess: () => {
-          setIsSuccess(true);
-          setMensaje("");
-          setShowForm(false);
-          // Recargar la página para actualizar el estado de postulación
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
-        },
-        onError: (err) => {
-          const msg =
-            err.response?.data?.message ||
-            err.message ||
-            "Error al enviar la postulación";
-          setErrorMessage(msg);
-          setTimeout(() => setErrorMessage(""), 5000);
-        },
-      },
-    );
-  };
-
-  // Estado: éxito después de postular
   if (isSuccess) {
     return (
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         style={{
-          width: "100%",
-          background: "#f0fdf4",
-          border: "1px solid #bbf7d0",
-          padding: "16px",
-          borderRadius: 12,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
+          width: "100%", background: "#f0fdf4",
+          border: "1px solid #bbf7d0", padding: 16, borderRadius: 12,
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center", textAlign: "center",
         }}
       >
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: "50%",
-            background: "#22c55e",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 12,
-          }}
-        >
+        <div style={{
+          width: 48, height: 48, borderRadius: "50%",
+          background: "#22c55e", display: "flex",
+          alignItems: "center", justifyContent: "center", marginBottom: 12,
+        }}>
           <CheckCircle size={24} color="#fff" />
         </div>
-        <h4
-          style={{
-            fontSize: 14,
-            fontWeight: 700,
-            color: "#166534",
-            marginBottom: 4,
-          }}
-        >
+        <h4 style={{ fontSize: 14, fontWeight: 700, color: "#166534", marginBottom: 4 }}>
           ¡Postulación Enviada!
         </h4>
         <p style={{ fontSize: 11, color: "#15803d", fontWeight: 500 }}>
@@ -157,234 +96,386 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
     );
   }
 
-  // Estado: botón normal (no ha postulado)
-  return (
-    <div style={{ width: "100%" }}>
-      {!showForm ? (
+  const handleFileChange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (f.type !== "application/pdf") {
+      setErrorMessage("El CV debe ser un archivo PDF");
+      setTimeout(() => setErrorMessage(""), 4000);
+      return;
+    }
+    if (f.size > 5 * 1024 * 1024) {
+      setErrorMessage("El CV no puede superar los 5 MB");
+      setTimeout(() => setErrorMessage(""), 4000);
+      return;
+    }
+    setCvFile(f);
+    setCvOption("nuevo");
+    setErrorMessage("");
+  };
+
+  const handleSelectActual = () => {
+    if (!tieneCvActual) return;
+    setCvOption("actual");
+    setCvFile(null);
+  };
+
+  const handleSelectNuevo = () => {
+    setCvOption("nuevo");
+    if (!cvFile) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleAbrir = () => {
+    setShowForm(true);
+    setErrorMessage("");
+  };
+
+  const handleCancelar = () => {
+    setShowForm(false);
+    setMensaje("");
+    setCvFile(null);
+    setCvOption(null);
+    setErrorMessage("");
+  };
+
+  const manejarEnvioDePostulacion = async (e) => {
+    e.preventDefault();
+    setErrorMessage("");
+
+    if (mensaje.length > 200) {
+      setErrorMessage("El mensaje no puede superar los 200 caracteres");
+      return;
+    }
+
+    let cvUrlAEnviar = null;
+
+    if (cvOption === "actual") {
+      if (!cvActual) {
+        setErrorMessage("No tienes un CV en tu perfil. Sube uno nuevo.");
+        return;
+      }
+      cvUrlAEnviar = cvActual;
+    } else if (cvOption === "nuevo") {
+      if (!cvFile) {
+        setErrorMessage("Selecciona un archivo PDF para tu CV");
+        return;
+      }
+      try {
+        setSubiendoCv(true);
+        const resp = await subirCvApi(cvFile);
+        cvUrlAEnviar = resp.cvUrl;
+        queryClient.invalidateQueries({ queryKey: ["perfil"] });
+        setSubiendoCv(false);
+      } catch (err) {
+        setSubiendoCv(false);
+        const msg = err.response?.data?.message || "Error al subir el CV";
+        setErrorMessage(msg);
+        return;
+      }
+    } else {
+      setErrorMessage("Selecciona una opción para tu CV");
+      return;
+    }
+
+    postular(
+      {
+        proyectoId,
+        datos: {
+          mensajePostulacion: mensaje.trim() || null,
+          archivoAdjunto: cvUrlAEnviar,
+        },
+      },
+      {
+        onSuccess: () => {
+          setIsSuccess(true);
+          setMensaje("");
+          setCvFile(null);
+          setShowForm(false);
+          setTimeout(() => window.location.reload(), 2000);
+        },
+        onError: (err) => {
+          const status = err.response?.status;
+          const msg = err.response?.data?.message || err.message || "Error al enviar la postulación";
+          setErrorMessage(msg);
+          setTimeout(() => setErrorMessage(""), status === 409 ? 8000 : 5000);
+        },
+      }
+    );
+  };
+
+  const cargando = estaCargando || subiendoCv;
+
+  if (!showForm) {
+    return (
+      <div style={{ width: "100%" }}>
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => setShowForm(true)}
+          onClick={handleAbrir}
           style={{
-            width: "100%",
-            padding: "12px 20px",
-            borderRadius: 10,
+            width: "100%", padding: "12px 20px", borderRadius: 10,
             border: "none",
             background: "linear-gradient(135deg, #1B6FE8, #2563eb)",
-            color: "#fff",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-            transition: "all 0.2s",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
+            color: "#fff", fontSize: 14, fontWeight: 600,
+            cursor: "pointer", transition: "all 0.2s",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             boxShadow: "0 2px 8px rgba(27,111,232,0.25)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.boxShadow =
-              "0 4px 14px rgba(27,111,232,0.35)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 2px 8px rgba(27,111,232,0.25)";
           }}
         >
           <Send size={14} />
           Postular ahora
         </motion.button>
-      ) : (
-        <motion.form
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 10 }}
-          onSubmit={manejarEnvioDePostulacion}
-          style={{
-            background: "#fff",
-            borderRadius: 12,
-            border: "1px solid #e0e7ff",
-            padding: 16,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-          }}
-        >
-          <div
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ width: "100%" }}>
+      <motion.form
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        onSubmit={manejarEnvioDePostulacion}
+        style={{
+          background: "#fff", borderRadius: 12,
+          border: "1px solid #e0e7ff", padding: 16,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+        }}
+      >
+        <div style={{
+          display: "flex", justifyContent: "space-between",
+          alignItems: "center", marginBottom: 14,
+        }}>
+          <label style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>
+            Postular al proyecto
+          </label>
+          <button
+            type="button"
+            onClick={handleCancelar}
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 12,
+              background: "transparent", border: "none",
+              cursor: "pointer", padding: 4, borderRadius: 4,
             }}
           >
-            <label style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>
-              Mensaje de presentación
-            </label>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
+            <X size={16} color="#94a3b8" />
+          </button>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{
+            fontSize: 12, fontWeight: 600, color: "#374151",
+            display: "block", marginBottom: 8,
+          }}>
+            Tu CV <span style={{ color: "#ef4444" }}>*</span>
+          </label>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div
+              role="button"
+              tabIndex={tieneCvActual ? 0 : -1}
+              onClick={handleSelectActual}
               style={{
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                padding: 4,
-                borderRadius: 4,
+                padding: 12, borderRadius: 10,
+                border: cvOption === "actual" ? "2px solid #1B6FE8" : "1px solid #e2e8f0",
+                background: cvOption === "actual" ? "#eff6ff" : tieneCvActual ? "#fff" : "#f8fafc",
+                cursor: tieneCvActual ? "pointer" : "not-allowed",
+                opacity: tieneCvActual ? 1 : 0.55,
+                transition: "all 0.2s", position: "relative", minHeight: 90,
+                display: "flex", flexDirection: "column", justifyContent: "center", gap: 6,
+                userSelect: "none",
               }}
             >
-              <X size={16} color="#94a3b8" />
-            </button>
+              {cvOption === "actual" && (
+                <div style={{
+                  position: "absolute", top: 8, right: 8,
+                  width: 18, height: 18, borderRadius: "50%",
+                  background: "#1B6FE8",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Check size={11} color="#fff" />
+                </div>
+              )}
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <FileText size={16} color={cvOption === "actual" ? "#1B6FE8" : "#64748b"} />
+                <span style={{
+                  fontSize: 12, fontWeight: 700,
+                  color: cvOption === "actual" ? "#1B6FE8" : "#1e293b",
+                }}>
+                  Enviar mi CV
+                </span>
+              </div>
+              <p style={{ fontSize: 10, color: "#64748b", margin: 0, lineHeight: 1.4 }}>
+                {tieneCvActual ? "Usar el CV de tu perfil" : "No tienes un CV en tu perfil"}
+              </p>
+              {tieneCvActual && (
+                <a
+                  href={cvActual}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    fontSize: 10, fontWeight: 600,
+                    color: "#1B6FE8", textDecoration: "none",
+                    alignSelf: "flex-start",
+                  }}
+                >
+                  Ver actual
+                </a>
+              )}
+            </div>
+
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={handleSelectNuevo}
+              style={{
+                padding: 12, borderRadius: 10,
+                border: cvOption === "nuevo" ? "2px solid #1B6FE8" : "1px solid #e2e8f0",
+                background: cvOption === "nuevo" ? "#eff6ff" : "#fff",
+                cursor: "pointer",
+                transition: "all 0.2s", position: "relative", minHeight: 90,
+                display: "flex", flexDirection: "column", justifyContent: "center", gap: 6,
+                userSelect: "none",
+              }}
+            >
+              {cvOption === "nuevo" && (
+                <div style={{
+                  position: "absolute", top: 8, right: 8,
+                  width: 18, height: 18, borderRadius: "50%",
+                  background: "#1B6FE8",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Check size={11} color="#fff" />
+                </div>
+              )}
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <Upload size={16} color={cvOption === "nuevo" ? "#1B6FE8" : "#64748b"} />
+                <span style={{
+                  fontSize: 12, fontWeight: 700,
+                  color: cvOption === "nuevo" ? "#1B6FE8" : "#1e293b",
+                }}>
+                  Cargar nuevo CV
+                </span>
+              </div>
+              <p style={{ fontSize: 10, color: "#64748b", margin: 0, lineHeight: 1.4 }}>
+                {cvFile ? cvFile.name : "Subir un PDF (máx 5 MB)"}
+              </p>
+              {cvFile && (
+                <span style={{ fontSize: 10, fontWeight: 600, color: "#059669" }}>
+                  Archivo seleccionado
+                </span>
+              )}
+            </div>
           </div>
 
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+          />
+
+          {tieneCvActual && cvOption === "nuevo" && (
+            <p style={{
+              fontSize: 10, color: "#94a3b8",
+              marginTop: 6, fontStyle: "italic",
+            }}>
+              Al subir un nuevo CV, reemplazará el actual en tu perfil para futuras postulaciones.
+            </p>
+          )}
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <label style={{
+            fontSize: 12, fontWeight: 600, color: "#374151",
+            display: "block", marginBottom: 6,
+          }}>
+            Mensaje de presentación{" "}
+            <span style={{ color: "#9ca3af", fontWeight: 400 }}>(opcional)</span>
+          </label>
           <textarea
             value={mensaje}
             onChange={(e) => setMensaje(e.target.value)}
-            placeholder="Cuéntanos por qué te interesa este proyecto y qué habilidades puedes aportar..."
+            placeholder="Cuéntale a la empresa por qué te interesa este proyecto..."
             style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: 8,
-              border:
-                mensaje.length > 200
-                  ? "1px solid #fecaca"
-                  : "1px solid #e2e8f0",
-              fontSize: 13,
-              outline: "none",
-              resize: "vertical",
-              minHeight: 100,
-              fontFamily: "inherit",
+              width: "100%", padding: "10px 12px", borderRadius: 8,
+              border: mensaje.length > 200 ? "1px solid #fecaca" : "1px solid #e2e8f0",
+              fontSize: 13, outline: "none", resize: "vertical",
+              minHeight: 80, fontFamily: "inherit",
+              boxSizing: "border-box",
             }}
-            required
           />
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
+            <span style={{
+              fontSize: 10,
+              color: mensaje.length > 200 ? "#ef4444" : "#94a3b8",
+            }}>
+              {mensaje.length}/200
+            </span>
+          </div>
+        </div>
 
-          <div
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            type="button"
+            onClick={handleCancelar}
+            disabled={cargando}
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: 8,
-              marginBottom: 16,
+              flex: 1, padding: "10px 16px", borderRadius: 8,
+              border: "1px solid #e2e8f0", background: "#fff", color: "#64748b",
+              fontSize: 13, fontWeight: 600,
+              cursor: cargando ? "not-allowed" : "pointer",
             }}
           >
-            <span
-              style={{
-                fontSize: 10,
-                color: mensaje.length > 200 ? "#ef4444" : "#94a3b8",
-              }}
-            >
-              {mensaje.length}/200 caracteres
-            </span>
-            {mensaje.length > 200 && (
-              <span style={{ fontSize: 10, color: "#ef4444" }}>
-                Máximo 200 caracteres
-              </span>
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={cargando || mensaje.length > 200}
+            style={{
+              flex: 1, padding: "10px 16px", borderRadius: 8,
+              border: "none",
+              background: "linear-gradient(135deg, #1B6FE8, #2563eb)",
+              color: "#fff", fontSize: 13, fontWeight: 700,
+              cursor: cargando ? "not-allowed" : "pointer",
+              opacity: cargando ? 0.6 : 1,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            }}
+          >
+            {cargando ? (
+              <>
+                <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+                {subiendoCv ? "Subiendo CV..." : "Enviando..."}
+              </>
+            ) : (
+              <>
+                <Send size={14} />
+                Enviar postulación
+              </>
             )}
-          </div>
+          </button>
+        </div>
 
-          <div style={{ display: "flex", gap: 12 }}>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              style={{
-                flex: 1,
-                padding: "10px 16px",
-                borderRadius: 8,
-                border: "1px solid #e2e8f0",
-                background: "#fff",
-                color: "#64748b",
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#f8fafc";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#fff";
-              }}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={
-                estaCargando ||
-                mensaje.length > 200 ||
-                mensaje.trim().length === 0
-              }
-              style={{
-                flex: 1,
-                padding: "10px 16px",
-                borderRadius: 8,
-                border: "none",
-                background: "linear-gradient(135deg, #1B6FE8, #2563eb)",
-                color: "#fff",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor:
-                  estaCargando ||
-                  mensaje.length > 200 ||
-                  mensaje.trim().length === 0
-                    ? "not-allowed"
-                    : "pointer",
-                opacity:
-                  estaCargando ||
-                  mensaje.length > 200 ||
-                  mensaje.trim().length === 0
-                    ? 0.6
-                    : 1,
-                transition: "all 0.2s",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-              }}
-            >
-              {estaCargando ? (
-                <>
-                  <Loader2
-                    size={16}
-                    style={{ animation: "spin 1s linear infinite" }}
-                  />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Send size={14} />
-                  Enviar postulación
-                </>
-              )}
-            </button>
-          </div>
+        {errorMessage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            style={{
+              marginTop: 12, padding: "8px 12px", borderRadius: 8,
+              background: "#fef2f2", border: "1px solid #fecaca",
+              color: "#dc2626", fontSize: 11,
+              display: "flex", alignItems: "center", gap: 6,
+            }}
+          >
+            <AlertCircle size={13} />
+            {errorMessage}
+          </motion.div>
+        )}
 
-          {errorMessage && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              style={{
-                fontSize: 11,
-                color: "#dc2626",
-                fontWeight: 500,
-                textAlign: "center",
-                background: "#fef2f2",
-                padding: "8px 12px",
-                borderRadius: 8,
-                marginTop: 12,
-                border: "1px solid #fecaca",
-              }}
-            >
-              ⚠️ {errorMessage}
-            </motion.p>
-          )}
-        </motion.form>
-      )}
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      </motion.form>
     </div>
   );
 };

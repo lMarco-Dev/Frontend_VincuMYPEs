@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useAdminProyectos, usePostulacionesAdmin } from "@features/admin/useAdminProyectos";
-import { Loader2, Search, Users, Building2, Eye, CheckCircle2, XCircle } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { useAdminProyectos } from "@features/admin/useAdminProyectos";
+import { usePostulaciones, useCambiarEstadoPostulacion } from "@features/proyecto-postulaciones/usePostulaciones";
+import { Loader2, Search, Users, Building2, Eye, CheckCircle2, XCircle, User } from "lucide-react";
+import { useSearchParams, Link } from "react-router-dom";
 
 const ESTADO_BADGE = {
   PENDIENTE: "bg-amber-50 text-amber-700 border-amber-200",
@@ -35,7 +36,8 @@ export default function AdminPostulacionesPage() {
   }, [proyectoIdFromUrl]);
 
   const { proyectos, isLoading } = useAdminProyectos();
-  const { postulaciones, isLoading: loadingPostulantes, cambiarEstado, isCambiando } = usePostulacionesAdmin(selectedProjectId);
+  const { postulaciones, isLoading: loadingPostulantes } = usePostulaciones(selectedProjectId);
+  const { cambiarEstado, isLoading: isCambiando, errorActual } = useCambiarEstadoPostulacion(selectedProjectId);
 
   const filteredProyectos = proyectos
     ?.filter(p => p.titulo.toLowerCase().includes(searchTerm.toLowerCase()) || p.mypeNombre?.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -157,20 +159,49 @@ export default function AdminPostulacionesPage() {
                       <div>
                         <p className="text-sm font-bold text-slate-900">{p.estudianteNombre}</p>
                         <p className="text-xs text-slate-500">{p.mensajePostulacion || "Sin mensaje"}</p>
-                        {p.estudianteCvUrl && (
-                          <a href={p.estudianteCvUrl} target="_blank" className="text-xs text-primary font-bold hover:underline mt-1 inline-block">
-                            <Eye size={12} className="inline mr-1" /> Ver CV
-                          </a>
-                        )}
+                        <div className="flex items-center gap-3 mt-1">
+                          <Link
+                            to={`/estudiante/${p.estudianteId}`}
+                            className="text-xs text-primary font-bold hover:underline inline-flex items-center gap-1"
+                          >
+                            <User size={12} /> Ver perfil
+                          </Link>
+                          {p.estudianteCvUrl && (
+                            <a
+                              href={p.estudianteCvUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary font-bold hover:underline inline-flex items-center gap-1"
+                            >
+                              <Eye size={12} /> Ver CV
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => handlePreseleccionar(p.id)} disabled={isCambiando} className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 disabled:opacity-50">
-                        <CheckCircle2 size={14} className="inline mr-1" /> Preseleccionar
-                      </button>
-                      <button onClick={() => handleRechazar(p.id)} disabled={isCambiando} className="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white disabled:opacity-50">
-                        <XCircle size={14} className="inline mr-1" /> Rechazar
-                      </button>
+                      {p.estudianteOcupado ? (
+                        <span className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-xs font-bold border border-orange-200">
+                          Ocupado
+                        </span>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handlePreseleccionar(p.id)}
+                            disabled={isCambiando}
+                            className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 disabled:opacity-50"
+                          >
+                            <CheckCircle2 size={14} className="inline mr-1" /> Preseleccionar
+                          </button>
+                          <button
+                            onClick={() => handleRechazar(p.id)}
+                            disabled={isCambiando}
+                            className="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white disabled:opacity-50"
+                          >
+                            <XCircle size={14} className="inline mr-1" /> Rechazar
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -189,6 +220,12 @@ export default function AdminPostulacionesPage() {
                       <div>
                         <p className="text-sm font-bold text-slate-700">{p.estudianteNombre}</p>
                         <p className="text-xs text-slate-400">{p.mensajePostulacion || "Sin mensaje"}</p>
+                        <Link
+                          to={`/estudiante/${p.estudianteId}`}
+                          className="text-xs text-primary font-bold hover:underline mt-1 inline-flex items-center gap-1"
+                        >
+                          <User size={12} /> Ver perfil
+                        </Link>
                       </div>
                     </div>
                     {getEstadoBadge(p.estado)}
@@ -206,6 +243,13 @@ export default function AdminPostulacionesPage() {
           </div>
         )}
       </div>
+
+      {/* Toast de error opcional para 409 */}
+      {errorActual && errorActual.tipo === "ocupado" && (
+        <div className="fixed bottom-4 right-4 bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded-lg shadow-lg z-50">
+          {errorActual.mensaje}
+        </div>
+      )}
     </div>
   );
 }
