@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { MypeLayout } from "@shared/layouts/MypeLayout";
+import { useAuthStore } from "@/store/authStore";
 import {
   useCertificadosEmitidos,
   useEmitirCertificado,
@@ -60,72 +61,6 @@ function useEnviarCertificado() {
   };
 
   return { enviar, loading, success };
-}
-
-// ── Dropdown de estudiantes cargado dinámicamente ─────────────
-function EstudiantesDropdown({ proyectoId, value, onChange }) {
-  const { postulaciones, isLoading } = usePostulacionesAceptadas(proyectoId);
-  const confirmados = postulaciones.filter(
-    (p) => p.estado === "CONFIRMADO" || p.estado === "ACEPTADO",
-  );
-
-  return (
-    <div style={{ position: "relative" }}>
-      <select
-        required
-        value={value}
-        onChange={onChange}
-        disabled={!proyectoId || isLoading}
-        style={{
-          width: "100%",
-          padding: "12px 36px 12px 14px",
-          borderRadius: 12,
-          fontFamily: FONT,
-          fontSize: 13,
-          border: "1px solid #E5E7EB",
-          outline: "none",
-          background: "#fff",
-          color: value ? "#111827" : "#9CA3AF",
-          transition: "border-color 0.2s",
-          boxSizing: "border-box",
-          appearance: "none",
-          cursor: proyectoId ? "pointer" : "not-allowed",
-          opacity: proyectoId ? 1 : 0.5,
-        }}
-        onFocus={(e) => (e.target.style.borderColor = "#1B6FE8")}
-        onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
-      >
-        <option value="">
-          {!proyectoId
-            ? "Primero selecciona un proyecto"
-            : isLoading
-              ? "Cargando estudiantes..."
-              : confirmados.length === 0
-                ? "Sin estudiantes confirmados"
-                : "Selecciona un estudiante..."}
-        </option>
-        {confirmados.map((p) => (
-          <option
-            key={p.estudianteId}
-            value={`${p.estudianteId}|${p.estudianteNombre}`}
-          >
-            {p.estudianteNombre}
-          </option>
-        ))}
-      </select>
-      <ChevronDown
-        size={14}
-        color="#9CA3AF"
-        style={{
-          position: "absolute",
-          right: 12,
-          top: "50%",
-          transform: "translateY(-50%)",
-          pointerEvents: "none",
-        }}
-      />
-    </div>
-  );
 }
 
 // ── Hero Banner ───────────────────────────────────────────────
@@ -707,97 +642,103 @@ function ModalEmitirCertificado({
   const [estudiantesConfirmados, setEstudiantesConfirmados] = useState([]);
   const [cargandoEstudiantes, setCargandoEstudiantes] = useState(false);
   const [form, setForm] = useState({
-  proyectoId: "",
-  proyectoTitulo: "",
-  estudiantesSeleccionados: [],
-  gerente: gerenteNombre || "",
-  descripcion: "",
-  firmaUrl: "",
-});
+    proyectoId: "",
+    proyectoTitulo: "",
+    estudiantesSeleccionados: [],
+    gerente: gerenteNombre || "",
+    descripcion: "",
+    firmaUrl: "",
+  });
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
   const handleProyectoChange = async (e) => {
-  const p = proyectosCompletados.find((p) => p.id === Number(e.target.value));
-  if (p) {
-    set("proyectoId", p.id);
-    set("proyectoTitulo", p.titulo);
-    set("estudiantesSeleccionados", []);
-    setCargandoEstudiantes(true);
-    try {
-      const res = await httpClient.get(`/proyectos/${p.id}/postulaciones/aceptadas`);
-      const confirmados = res.data.filter(post => post.estado === "CONFIRMADO" || post.estado === "ACEPTADO");
-      setEstudiantesConfirmados(confirmados);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setCargandoEstudiantes(false);
+    const p = proyectosCompletados.find((p) => p.id === Number(e.target.value));
+    if (p) {
+      set("proyectoId", p.id);
+      set("proyectoTitulo", p.titulo);
+      set("estudiantesSeleccionados", []);
+      setCargandoEstudiantes(true);
+      try {
+        const res = await httpClient.get(
+          `/proyectos/${p.id}/postulaciones/aceptadas`,
+        );
+        const confirmados = res.data.filter(
+          (post) => post.estado === "CONFIRMADO" || post.estado === "ACEPTADO",
+        );
+        setEstudiantesConfirmados(confirmados);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setCargandoEstudiantes(false);
+      }
+    } else {
+      set("proyectoId", "");
+      set("proyectoTitulo", "");
+      setEstudiantesConfirmados([]);
     }
-  } else {
-    set("proyectoId", "");
-    set("proyectoTitulo", "");
-    setEstudiantesConfirmados([]);
-  }
-};
+  };
 
-const toggleEstudiante = (estudianteId) => {
-  setForm(prev => ({
-    ...prev,
-    estudiantesSeleccionados: prev.estudiantesSeleccionados.includes(estudianteId)
-      ? prev.estudiantesSeleccionados.filter(id => id !== estudianteId)
-      : [...prev.estudiantesSeleccionados, estudianteId]
-  }));
-};
+  const toggleEstudiante = (estudianteId) => {
+    setForm((prev) => ({
+      ...prev,
+      estudiantesSeleccionados: prev.estudiantesSeleccionados.includes(
+        estudianteId,
+      )
+        ? prev.estudiantesSeleccionados.filter((id) => id !== estudianteId)
+        : [...prev.estudiantesSeleccionados, estudianteId],
+    }));
+  };
 
   const handleFirma = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    const img = new Image();
-    img.onload = () => {
-      // Crear canvas del tamaño de la imagen
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        // Crear canvas del tamaño de la imagen
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
 
-      // Obtener todos los píxeles
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
+        // Obtener todos los píxeles
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
 
-      // Algoritmo de eliminación de fondo claro
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
+        // Algoritmo de eliminación de fondo claro
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
 
-        // Calcular luminosidad del píxel
-        const luminosidad = 0.299 * r + 0.587 * g + 0.114 * b;
+          // Calcular luminosidad del píxel
+          const luminosidad = 0.299 * r + 0.587 * g + 0.114 * b;
 
-        // Si el píxel es claro (fondo) → hacerlo transparente
-        // Umbral de 200 cubre blanco, crema, amarillento, gris claro
-        if (luminosidad > 200) {
-          data[i + 3] = 0; // alpha = 0 (transparente)
-        } else if (luminosidad > 160) {
-          // Zona gris media → semitransparente para bordes suaves
-          data[i + 3] = Math.round(((200 - luminosidad) / 40) * 255);
+          // Si el píxel es claro (fondo) → hacerlo transparente
+          // Umbral de 200 cubre blanco, crema, amarillento, gris claro
+          if (luminosidad > 200) {
+            data[i + 3] = 0; // alpha = 0 (transparente)
+          } else if (luminosidad > 160) {
+            // Zona gris media → semitransparente para bordes suaves
+            data[i + 3] = Math.round(((200 - luminosidad) / 40) * 255);
+          }
+          // Píxeles oscuros (la firma) → se quedan con alpha completo
         }
-        // Píxeles oscuros (la firma) → se quedan con alpha completo
-      }
 
-      ctx.putImageData(imageData, 0, 0);
+        ctx.putImageData(imageData, 0, 0);
 
-      // Convertir a PNG con transparencia
-      const resultado = canvas.toDataURL("image/png");
-      set("firmaUrl", resultado);
+        // Convertir a PNG con transparencia
+        const resultado = canvas.toDataURL("image/png");
+        set("firmaUrl", resultado);
+      };
+      img.src = ev.target.result;
     };
-    img.src = ev.target.result;
+    reader.readAsDataURL(file);
   };
-  reader.readAsDataURL(file);
-};
 
   const handleExportarPDF = async () => {
     setExportando(true);
@@ -843,14 +784,16 @@ const toggleEstudiante = (estudianteId) => {
   };
 
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
     emitir({
-    proyectoId: Number(form.proyectoId),
-    estudiantesIds: form.estudiantesSeleccionados,
-    tituloCertificado: `Certificado de Participación — ${form.proyectoTitulo}`,
-    descripcionCertificado: form.descripcion,
-  });
-};
+      proyectoId: Number(form.proyectoId),
+      estudiantesIds: form.estudiantesSeleccionados,
+      tituloCertificado: `Certificado de Participación — ${form.proyectoTitulo}`,
+      descripcionCertificado: form.descripcion,
+      firmaBase64: form.firmaUrl || null,
+      gerenteNombre: form.gerente || null,
+    });
+  };
 
   const inputSt = {
     width: "100%",
@@ -1191,30 +1134,65 @@ const toggleEstudiante = (estudianteId) => {
                     Primero selecciona un proyecto
                   </p>
                 ) : cargandoEstudiantes ? (
-                  <Loader2 size={18} className="animate-spin" style={{ margin: "10px auto" }} />
+                  <Loader2
+                    size={18}
+                    className="animate-spin"
+                    style={{ margin: "10px auto" }}
+                  />
                 ) : estudiantesConfirmados.length === 0 ? (
                   <p style={{ fontSize: 12, color: "#F97316", marginTop: 8 }}>
                     No hay estudiantes confirmados en este proyecto.
                   </p>
                 ) : (
-                  <div style={{ maxHeight: 200, overflowY: "auto", border: "1px solid #E5E7EB", borderRadius: 12, padding: 12, background: "#fff" }}>
-                    {estudiantesConfirmados.map(est => (
-                      <label key={est.estudianteId} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", cursor: "pointer" }}>
+                  <div
+                    style={{
+                      maxHeight: 200,
+                      overflowY: "auto",
+                      border: "1px solid #E5E7EB",
+                      borderRadius: 12,
+                      padding: 12,
+                      background: "#fff",
+                    }}
+                  >
+                    {estudiantesConfirmados.map((est) => (
+                      <label
+                        key={est.estudianteId}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: "6px 0",
+                          cursor: "pointer",
+                        }}
+                      >
                         <input
                           type="checkbox"
-                          checked={form.estudiantesSeleccionados.includes(est.estudianteId)}
+                          checked={form.estudiantesSeleccionados.includes(
+                            est.estudianteId,
+                          )}
                           onChange={() => toggleEstudiante(est.estudianteId)}
-                          style={{ width: 16, height: 16, cursor: "pointer", accentColor: "#1B6FE8" }}
+                          style={{
+                            width: 16,
+                            height: 16,
+                            cursor: "pointer",
+                            accentColor: "#1B6FE8",
+                          }}
                         />
-                        <span style={{ fontSize: 13, color: "#111827" }}>{est.estudianteNombre}</span>
+                        <span style={{ fontSize: 13, color: "#111827" }}>
+                          {est.estudianteNombre}
+                        </span>
                       </label>
                     ))}
                   </div>
                 )}
                 {form.estudiantesSeleccionados.length > 0 && (
                   <p style={{ fontSize: 11, color: "#059669", marginTop: 8 }}>
-                    <CheckCircle2 size={11} style={{ display: "inline", marginRight: 4 }} />
-                    {form.estudiantesSeleccionados.length} estudiante(s) seleccionado(s)
+                    <CheckCircle2
+                      size={11}
+                      style={{ display: "inline", marginRight: 4 }}
+                    />
+                    {form.estudiantesSeleccionados.length} estudiante(s)
+                    seleccionado(s)
                   </p>
                 )}
               </div>
@@ -1276,29 +1254,67 @@ const toggleEstudiante = (estudianteId) => {
                 >
                   {form.firmaUrl && (
                     <div style={{ marginTop: 8 }}>
-                      <p style={{ fontFamily: FONT, fontSize: 10, color: "#6B7280", marginBottom: 4 }}>
+                      <p
+                        style={{
+                          fontFamily: FONT,
+                          fontSize: 10,
+                          color: "#6B7280",
+                          marginBottom: 4,
+                        }}
+                      >
                         Vista previa de la firma procesada:
                       </p>
                       {/* Fondo a cuadros para mostrar transparencia */}
-                      <div style={{
-                        backgroundImage: "linear-gradient(45deg,#E5E7EB 25%,transparent 25%,transparent 75%,#E5E7EB 75%),linear-gradient(45deg,#E5E7EB 25%,transparent 25%,transparent 75%,#E5E7EB 75%)",
-                        backgroundSize: "12px 12px",
-                        backgroundPosition: "0 0, 6px 6px",
-                        backgroundColor: "#fff",
-                        borderRadius: 8,
-                        padding: 8,
-                        display: "inline-block",
-                        border: "1px solid #E5E7EB",
-                      }}>
-                        <img src={form.firmaUrl} alt="Firma procesada" style={{ height: 60, objectFit: "contain", display: "block" }} />
+                      <div
+                        style={{
+                          backgroundImage:
+                            "linear-gradient(45deg,#E5E7EB 25%,transparent 25%,transparent 75%,#E5E7EB 75%),linear-gradient(45deg,#E5E7EB 25%,transparent 25%,transparent 75%,#E5E7EB 75%)",
+                          backgroundSize: "12px 12px",
+                          backgroundPosition: "0 0, 6px 6px",
+                          backgroundColor: "#fff",
+                          borderRadius: 8,
+                          padding: 8,
+                          display: "inline-block",
+                          border: "1px solid #E5E7EB",
+                        }}
+                      >
+                        <img
+                          src={form.firmaUrl}
+                          alt="Firma procesada"
+                          style={{
+                            height: 60,
+                            objectFit: "contain",
+                            display: "block",
+                          }}
+                        />
                       </div>
-                      <p style={{ fontFamily: FONT, fontSize: 10, color: "#9CA3AF", marginTop: 4 }}>
-                        Los cuadros grises indican transparencia — así se verá en el certificado
+                      <p
+                        style={{
+                          fontFamily: FONT,
+                          fontSize: 10,
+                          color: "#9CA3AF",
+                          marginTop: 4,
+                        }}
+                      >
+                        Los cuadros grises indican transparencia — así se verá
+                        en el certificado
                       </p>
                       <button
                         type="button"
-                        onClick={() => { set("firmaUrl", ""); document.getElementById("firma-input").value = ""; }}
-                        style={{ fontFamily: FONT, fontSize: 11, color: "#DC2626", background: "none", border: "none", cursor: "pointer", marginTop: 4, padding: 0 }}
+                        onClick={() => {
+                          set("firmaUrl", "");
+                          document.getElementById("firma-input").value = "";
+                        }}
+                        style={{
+                          fontFamily: FONT,
+                          fontSize: 11,
+                          color: "#DC2626",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          marginTop: 4,
+                          padding: 0,
+                        }}
                       >
                         × Cambiar firma
                       </button>
@@ -1362,7 +1378,12 @@ const toggleEstudiante = (estudianteId) => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading || !form.proyectoId || form.estudiantesSeleccionados.length === 0 || !form.gerente}
+                  disabled={
+                    isLoading ||
+                    !form.proyectoId ||
+                    form.estudiantesSeleccionados.length === 0 ||
+                    !form.gerente
+                  }
                   style={{
                     fontFamily: FONT,
                     display: "flex",
@@ -1397,57 +1418,61 @@ const toggleEstudiante = (estudianteId) => {
             </form>
 
             {preview && (
-            <div style={{ flex: 1.2, minWidth: 320 }}>
-              <div
-                style={{
-                  background: "#F8FAFC",
-                  borderRadius: "1rem",
-                  padding: "16px 0",
-                  border: "1px solid #E5E7EB",
-                }}
-              >
-                <p
-                  style={{
-                    fontFamily: FONT,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: "#9CA3AF",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.5px",
-                    marginBottom: 12,
-                    paddingLeft: 16,
-                  }}
-                >
-                  Vista previa en tiempo real
-                </p>
+              <div style={{ flex: 1.2, minWidth: 320 }}>
                 <div
                   style={{
-                    maxHeight: "calc(90vh - 300px)",
-                    overflowY: "auto",
-                    padding: "0 16px",
+                    background: "#F8FAFC",
+                    borderRadius: "1rem",
+                    padding: "16px 0",
+                    border: "1px solid #E5E7EB",
                   }}
                 >
-                  {(() => {
-                    // Calcular primer estudiante seleccionado para la vista previa
-                    const primerEstudiante = estudiantesConfirmados.find(
-                      (e) => e.estudianteId === form.estudiantesSeleccionados?.[0]
-                    )?.estudianteNombre || "Estudiante(s)";
+                  <p
+                    style={{
+                      fontFamily: FONT,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "#9CA3AF",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                      marginBottom: 12,
+                      paddingLeft: 16,
+                    }}
+                  >
+                    Vista previa en tiempo real
+                  </p>
+                  <div
+                    style={{
+                      maxHeight: "calc(90vh - 300px)",
+                      overflowY: "auto",
+                      padding: "0 16px",
+                    }}
+                  >
+                    {(() => {
+                      // Calcular primer estudiante seleccionado para la vista previa
+                      const primerEstudiante =
+                        estudiantesConfirmados.find(
+                          (e) =>
+                            e.estudianteId ===
+                            form.estudiantesSeleccionados?.[0],
+                        )?.estudianteNombre || "Estudiante(s)";
 
-                    return (
-                      <PlantillaCertificado
-                        datos={{
-                          ...form,
-                          mypeNombre,
-                          estudianteNombre: primerEstudiante,
-                          estudianteId: form.estudiantesSeleccionados?.[0] || null,
-                        }}
-                      />
-                    );
-                  })()}
+                      return (
+                        <PlantillaCertificado
+                          datos={{
+                            ...form,
+                            mypeNombre,
+                            estudianteNombre: primerEstudiante,
+                            estudianteId:
+                              form.estudiantesSeleccionados?.[0] || null,
+                          }}
+                        />
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
           </div>
         </div>
 
@@ -1525,9 +1550,8 @@ const CertificadoCard = ({
         estudianteNombre: certificado.estudianteNombre,
         proyectoTitulo: certificado.proyectoTitulo,
         descripcion: certificado.descripcionCertificado,
-        gerente: "",
-        mypeNombre: "",
-        firmaUrl: "",
+        mypeNombre: certificado.mypeNombre,
+        firmaUrl: certificado.urlCertificado ?? "",
         codigo: certificado.codigo,
       };
 
@@ -1795,6 +1819,7 @@ export function CertificadosPage() {
   const { certificados, isLoading } = useCertificadosEmitidos();
   const { proyectos } = useMisProyectos();
   const { perfil } = useMiPerfilMype();
+  const { user } = useAuthStore();
   const [modalAbierto, setModalAbierto] = useState(false);
   const {
     enviar,
@@ -1813,7 +1838,7 @@ export function CertificadosPage() {
         <ModalEmitirCertificado
           proyectosCompletados={proyectosCompletados}
           mypeNombre={perfil?.nombreComercial ?? ""}
-          gerenteNombre={perfil?.nombreComercial ?? ""}
+          gerenteNombre={user?.nombre ?? ""}
           onClose={() => setModalAbierto(false)}
         />
       )}
