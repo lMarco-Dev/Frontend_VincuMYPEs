@@ -44,6 +44,8 @@ import AdminReportesPage from "@pages/admin/AdminReportesPage";
 import AdminConfiguracionPage from "@pages/admin/AdminConfiguracionPage";
 import AdminPostulacionesPage from "@pages/admin/AdminPostulacionesPage";
 import PerfilPublicoEstudiantePage from "@pages/perfil-publico/PerfilPublicoEstudiantePage";
+import AdminCertificadosPage from "@pages/admin/AdminCertificadosPage";
+
 
 
 // Layouts
@@ -197,7 +199,8 @@ const router = createBrowserRouter([
       { path: "/admin/auditoria", element: <AdminAuditoriaPage /> },
       { path: "/admin/reportes", element: <AdminReportesPage /> },
       { path: "/admin/configuracion", element: <AdminConfiguracionPage /> },
-      { path: "/admin/postulaciones", element: <AdminPostulacionesPage /> }
+      { path: "/admin/postulaciones", element: <AdminPostulacionesPage /> },
+      { path: "/admin/certificados", element: <AdminCertificadosPage /> }
     ],
   },
 

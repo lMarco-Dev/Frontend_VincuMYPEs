@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, Users, LogOut, ShieldCheck, History, BarChart, Settings } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, Users, LogOut, ShieldCheck, History, BarChart, Settings, Award } from 'lucide-react'; // ← Agregar Award
 import { useAuthStore } from '../../store/authStore';
 import { Logo } from '../ui/Logo';
 
@@ -16,8 +16,8 @@ const AdminSidebar = () => {
     { name: 'Auditoría', path: '/admin/auditoria', icon: <History size={20} /> },
     { name: 'Reportes y Extracción', path: '/admin/reportes', icon: <BarChart size={20} /> },
     { name: 'Configuración', path: '/admin/configuracion', icon: <Settings size={20} /> },
-    { name: 'Gestión de Postulaciones', path: '/admin/postulaciones', icon: <Users size={20} /> }
-
+    { name: 'Gestión de Postulaciones', path: '/admin/postulaciones', icon: <Users size={20} /> },
+    { name: 'Certificados', path: '/admin/certificados', icon: <Award size={20} /> } // ← Nuevo ítem
   ];
 
   const handleLogout = () => {
