@@ -9,3 +9,8 @@ export const emitirCertificadoApi = (data) => {
 export const getCertificadosEmitidosApi = () => {
   return httpClient.get("/certificados/emitidos");
 };
+
+// ✅ Eliminar certificado
+export const eliminarCertificadoApi = (certificadoId) => {
+  return httpClient.delete(`/certificados/${certificadoId}`);
+};

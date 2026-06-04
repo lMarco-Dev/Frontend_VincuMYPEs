@@ -4,11 +4,12 @@ import { useAuthStore } from "@/store/authStore";
 import {
   useCertificadosEmitidos,
   useEmitirCertificado,
+  useEliminarCertificado,
 } from "@/features/certificados/useCertificadosMype";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
-import { usePostulacionesAceptadas } from "@/features/proyecto-postulaciones/usePostulaciones";
 import { useMiPerfilMype } from "@/features/mype-perfil/useMypePerfil";
 import { httpClient } from "@/shared/api/httpClient";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   Award,
@@ -25,11 +26,10 @@ import {
   Eye,
   TrendingUp,
   ShieldCheck,
-  ExternalLink,
-  Building2,
-  Users,
   Send,
   ChevronDown,
+  Users,
+  Trash2,
 } from "lucide-react";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
@@ -39,37 +39,39 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
 });
 
-// ── Hook para enviar certificado por email ─────────────────────
+// ── Hook para enviar certificado ───────────────────────────────
 function useEnviarCertificado() {
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState({});
-  const [success, setSuccess] = useState({});
+  const [errorMap, setErrorMap] = useState({});
 
   const enviar = async (certificadoId) => {
     setLoading((p) => ({ ...p, [certificadoId]: true }));
+    setErrorMap((p) => ({ ...p, [certificadoId]: null }));
     try {
       await httpClient.post(`/certificados/${certificadoId}/enviar`);
-      setSuccess((p) => ({ ...p, [certificadoId]: true }));
-      setTimeout(
-        () => setSuccess((p) => ({ ...p, [certificadoId]: false })),
-        3000,
-      );
+      queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
     } catch (e) {
-      console.error(e);
+      setErrorMap((p) => ({
+        ...p,
+        [certificadoId]: "Error al enviar. Intenta de nuevo.",
+      }));
     } finally {
       setLoading((p) => ({ ...p, [certificadoId]: false }));
     }
   };
 
-  return { enviar, loading, success };
+  return { enviar, loading, errorMap };
 }
 
-// ── Hero Banner ───────────────────────────────────────────────
+// ── Hero Banner con logo Linkuy ─────────────────────────────────
 const CertificadosHeroBanner = ({
   totalEmitidos,
   proyectosCompletadosCount,
 }) => {
   const canvasRef = useRef(null);
   const heroRef = useRef(null);
+
   useEffect(() => {
     const canvas = canvasRef.current,
       hero = heroRef.current;
@@ -225,26 +227,43 @@ const CertificadosHeroBanner = ({
         <div style={{ maxWidth: 500 }}>
           <div
             style={{
-              display: "inline-flex",
+              display: "flex",
               alignItems: "center",
-              gap: 6,
-              background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: 20,
-              padding: "6px 14px",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "#fff",
+              gap: 8,
               marginBottom: 16,
             }}
           >
-            <Award size={12} style={{ color: "#F59E0B" }} /> Certificados MYPE
+            <svg
+              width="36"
+              height="36"
+              viewBox="0 0 1092 1092"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polygon
+                points="287,191 250,210 225,241 223,280 224,420 336,418 338,280 295,250 296,342 287,191"
+                fill="#60A5FA"
+              />
+              <polygon
+                points="804,191 842,210 867,241 867,280 866,420 752,418 750,280 795,250 795,342 804,191"
+                fill="#06B6D4"
+              />
+              <circle cx="546" cy="290" r="48" fill="#F97316" />
+            </svg>
+            <span
+              style={{
+                fontSize: 22,
+                fontWeight: 800,
+                color: "#fff",
+                letterSpacing: -0.5,
+              }}
+            >
+              linkuy
+            </span>
           </div>
           <h1
             style={{
-              fontSize: "clamp(26px,3vw,36px)",
+              fontSize: "clamp(22px,3vw,32px)",
               fontWeight: 800,
               lineHeight: 1.1,
               letterSpacing: "-0.02em",
@@ -316,7 +335,7 @@ const CertificadosHeroBanner = ({
   );
 };
 
-// ── Plantilla visual del certificado ─────────────────────────
+// ── Plantilla visual de preview ─────────────────────────────────
 function PlantillaCertificado({ datos }) {
   const hoy = new Date().toLocaleDateString("es-PE", {
     day: "numeric",
@@ -326,7 +345,6 @@ function PlantillaCertificado({ datos }) {
   const codigoCert =
     datos.codigo ||
     `CERT-${new Date().getFullYear()}-${String(datos.proyectoId || "0").padStart(5, "0")}`;
-
   return (
     <div
       id="certificado-preview"
@@ -342,7 +360,6 @@ function PlantillaCertificado({ datos }) {
         boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
       }}
     >
-      {/* Marco decorativo */}
       <div
         style={{
           position: "absolute",
@@ -394,36 +411,42 @@ function PlantillaCertificado({ datos }) {
           }}
         />
       ))}
-
-      {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 24 }}>
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: 10,
+            gap: 8,
             marginBottom: 14,
           }}
         >
-          <svg width="32" height="32" viewBox="0 0 100 100" fill="none">
-            <path d="M20 15 L50 85 L65 85 L35 15 Z" fill="#1B6FE8" />
-            <path
-              d="M80 15 L50 85 L35 85 L65 15 Z"
-              fill="#06B6D4"
-              opacity="0.9"
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 1092 1092"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <polygon
+              points="287,191 250,210 225,241 223,280 224,420 336,418 338,280 295,250 296,342 287,191"
+              fill="#1B6FE8"
             />
-            <circle cx="50" cy="85" r="8" fill="#F97316" />
+            <polygon
+              points="804,191 842,210 867,241 867,280 866,420 752,418 750,280 795,250 795,342 804,191"
+              fill="#06B6D4"
+            />
+            <circle cx="546" cy="290" r="48" fill="#F97316" />
           </svg>
           <span
             style={{
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: 700,
               color: "#1E3A5F",
               letterSpacing: -0.5,
             }}
           >
-            Vincu<span style={{ color: "#06B6D4" }}>MYPEs</span>
+            linkuy
           </span>
         </div>
         <div
@@ -456,14 +479,12 @@ function PlantillaCertificado({ datos }) {
             marginBottom: 2,
           }}
         >
-          VincuMYPEs
+          linkuy
         </div>
         <div style={{ fontSize: 12, color: "#6B7280" }}>
           Plataforma de vinculación académico-empresarial · Cajamarca, Perú
         </div>
       </div>
-
-      {/* Cuerpo */}
       <div style={{ textAlign: "center", marginBottom: 24 }}>
         <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 6 }}>
           Este certificado se otorga a
@@ -508,8 +529,6 @@ function PlantillaCertificado({ datos }) {
             "El estudiante demostró compromiso y habilidades técnicas durante el desarrollo del proyecto, entregando los resultados acordados de manera satisfactoria."}
         </p>
       </div>
-
-      {/* Footer */}
       <div
         style={{
           display: "flex",
@@ -636,6 +655,7 @@ function ModalEmitirCertificado({
   gerenteNombre,
   onClose,
 }) {
+  const [datosParaPDF, setDatosParaPDF] = useState(null);
   const { emitir, isLoading, isSuccess, error } = useEmitirCertificado();
   const [preview, setPreview] = useState(false);
   const [exportando, setExportando] = useState(false);
@@ -663,7 +683,7 @@ function ModalEmitirCertificado({
         const res = await httpClient.get(
           `/proyectos/${p.id}/postulaciones/aceptadas`,
         );
-        const confirmados = res.data.filter(
+        const confirmados = (res.data || []).filter(
           (post) => post.estado === "CONFIRMADO" || post.estado === "ACEPTADO",
         );
         setEstudiantesConfirmados(confirmados);
@@ -679,61 +699,39 @@ function ModalEmitirCertificado({
     }
   };
 
-  const toggleEstudiante = (estudianteId) => {
+  const toggleEstudiante = (id) =>
     setForm((prev) => ({
       ...prev,
-      estudiantesSeleccionados: prev.estudiantesSeleccionados.includes(
-        estudianteId,
-      )
-        ? prev.estudiantesSeleccionados.filter((id) => id !== estudianteId)
-        : [...prev.estudiantesSeleccionados, estudianteId],
+      estudiantesSeleccionados: prev.estudiantesSeleccionados.includes(id)
+        ? prev.estudiantesSeleccionados.filter((x) => x !== id)
+        : [...prev.estudiantesSeleccionados, id],
     }));
-  };
 
   const handleFirma = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (ev) => {
       const img = new Image();
       img.onload = () => {
-        // Crear canvas del tamaño de la imagen
         const canvas = document.createElement("canvas");
         canvas.width = img.width;
         canvas.height = img.height;
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0);
-
-        // Obtener todos los píxeles
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
-
-        // Algoritmo de eliminación de fondo claro
         for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-
-          // Calcular luminosidad del píxel
-          const luminosidad = 0.299 * r + 0.587 * g + 0.114 * b;
-
-          // Si el píxel es claro (fondo) → hacerlo transparente
-          // Umbral de 200 cubre blanco, crema, amarillento, gris claro
-          if (luminosidad > 200) {
-            data[i + 3] = 0; // alpha = 0 (transparente)
-          } else if (luminosidad > 160) {
-            // Zona gris media → semitransparente para bordes suaves
-            data[i + 3] = Math.round(((200 - luminosidad) / 40) * 255);
+          const lum =
+            0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+          if (lum > 200) {
+            data[i + 3] = 0;
+          } else if (lum > 160) {
+            data[i + 3] = Math.round(((200 - lum) / 40) * 255);
           }
-          // Píxeles oscuros (la firma) → se quedan con alpha completo
         }
-
         ctx.putImageData(imageData, 0, 0);
-
-        // Convertir a PNG con transparencia
-        const resultado = canvas.toDataURL("image/png");
-        set("firmaUrl", resultado);
+        set("firmaUrl", canvas.toDataURL("image/png"));
       };
       img.src = ev.target.result;
     };
@@ -744,40 +742,33 @@ function ModalEmitirCertificado({
     setExportando(true);
     try {
       const html2pdf = (await import("html2pdf.js")).default;
-
-      // Crear contenedor temporal invisible en el body
       const contenedor = document.createElement("div");
       contenedor.style.cssText =
         "position:fixed;left:-9999px;top:0;width:800px;background:#fff;z-index:-1;";
       document.body.appendChild(contenedor);
-
-      // Renderizar la plantilla del certificado en el contenedor temporal
       const { createRoot } = await import("react-dom/client");
       const root = createRoot(contenedor);
-      root.render(<PlantillaCertificado datos={{ ...form, mypeNombre }} />);
 
-      // Esperar a que React renderice
+      const datos = datosParaPDF || { ...form, mypeNombre };
+      root.render(<PlantillaCertificado datos={datos} />);
+
       await new Promise((r) => setTimeout(r, 500));
-
-      const elemento = contenedor.querySelector("#certificado-preview");
-
-      if (elemento) {
+      const el = contenedor.querySelector("#certificado-preview");
+      if (el) {
         await html2pdf()
           .set({
             margin: 10,
-            filename: `certificado-${form.proyectoTitulo || "proyecto"}.pdf`,
+            filename: `certificado-${datos.estudianteNombre || "proyecto"}.pdf`,
             html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
           })
-          .from(elemento)
+          .from(el)
           .save();
       }
-
-      // Limpiar
       root.unmount();
       document.body.removeChild(contenedor);
     } catch (e) {
-      console.error("Error al exportar PDF:", e);
+      console.error("Error PDF:", e);
     } finally {
       setExportando(false);
     }
@@ -785,6 +776,19 @@ function ModalEmitirCertificado({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const primerEstudiante = estudiantesConfirmados.find(
+      (est) => est.estudianteId === form.estudiantesSeleccionados[0],
+    );
+    setDatosParaPDF({
+      estudianteNombre: primerEstudiante?.estudianteNombre || "Estudiante",
+      proyectoTitulo: form.proyectoTitulo,
+      descripcion: form.descripcion,
+      gerente: form.gerente,
+      firmaUrl: form.firmaUrl,
+      mypeNombre,
+    });
+
     emitir({
       proyectoId: Number(form.proyectoId),
       estudiantesIds: form.estudiantesSeleccionados,
@@ -821,7 +825,6 @@ function ModalEmitirCertificado({
     marginBottom: 6,
   };
 
-  // ── Estado éxito ──
   if (isSuccess) {
     return (
       <div
@@ -884,8 +887,8 @@ function ModalEmitirCertificado({
               margin: "0 0 24px",
             }}
           >
-            El certificado fue registrado. Descárgalo y luego envíalo al
-            estudiante desde la lista de certificados.
+            El PDF fue generado y subido. Usa el botón "Descargar PDF" en la
+            lista para abrirlo, o envíalo al estudiante directamente.
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
             <button
@@ -914,7 +917,7 @@ function ModalEmitirCertificado({
               ) : (
                 <Download size={16} />
               )}
-              Descargar PDF
+              Vista previa PDF
             </button>
             <button
               onClick={onClose}
@@ -968,7 +971,6 @@ function ModalEmitirCertificado({
           boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
         }}
       >
-        {/* Header */}
         <div
           style={{
             height: 4,
@@ -976,6 +978,7 @@ function ModalEmitirCertificado({
             flexShrink: 0,
           }}
         />
+
         <div
           style={{
             padding: "20px 24px",
@@ -1020,7 +1023,7 @@ function ModalEmitirCertificado({
                   margin: "2px 0 0",
                 }}
               >
-                Selecciona el proyecto y el estudiante
+                Selecciona proyecto y estudiantes
               </p>
             </div>
           </div>
@@ -1059,7 +1062,6 @@ function ModalEmitirCertificado({
           </div>
         </div>
 
-        {/* Body */}
         <div style={{ flex: 1, overflowY: "auto", padding: 24 }}>
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
             <form
@@ -1072,7 +1074,6 @@ function ModalEmitirCertificado({
                 gap: 16,
               }}
             >
-              {/* Proyecto */}
               <div>
                 <label style={labelSt}>
                   <Briefcase size={12} /> Proyecto completado
@@ -1119,8 +1120,7 @@ function ModalEmitirCertificado({
                       margin: "6px 0 0",
                     }}
                   >
-                    Solo puedes emitir certificados de proyectos en estado
-                    COMPLETADO
+                    Solo puedes emitir certificados de proyectos COMPLETADOS
                   </p>
                 )}
               </div>
@@ -1134,11 +1134,31 @@ function ModalEmitirCertificado({
                     Primero selecciona un proyecto
                   </p>
                 ) : cargandoEstudiantes ? (
-                  <Loader2
-                    size={18}
-                    className="animate-spin"
-                    style={{ margin: "10px auto" }}
-                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "12px 0",
+                    }}
+                  >
+                    <Loader2
+                      size={16}
+                      style={{
+                        animation: "spin 1s linear infinite",
+                        color: "#1B6FE8",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontFamily: FONT,
+                        fontSize: 12,
+                        color: "#9CA3AF",
+                      }}
+                    >
+                      Cargando estudiantes...
+                    </span>
+                  </div>
                 ) : estudiantesConfirmados.length === 0 ? (
                   <p style={{ fontSize: 12, color: "#F97316", marginTop: 8 }}>
                     No hay estudiantes confirmados en este proyecto.
@@ -1186,25 +1206,30 @@ function ModalEmitirCertificado({
                   </div>
                 )}
                 {form.estudiantesSeleccionados.length > 0 && (
-                  <p style={{ fontSize: 11, color: "#059669", marginTop: 8 }}>
-                    <CheckCircle2
-                      size={11}
-                      style={{ display: "inline", marginRight: 4 }}
-                    />
+                  <p
+                    style={{
+                      fontSize: 11,
+                      color: "#059669",
+                      marginTop: 8,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <CheckCircle2 size={11} />{" "}
                     {form.estudiantesSeleccionados.length} estudiante(s)
                     seleccionado(s)
                   </p>
                 )}
               </div>
 
-              {/* Gerente — precargado del perfil */}
               <div>
                 <label style={labelSt}>
                   <User size={12} /> Nombre del gerente / representante
                 </label>
                 <input
                   required
-                  placeholder="Nombre del gerente"
+                  placeholder="Nombre completo del gerente"
                   value={form.gerente}
                   onChange={(e) => set("gerente", e.target.value)}
                   style={inputSt}
@@ -1213,14 +1238,13 @@ function ModalEmitirCertificado({
                 />
               </div>
 
-              {/* Descripción */}
               <div>
                 <label style={labelSt}>
-                  <Calendar size={12} /> Descripción del logro
+                  <Calendar size={12} /> Descripción del logro (opcional)
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="Ej: Proyecto finalizado el 30 de mayo de 2026 con todos los entregables aprobados..."
+                  placeholder="Ej: El estudiante completó el proyecto con todos los entregables aprobados..."
                   value={form.descripcion}
                   onChange={(e) => set("descripcion", e.target.value)}
                   style={{ ...inputSt, resize: "vertical" }}
@@ -1229,10 +1253,9 @@ function ModalEmitirCertificado({
                 />
               </div>
 
-              {/* Firma */}
               <div>
                 <label style={labelSt}>
-                  <FileText size={12} /> Firma del gerente (PNG/JPG)
+                  <FileText size={12} /> Firma digital del gerente (PNG/JPG)
                 </label>
                 <div
                   style={{
@@ -1252,19 +1275,18 @@ function ModalEmitirCertificado({
                   }
                   onClick={() => document.getElementById("firma-input").click()}
                 >
-                  {form.firmaUrl && (
-                    <div style={{ marginTop: 8 }}>
+                  {form.firmaUrl ? (
+                    <div>
                       <p
                         style={{
                           fontFamily: FONT,
                           fontSize: 10,
                           color: "#6B7280",
-                          marginBottom: 4,
+                          marginBottom: 6,
                         }}
                       >
-                        Vista previa de la firma procesada:
+                        Firma procesada (fondo eliminado):
                       </p>
-                      {/* Fondo a cuadros para mostrar transparencia */}
                       <div
                         style={{
                           backgroundImage:
@@ -1280,7 +1302,7 @@ function ModalEmitirCertificado({
                       >
                         <img
                           src={form.firmaUrl}
-                          alt="Firma procesada"
+                          alt="Firma"
                           style={{
                             height: 60,
                             objectFit: "contain",
@@ -1288,20 +1310,10 @@ function ModalEmitirCertificado({
                           }}
                         />
                       </div>
-                      <p
-                        style={{
-                          fontFamily: FONT,
-                          fontSize: 10,
-                          color: "#9CA3AF",
-                          marginTop: 4,
-                        }}
-                      >
-                        Los cuadros grises indican transparencia — así se verá
-                        en el certificado
-                      </p>
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           set("firmaUrl", "");
                           document.getElementById("firma-input").value = "";
                         }}
@@ -1312,13 +1324,43 @@ function ModalEmitirCertificado({
                           background: "none",
                           border: "none",
                           cursor: "pointer",
-                          marginTop: 4,
+                          marginTop: 8,
                           padding: 0,
+                          display: "block",
+                          margin: "8px auto 0",
                         }}
                       >
                         × Cambiar firma
                       </button>
                     </div>
+                  ) : (
+                    <>
+                      <FileText
+                        size={24}
+                        color="#D1D5DB"
+                        style={{ marginBottom: 8 }}
+                      />
+                      <p
+                        style={{
+                          fontFamily: FONT,
+                          fontSize: 12,
+                          color: "#9CA3AF",
+                          margin: 0,
+                        }}
+                      >
+                        Clic para cargar la firma del gerente
+                      </p>
+                      <p
+                        style={{
+                          fontFamily: FONT,
+                          fontSize: 10,
+                          color: "#D1D5DB",
+                          margin: "4px 0 0",
+                        }}
+                      >
+                        PNG o JPG — se eliminará el fondo automáticamente
+                      </p>
+                    </>
                   )}
                   <input
                     id="firma-input"
@@ -1449,22 +1491,18 @@ function ModalEmitirCertificado({
                     }}
                   >
                     {(() => {
-                      // Calcular primer estudiante seleccionado para la vista previa
                       const primerEstudiante =
                         estudiantesConfirmados.find(
                           (e) =>
                             e.estudianteId ===
                             form.estudiantesSeleccionados?.[0],
                         )?.estudianteNombre || "Estudiante(s)";
-
                       return (
                         <PlantillaCertificado
                           datos={{
                             ...form,
                             mypeNombre,
                             estudianteNombre: primerEstudiante,
-                            estudianteId:
-                              form.estudiantesSeleccionados?.[0] || null,
                           }}
                         />
                       );
@@ -1476,7 +1514,6 @@ function ModalEmitirCertificado({
           </div>
         </div>
 
-        {/* Footer download */}
         <div
           style={{
             padding: "14px 24px",
@@ -1521,62 +1558,23 @@ function ModalEmitirCertificado({
   );
 }
 
-// ── Card de certificado emitido ───────────────────────────────
+// ── Card de certificado emitido (CON BOTÓN ELIMINAR) ───────────
 const CertificadoCard = ({
   certificado,
   index,
   onEnviar,
+  onEliminar,
   enviando,
-  enviado,
+  eliminando,
+  errorEnvio,
+  errorEliminar,
 }) => {
-  const [descargando, setDescargando] = useState(false);
+  const enviado = certificado.enviadoEmail === true;
+  const puedeEliminar = !enviado;
 
-  const handleDescargar = async () => {
-    setDescargando(true);
-    try {
-      const html2pdf = (await import("html2pdf.js")).default;
-
-      // Contenedor temporal invisible
-      const contenedor = document.createElement("div");
-      contenedor.style.cssText =
-        "position:fixed;left:-9999px;top:0;width:800px;background:#fff;";
-      document.body.appendChild(contenedor);
-
-      // Renderizar plantilla con los datos del certificado
-      const { createRoot } = await import("react-dom/client");
-      const root = createRoot(contenedor);
-
-      const datos = {
-        estudianteNombre: certificado.estudianteNombre,
-        proyectoTitulo: certificado.proyectoTitulo,
-        descripcion: certificado.descripcionCertificado,
-        mypeNombre: certificado.mypeNombre,
-        firmaUrl: certificado.urlCertificado ?? "",
-        codigo: certificado.codigo,
-      };
-
-      root.render(<PlantillaCertificado datos={datos} />);
-      await new Promise((r) => setTimeout(r, 600));
-
-      const el = contenedor.querySelector("#certificado-preview");
-      if (el) {
-        await html2pdf()
-          .set({
-            margin: 10,
-            filename: `certificado-${certificado.estudianteNombre}.pdf`,
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
-          })
-          .from(el)
-          .save();
-      }
-
-      root.unmount();
-      document.body.removeChild(contenedor);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setDescargando(false);
+  const handleDescargar = () => {
+    if (certificado.urlCertificado) {
+      window.open(certificado.urlCertificado, "_blank");
     }
   };
 
@@ -1655,9 +1653,9 @@ const CertificadoCard = ({
               style={{
                 fontSize: 9,
                 fontWeight: 700,
-                background: "#F0FDF4",
-                color: "#059669",
-                border: "1px solid #BBF7D0",
+                background: enviado ? "#F0FDF4" : "#FEF3C7",
+                color: enviado ? "#059669" : "#D97706",
+                border: `1px solid ${enviado ? "#BBF7D0" : "#FDE68A"}`,
                 padding: "2px 8px",
                 borderRadius: 10,
                 display: "inline-flex",
@@ -1665,7 +1663,12 @@ const CertificadoCard = ({
                 gap: 3,
               }}
             >
-              <CheckCircle2 size={10} /> Verificado
+              {enviado ? (
+                <CheckCircle2 size={10} />
+              ) : (
+                <AlertTriangle size={10} />
+              )}
+              {enviado ? "Enviado" : "No enviado"}
             </span>
           </div>
           <div
@@ -1687,7 +1690,8 @@ const CertificadoCard = ({
                 gap: 4,
               }}
             >
-              <User size={11} color="#6B7280" /> {certificado.estudianteNombre}
+              <User size={11} color="#6B7280" />
+              {certificado.estudianteNombre || "—"}
             </span>
             <span style={{ color: "#D1D5DB" }}>·</span>
             <span
@@ -1700,8 +1704,18 @@ const CertificadoCard = ({
               }}
             >
               <Calendar size={11} />
-              {new Date(certificado.fechaEmision).toLocaleDateString("es-PE")}
+              {certificado.fechaEmision
+                ? new Date(certificado.fechaEmision).toLocaleDateString("es-PE")
+                : "—"}
             </span>
+            {certificado.proyectoTitulo && (
+              <>
+                <span style={{ color: "#D1D5DB" }}>·</span>
+                <span style={{ fontSize: 10, color: "#9CA3AF" }}>
+                  {certificado.proyectoTitulo}
+                </span>
+              </>
+            )}
           </div>
           <div
             style={{
@@ -1724,19 +1738,19 @@ const CertificadoCard = ({
         </div>
       </div>
 
-      {/* Acciones */}
       <div
         style={{
           display: "flex",
           justifyContent: "flex-end",
           gap: 8,
           marginTop: 14,
+          flexWrap: "wrap",
+          alignItems: "center",
         }}
       >
-        {/* Botón descargar — siempre disponible */}
         <button
           onClick={handleDescargar}
-          disabled={descargando}
+          disabled={!certificado.urlCertificado}
           style={{
             display: "flex",
             alignItems: "center",
@@ -1745,29 +1759,18 @@ const CertificadoCard = ({
             borderRadius: "0.75rem",
             fontSize: 11,
             fontWeight: 700,
-            cursor: descargando ? "not-allowed" : "pointer",
+            cursor: certificado.urlCertificado ? "pointer" : "not-allowed",
             border: "1px solid rgba(27,111,232,0.15)",
-            background: descargando ? "#F3F4F6" : "rgba(27,111,232,0.06)",
-            color: descargando ? "#9CA3AF" : "#1B6FE8",
+            background: certificado.urlCertificado
+              ? "rgba(27,111,232,0.06)"
+              : "#F9FAFB",
+            color: certificado.urlCertificado ? "#1B6FE8" : "#D1D5DB",
             transition: "all 0.2s",
           }}
         >
-          {descargando ? (
-            <>
-              <Loader2
-                size={12}
-                style={{ animation: "spin 1s linear infinite" }}
-              />{" "}
-              Generando...
-            </>
-          ) : (
-            <>
-              <Download size={12} /> Descargar PDF
-            </>
-          )}
+          <Download size={12} /> Descargar PDF
         </button>
 
-        {/* Botón enviar */}
         <button
           onClick={() => onEnviar(certificado.id)}
           disabled={enviando || enviado}
@@ -1805,11 +1808,77 @@ const CertificadoCard = ({
             </>
           ) : (
             <>
-              <Send size={12} /> Enviar al estudiante
+              <Send size={12} /> Enviar
             </>
           )}
         </button>
+
+        {puedeEliminar && (
+          <button
+            onClick={() => {
+              if (
+                window.confirm(
+                  "¿Estás seguro de que deseas eliminar este certificado? Esta acción no se puede deshacer.",
+                )
+              ) {
+                onEliminar(certificado.id);
+              }
+            }}
+            disabled={eliminando}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "6px 14px",
+              borderRadius: "0.75rem",
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: eliminando ? "not-allowed" : "pointer",
+              border: "1px solid rgba(220,38,38,0.2)",
+              background: "rgba(220,38,38,0.06)",
+              color: "#DC2626",
+              transition: "all 0.2s",
+            }}
+          >
+            {eliminando ? (
+              <Loader2
+                size={12}
+                style={{ animation: "spin 1s linear infinite" }}
+              />
+            ) : (
+              <Trash2 size={12} />
+            )}
+            Eliminar
+          </button>
+        )}
       </div>
+
+      {errorEnvio && (
+        <p
+          style={{
+            fontFamily: FONT,
+            fontSize: 11,
+            color: "#DC2626",
+            margin: "6px 0 0",
+            textAlign: "right",
+          }}
+        >
+          {errorEnvio}
+        </p>
+      )}
+      {errorEliminar && (
+        <p
+          style={{
+            fontFamily: FONT,
+            fontSize: 11,
+            color: "#DC2626",
+            margin: "6px 0 0",
+            textAlign: "right",
+          }}
+        >
+          {errorEliminar}
+        </p>
+      )}
     </motion.div>
   );
 };
@@ -1821,16 +1890,24 @@ export function CertificadosPage() {
   const { perfil } = useMiPerfilMype();
   const { user } = useAuthStore();
   const [modalAbierto, setModalAbierto] = useState(false);
+  const { enviar, loading: enviandoMap, errorMap } = useEnviarCertificado();
   const {
-    enviar,
-    loading: enviandoMap,
-    success: enviadoMap,
-  } = useEnviarCertificado();
+    eliminar,
+    isLoading: eliminandoMap,
+    error: errorEliminarGeneral,
+  } = useEliminarCertificado();
 
   const proyectosCompletados = proyectos.filter(
     (p) => p.estado === "COMPLETADO",
   );
   const totalEmitidos = certificados?.length || 0;
+
+  const estudiantesCert = new Set(
+    certificados?.map((c) => c.estudianteNombre) ?? [],
+  ).size;
+  const proyectosConCert = new Set(
+    certificados?.map((c) => c.proyectoTitulo) ?? [],
+  ).size;
 
   return (
     <MypeLayout titulo="Certificados">
@@ -1838,7 +1915,7 @@ export function CertificadosPage() {
         <ModalEmitirCertificado
           proyectosCompletados={proyectosCompletados}
           mypeNombre={perfil?.nombreComercial ?? ""}
-          gerenteNombre={user?.nombre ?? ""}
+          gerenteNombre={perfil?.nombreRepresentante ?? user?.nombre ?? ""}
           onClose={() => setModalAbierto(false)}
         />
       )}
@@ -1849,7 +1926,6 @@ export function CertificadosPage() {
           proyectosCompletadosCount={proyectosCompletados.length}
         />
 
-        {/* Métricas */}
         <div
           style={{
             display: "grid",
@@ -1870,21 +1946,21 @@ export function CertificadosPage() {
             },
             {
               delay: 0.1,
-              label: "Proyectos Completados",
-              value: proyectosCompletados.length,
-              sub: "Elegibles para certificar",
-              Icon: TrendingUp,
-              bg: "#F0FDF4",
-              color: "#059669",
-            },
-            {
-              delay: 0.15,
               label: "Estudiantes Certificados",
-              value: totalEmitidos,
+              value: estudiantesCert,
               sub: "Talento reconocido",
               Icon: Users,
               bg: "#FFFBEB",
               color: "#D97706",
+            },
+            {
+              delay: 0.15,
+              label: "Proyectos Certificados",
+              value: proyectosConCert,
+              sub: "Proyectos finalizados",
+              Icon: TrendingUp,
+              bg: "#F0FDF4",
+              color: "#059669",
             },
           ].map(({ delay, label, value, sub, Icon, bg, color }) => (
             <motion.div
@@ -1945,7 +2021,6 @@ export function CertificadosPage() {
           ))}
         </div>
 
-        {/* Botón emitir */}
         <motion.div {...fadeUp(0.2)} style={{ marginBottom: 32 }}>
           <button
             onClick={() => setModalAbierto(true)}
@@ -1990,7 +2065,6 @@ export function CertificadosPage() {
           )}
         </motion.div>
 
-        {/* Lista */}
         {isLoading ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {[1, 2, 3].map((i) => (
@@ -2051,7 +2125,7 @@ export function CertificadosPage() {
               }}
             >
               Cuando un proyecto esté completado, podrás emitir certificados
-              digitales verificables.
+              digitales verificables para tus estudiantes.
             </p>
           </motion.div>
         ) : (
@@ -2062,8 +2136,15 @@ export function CertificadosPage() {
                 certificado={cert}
                 index={index}
                 onEnviar={enviar}
+                onEliminar={eliminar}
                 enviando={enviandoMap[cert.id] ?? false}
-                enviado={enviadoMap[cert.id] ?? false}
+                eliminando={eliminandoMap ?? false}
+                errorEnvio={errorMap[cert.id] ?? null}
+                errorEliminar={
+                  errorEliminarGeneral
+                    ? "Error al eliminar el certificado"
+                    : null
+                }
               />
             ))}
           </div>
@@ -2072,7 +2153,7 @@ export function CertificadosPage() {
 
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
-        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes spin  { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
       `}</style>
     </MypeLayout>
   );
