@@ -5,6 +5,9 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  optimizeDeps: {
+    include: ['recharts'],
+  },
   resolve: {
     alias: {
       "@": path.resolve("./src"),
@@ -20,7 +23,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:8080", //URL del backend
+        target: "http://localhost:8080",
         changeOrigin: true,
         secure: false,
       },
