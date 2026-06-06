@@ -1,64 +1,122 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, Users, LogOut, ShieldCheck, History, BarChart, Settings, Award } from 'lucide-react'; // ← Agregar Award
-import { useAuthStore } from '../../store/authStore';
-import { Logo } from '../ui/Logo';
+import {
+  LayoutDashboard,
+  ClipboardList,
+  FolderKanban,
+  Users,
+  Award,
+  History,
+  BarChart,
+  Settings,
+  LogOut,
+} from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import { queryClient } from '@/shared/api/queryClient';
+import { Logo } from '@/shared/ui/Logo';
+
+const NAV_SECTIONS = [
+  {
+    label: 'Principal',
+    items: [
+      { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/admin/postulaciones', icon: ClipboardList, label: 'Postulaciones' },
+    ],
+  },
+  {
+    label: 'Gestión',
+    items: [
+      { to: '/admin/proyectos', icon: FolderKanban, label: 'Proyectos' },
+      { to: '/admin/usuarios', icon: Users, label: 'Usuarios' },
+      { to: '/admin/certificados', icon: Award, label: 'Certificados' },
+    ],
+  },
+  {
+    label: 'Sistema',
+    items: [
+      { to: '/admin/auditoria', icon: History, label: 'Auditoría' },
+      { to: '/admin/reportes', icon: BarChart, label: 'Reportes' },
+      { to: '/admin/configuracion', icon: Settings, label: 'Configuración' },
+    ],
+  },
+];
+
+function NavItem({ to, icon: Icon, label }) {
+  const { pathname } = useLocation();
+  const active = pathname === to || pathname.startsWith(to + '/');
+  return (
+    <Link
+      to={to}
+      className={`flex items-center gap-2.5 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 border-l-4 ${
+        active
+          ? 'border-blue-600 bg-blue-50 text-blue-700 font-medium pl-2 pr-3'
+          : 'border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 pl-3 pr-3'
+      }`}
+    >
+      <Icon size={16} className="shrink-0" />
+      {label}
+    </Link>
+  );
+}
 
 const AdminSidebar = () => {
-  const { pathname } = useLocation();
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
-  const logout = useAuthStore((state) => state.logout);
 
-  const navItems = [
-    { name: 'Panel de Control', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Gestión de Proyectos', path: '/admin/proyectos', icon: <FolderKanban size={20} /> },
-    { name: 'Directorio de Usuarios', path: '/admin/usuarios', icon: <Users size={20} /> },
-    { name: 'Auditoría', path: '/admin/auditoria', icon: <History size={20} /> },
-    { name: 'Reportes y Extracción', path: '/admin/reportes', icon: <BarChart size={20} /> },
-    { name: 'Configuración', path: '/admin/configuracion', icon: <Settings size={20} /> },
-    { name: 'Gestión de Postulaciones', path: '/admin/postulaciones', icon: <Users size={20} /> },
-    { name: 'Certificados', path: '/admin/certificados', icon: <Award size={20} /> } // ← Nuevo ítem
-  ];
+  const initials =
+    user?.nombre
+      ?.split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() ?? 'A';
 
   const handleLogout = () => {
+    queryClient.clear();
     logout();
     navigate('/login');
   };
 
   return (
-    <aside className="w-64 bg-[#1e3a5f] min-h-screen text-white flex flex-col fixed left-0 top-0 shadow-2xl z-50">
-      <div className="p-6 border-b border-white/10 flex items-center gap-3">
-        <ShieldCheck size={28} className="text-emerald-400" />
-        <span className="font-extrabold text-xl tracking-tight">SuperAdmin</span>
-      </div>
-      
-      <div className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = pathname.includes(item.path);
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm ${
-                isActive 
-                  ? 'bg-primary text-white shadow-lg shadow-primary/30' 
-                  : 'text-slate-300 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              {item.icon}
-              {item.name}
-            </Link>
-          );
-        })}
+    <aside className="w-[220px] bg-white border-r border-gray-200 flex flex-col fixed left-0 top-0 h-screen z-50">
+      {/* Logo */}
+      <div className="px-4 py-4 border-b border-gray-100">
+        <Logo theme="light" />
       </div>
 
-      <div className="p-4 border-t border-white/10">
-        <button 
+      {/* Usuario */}
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-semibold shrink-0">
+          {initials}
+        </div>
+        <div className="min-w-0">
+          <p className="text-gray-800 text-xs font-medium truncate">{user?.nombre}</p>
+          <p className="text-gray-400 text-[11px]">Administrador</p>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 px-2 py-3 overflow-y-auto">
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.label} className="mb-5">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-3 mb-1">
+              {section.label}
+            </p>
+            {section.items.map((item) => (
+              <NavItem key={item.to} {...item} />
+            ))}
+          </div>
+        ))}
+      </nav>
+
+      {/* Logout */}
+      <div className="p-2 border-t border-gray-100">
+        <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-red-300 hover:bg-red-500/10 hover:text-red-200 rounded-xl transition-colors"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all w-full"
         >
-          <LogOut size={20} />
-          Cerrar Sesión
+          <LogOut size={16} />
+          Cerrar sesión
         </button>
       </div>
     </aside>
