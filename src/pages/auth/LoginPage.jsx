@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Loader2, ShieldAlert } from "lucide-react";
 import { Logo } from "@shared/ui/Logo";
 import { useLogin } from "@features/auth-login/useLogin";
 
@@ -14,8 +14,6 @@ const EMAIL_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
 const MAX = 40;
 const ease = [0.22, 1, 0.36, 1];
 
-// ── Connection Diagram ────────────────────────────────────────────────────────
-// ── Connection Diagram ────────────────────────────────────────────────────────
 // ── Connection Diagram ────────────────────────────────────────────────────────
 function ConnectionDiagram() {
   // Posiciones de los nodos
@@ -520,15 +518,23 @@ function Field({ label, icon: Icon, error, rightEl, children }) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 export function LoginPage() {
   const [showPass, setShowPass] = useState(false);
-  const { login, isLoading, error: backendError } = useLogin();
+  const [modalMantenimientoAbierto, setModalMantenimientoAbierto] = useState(false);
+  const { login, isLoading, error: backendError, isMaintenance } = useLogin();
   const { register, handleSubmit, formState: { errors }, setError } = useForm({ mode: "onChange" });
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Cada vez que detectamos mantenimiento, abrimos (o reabrimos) el modal
+  useEffect(() => {
+    if (isMaintenance) setModalMantenimientoAbierto(true);
+  }, [isMaintenance]);
 
   const onSubmit = (data) => {
-    const email = stripXSS(data.email).trim();
-    const password = stripXSS(data.password);
-    if (!EMAIL_RE.test(email)) { setError("email", { message: "Formato de correo inválido" }); return; }
-    login({ email, password });
-  };
+  const email = stripXSS(data.email).trim();
+  const password = stripXSS(data.password);
+  
+  if (!EMAIL_RE.test(email)) { setError("email", { message: "Formato de correo inválido" }); return; }
+  login({ email, password, rememberMe });
+};
 
   const inputStyle = (hasErr, hasRight) => ({
   width: "100%", 
@@ -807,13 +813,13 @@ export function LoginPage() {
               </Field>
 
               {/* Link de recuperación */}
-              <p style={{ textAlign: "right", marginTop: -12, marginBottom: 0 }}>
-                <Link to="/forgot-password" style={{ 
-                  fontSize: 13, color: "#1B6FE8", textDecoration: "none", fontWeight: 500 
-                }}>
-                  ¿Olvidaste tu contraseña?
-                </Link>
-              </p>
+              <div className="flex items-center justify-between mb-6">
+                <label className="flex items-center">
+                  <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="mr-2" />
+                  <span className="text-sm text-gray-600">Recordarme</span>
+                </label>
+                <Link to="/forgot-password" className="text-sm text-primary hover:underline">¿Olvidaste tu contraseña?</Link>
+              </div>
 
               {/* Backend error */}
               <AnimatePresence>
@@ -875,6 +881,104 @@ export function LoginPage() {
           </motion.div>
         </div>
       </div>
+
+      {/* ─── MODAL DE MANTENIMIENTO ─── */}
+      <AnimatePresence>
+        {modalMantenimientoAbierto && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 1000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 20,
+              background: "rgba(13, 27, 53, 0.6)",
+              backdropFilter: "blur(4px)",
+            }}
+            onClick={() => setModalMantenimientoAbierto(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "#fff",
+                borderRadius: 20,
+                padding: "36px 32px",
+                maxWidth: 440,
+                width: "100%",
+                textAlign: "center",
+                boxShadow: "0 25px 60px rgba(13, 27, 53, 0.3)",
+                fontFamily: "'Angro Std', 'Outfit', sans-serif",
+              }}
+            >
+              <div
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, #fef3c7, #fde68a)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 20px",
+                }}
+              >
+                <ShieldAlert size={28} color="#d97706" />
+              </div>
+
+              <h3
+                style={{
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: "#0f1f3d",
+                  margin: 0,
+                  marginBottom: 8,
+                }}
+              >
+                Plataforma en mantenimiento
+              </h3>
+
+              <p
+                style={{
+                  fontSize: 14,
+                  color: "#64748b",
+                  lineHeight: 1.6,
+                  margin: 0,
+                  marginBottom: 24,
+                }}
+              >
+                Estamos trabajando para mejorar tu experiencia. Por el momento, el acceso está temporalmente deshabilitado.
+                Te notificaremos cuando esté disponible nuevamente.
+              </p>
+
+              <button
+                onClick={() => setModalMantenimientoAbierto(false)}
+                style={{
+                  background: "linear-gradient(135deg, #1B6FE8, #0E54C4)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "10px 28px",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Entendido
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

@@ -19,6 +19,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTiposProyecto } from '@/features/admin/useTiposProyecto';
 import { useEntregablesTipo } from '@/features/admin/useEntregablesTipo';
 import { useInsumosTipo } from '@/features/admin/useInsumosTipo';
+import { useMantenimientoEstado } from '@/features/mantenimiento/useMantenimientoEstado';
+import { useToggleMantenimiento } from '@/features/mantenimiento/useToggleMantenimiento';
 
 // ── Constantes del dominio ─────────────────────────────────────
 // Enum AreaSistemas del backend (com.mypelink.backend.proyectos.domain.enums.AreaSistemas)
@@ -58,7 +60,10 @@ export default function AdminConfiguracionPage() {
   const [modalInsumos, setModalInsumos] = useState(null);
 
   const [limiteGlobal, setLimiteGlobal] = useState(1);
-  const [mantenimiento, setMantenimiento] = useState(false);
+  const [confirmandoMantenimiento, setConfirmandoMantenimiento] = useState(false);
+
+  const { estaEnMantenimiento } = useMantenimientoEstado();
+  const { toggleMantenimiento, isLoading: isTogglingMant } = useToggleMantenimiento();
 
   const handleGuardarTipo = (e) => {
     e.preventDefault();
@@ -189,22 +194,86 @@ export default function AdminConfiguracionPage() {
               <div>
                 <label className="flex items-center justify-between text-sm font-bold text-slate-700 mb-2">
                   Modo Mantenimiento
+                  {estaEnMantenimiento && (
+                    <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-[10px] uppercase tracking-wider animate-pulse">
+                      Activo
+                    </span>
+                  )}
                 </label>
                 <p className="text-xs text-slate-500 mb-4 font-medium">
                   Bloquea el acceso a estudiantes y MYPEs. Solo los Administradores podrán ingresar.
                 </p>
                 <button
-                  onClick={() => setMantenimiento(!mantenimiento)}
+                  onClick={() => setConfirmandoMantenimiento(true)}
+                  disabled={isTogglingMant}
                   className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${
-                    mantenimiento
+                    estaEnMantenimiento
                       ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'
                       : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
-                  }`}
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  <Power size={18} />
-                  {mantenimiento ? 'Mantenimiento Activado' : 'Activar Mantenimiento'}
+                  {isTogglingMant ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <Power size={18} />
+                  )}
+                  {estaEnMantenimiento ? 'Desactivar Mantenimiento' : 'Activar Mantenimiento'}
                 </button>
               </div>
+
+              {/* Modal de confirmación inline */}
+              {confirmandoMantenimiento && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                  <div
+                    className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                    onClick={() => setConfirmandoMantenimiento(false)}
+                  />
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="relative z-10 bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        estaEnMantenimiento ? 'bg-emerald-100' : 'bg-red-100'
+                      }`}>
+                        <ShieldAlert size={20} className={estaEnMantenimiento ? 'text-emerald-600' : 'text-red-600'} />
+                      </div>
+                      <h3 className="text-base font-bold text-slate-900">
+                        {estaEnMantenimiento ? 'Desactivar mantenimiento' : 'Activar mantenimiento'}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+                      {estaEnMantenimiento
+                        ? 'Al desactivar, MYPEs y estudiantes podrán volver a usar la plataforma normalmente.'
+                        : 'Al activar, todos los MYPEs y estudiantes quedarán bloqueados. Solo los administradores podrán ingresar. Sus sesiones activas no se cerrarán, pero todas sus requests serán rechazadas hasta que desactives el mantenimiento.'}
+                    </p>
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => setConfirmandoMantenimiento(false)}
+                        className="px-5 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={() => {
+                          toggleMantenimiento(!estaEnMantenimiento, {
+                            onSuccess: () => setConfirmandoMantenimiento(false),
+                          });
+                        }}
+                        disabled={isTogglingMant}
+                        className={`px-5 py-2 text-white text-sm font-bold rounded-xl disabled:opacity-50 ${
+                          estaEnMantenimiento
+                            ? 'bg-emerald-600 hover:bg-emerald-700'
+                            : 'bg-red-600 hover:bg-red-700'
+                        }`}
+                      >
+                        {isTogglingMant ? 'Aplicando...' : (estaEnMantenimiento ? 'Sí, desactivar' : 'Sí, activar')}
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
 
             </div>
           </div>

@@ -17,15 +17,11 @@ import {
   Building2,
   FolderKanban,
   ClipboardList,
-  UserPlus,
-  CheckCircle2,
-  ShieldAlert,
   TrendingUp,
   TrendingDown,
   Award,
   Download,
-  PlusCircle,
-  ShieldPlus,
+  Star,
 } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -199,7 +195,7 @@ const AdminDashboardPage = () => {
     },
   ];
 
-  // Insights
+  // Insights — solo datos reales derivados de `data`
   const INSIGHTS = [
     {
       label: 'Área más activa',
@@ -218,14 +214,6 @@ const AdminDashboardPage = () => {
       color: 'text-orange-500',
     },
     {
-      label: 'Postulaciones críticas',
-      value: data?.postulacionesPendientes ?? 0,
-      sub: 'pendientes de revisión',
-      icon: ClipboardList,
-      bg: 'bg-amber-50',
-      color: 'text-amber-600',
-    },
-    {
       label: 'Certificados emitidos',
       value: data?.certificadosEmitidos ?? 0,
       sub: 'en la plataforma',
@@ -233,39 +221,17 @@ const AdminDashboardPage = () => {
       bg: 'bg-emerald-50',
       color: 'text-emerald-600',
     },
-  ];
-
-  // Static timeline (no endpoint needed)
-  const TIMELINE = [
     {
-      dot: 'bg-blue-500',
-      icon: UserPlus,
-      title: 'Nuevo estudiante registrado',
-      desc: 'Carlos Eduardo se unió al programa',
-      time: 'hace 2m',
+      label: 'Cal. promedio MYPEs',
+      value:
+        data?.promedioCalificacionMypes != null
+          ? Number(data.promedioCalificacionMypes).toFixed(1)
+          : '—',
+      sub: 'promedio de calificaciones',
+      icon: Star,
+      bg: 'bg-yellow-50',
+      color: 'text-yellow-500',
     },
-    {
-      dot: 'bg-emerald-500',
-      icon: CheckCircle2,
-      title: 'Proyecto MYPE aprobado',
-      desc: '"EcoRetail Solutions" — fase 1 validada',
-      time: 'hace 15m',
-    },
-    {
-      dot: 'bg-red-500',
-      icon: ShieldAlert,
-      title: 'Alerta del sistema',
-      desc: 'Intento de acceso no autorizado bloqueado',
-      time: 'hace 1h',
-    },
-  ];
-
-  // Quick actions
-  const ACTIONS = [
-    { label: 'Crear proyecto', icon: PlusCircle, to: '/admin/proyectos' },
-    { label: 'Registrar MYPE', icon: Building2, to: '/admin/usuarios' },
-    { label: 'Exportar reporte', icon: Download, to: '/admin/reportes' },
-    { label: 'Crear administrador', icon: ShieldPlus, to: '/admin/usuarios' },
   ];
 
   if (isError) {
@@ -290,13 +256,6 @@ const AdminDashboardPage = () => {
       >
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-50 animate-ping" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-600" />
-            </span>
-            <p className="text-sm text-slate-400">Actualización automática cada minuto</p>
-          </div>
         </div>
         <button className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
           <Download size={15} />
@@ -447,75 +406,6 @@ const AdminDashboardPage = () => {
         })}
       </motion.div>
 
-      {/* ── Row 4: Timeline + Acciones rápidas ─────────────────────────────── */}
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-        className="grid grid-cols-12 gap-5"
-      >
-        {/* Timeline: col-span-7 */}
-        <motion.div
-          variants={fadeUp}
-          className="col-span-12 lg:col-span-7 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden"
-        >
-          <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
-            <h2 className="text-sm font-semibold text-slate-700">Actividad reciente</h2>
-            <button className="text-xs text-blue-600 font-medium hover:underline">
-              Ver todo
-            </button>
-          </div>
-          <div className="p-5">
-            <div className="relative">
-              {/* Vertical connector line */}
-              <div className="absolute left-[8px] top-3 bottom-3 w-px bg-slate-100" />
-
-              <div className="space-y-5">
-                {TIMELINE.map((item, i) => (
-                  <div key={i} className="flex gap-4 relative">
-                    {/* Dot */}
-                    <div
-                      className={`w-[17px] h-[17px] rounded-full shrink-0 mt-0.5 z-10 ring-4 ring-white ${item.dot}`}
-                    />
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium text-slate-800">{item.title}</p>
-                        <span className="text-[10px] text-slate-400 whitespace-nowrap shrink-0">
-                          {item.time}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-0.5">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Acciones rápidas: col-span-5 */}
-        <motion.div
-          variants={fadeUp}
-          className="col-span-12 lg:col-span-5 bg-white border border-slate-200 rounded-xl p-5 shadow-sm"
-        >
-          <h2 className="text-sm font-semibold text-slate-700 mb-4">Acciones rápidas</h2>
-          <div className="space-y-2.5">
-            {ACTIONS.map((action) => {
-              const Icon = action.icon;
-              return (
-                <button
-                  key={action.label}
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors text-left"
-                >
-                  <Icon size={15} className="shrink-0" />
-                  {action.label}
-                </button>
-              );
-            })}
-          </div>
-        </motion.div>
-      </motion.div>
 
     </div>
   );

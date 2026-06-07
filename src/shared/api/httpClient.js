@@ -1,7 +1,16 @@
 // src/shared/api/httpClient.js
 import axios from "axios";
 import { tokenStorage } from "./tokenStorage";
+let isRefreshing = false;
+let failedQueue = [];
 
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) prom.reject(error);
+    else prom.resolve(token);
+  });
+  failedQueue = [];
+};
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 
@@ -37,48 +46,62 @@ httpClient.interceptors.response.use(
 
     // Si es error 401 y no es un reintento, intentamos refrescar el token
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+  if (isRefreshing) {
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    }).then(token => {
+      originalRequest.headers.Authorization = `Bearer ${token}`;
+      return httpClient(originalRequest);
+    }).catch(err => Promise.reject(err));
+  }
 
-      try {
-        const refreshToken = tokenStorage.getRefreshToken();
+  originalRequest._retry = true;
+  isRefreshing = true;
 
-        if (!refreshToken) {
-          throw new Error("No hay refresh token disponible");
-        }
+  try {
+    const refreshToken = tokenStorage.getRefreshToken();
+    if (!refreshToken) throw new Error("No refresh token");
 
-        // Intentamos obtener un nuevo access token
-        const { data } = await axios.post(`${BASE_URL}/auth/refresh`, {
-          refreshToken: refreshToken,
-        });
+    const { data } = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
+    if (data.accessToken) {
+      tokenStorage.setTokens(data.accessToken, data.refreshToken || refreshToken);
+      processQueue(null, data.accessToken);
+      originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+      return httpClient(originalRequest);
+    } else {
+      throw new Error("No access token");
+    }
+  } catch (refreshError) {
+    processQueue(refreshError, null);
+    tokenStorage.clearTokens();
+    window.location.href = "/login";
+    return Promise.reject(refreshError);
+  } finally {
+    isRefreshing = false;
+  }
+}
 
-        // Guardamos los nuevos tokens
-        if (data.accessToken) {
-          tokenStorage.setTokens(
-            data.accessToken,
-            data.refreshToken || refreshToken,
-          );
-        } else {
-          throw new Error("No se recibió un nuevo access token");
-        }
-
-        // Reintentamos la petición original con el nuevo token
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-        return httpClient(originalRequest);
-      } catch (refreshError) {
-        tokenStorage.clearTokens();
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
-        }
-        return Promise.reject(error);
-      }
+    // ─── Manejo del 503 modo mantenimiento ───
+    if (
+      error.response?.status === 503 &&
+      (error.response?.data?.error === "MAINTENANCE_MODE" ||
+        /mantenimiento/i.test(error.response?.data?.message || ""))
+    ) {
+      // No hacemos logout: cuando termine el mantenimiento, la sesión sigue.
+      // No redirigimos: el MaintenanceGate va a detectarlo via polling.
+      // Pero emitimos un evento para que el gate refresque inmediato.
+      window.dispatchEvent(new CustomEvent("maintenance-mode-detected"));
+      return Promise.reject(error);
     }
 
-    // Manejo de otros códigos de error
+   // Manejo de otros códigos de error
     if (error.response?.status === 403) {
       // Redirigir a página de prohibido solo si no estamos ya ahí
-      if (window.location.pathname !== "/forbidden") {
-        window.location.href = "/forbidden";
-      }
+      // if (window.location.pathname !== "/forbidden") {
+      //   window.location.href = "/forbidden";
+      // }
+      // Por ahora, solo rechaza el error sin redirigir
+      return Promise.reject(error);
     }
 
     // Para errores de red o tiempo de espera

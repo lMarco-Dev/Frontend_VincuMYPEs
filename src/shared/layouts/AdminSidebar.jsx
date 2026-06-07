@@ -1,3 +1,4 @@
+// src/shared/layouts/AdminSidebar.jsx
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -47,13 +48,13 @@ function NavItem({ to, icon: Icon, label }) {
   return (
     <Link
       to={to}
-      className={`flex items-center gap-2.5 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 border-l-4 ${
+      className={`flex items-center gap-2.5 py-2 rounded-lg text-sm font-medium transition-all duration-150 mb-0.5 ${
         active
-          ? 'border-blue-600 bg-blue-50 text-blue-700 font-medium pl-2 pr-3'
-          : 'border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 pl-3 pr-3'
+          ? 'bg-blue-800/30 text-white border-l-4 border-blue-400 pl-2 pr-3'
+          : 'text-gray-300 hover:bg-blue-800/20 hover:text-white pl-3 pr-3'
       }`}
     >
-      <Icon size={16} className="shrink-0" />
+      <Icon size={16} className="shrink-0" strokeWidth={1.8} />
       {label}
     </Link>
   );
@@ -78,28 +79,28 @@ const AdminSidebar = () => {
   };
 
   return (
-    <aside className="w-[220px] bg-white border-r border-gray-200 flex flex-col fixed left-0 top-0 h-screen z-50">
+    <aside className="w-[220px] bg-[#0F2A4A] flex flex-col fixed left-0 top-0 h-screen z-50 shadow-lg">
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-gray-100">
-        <Logo theme="light" />
+      <div className="px-4 py-5 border-b border-blue-800/40">
+        <Logo theme="dark" />
       </div>
 
       {/* Usuario */}
-      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-semibold shrink-0">
+      <div className="px-4 py-3 border-b border-blue-800/40 flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
           {initials}
         </div>
         <div className="min-w-0">
-          <p className="text-gray-800 text-xs font-medium truncate">{user?.nombre}</p>
-          <p className="text-gray-400 text-[11px]">Administrador</p>
+          <p className="text-white text-xs font-medium truncate">{user?.nombre}</p>
+          <p className="text-blue-300/70 text-[11px]">Administrador</p>
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-2 py-3 overflow-y-auto">
+      {/* Navigation */}
+      <nav className="flex-1 px-2 py-4 overflow-y-auto">
         {NAV_SECTIONS.map((section) => (
           <div key={section.label} className="mb-5">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-3 mb-1">
+            <p className="text-[10px] font-semibold text-blue-300/60 uppercase tracking-wider px-3 mb-2">
               {section.label}
             </p>
             {section.items.map((item) => (
@@ -110,12 +111,12 @@ const AdminSidebar = () => {
       </nav>
 
       {/* Logout */}
-      <div className="p-2 border-t border-gray-100">
+      <div className="p-2 border-t border-blue-800/40">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all w-full"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-blue-800/20 transition-all w-full"
         >
-          <LogOut size={16} />
+          <LogOut size={16} strokeWidth={1.8} />
           Cerrar sesión
         </button>
       </div>

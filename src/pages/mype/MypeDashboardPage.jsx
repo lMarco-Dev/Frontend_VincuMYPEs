@@ -4,6 +4,7 @@ import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import { PROYECTO_ESTADO } from "@/entities/proyecto/proyecto.constants";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import CalificacionesPendientesCard from "@/features/calificaciones/CalificacionesPendientesCard";
 import {
   FileText,
   Users,

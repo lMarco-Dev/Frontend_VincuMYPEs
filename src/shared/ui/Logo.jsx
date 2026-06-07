@@ -1,8 +1,6 @@
 import { clsx } from "clsx";
 
 export const Logo = ({ className, imgClassName, theme = "dark" }) => {
-  // theme="dark" asume que el contenedor es oscuro y usa las letras blancas.
-  // theme="light" asume que el contenedor es blanco/claro y usa las letras oscuras.
   const logoSrc = theme === "dark" ? "/linkuy_logo.svg" : "/linkuy_logo_Blanco.svg";
   const iconSrc = theme === "dark" ? "/icon.svg" : "/iconBlanco.svg";
 

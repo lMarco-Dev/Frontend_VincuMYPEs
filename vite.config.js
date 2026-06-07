@@ -5,9 +5,6 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  optimizeDeps: {
-    include: ['recharts'],
-  },
   resolve: {
     alias: {
       "@": path.resolve("./src"),
