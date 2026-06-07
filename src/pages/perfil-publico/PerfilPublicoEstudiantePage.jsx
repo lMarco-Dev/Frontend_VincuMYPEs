@@ -272,20 +272,13 @@ const HeroBannerPublico = ({ nombre, displayRol, academicInfo, fotoPerfil, inici
       <div style={{ position: "absolute", top: -70, right: -40, width: 250, height: 250, borderRadius: "50%", background: "rgba(27,111,232,0.16)", filter: "blur(40px)", animation: "orbF1 8s ease-in-out infinite" }} />
       <div style={{ position: "absolute", bottom: -65, right: 140, width: 190, height: 190, borderRadius: "50%", background: "rgba(212,88,10,0.09)", filter: "blur(40px)", animation: "orbF2 10s ease-in-out infinite" }} />
       <div style={{ position: "absolute", top: 10, right: 210, width: 150, height: 150, borderRadius: "50%", background: "rgba(6,182,212,0.07)", filter: "blur(40px)", animation: "orbF3 13s ease-in-out infinite" }} />
-      <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.5 }} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "5px 14px", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", marginBottom: 18 }}>
-        <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", display: "inline-block", animation: "heroPulse 2s ease-in-out infinite" }} /> Perfil Público
-      </motion.div>
+
       <div style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ maxWidth: 500 }}>
           <div style={{ fontSize: "clamp(23px,2.5vw,30px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.035em", marginBottom: 6 }}>
             <div style={{ overflow: "hidden" }}>
               <motion.div initial={{ y: "110%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} style={{ color: "#fff" }}>
                 {nombre}
-              </motion.div>
-            </div>
-            <div style={{ overflow: "hidden" }}>
-              <motion.div initial={{ y: "110%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.27, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} style={{ background: "linear-gradient(90deg,#67d4f8,#1B6FE8,#06B6D4)", backgroundSize: "200% 100%", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "shimmer 4s ease-in-out infinite", fontSize: "clamp(15px,1.7vw,19px)" }}>
-                perfil profesional
               </motion.div>
             </div>
           </div>

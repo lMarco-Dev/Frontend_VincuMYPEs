@@ -77,14 +77,36 @@ export function LoginForm() {
         error={errors.password}
       />
 
-      {/* 3. ERRORES DEL BACKEND */}
+      <AnimatePresence>
       {backendError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-red-600 text-sm text-center font-medium">
-            {backendError}
-          </p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: -8, height: 0 }}
+          animate={{ opacity: 1, y: 0, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.25, ease }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "12px 16px",
+            background: backendError.toLowerCase().includes("demasiados intentos") ? "#FFFBEB" : "#FFF5F5",
+            borderLeft: `4px solid ${backendError.toLowerCase().includes("demasiados intentos") ? "#F59E0B" : "#F87171"}`,
+            borderRadius: "0 8px 8px 0",
+            fontSize: 13,
+            color: backendError.toLowerCase().includes("demasiados intentos") ? "#D97706" : "#EF4444",
+            fontWeight: 500,
+            fontFamily: "inherit",
+          }}
+        >
+          {backendError.toLowerCase().includes("demasiados intentos") ? (
+            <AlertCircle size={16} style={{ color: "#F59E0B", flexShrink: 0 }} />
+          ) : (
+            <AlertCircle size={16} style={{ flexShrink: 0 }} />
+          )}
+          {backendError}
+        </motion.div>
       )}
+    </AnimatePresence>
 
       {/* 4. BOTÓN SUBMIT */}
       <Button

@@ -1031,7 +1031,22 @@ const ProjectDetailPanel = ({
                   flexWrap: "wrap",
                 }}
               >
-                {proyecto.mypeNombre || "Empresa"}
+                {proyecto.mypeId ? (
+                  <Link
+                    to={`/mypes/${proyecto.mypeId}`}
+                    style={{
+                      textDecoration: "none",
+                      color: "#1e293b",
+                      transition: "color 0.2s",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#1B6FE8")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#1e293b")}
+                  >
+                    {proyecto.mypeNombre || "Empresa"}
+                  </Link>
+                ) : (
+                  <span>{proyecto.mypeNombre || "Empresa"}</span>
+                )}
                 {proyecto.mypeUsuarioId && (
                   <RatingDisplay usuarioId={proyecto.mypeUsuarioId} size="sm" />
                 )}

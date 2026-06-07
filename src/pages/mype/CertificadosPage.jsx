@@ -13,6 +13,7 @@ import { httpClient } from "@/shared/api/httpClient";
 import { motion } from "framer-motion";
 import { useCalificacionesPendientes } from "@/features/calificaciones/useCalificacionesPendientes";
 import RateUserModal from "@/features/calificaciones/RateUserModal";
+import { ConfirmModal } from '@/shared/components/ConfirmModal';
 import {
   Award,
   Plus,
@@ -1177,11 +1178,7 @@ const CertificadoCard = ({
 
         {puedeEliminar && (
           <button
-            onClick={() => {
-              if (window.confirm("¿Estás seguro de que deseas eliminar este certificado? Esta acción no se puede deshacer.")) {
-                onEliminar(certificado.id);
-              }
-            }}
+            onClick={() => onDeleteClick(certificado)}
             disabled={eliminando}
             style={{
               display: "flex",
@@ -1220,6 +1217,22 @@ export function CertificadosPage() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const { enviar, loading: enviandoMap, errorMap } = useEnviarCertificado();
   const { eliminar, isLoading: eliminandoMap, error: errorEliminarGeneral } = useEliminarCertificado();
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+const [certToDelete, setCertToDelete] = useState(null);
+
+const handleDeleteClick = (certificado) => {
+  setCertToDelete(certificado);
+  setShowDeleteModal(true);
+};
+
+const handleConfirmDelete = () => {
+  if (certToDelete) {
+    eliminar(certToDelete.id);
+  }
+  setShowDeleteModal(false);
+  setCertToDelete(null);
+};
 
   const proyectosCompletados = proyectos.filter((p) => p.estado === "COMPLETADO");
   const totalEmitidos = certificados?.length || 0;
@@ -1281,6 +1294,7 @@ export function CertificadosPage() {
                 certificado={cert}
                 index={index}
                 onEnviar={enviar}
+                onDeleteClick={handleDeleteClick}
                 onEliminar={eliminar}
                 enviando={enviandoMap[cert.id] ?? false}
                 eliminando={eliminandoMap ?? false}
@@ -1290,6 +1304,15 @@ export function CertificadosPage() {
                 onAbrirModalCalificacion={(data) => setModalCalificacion({ open: true, data })}
               />
             ))}
+            <ConfirmModal
+              isOpen={showDeleteModal}
+              title="Eliminar certificado"
+              message={`¿Estás seguro de que deseas eliminar el certificado de ${certToDelete?.estudianteNombre || 'este estudiante'}? Esta acción no se puede deshacer.`}
+              confirmText="Eliminar"
+              variant="danger"
+              onConfirm={handleConfirmDelete}
+              onCancel={() => setShowDeleteModal(false)}
+            />
           </div>
         )}
       </div>

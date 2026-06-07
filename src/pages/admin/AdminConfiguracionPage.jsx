@@ -21,6 +21,8 @@ import { useEntregablesTipo } from '@/features/admin/useEntregablesTipo';
 import { useInsumosTipo } from '@/features/admin/useInsumosTipo';
 import { useMantenimientoEstado } from '@/features/mantenimiento/useMantenimientoEstado';
 import { useToggleMantenimiento } from '@/features/mantenimiento/useToggleMantenimiento';
+import { ConfirmModal } from "@/shared/components/ConfirmModal";
+
 
 // ── Constantes del dominio ─────────────────────────────────────
 // Enum AreaSistemas del backend (com.mypelink.backend.proyectos.domain.enums.AreaSistemas)
@@ -53,6 +55,7 @@ const COMPLEJIDADES = [
 
 export default function AdminConfiguracionPage() {
   const { tiposProyecto, crearTipo, actualizarTipo, toggleActivo } = useTiposProyecto();
+  const [toggleModal, setToggleModal] = useState({ isOpen: false, tipo: null });
 
   const [modalNuevoTipo, setModalNuevoTipo] = useState(false);
   const [tipoEditando, setTipoEditando] = useState(null);
@@ -64,6 +67,8 @@ export default function AdminConfiguracionPage() {
 
   const { estaEnMantenimiento } = useMantenimientoEstado();
   const { toggleMantenimiento, isLoading: isTogglingMant } = useToggleMantenimiento();
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, entregable: null });
+
 
   const handleGuardarTipo = (e) => {
     e.preventDefault();
@@ -131,9 +136,12 @@ export default function AdminConfiguracionPage() {
   };
 
   const handleToggleActivo = (tipo) => {
-    if (window.confirm(`¿${tipo.activo ? 'Desactivar' : 'Activar'} "${tipo.nombre}"?`)) {
-      toggleActivo(tipo.id);
-    }
+    setToggleModal({ isOpen: true, tipo });
+  };
+
+  const handleConfirmToggle = () => {
+    if (toggleModal.tipo) toggleActivo(toggleModal.tipo.id);
+    setToggleModal({ isOpen: false, tipo: null });
   };
 
   const tipos = tiposProyecto || [];
@@ -682,7 +690,15 @@ export default function AdminConfiguracionPage() {
           />
         )}
       </AnimatePresence>
-
+      <ConfirmModal
+        isOpen={toggleModal.isOpen}
+        title={toggleModal.tipo?.activo ? "Desactivar tipo" : "Activar tipo"}
+        message={`¿${toggleModal.tipo?.activo ? 'Desactivar' : 'Activar'} "${toggleModal.tipo?.nombre}"?`}
+        confirmText={toggleModal.tipo?.activo ? "Desactivar" : "Activar"}
+        variant="warning"
+        onConfirm={handleConfirmToggle}
+        onCancel={() => setToggleModal({ isOpen: false, tipo: null })}
+      />
     </div>
   );
 }
@@ -693,6 +709,7 @@ function ModalEntregables({ tipo, onClose }) {
   const [editando, setEditando] = useState(null);
   const [form, setForm] = useState({ titulo: '', descripcion: '', orden: 0 });
   const [errors, setErrors] = useState({});
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, entregable: null });
 
   // Límites alineados con el backend (EntregableTipo.titulo length=200, descripcion TEXT)
   const LIMITES = {
@@ -754,10 +771,13 @@ function ModalEntregables({ tipo, onClose }) {
     setErrors({});
   };
 
-  const handleEliminar = (entregable) => {
-    if (window.confirm(`¿Eliminar "${entregable.titulo}"?`)) {
-      eliminarEntregable(entregable.id);
-    }
+  const handleEliminarClick = (entregable) => {
+    setDeleteModal({ isOpen: true, entregable });
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteModal.entregable) eliminarEntregable(deleteModal.entregable.id);
+    setDeleteModal({ isOpen: false, entregable: null });
   };
 
   // Helper para clase del input según error
@@ -861,7 +881,7 @@ function ModalEntregables({ tipo, onClose }) {
                     <button onClick={() => handleEditar(e)} className="p-1.5 text-slate-400 hover:text-primary hover:bg-indigo-50 rounded-lg">
                       <Edit2 size={14} />
                     </button>
-                    <button onClick={() => handleEliminar(e)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg">
+                    <button onClick={() => handleEliminarClick(e)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -871,6 +891,15 @@ function ModalEntregables({ tipo, onClose }) {
           )}
         </div>
       </motion.div>
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        title="Eliminar entregable"
+        message={`¿Eliminar "${deleteModal.entregable?.titulo}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteModal({ isOpen: false, entregable: null })}
+      />
     </div>
   );
 }
@@ -879,6 +908,7 @@ function ModalEntregables({ tipo, onClose }) {
 function ModalInsumos({ tipo, onClose }) {
   const { insumos, isLoading, crearInsumo, actualizarInsumo, eliminarInsumo } = useInsumosTipo(tipo.id);
   const [editando, setEditando] = useState(null);
+  const [deleteInsumoModal, setDeleteInsumoModal] = useState({ isOpen: false, insumo: null });
   const [form, setForm] = useState({ nombre: '', descripcion: '', formato: '', obligatorio: false, orden: 0 });
   const [errors, setErrors] = useState({});
 
@@ -955,11 +985,14 @@ function ModalInsumos({ tipo, onClose }) {
     setErrors({});
   };
 
-  const handleEliminar = (insumo) => {
-    if (window.confirm(`¿Eliminar "${insumo.nombre}"?`)) {
-      eliminarInsumo(insumo.id);
-    }
-  };
+  const handleEliminarClick = (insumo) => {
+  setDeleteInsumoModal({ isOpen: true, insumo });
+};
+
+const handleConfirmDeleteInsumo = () => {
+  if (deleteInsumoModal.insumo) eliminarInsumo(deleteInsumoModal.insumo.id);
+  setDeleteInsumoModal({ isOpen: false, insumo: null });
+};
 
   const inputCls = (campo, base) =>
     `${base} ${errors[campo] ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-slate-50'}`;
@@ -1091,7 +1124,7 @@ function ModalInsumos({ tipo, onClose }) {
                     <button onClick={() => handleEditar(ins)} className="p-1.5 text-slate-400 hover:text-primary hover:bg-indigo-50 rounded-lg">
                       <Edit2 size={14} />
                     </button>
-                    <button onClick={() => handleEliminar(ins)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg">
+                    <button onClick={() => handleEliminarClick(ins)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -1101,6 +1134,15 @@ function ModalInsumos({ tipo, onClose }) {
           )}
         </div>
       </motion.div>
+      <ConfirmModal
+        isOpen={deleteInsumoModal.isOpen}
+        title="Eliminar insumo"
+        message={`¿Eliminar "${deleteInsumoModal.insumo?.nombre}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        variant="danger"
+        onConfirm={handleConfirmDeleteInsumo}
+        onCancel={() => setDeleteInsumoModal({ isOpen: false, insumo: null })}
+      />
     </div>
   );
 }

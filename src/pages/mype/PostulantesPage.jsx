@@ -13,6 +13,7 @@ import {
   Briefcase, Calendar, Star, Award, Crown, User,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ConfirmModal } from "@/shared/components/ConfirmModal";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
@@ -327,8 +328,8 @@ function EstadoPostBadge({ estado }) {
 function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
   const { cambiarEstado, isLoading } = useCambiarEstadoPostulacion(proyectoId);
   const [expanded, setExpanded] = useState(false);
+  const [modalAction, setModalAction] = useState(null); // 'validar' o 'rechazar'
 
-  // ✅ Detectar si es delegado
   const esDelegado = postulacion.esDelegado === true;
 
   const puedeValidar = postulacion.estado === "PRESELECCIONADO";
@@ -344,34 +345,25 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
       .join("")
       .toUpperCase() ?? "?";
 
-  const handleValidar = () => {
-    if (
-      window.confirm(
-        `¿Validar la selección de ${postulacion.estudianteNombre}? Pasa a oferta pendiente para el alumno.`,
-      )
-    ) {
+  const handleValidarClick = () => setModalAction("validar");
+  const handleRechazarClick = () => setModalAction("rechazar");
+
+  const handleConfirm = () => {
+    if (modalAction === "validar") {
       cambiarEstado({
         proyectoId,
         postulacionId: postulacion.id,
         estado: "VALIDADO_MYPE",
       });
-      onEstadoChange?.();
-    }
-  };
-
-  const handleRechazar = () => {
-    if (
-      window.confirm(
-        `¿Rechazar a ${postulacion.estudianteNombre}? Se notificará al Administrador.`,
-      )
-    ) {
+    } else if (modalAction === "rechazar") {
       cambiarEstado({
         proyectoId,
         postulacionId: postulacion.id,
         estado: "RECHAZADO",
       });
-      onEstadoChange?.();
     }
+    onEstadoChange?.();
+    setModalAction(null);
   };
 
   return (
@@ -402,7 +394,7 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
         e.currentTarget.style.borderColor = esDelegado ? "#fbbf24" : "#E5E7EB";
       }}
     >
-      {/* Esquina decorativa según estado */}
+      {/* Esquina decorativa */}
       <div
         style={{
           position: "absolute",
@@ -440,14 +432,9 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
             position: "relative",
           }}
         >
-          <span style={{ 
-            fontSize: 18, 
-            fontWeight: 700, 
-            color: esDelegado ? "#fff" : "#1D4ED8" 
-          }}>
+          <span style={{ fontSize: 18, fontWeight: 700, color: esDelegado ? "#fff" : "#1D4ED8" }}>
             {iniciales}
           </span>
-          {/* ✅ Corona para el delegado */}
           {esDelegado && (
             <span
               style={{
@@ -458,13 +445,13 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
               }}
               title="Delegado del equipo"
             >
-              👑
+              <Crown size={16} color="#fbbf24" />
             </span>
           )}
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Header con nombre y estado */}
+          {/* Header */}
           <div
             style={{
               display: "flex",
@@ -489,7 +476,6 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
                 }}
               >
                 {postulacion.estudianteNombre}
-                {/* ✅ Badge de delegado */}
                 {esDelegado && postulacion.cupos !== 1 && (
                   <span
                     style={{
@@ -532,14 +518,13 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
                   e.currentTarget.style.background = "rgba(27,111,232,0.08)";
                 }}
               >
-                <User size={10} />
-                Ver perfil
+                <User size={10} /> Ver perfil
               </Link>
             </div>
             <EstadoPostBadge estado={postulacion.estado} />
           </div>
 
-          {/* Fecha de postulación */}
+          {/* Fecha */}
           <div
             style={{
               display: "flex",
@@ -560,9 +545,7 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
             >
               <Calendar size={11} />
               Postuló el{" "}
-              {new Date(postulacion.fechaPostulacion).toLocaleDateString(
-                "es-PE",
-              )}
+              {new Date(postulacion.fechaPostulacion).toLocaleDateString("es-PE")}
             </span>
             {postulacion.estudianteCvUrl && (
               <a
@@ -584,7 +567,6 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
                 <FileText size={11} /> Ver CV
               </a>
             )}
-            {/* ✅ Indicador de delegado */}
             {esDelegado && postulacion.cupos !== 1 && (
               <span
                 style={{
@@ -601,7 +583,7 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
             )}
           </div>
 
-          {/* Mensaje de postulación */}
+          {/* Mensaje */}
           <div
             style={{
               background: "#F8FAFC",
@@ -669,7 +651,7 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
           >
             {puedeValidar && !isLoading && (
               <button
-                onClick={handleValidar}
+                onClick={handleValidarClick}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -699,7 +681,7 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
 
             {puedeRechazar && !isLoading && (
               <button
-                onClick={handleRechazar}
+                onClick={handleRechazarClick}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -727,12 +709,25 @@ function CandidateCard({ postulacion, proyectoId, verTodos, onEstadoChange }) {
               </button>
             )}
 
-            {isLoading && (
-              <Loader2 size={16} className="animate-spin text-slate-400" />
-            )}
+            {isLoading && <Loader2 size={16} className="animate-spin text-slate-400" />}
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={modalAction !== null}
+        title={modalAction === "validar" ? "Validar candidato" : "Rechazar candidato"}
+        message={
+          modalAction === "validar"
+            ? `¿Validar la selección de ${postulacion.estudianteNombre}? Pasa a oferta pendiente para el alumno.`
+            : `¿Rechazar a ${postulacion.estudianteNombre}? Se notificará al Administrador.`
+        }
+        confirmText={modalAction === "validar" ? "Validar" : "Rechazar"}
+        variant={modalAction === "validar" ? "success" : "danger"}
+        onConfirm={handleConfirm}
+        onCancel={() => setModalAction(null)}
+        isLoading={isLoading && modalAction !== null}
+      />
     </motion.div>
   );
 }

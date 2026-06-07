@@ -142,11 +142,6 @@ function RegisterDiagram() {
             }}
             transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 7.2, delay: 4.5, ease: "easeOut" }}
           />
-          
-          <text x={USER.cx} y={USER.cy + USER.r + 24} textAnchor="middle" fontSize="13" fontWeight="700"
-            fill="rgba(255,255,255,0.7)" fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif" letterSpacing="1.2">
-            TÚ
-          </text>
         </motion.g>
 
         {/* ═══════════════════════════════════════
@@ -190,11 +185,6 @@ function RegisterDiagram() {
             }}
             transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 7.2, delay: 6.3, ease: "easeOut" }}
           />
-          
-          <text x={BRIEFCASE.cx} y={BRIEFCASE.cy + BRIEFCASE.r + 24} textAnchor="middle" fontSize="13" fontWeight="700"
-            fill="rgba(255,255,255,0.7)" fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif" letterSpacing="1.2">
-            EMPRESA
-          </text>
         </motion.g>
 
         {/* ═══════════════════════════════════════
@@ -287,30 +277,6 @@ function RegisterDiagram() {
         {/* ═══════════════════════════════════════
             ETIQUETAS ANIMADAS
             ═══════════════════════════════════════ */}
-        
-        {/* Etiqueta "REGISTRO" */}
-        <motion.g
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.8, 0.8, 0] }}
-          transition={{ duration: 5, repeat: Infinity, delay: 0.3, ease: "easeInOut" }}
-        >
-          <rect x="38" y="82" width="84" height="22" rx="6" fill="rgba(27,111,232,0.12)" stroke="rgba(27,111,232,0.3)" strokeWidth="1" />
-          <text x="80" y="97" textAnchor="middle" fontSize="9" fontWeight="700"
-            fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif" letterSpacing="1.5"
-            fill="#67d4f8">REGISTRO</text>
-        </motion.g>
-
-        {/* Etiqueta "CONEXIÓN" */}
-        <motion.g
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.8, 0.8, 0] }}
-          transition={{ duration: 5, repeat: Infinity, delay: 2.8, ease: "easeInOut" }}
-        >
-          <rect x="276" y="82" width="84" height="22" rx="6" fill="rgba(245,158,11,0.12)" stroke="rgba(245,158,11,0.3)" strokeWidth="1" />
-          <text x="318" y="97" textAnchor="middle" fontSize="9" fontWeight="700"
-            fontFamily="Arial, 'Helvetica Neue', Helvetica, sans-serif" letterSpacing="1.5"
-            fill="#F59E0B">CONEXIÓN</text>
-        </motion.g>
 
         {/* Check verde en nodo central */}
         <motion.g

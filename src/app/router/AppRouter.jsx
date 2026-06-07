@@ -23,6 +23,7 @@ import { MypePerfilPage } from "@/pages/mype/MypePerfilPage";
 import { MypeConfiguracionPage } from "@/pages/mype/MypeConfiguracionPage";
 import { MensajesPage } from "@/pages/mype/MensajesPage";
 import { EjecucionPage } from "@/pages/mype/EjecucionPage";
+import PerfilPublicoMypePage from "@pages/perfil-publico/PerfilPublicoMypePage";
 
 // Estudiante pages
 import EstudianteDashboardPage from "@pages/estudiante/EstudianteDashboardPage";
@@ -64,6 +65,8 @@ const router = createBrowserRouter([
   { path: "/forgot-password", element: <ForgotPasswordPage /> },
   { path: "/verify-otp", element: <VerifyOtpPage /> },
   { path: "/reset-password", element: <ResetPasswordPage /> },
+  
+
 
   /* ===========================================================================================
                                         RUTAS MYPEs
@@ -84,6 +87,7 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  
   {
     path: "/dashboard/mype/proyectos",
     element: (
@@ -132,6 +136,10 @@ const router = createBrowserRouter([
         {/* ✨ Corregido: Ahora renderiza la página de certificados de la MYPE */}
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/mypes/:id",
+    element: <PerfilPublicoMypePage />
   },
   {
     path: "/dashboard/mype/perfil",

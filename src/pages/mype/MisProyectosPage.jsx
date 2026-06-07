@@ -4,6 +4,8 @@ import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import { AREA_SISTEMAS_LABELS } from "@/entities/proyecto/proyecto.constants";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { ConfirmModal } from '@/shared/components/ConfirmModal';
+
 import {
   Users,
   Pencil,
@@ -976,243 +978,29 @@ function ModalEditar({ proyecto, onClose }) {
   );
 }
 
-// ── Modal de confirmación eliminar ───────────────────────────
-function ModalEliminar({ proyecto, onConfirm, onClose, isLoading }) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 50,
-        background: "rgba(15,42,74,0.6)",
-        backdropFilter: "blur(4px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-      }}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        style={{
-          background: "#fff",
-          borderRadius: "2rem",
-          width: "100%",
-          maxWidth: 420,
-          boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            height: 4,
-            background: "linear-gradient(90deg, #DC2626, #EF4444)",
-          }}
-        />
-
-        <div style={{ padding: "28px 28px 24px" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              marginBottom: 20,
-            }}
-          >
-            <div
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: "1rem",
-                flexShrink: 0,
-                background: "#FEF2F2",
-                border: "1px solid #FECACA",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Trash2 size={22} color="#DC2626" />
-            </div>
-            <div>
-              <h3
-                style={{
-                  fontFamily: FONT,
-                  fontSize: 18,
-                  fontWeight: 800,
-                  color: "#0F1F3D",
-                  margin: 0,
-                }}
-              >
-                Eliminar proyecto
-              </h3>
-              <p
-                style={{
-                  fontFamily: FONT,
-                  fontSize: 12,
-                  color: "#9CA3AF",
-                  margin: "2px 0 0",
-                }}
-              >
-                Esta acción no se puede deshacer
-              </p>
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: "#F9FAFB",
-              border: "1px solid #E5E7EB",
-              borderRadius: 12,
-              padding: "14px 16px",
-              marginBottom: 18,
-            }}
-          >
-            <p
-              style={{
-                fontFamily: FONT,
-                fontSize: 10,
-                fontWeight: 700,
-                color: "#9CA3AF",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                margin: "0 0 4px",
-              }}
-            >
-              Proyecto a eliminar
-            </p>
-            <p
-              style={{
-                fontFamily: FONT,
-                fontSize: 14,
-                fontWeight: 600,
-                color: "#111827",
-                margin: 0,
-              }}
-            >
-              {proyecto.titulo}
-            </p>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 10,
-              background: "#FEF2F2",
-              border: "1px solid #FECACA",
-              borderRadius: 12,
-              padding: "12px 14px",
-              marginBottom: 24,
-            }}
-          >
-            <AlertTriangle
-              size={16}
-              color="#DC2626"
-              style={{ flexShrink: 0, marginTop: 1 }}
-            />
-            <p
-              style={{
-                fontFamily: FONT,
-                fontSize: 12,
-                color: "#991B1B",
-                margin: 0,
-                lineHeight: 1.5,
-              }}
-            >
-              Se eliminarán permanentemente el proyecto y todos sus datos
-              asociados. Los estudiantes postulados serán notificados.
-            </p>
-          </div>
-
-          <div style={{ display: "flex", gap: 12 }}>
-            <button
-              onClick={onClose}
-              disabled={isLoading}
-              style={{
-                fontFamily: FONT,
-                flex: 1,
-                height: 44,
-                borderRadius: 10,
-                background: "transparent",
-                border: "1px solid #E5E7EB",
-                color: "#6B7280",
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "#F9FAFB")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.background = "transparent")
-              }
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={onConfirm}
-              disabled={isLoading}
-              style={{
-                fontFamily: FONT,
-                flex: 1,
-                height: 44,
-                borderRadius: 10,
-                background: "linear-gradient(135deg, #DC2626, #B91C1C)",
-                color: "#fff",
-                border: "none",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: isLoading ? "not-allowed" : "pointer",
-                opacity: isLoading ? 0.7 : 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
-              onMouseEnter={(e) => {
-                if (!isLoading) {
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 14px rgba(220,38,38,0.3)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" /> Eliminando...
-                </>
-              ) : (
-                <>
-                  <Trash2 size={14} /> Sí, eliminar
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-// ── Página principal ─────────────────────────────────────────
 export function MisProyectosPage() {
   const { proyectos, isLoading } = useMisProyectos();
   const navigate = useNavigate();
   const { eliminarProyecto, isLoading: eliminando } = useEliminarProyecto();
 
   const [proyectoEditando, setProyectoEditando] = useState(null);
-  const [proyectoEliminando, setProyectoEliminando] = useState(null);
+  const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState(null);
 
-  const handleConfirmarEliminar = () => {
-    eliminarProyecto(proyectoEliminando.id, {
-      onSuccess: () => setProyectoEliminando(null),
-    });
+  const handleDeleteClick = (proyecto) => {
+    setProjectToDelete(proyecto);
+    setShowDeleteProjectModal(true);
+  };
+
+  const handleConfirmDeleteProject = () => {
+    if (projectToDelete) {
+      eliminarProyecto(projectToDelete.id, {
+        onSuccess: () => {
+          setShowDeleteProjectModal(false);
+          setProjectToDelete(null);
+        },
+      });
+    }
   };
 
   const totalProyectos = proyectos?.length || 0;
@@ -1226,15 +1014,6 @@ export function MisProyectosPage() {
         <ModalEditar
           proyecto={proyectoEditando}
           onClose={() => setProyectoEditando(null)}
-        />
-      )}
-
-      {proyectoEliminando && (
-        <ModalEliminar
-          proyecto={proyectoEliminando}
-          onConfirm={handleConfirmarEliminar}
-          onClose={() => setProyectoEliminando(null)}
-          isLoading={eliminando}
         />
       )}
 
@@ -1373,7 +1152,7 @@ export function MisProyectosPage() {
                 key={proyecto.id}
                 proyecto={proyecto}
                 onEdit={() => setProyectoEditando(proyecto)}
-                onDelete={() => setProyectoEliminando(proyecto)}
+                onDelete={() => handleDeleteClick(proyecto)}
                 onViewPostulantes={() =>
                   navigate(
                     `/dashboard/mype/postulantes?proyecto=${proyecto.id}`,
@@ -1389,6 +1168,21 @@ export function MisProyectosPage() {
           </div>
         )}
       </div>
+
+      {/* Modal de confirmación para eliminar (siempre fuera de condiciones) */}
+      <ConfirmModal
+        isOpen={showDeleteProjectModal}
+        title="Eliminar proyecto"
+        message={`¿Estás seguro de que deseas eliminar el proyecto "${projectToDelete?.titulo}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        variant="danger"
+        onConfirm={handleConfirmDeleteProject}
+        onCancel={() => {
+          setShowDeleteProjectModal(false);
+          setProjectToDelete(null);
+        }}
+        isLoading={eliminando}
+      />
 
       <style>{`
         @keyframes pulse {

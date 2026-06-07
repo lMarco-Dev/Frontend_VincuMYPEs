@@ -14,6 +14,8 @@ export function OfertaAceptadaBanner({ postulacion }) {
   const { confirmar, isLoading, error } = useConfirmarPostulacion();
   const [tiempoRestante, setTiempoRestante] = useState("");
   const [expirada, setExpirada] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
 
   // Countdown en tiempo real (Sigue perfecto tu lógica)
   useEffect(() => {
@@ -57,24 +59,23 @@ export function OfertaAceptadaBanner({ postulacion }) {
     );
   };
 
-  const handleRechazar = () => {
-    if (
-      !window.confirm(
-        "¿Seguro que quieres rechazar esta oferta? Esta acción no se puede deshacer.",
-      )
-    )
-      return;
-
-    // Regla oficial cumplida: Al rechazar pasa a RECHAZADO en base de datos
-    confirmar(
-      { postulacionId: postulacion.id, confirmar: false },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["mis-postulaciones"] });
-        },
-      },
-    );
+  const handleRechazarClick = () => {
+    setShowRejectModal(true);
   };
+  const handleConfirmReject = () => {
+  setRejecting(true);
+  confirmar(
+    { postulacionId: postulacion.id, confirmar: false },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["mis-postulaciones"] });
+        setShowRejectModal(false);
+        setRejecting(false);
+      },
+      onError: () => setRejecting(false),
+    }
+  );
+};
 
   return (
     <div className="rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-5 shadow-sm">
@@ -142,8 +143,8 @@ export function OfertaAceptadaBanner({ postulacion }) {
             Confirmar participación
           </button>
           <button
-            onClick={handleRechazar}
-            disabled={isLoading}
+            onClick={handleRechazarClick}
+            disabled={isLoading || rejecting}
             className="flex items-center justify-center gap-2 bg-white hover:bg-red-50 active:scale-95 text-red-600 border border-red-200 text-sm font-bold px-4 py-2.5 rounded-xl transition-all disabled:opacity-50"
           >
             <XCircle size={16} />
@@ -159,6 +160,16 @@ export function OfertaAceptadaBanner({ postulacion }) {
           por VincuMYPEs.
         </div>
       )}
+      <ConfirmModal
+        isOpen={showRejectModal}
+        title="Rechazar oferta"
+        message={`¿Seguro que quieres rechazar la oferta para "${postulacion.proyectoTitulo}"? Esta acción no se puede deshacer.`}
+        confirmText="Rechazar"
+        variant="danger"
+        onConfirm={handleConfirmReject}
+        onCancel={() => setShowRejectModal(false)}
+        isLoading={rejecting}
+      />
     </div>
   );
 }

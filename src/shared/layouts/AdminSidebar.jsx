@@ -1,6 +1,5 @@
-// src/shared/layouts/AdminSidebar.jsx
-import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   ClipboardList,
@@ -11,10 +10,12 @@ import {
   BarChart,
   Settings,
   LogOut,
+  Menu,
+  X,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { queryClient } from '@/shared/api/queryClient';
 import { Logo } from '@/shared/ui/Logo';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const NAV_SECTIONS = [
   {
@@ -60,9 +61,9 @@ function NavItem({ to, icon: Icon, label }) {
   );
 }
 
-const AdminSidebar = () => {
-  const { user, logout } = useAuthStore();
-  const navigate = useNavigate();
+const AdminSidebar = ({ onLogoutClick }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useAuthStore();
 
   const initials =
     user?.nombre
@@ -72,20 +73,11 @@ const AdminSidebar = () => {
       .join('')
       .toUpperCase() ?? 'A';
 
-  const handleLogout = () => {
-    queryClient.clear();
-    logout();
-    navigate('/login');
-  };
-
-  return (
-    <aside className="w-[220px] bg-[#0F2A4A] flex flex-col fixed left-0 top-0 h-screen z-50 shadow-lg">
-      {/* Logo */}
+  const sidebarContent = (
+    <>
       <div className="px-4 py-5 border-b border-blue-800/40">
         <Logo theme="dark" />
       </div>
-
-      {/* Usuario */}
       <div className="px-4 py-3 border-b border-blue-800/40 flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
           {initials}
@@ -95,8 +87,6 @@ const AdminSidebar = () => {
           <p className="text-blue-300/70 text-[11px]">Administrador</p>
         </div>
       </div>
-
-      {/* Navigation */}
       <nav className="flex-1 px-2 py-4 overflow-y-auto">
         {NAV_SECTIONS.map((section) => (
           <div key={section.label} className="mb-5">
@@ -109,18 +99,64 @@ const AdminSidebar = () => {
           </div>
         ))}
       </nav>
-
-      {/* Logout */}
       <div className="p-2 border-t border-blue-800/40">
         <button
-          onClick={handleLogout}
+          onClick={onLogoutClick}
           className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-blue-800/20 transition-all w-full"
         >
           <LogOut size={16} strokeWidth={1.8} />
           Cerrar sesión
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex flex-col w-[220px] bg-[#0F2A4A] flex-shrink-0 h-screen sticky top-0">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile header y sidebar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[#0F2A4A] flex items-center justify-between px-4 z-40">
+        <Logo theme="dark" />
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="absolute top-0 left-0 w-[240px] h-full bg-[#0F2A4A] shadow-2xl flex flex-col"
+            >
+              <div className="flex justify-end p-2">
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              {sidebarContent}
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

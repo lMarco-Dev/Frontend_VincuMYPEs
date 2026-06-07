@@ -536,21 +536,22 @@ export function LoginPage() {
   login({ email, password, rememberMe });
 };
 
-  const inputStyle = (hasErr, hasRight) => ({
-  width: "100%", 
-  height: 48,
-  background: "#FFFFFF",
+  const inputStyle = (hasErr, hasRight = false) => ({
+  width: "100%",
+  height: 52, // aumentado de 48 a 52
+  background: hasErr ? "#FFF5F5" : "#F9FAFB",
   border: `1.5px solid ${hasErr ? "#FCA5A5" : "#E5E7EB"}`,
-  borderRadius: 8, 
-  outline: "none", 
-  paddingLeft: 48,
+  borderRadius: 12,
+  outline: "none",
+  paddingLeft: 56,
   paddingRight: hasRight ? 48 : 16,
-  fontSize: 14, 
-  color: "#0F1F3D",
-  fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif", 
-  fontWeight: 400,
-  transition: "all 0.2s ease",
+  fontSize: 15,
+  color: "#111827",
+  fontFamily: "inherit",
+  fontWeight: 500,
+  transition: "border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease",
   boxSizing: "border-box",
+  appearance: "none",
 });
 
   return (

@@ -16,6 +16,7 @@ import {
   Cpu
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
 /* ─── Animaciones ─── */
@@ -29,6 +30,7 @@ const CertificadosPage = () => {
   const { data: certificados = [], isLoading, isError, error } = useCertificados();
   const { pendientes: pendientesCalificacion } = useCalificacionesPendientes();
   const [modalCalificacion, setModalCalificacion] = useState({ open: false, data: null });
+  const queryClient = useQueryClient();
 
   if (isLoading) {
     return (
@@ -356,10 +358,13 @@ const CertificadosPage = () => {
         pendiente={modalCalificacion.data}
         onClose={() => setModalCalificacion({ open: false, data: null })}
         onSuccess={() => {
-          // Después de calificar, abrir el certificado
-          if (modalCalificacion.data?.urlCertificado) {
-            window.open(modalCalificacion.data.urlCertificado, '_blank');
-          }
+          const urlCertificado = modalCalificacion.data?.urlCertificado;
+          queryClient.invalidateQueries(['calificaciones-pendientes']);
+          queryClient.invalidateQueries(['certificados']);
+          setTimeout(() => {
+            if (urlCertificado) window.open(urlCertificado, '_blank');
+            else console.warn('No se encontró URL del certificado');
+          }, 100);
           setModalCalificacion({ open: false, data: null });
         }}
       />

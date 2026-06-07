@@ -100,7 +100,7 @@ const DetalleProyectoPage = () => {
       .finally(() => { if (!cancelled) setCargandoRating(false); });
 
     return () => { cancelled = true; };
-  }, [proyecto?.mypeUsuarioId]); // primitivo: number | undefined
+  }, [proyecto?.mypeUsuarioId]);
 
   // Validaciones de postulación
   const yaPostulo = React.useMemo(() => {
@@ -137,6 +137,10 @@ const DetalleProyectoPage = () => {
   const userSkills = user?.skills?.split(',').map(s => s.trim().toLowerCase()) || [];
   const entregablesList = proyecto.entregablesSugeridos?.split(',').map(e => e.trim()).filter(Boolean) || [];
 
+  // ID de la MYPE para el enlace
+  const mypeId = proyecto.mypeId; // Asegurar que el backend envíe este campo
+  const mypeNombre = proyecto.mypeNombre || 'MYPE';
+
   return (
     <div className="p-6 lg:p-8 max-w-[1440px] mx-auto">
 
@@ -172,10 +176,16 @@ const DetalleProyectoPage = () => {
           </div>
           <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight mb-2 leading-tight">{proyecto.titulo}</h1>
           
-          {/* Aquí mostramos el rating MANUAL junto al nombre de la MYPE */}
+          {/* Nombre de la MYPE como enlace al perfil público */}
           <div className="flex items-center text-white/95 text-sm font-semibold">
             <Building2 size={18} className="mr-2 text-white/70" />
-            <span>{proyecto.mypeNombre || 'MYPE'}</span>
+            {mypeId ? (
+              <Link to={`/mypes/${mypeId}`} className="hover:underline transition-all">
+                {mypeNombre}
+              </Link>
+            ) : (
+              <span>{mypeNombre}</span>
+            )}
             {!cargandoRating && ratingMype && ratingMype.promedio !== null && ratingMype.cantidad > 0 && (
               <span className="ml-3 flex items-center gap-1 text-yellow-300 text-xs">
                 <Star size={12} fill="currentColor" /> 
@@ -316,7 +326,13 @@ const DetalleProyectoPage = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-extrabold text-on-surface">{proyecto.mypeNombre || 'MYPE'}</p>
+                    {mypeId ? (
+                      <Link to={`/mypes/${mypeId}`} className="text-sm font-extrabold text-on-surface hover:text-primary transition-colors">
+                        {mypeNombre}
+                      </Link>
+                    ) : (
+                      <p className="text-sm font-extrabold text-on-surface">{mypeNombre}</p>
+                    )}
                     {proyecto.mypeUsuarioId && <RatingDisplay usuarioId={proyecto.mypeUsuarioId} size="sm" />}
                   </div>
                   <p className="text-xs text-slate-400 font-bold">Cajamarca, Perú</p>

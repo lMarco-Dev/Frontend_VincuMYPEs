@@ -10,6 +10,7 @@ import {
   X,
   Award,
   FolderOpen,
+  AlertTriangle,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuthStore } from "../../store/authStore";
@@ -19,7 +20,6 @@ import { useCertificados } from "../../features/certificados/useCertificados";
 
 const NavItem = ({ to, icon: Icon, label, pathname, onClick, badge }) => {
   const active = pathname === to;
-
   return (
     <Link
       to={to}
@@ -41,6 +41,7 @@ const NavItem = ({ to, icon: Icon, label, pathname, onClick, badge }) => {
 
 const StudentLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
@@ -63,22 +64,14 @@ const StudentLayout = () => {
     {
       label: "Principal",
       items: [
-        {
-          to: "/dashboard/estudiante",
-          icon: LayoutDashboard,
-          label: "Mi Panel",
-        },
+        { to: "/dashboard/estudiante", icon: LayoutDashboard, label: "Mi Panel" },
         { to: "/proyectos", icon: Search, label: "Explorar Proyectos" },
       ],
     },
     {
       label: "Gestión",
       items: [
-        {
-          to: "/mis-postulaciones",
-          icon: Briefcase,
-          label: "Mis Postulaciones",
-        },
+        { to: "/mis-postulaciones", icon: Briefcase, label: "Mis Postulaciones" },
         { to: "/workspace", icon: FolderOpen, label: "Mi Workspace" },
         { to: "/certificados", icon: Award, label: "Mis Certificados" },
       ],
@@ -97,34 +90,36 @@ const StudentLayout = () => {
       .join("")
       .toUpperCase() ?? "?";
 
+  const handleConfirmLogout = () => {
+    console.log("Confirmando logout...");
+    logout();
+    navigate("/login");
+    setShowLogoutModal(false);
+  };
+
+  const openModal = () => {
+    console.log("Abriendo modal de logout");
+    setShowLogoutModal(true);
+  };
+
   return (
     <div className="portal-estudiante min-h-screen bg-[#F8FAFC] flex overflow-hidden">
       {/* SIDEBAR PARA DESKTOP */}
       <aside className="hidden lg:flex flex-col w-[220px] bg-[#1e3a5f] flex-shrink-0 z-30">
         <div className="px-4 py-4 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <Logo />
-          </div>
+          <div className="flex items-center gap-2"><Logo /></div>
         </div>
-
         <div className="px-4 py-3.5 border-b border-white/10 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-xs font-medium shrink-0">
-            {initials}
-          </div>
+          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-xs font-medium shrink-0">{initials}</div>
           <div className="min-w-0">
-            <p className="text-white/90 text-xs font-medium truncate">
-              {user?.nombre}
-            </p>
+            <p className="text-white/90 text-xs font-medium truncate">{user?.nombre}</p>
             <p className="text-white/40 text-[11px]">Estudiante</p>
           </div>
         </div>
-
         <nav className="flex-1 px-2 py-3 overflow-y-auto">
           {navigationSections.map((section) => (
             <div key={section.label} className="mb-5">
-              <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-2 mb-1">
-                {section.label}
-              </p>
+              <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-2 mb-1">{section.label}</p>
               {section.items.map((item) => (
                 <NavItem
                   key={item.to}
@@ -132,23 +127,20 @@ const StudentLayout = () => {
                   icon={item.icon}
                   label={item.label}
                   pathname={location.pathname}
-                  badge={
-                    item.label === "Mis Certificados" && hasCertificados ? (
-                      <span className="flex h-1.5 w-1.5 relative">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                      </span>
-                    ) : null
-                  }
+                  badge={item.label === "Mis Certificados" && hasCertificados ? (
+                    <span className="flex h-1.5 w-1.5 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                    </span>
+                  ) : null}
                 />
               ))}
             </div>
           ))}
         </nav>
-
         <div className="p-2 border-t border-white/10">
           <button
-            onClick={logout}
+            onClick={openModal}
             className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-white/40 hover:text-white/70 hover:bg-white/5 transition-all w-full"
           >
             <LogOut size={17} />
@@ -160,10 +152,7 @@ const StudentLayout = () => {
       {/* MOBILE HEADER */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-100 flex items-center justify-between px-6 z-40">
         <Logo theme="light" />
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl"
-        >
+        <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl">
           <Menu size={24} />
         </button>
       </div>
@@ -171,16 +160,8 @@ const StudentLayout = () => {
       {/* MOBILE SIDEBAR */}
       <AnimatePresence>
         {isSidebarOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 lg:hidden"
-          >
-            <div
-              onClick={() => setIsSidebarOpen(false)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-            />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 lg:hidden">
+            <div onClick={() => setIsSidebarOpen(false)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
             <motion.aside
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
@@ -189,35 +170,20 @@ const StudentLayout = () => {
               className="absolute inset-y-0 left-0 w-[240px] bg-[#1e3a5f] z-10 flex flex-col shadow-2xl h-full"
             >
               <div className="px-4 py-4 border-b border-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-2 flex-1 mr-2">
-                  <Logo />
-                </div>
-                <button
-                  onClick={() => setIsSidebarOpen(false)}
-                  className="p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"
-                >
-                  <X size={20} />
-                </button>
+                <div className="flex items-center gap-2 flex-1 mr-2"><Logo /></div>
+                <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"><X size={20} /></button>
               </div>
-
               <div className="px-4 py-3.5 border-b border-white/10 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-xs font-medium shrink-0">
-                  {initials}
-                </div>
+                <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-xs font-medium shrink-0">{initials}</div>
                 <div className="min-w-0">
-                  <p className="text-white/90 text-xs font-medium truncate">
-                    {user?.nombre}
-                  </p>
+                  <p className="text-white/90 text-xs font-medium truncate">{user?.nombre}</p>
                   <p className="text-white/40 text-[11px]">Estudiante</p>
                 </div>
               </div>
-
               <nav className="flex-1 px-2 py-3 overflow-y-auto">
                 {navigationSections.map((section) => (
                   <div key={section.label} className="mb-5">
-                    <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-2 mb-1">
-                      {section.label}
-                    </p>
+                    <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-2 mb-1">{section.label}</p>
                     {section.items.map((item) => (
                       <NavItem
                         key={item.to}
@@ -226,24 +192,20 @@ const StudentLayout = () => {
                         label={item.label}
                         pathname={location.pathname}
                         onClick={() => setIsSidebarOpen(false)}
-                        badge={
-                          item.label === "Mis Certificados" &&
-                          hasCertificados ? (
-                            <span className="flex h-1.5 w-1.5 relative">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                            </span>
-                          ) : null
-                        }
+                        badge={item.label === "Mis Certificados" && hasCertificados ? (
+                          <span className="flex h-1.5 w-1.5 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                          </span>
+                        ) : null}
                       />
                     ))}
                   </div>
                 ))}
               </nav>
-
               <div className="p-2 border-t border-white/10">
                 <button
-                  onClick={logout}
+                  onClick={openModal}
                   className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-white/40 hover:text-white/70 hover:bg-white/5 transition-all w-full"
                 >
                   <LogOut size={17} />
@@ -255,12 +217,57 @@ const StudentLayout = () => {
         )}
       </AnimatePresence>
 
-      {/* MAIN CONTENT AREA */}
+      {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         <div className="flex-1 overflow-y-auto pt-16 lg:pt-0">
           <Outlet />
         </div>
       </main>
+
+      {/* MODAL DE CONFIRMACIÓN INCRUSTADO (sin dependencias externas) */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="relative max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-600 to-amber-700" />
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                    <AlertTriangle size={24} className="text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900">Cerrar sesión</h3>
+                    <p className="text-slate-500 text-sm mt-0.5">¿Seguro que quieres salir?</p>
+                  </div>
+                </div>
+                <p className="text-slate-600 text-sm mb-6">
+                  Se cerrará tu sesión actual y deberás volver a iniciar sesión para acceder a tu cuenta.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowLogoutModal(false)}
+                    className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleConfirmLogout}
+                    className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-amber-700 rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all shadow-md shadow-amber-600/20"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
