@@ -64,6 +64,9 @@ const getAreaStyle = (area) => {
   }
 };
 
+// Estados de PROYECTO que cuentan como "activo" (igual que el backend)
+const ESTADOS_PROYECTO_ACTIVOS = ['PENDIENTE', 'EN_DESARROLLO', 'EN_REVISION'];
+
 const DetalleProyectoPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -106,7 +109,10 @@ const DetalleProyectoPage = () => {
   }, [postulaciones, id]);
 
   const proyectosActivos = React.useMemo(() => {
-    return postulaciones?.filter(p => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado') || [];
+    return postulaciones?.filter(p =>
+      (p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado') &&
+      ESTADOS_PROYECTO_ACTIVOS.includes(p.proyectoEstado)
+    ) || [];
   }, [postulaciones]);
 
   const limiteProyectos = perfil?.limiteProyectos ?? 1;

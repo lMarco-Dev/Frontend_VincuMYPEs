@@ -6,7 +6,8 @@ import {
   Users,
   Building2,
   MessageSquare,
-  CheckCircle2,
+  Check,
+  CheckCheck,
 } from "lucide-react";
 import {
   useMensajesGrupo,
@@ -163,6 +164,17 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
           background: "#f8fafc",
         }}
       >
+        {/* Banner de sistema (centrado, no pertenece a ninguna cuenta) */}
+        <div style={{ display: "flex", justifyContent: "center", margin: "10px 0 18px" }}>
+          <div style={{ maxWidth: "85%", textAlign: "center", background: "rgba(15,31,61,0.04)", border: "1px solid #e5e7eb", borderRadius: 12, padding: "8px 14px" }}>
+            <p style={{ fontFamily: FONT, fontSize: 11, color: "#6b7280", margin: 0, lineHeight: 1.5 }}>
+              {esChatEquipo
+                ? "Chat de equipo · Solo visible para los estudiantes del proyecto. Coordinen sus entregables y recuerden votar por su delegado."
+                : "Chat del proyecto · Espacio para que el equipo se comunique con la MYPE."}
+            </p>
+          </div>
+        </div>
+
         {isLoading ? (
           <div
             style={{
@@ -178,40 +190,16 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
             />
           </div>
         ) : mensajes.length === 0 ? (
-          <div style={{ textAlign: "center", paddingTop: 60 }}>
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 16,
-                background: "#f1f5f9",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 16px",
-              }}
-            >
-              <MessageSquare size={24} color="#d1d5db" />
-            </div>
+          <div style={{ textAlign: "center", paddingTop: 40 }}>
             <p
               style={{
                 fontFamily: FONT,
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: 600,
                 color: "#9CA3AF",
               }}
             >
-              No hay mensajes aún
-            </p>
-            <p
-              style={{
-                fontFamily: FONT,
-                fontSize: 12,
-                color: "#d1d5db",
-                marginTop: 4,
-              }}
-            >
-              ¡Sé el primero en escribir!
+              Aún no hay mensajes. ¡Sé el primero en escribir!
             </p>
           </div>
         ) : (
@@ -346,10 +334,9 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
                             : ""}
                         </span>
                         {msg.esMio && (
-                          <CheckCircle2
-                            size={10}
-                            color="rgba(255,255,255,0.6)"
-                          />
+                          msg.leido
+                            ? <CheckCheck size={14} color="#7DD3FC" />            // 2 checks azul = leído
+                            : <Check size={14} color="rgba(255,255,255,0.6)" />   // 1 check plomo = enviado
                         )}
                       </div>
                     </div>

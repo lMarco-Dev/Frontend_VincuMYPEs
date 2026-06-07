@@ -7,7 +7,8 @@ export function useVotacion(proyectoId) {
     queryKey: ["votacion", proyectoId],
     queryFn: () => getVotacionApi(proyectoId).then((res) => res.data),
     enabled: !!proyectoId,
-    refetchInterval: 10000,
+    refetchInterval: false,
+    staleTime: 30000,
   });
 
   return {
@@ -36,13 +37,11 @@ export function useVotar(proyectoId) {
   };
 }
 
-// ✅ CORREGIDO: Verificar si es delegado
+// Verificar si es delegado
 export function useEsDelegado(proyectoId) {
   const { data, isLoading } = useQuery({
     queryKey: ["esDelegado", proyectoId],
     queryFn: () => esDelegadoApi(proyectoId).then((res) => {
-      // ✅ Acceder correctamente al valor booleano
-      // El backend devuelve: { esDelegado: true/false }
       return res.data?.esDelegado ?? false;
     }),
     enabled: !!proyectoId,

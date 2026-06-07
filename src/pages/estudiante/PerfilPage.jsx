@@ -755,8 +755,11 @@ const PerfilPage = () => {
   const { rol: storeRol } = useAuthStore();
   const isEstudiante = storeRol === 'ESTUDIANTE';
   const { data: postulaciones = [] } = useMisPostulaciones({ enabled: isEstudiante });
-  const proyectosAceptados = postulaciones.filter(p => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado');
-
+const proyectosAceptados = postulaciones.filter(
+  (p) =>
+    (p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado') &&
+    p.proyectoEstado !== 'COMPLETADO'   // ← oculta los ya completados
+);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false);
   const [formData, setFormData] = useState({ bio: '', skills: '', portafolioUrl: '', linkedinUrl: '', telefono: '' });
@@ -881,12 +884,100 @@ const PerfilPage = () => {
                 <Link to="/mis-postulaciones" style={{ fontSize:11, fontWeight:600, color:'#1B6FE8', textDecoration:'none', display:'flex', alignItems:'center', gap:4 }}>Ver todos <ArrowRight size={11} /></Link>
               </div>
               {proyectosAceptados.length > 0 ? (
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>{proyectosAceptados.slice(0, 4).map((proyecto, idx) => (
-                  <Link key={idx} to={`/proyectos/${proyecto.proyectoId}`} style={{ textDecoration:'none' }}><div style={{ position:'relative', borderRadius:14, overflow:'hidden', cursor:'pointer', aspectRatio:'16/9', background:'#0d1b35', border:'0.5px solid #e8e8e4', transition:'all 0.2s' }}><div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,#0d1b35,#0f2a4a)', opacity:0.85 }} /><div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' }} /><div style={{ position:'absolute', bottom:0, left:0, right:0, padding:12, zIndex:10 }}><h5 style={{ fontSize:12, fontWeight:700, color:'#fff', margin:'0 0 2px' }}>{proyecto.proyectoTitulo || 'Proyecto'}</h5><span style={{ fontSize:9, fontWeight:600, color:'#4ade80', display:'flex', alignItems:'center', gap:3 }}><CheckCircle2 size={9} />Aceptado</span></div></div></Link>
-                ))}</div>
-              ) : (
-                <div style={{ padding:24, textAlign:'center', background:'#f8fafc', borderRadius:12, border:'0.5px dashed #e8e8e4' }}><p style={{ fontSize:12, color:'#6b6b7a', marginBottom:12, fontWeight:500 }}>Aún no tienes proyectos.</p><Link to="/proyectos" style={{ display:'inline-flex', alignItems:'center', gap:6, background:'#1B6FE8', color:'#fff', padding:'8px 16px', borderRadius:8, fontSize:11, fontWeight:700, textDecoration:'none' }}>Explorar Proyectos <ArrowRight size={12} /></Link></div>
-              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {proyectosAceptados.slice(0, 4).map((proyecto, idx) => {
+                  const titulo = proyecto.proyectoTitulo || 'Proyecto';
+                  const iniciales = titulo.slice(0, 2).toUpperCase();
+                  const colores = ['#1B6FE8', '#06B6D4', '#8B5CF6', '#10B981'];
+                  const colorFondo = colores[idx % colores.length];
+
+                  return (
+                    <Link
+                      key={proyecto.id || idx}
+                      to={`/workspace/${proyecto.proyectoId}`}
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        whileHover={{ y: -2, scale: 1.01 }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 14,
+                          padding: '12px 16px',
+                          background: '#fff',
+                          borderRadius: 14,
+                          border: '0.5px solid #e8e8e4',
+                          transition: 'all 0.2s',
+                          cursor: 'pointer',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                        }}
+                      >
+                        {/* Cuadrado con iniciales */}
+                        <div
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 12,
+                            background: colorFondo,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            fontSize: 18,
+                            fontWeight: 700,
+                            color: '#fff',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                          }}
+                        >
+                          {iniciales}
+                        </div>
+
+                        {/* Información del proyecto */}
+                        <div style={{ flex: 1 }}>
+                          <h5 style={{ fontSize: 13, fontWeight: 700, color: '#0f1f3d', margin: 0 }}>
+                            {titulo}
+                          </h5>
+                          {/* Badge "Aceptado" debajo del título, donde antes estaba "Workspace activo" */}
+                          <div style={{ margin: '4px 0 0' }}>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                padding: '2px 8px',
+                                borderRadius: 20,
+                                fontSize: 9,
+                                fontWeight: 600,
+                                background: '#ecfdf5',
+                                color: '#05962e',
+                                border: '0.5px solid #a7f3d0',
+                              }}
+                            >
+                              <CheckCircle2 size={9} /> Aceptado
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Flecha indicadora */}
+                        <ArrowRight size={14} color="#cbd5e1" />
+                      </motion.div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ padding: 24, textAlign: 'center', background: '#f8fafc', borderRadius: 12, border: '0.5px dashed #e8e8e4' }}>
+                <p style={{ fontSize: 12, color: '#6b6b7a', marginBottom: 12, fontWeight: 500 }}>
+                  Aún no tienes proyectos.
+                </p>
+                <Link to="/proyectos" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1B6FE8', color: '#fff', padding: '8px 16px', borderRadius: 8, fontSize: 11, fontWeight: 700, textDecoration: 'none' }}>
+                  Explorar Proyectos <ArrowRight size={12} />
+                </Link>
+              </div>
+            )}
             </motion.section>
           )}
         </div>

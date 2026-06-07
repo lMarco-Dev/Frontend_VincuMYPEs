@@ -265,8 +265,8 @@ const LinearStatsChart = ({
             : completados > 0
               ? `✅ Llevas ${completados} de ${total} aprobados.`
               : pendientes > 0
-                ? `📋 ${pendientes} entregable${pendientes !== 1 ? "s" : ""} pendiente${pendientes !== 1 ? "s" : ""}.`
-                : "📋 Sube tus entregables para avanzar."}
+                ? `${pendientes} entregable${pendientes !== 1 ? "s" : ""} pendiente${pendientes !== 1 ? "s" : ""}.`
+                : "Sube tus entregables para avanzar."}
         </p>
       </div>
     </motion.div>
@@ -281,9 +281,7 @@ const HeroRing = ({ value = 0, max = 1, size = 88 }) => {
     offset = circ - (pct / 100) * circ,
     id = "multiRing";
   return (
-    <div
-      style={{ position: "relative", width: size, height: size, flexShrink: 0 }}
-    >
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
       <svg
         width={size}
         height={size}
@@ -302,7 +300,7 @@ const HeroRing = ({ value = 0, max = 1, size = 88 }) => {
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="rgba(255,255,255,0.08)"
+          stroke="#eef0f3"
           strokeWidth={sw}
           fill="none"
         />
@@ -332,7 +330,7 @@ const HeroRing = ({ value = 0, max = 1, size = 88 }) => {
           style={{
             fontSize: 20,
             fontWeight: 800,
-            color: "#fff",
+            color: "#0f1f3d",
             letterSpacing: "-0.03em",
             lineHeight: 1,
           }}
@@ -343,7 +341,7 @@ const HeroRing = ({ value = 0, max = 1, size = 88 }) => {
           style={{
             fontSize: 8,
             fontWeight: 600,
-            color: "rgba(255,255,255,0.4)",
+            color: "#94a3b8",
             textTransform: "uppercase",
             letterSpacing: "0.08em",
             marginTop: 2,
@@ -1212,7 +1210,7 @@ export function ProyectoWorkspacePage() {
               width: 70,
               height: 70,
               borderRadius: 20,
-              background: "#fef2f2",
+              background: "#fef2f2",  fontWeight: 700,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -1285,157 +1283,93 @@ export function ProyectoWorkspacePage() {
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
 
       {/* Hero Banner */}
-      <motion.div
-        initial={{ opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+<motion.div
+  initial={{ opacity: 0, y: -16 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5 }}
+  style={{
+    background: "#fff",
+    borderRadius: 20,
+    border: `0.5px solid ${C.border}`,
+    padding: "24px 28px",
+    marginBottom: 18,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 20,
+  }}
+>
+  <div style={{ flex: 1, minWidth: 0 }}>
+    {/* Línea azul + título (estilo Mis Workspaces) */}
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+      <div style={{ width: 4, height: 20, borderRadius: 2, background: C.primary, flexShrink: 0 }} />
+      <h1
         style={{
-          background: "#0d1b35",
-          borderRadius: 14,
-          padding: "24px 28px",
-          marginBottom: 18,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          position: "relative",
-          overflow: "hidden",
+          fontSize: 18,
+          fontWeight: 700,
+          letterSpacing: "-0.02em",
+          color: "#0f1f3d",
+          margin: 0,
+          lineHeight: 1.25,
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            backgroundImage:
-              "linear-gradient(rgba(27,111,232,0.07) 1px,transparent 1px),linear-gradient(90deg,rgba(27,111,232,0.07) 1px,transparent 1px)",
-            backgroundSize: "44px 44px",
+        {proyecto.titulo}
+      </h1>
+    </div>
+
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        fontSize: 12,
+        fontWeight: 500,
+        color: "#6b6b7a",
+        flexWrap: "wrap",
+        marginLeft: 14,
+      }}
+    >
+      <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+        <motion.span
+          animate={{
+            boxShadow: [
+              "0 0 0 0 rgba(16,185,129,0.5)",
+              "0 0 0 6px rgba(16,185,129,0)",
+              "0 0 0 0 rgba(16,185,129,0)",
+            ],
           }}
+          transition={{ duration: 2, repeat: Infinity }}
+          style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", display: "inline-block" }}
         />
-        <div
-          style={{
-            position: "absolute",
-            top: -50,
-            right: -20,
-            width: 200,
-            height: 200,
-            borderRadius: "50%",
-            background: "rgba(27,111,232,0.14)",
-            pointerEvents: "none",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: -40,
-            right: 140,
-            width: 140,
-            height: 140,
-            borderRadius: "50%",
-            background: "rgba(6,182,212,0.08)",
-            pointerEvents: "none",
-          }}
-        />
-        <div style={{ position: "relative", zIndex: 2 }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 7,
-              background: "rgba(255,255,255,0.07)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              borderRadius: 20,
-              padding: "4px 12px",
-              fontSize: 9,
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.5)",
-              marginBottom: 10,
-            }}
-          >
-            <motion.span
-              animate={{
-                boxShadow: [
-                  "0 0 0 0 rgba(74,222,128,0.5)",
-                  "0 0 0 7px rgba(74,222,128,0)",
-                  "0 0 0 0 rgba(74,222,128,0)",
-                ],
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: "#4ade80",
-                display: "inline-block",
-              }}
-            />{" "}
-            Proyecto activo
-          </div>
-          <h1
-            style={{
-              fontSize: 18,
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              color: "#fff",
-              lineHeight: 1.25,
-              margin: "0 0 6px",
-            }}
-          >
-            {proyecto.titulo}
-          </h1>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              fontSize: 11,
-              color: "rgba(255,255,255,0.4)",
-              flexWrap: "wrap",
-            }}
-          >
-            <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <User size={12} /> {mypeNombre}
+        Proyecto activo
+      </span>
+
+      <span style={{ width: 3, height: 3, borderRadius: "50%", background: "#cbd5e1", display: "inline-block" }} />
+      <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+        <User size={12} /> {mypeNombre}
+      </span>
+
+      {proyecto.fechaLimite && (
+        <>
+          <span style={{ width: 3, height: 3, borderRadius: "50%", background: "#cbd5e1", display: "inline-block" }} />
+          <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <Calendar size={12} /> Límite:{" "}
+            <span style={{ color: "#dc2626", fontWeight: 600 }}>
+              {format(new Date(proyecto.fechaLimite), "d 'de' MMMM, yyyy", { locale: es })}
             </span>
-            <span
-              style={{
-                width: 3,
-                height: 3,
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.2)",
-                display: "inline-block",
-              }}
-            />
-            {proyecto.fechaLimite && (
-              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <Calendar size={12} /> Límite:{" "}
-                <span style={{ color: "#f87171", fontWeight: 600 }}>
-                  {format(new Date(proyecto.fechaLimite), "d 'de' MMMM, yyyy", {
-                    locale: es,
-                  })}
-                </span>
-              </span>
-            )}
-            <span
-              style={{
-                width: 3,
-                height: 3,
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.2)",
-                display: "inline-block",
-              }}
-            />
-            <span>{proyecto.areaSistemas || "Sistemas"}</span>
-          </div>
-        </div>
-        <div style={{ position: "relative", zIndex: 2 }}>
-          <HeroRing
-            value={currentStats.completados}
-            max={currentStats.total}
-            size={88}
-          />
-        </div>
-      </motion.div>
+          </span>
+        </>
+      )}
+
+       
+
+    </div>
+  </div>
+
+  <div style={{ flexShrink: 0 }}>
+    <HeroRing value={currentStats.completados} max={currentStats.total} size={88} />
+  </div>
+</motion.div>
 
       <LinearStatsChart
         completados={currentStats.completados}
@@ -1444,6 +1378,92 @@ export function ProyectoWorkspacePage() {
         rechazados={currentStats.rechazados}
         total={currentStats.total}
       />
+            {/* ✅ BANNER: Elegir delegado (solo proyectos en equipo con votación activa) */}
+      {!esProyectoIndividual && votacionActiva && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
+          style={{
+            background: "linear-gradient(135deg, #fef3c7, #fffbeb)",
+            border: "1px solid #fbbf24",
+            borderRadius: 14,
+            padding: "14px 20px",
+            marginBottom: 18,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <motion.div
+              animate={{ scale: [1, 1.15, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                boxShadow: "0 4px 12px rgba(245,158,11,0.3)",
+              }}
+            >
+              <Vote size={20} color="#fff" />
+            </motion.div>
+            <div>
+              <h4
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#92400e",
+                  margin: "0 0 3px",
+                }}
+              >
+                 ¡Elige al delegado del equipo!
+              </h4>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "#a16207",
+                  margin: 0,
+                  lineHeight: 1.5,
+                }}
+              >
+                Solo el delegado podrá subir los entregables.{" "}
+                <strong>Tu voto es importante</strong> para coordinar mejor.
+              </p>
+            </div>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => setActiveTab("votacion")}
+            style={{
+              padding: "10px 20px",
+              borderRadius: 10,
+              border: "none",
+              background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+              color: "#7c2d12",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              gap: 7,
+              boxShadow: "0 3px 10px rgba(245,158,11,0.25)",
+              flexShrink: 0,
+            }}
+          >
+            <Vote size={15} /> Ir a votar
+          </motion.button>
+        </motion.div>
+      )}
 
       {/* Tabs */}
       <motion.div
@@ -1609,8 +1629,8 @@ export function ProyectoWorkspacePage() {
                         }}
                       >
                         {esDelegado
-                          ? "🎉 ¡Eres el delegado del equipo!"
-                          : `📋 Delegado: ${ganador.estudianteNombre}`}
+                          ? "¡Eres el delegado del equipo!"
+                          : `Delegado: ${ganador.estudianteNombre}`}
                       </p>
                       <p
                         style={{
@@ -1621,9 +1641,9 @@ export function ProyectoWorkspacePage() {
                       >
                         {esDelegado
                           ? "Solo tú puedes subir los entregables del equipo."
-                          : `Solo ${ganador?.estudianteNombre || "el delegado"} puede subir entregables.`}
+                          : `Solo el puede subir entregables.`}
                       </p>
-                    </div>
+                    </div>  
                   </motion.div>
                 )}
                 {entregablesProyecto.length > 0 ? (
@@ -2380,23 +2400,155 @@ export function ProyectoWorkspacePage() {
                   </div>
                 ) : votacionCompletada && ganador ? (
                   <div style={{ textAlign: "center", padding: "20px 0" }}>
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 200 }}
-                      style={{
-                        width: 80,
-                        height: 80,
-                        borderRadius: "50%",
-                        background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        margin: "0 auto 16px",
-                      }}
-                    >
-                      <Crown size={36} color="#fff" />
-                    </motion.div>
+                    {/* ✅ Si son 2: mostrar dado animado. Si son más: corona */}
+                    {votacion.candidatos?.length === 2 ? (
+                                                  <div style={{ perspective: "300px", margin: "0 auto 16px", width: 80, height: 80 }}>
+                        <motion.div
+                          animate={{ 
+                            rotateX: [0, 360, 720],
+                            rotateY: [0, 360, 720],
+                            rotateZ: [0, 90, 180]
+                          }}
+                          transition={{ duration: 8, ease: "easeInOut", repeat: Infinity, repeatDelay: 4 }}
+                          style={{
+                            width: 80,
+                            height: 80,
+                            position: "relative",
+                            transformStyle: "preserve-3d",
+                            transform: "rotateX(-25deg) rotateY(-35deg)",
+                          }}
+                        >
+                          {/* Cara 1 - FRONTAL (⚀ 1) */}
+                          <div style={{
+                            position: "absolute", width: 80, height: 80,
+                            background: "linear-gradient(135deg, #fff, #fef3c7)",
+                            border: "2px solid #fbbf24",
+                            borderRadius: 12,
+                            transform: "translateZ(40px)",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            boxShadow: "inset 0 0 15px rgba(0,0,0,0.05)"
+                          }}>
+                            <div style={{ width: 14, height: 14, borderRadius: "50%", background: "#1a1a2e" }} />
+                          </div>
+                          {/* Cara 2 - TRASERA (⚅ 6) */}
+                          <div style={{
+                            position: "absolute", width: 80, height: 80,
+                            background: "linear-gradient(135deg, #fff, #fef3c7)",
+                            border: "2px solid #fbbf24",
+                            borderRadius: 12,
+                            transform: "rotateY(180deg) translateZ(40px)",
+                            display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr 1fr",
+                            padding: 12, boxSizing: "border-box",
+                            boxShadow: "inset 0 0 15px rgba(0,0,0,0.05)"
+                          }}>
+                            {[...Array(6)].map((_, i) => (
+                              <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#1a1a2e" }} />
+                              </div>
+                            ))}
+                          </div>
+                          {/* Cara 3 - DERECHA (⚃ 4) */}
+                          <div style={{
+                            position: "absolute", width: 80, height: 80,
+                            background: "linear-gradient(135deg, #fff, #fef3c7)",
+                            border: "2px solid #fbbf24",
+                            borderRadius: 12,
+                            transform: "rotateY(90deg) translateZ(40px)",
+                            display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr",
+                            padding: 14, boxSizing: "border-box", gap: 4,
+                            boxShadow: "inset 0 0 15px rgba(0,0,0,0.05)"
+                          }}>
+                            {[...Array(4)].map((_, i) => (
+                              <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <div style={{ width: 9, height: 9, borderRadius: "50%", background: "#1a1a2e" }} />
+                              </div>
+                            ))}
+                          </div>
+                          {/* Cara 4 - IZQUIERDA (⚂ 3) */}
+                          <div style={{
+                            position: "absolute", width: 80, height: 80,
+                            background: "linear-gradient(135deg, #fff, #fef3c7)",
+                            border: "2px solid #fbbf24",
+                            borderRadius: 12,
+                            transform: "rotateY(-90deg) translateZ(40px)",
+                            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                            gap: 10, boxSizing: "border-box",
+                            boxShadow: "inset 0 0 15px rgba(0,0,0,0.05)"
+                          }}>
+                            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#1a1a2e" }} />
+                            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#1a1a2e" }} />
+                            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#1a1a2e" }} />
+                          </div>
+                          {/* Cara 5 - ARRIBA (⚄ 5) */}
+                          <div style={{
+                            position: "absolute", width: 80, height: 80,
+                            background: "linear-gradient(135deg, #fff, #fef3c7)",
+                            border: "2px solid #fbbf24",
+                            borderRadius: 12,
+                            transform: "rotateX(90deg) translateZ(40px)",
+                            display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr 1fr",
+                            padding: 10, boxSizing: "border-box",
+                            boxShadow: "inset 0 0 15px rgba(0,0,0,0.05)"
+                          }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#1a1a2e" }} />
+                            </div>
+                            <div />
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#1a1a2e" }} />
+                            </div>
+                            <div />
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#1a1a2e" }} />
+                            </div>
+                            <div />
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#1a1a2e" }} />
+                            </div>
+                            <div />
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#1a1a2e" }} />
+                            </div>
+                          </div>
+                          {/* Cara 6 - ABAJO (⚁ 2) */}
+                          <div style={{
+                            position: "absolute", width: 80, height: 80,
+                            background: "linear-gradient(135deg, #fff, #fef3c7)",
+                            border: "2px solid #fbbf24",
+                            borderRadius: 12,
+                            transform: "rotateX(-90deg) translateZ(40px)",
+                            display: "flex", flexDirection: "column", justifyContent: "center",
+                            gap: 12, boxSizing: "border-box",
+                            boxShadow: "inset 0 0 15px rgba(0,0,0,0.05)"
+                          }}>
+                            <div style={{ display: "flex", justifyContent: "flex-end", paddingRight: 14 }}>
+                              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#1a1a2e" }} />
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "flex-start", paddingLeft: 14 }}>
+                              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#1a1a2e" }} />
+                            </div>
+                          </div>
+                        </motion.div>
+                      </div>
+                    ) : (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 200 }}
+                        style={{
+                          width: 80,
+                          height: 80,
+                          borderRadius: "50%",
+                          background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          margin: "0 auto 16px",
+                        }}
+                      >
+                        <Crown size={36} color="#fff" />
+                      </motion.div>
+                    )}
                     <h3
                       style={{
                         fontSize: 18,
@@ -2415,10 +2567,10 @@ export function ProyectoWorkspacePage() {
                       }}
                     >
                       {votacion.candidatos?.length === 2 ? (
-                        <span>🎲 Elegido al azar por el sistema</span>
+                        <span> Elegido al azar por el sistema</span>
                       ) : (
                         <span>
-                          🎉 Delegado del equipo · {ganador.votosRecibidos} voto
+                          Delegado del equipo · {ganador.votosRecibidos} voto
                           {ganador.votosRecibidos !== 1 ? "s" : ""} recibido
                           {ganador.votosRecibidos !== 1 ? "s" : ""}
                         </span>
@@ -2442,104 +2594,169 @@ export function ProyectoWorkspacePage() {
                       <Shield size={14} />
                       Solo el delegado puede subir entregables
                     </div>
-                    <div style={{ maxWidth: 400, margin: "0 auto" }}>
-                      {votacion.candidatos?.map((c, idx) => {
-                        const pct =
-                          votacion.totalVotos > 0
-                            ? Math.round(
-                                (c.votosRecibidos / votacion.totalVotos) * 100,
-                              )
-                            : 0;
-                        return (
-                          <div
+
+                    {/* ✅ Ranking ordenado por votos (3+ candidatos) */}
+                    {votacion.candidatos?.length > 2 && (
+                      <div style={{ maxWidth: 480, margin: "0 auto" }}>
+                        <div style={{
+                          display: "flex", alignItems: "center", gap: 8,
+                          marginBottom: 14,
+                        }}>
+                          <div style={{ width: 4, height: 16, borderRadius: 2, background: "#059669" }} />
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                            Clasificación
+                          </span>
+                        </div>
+                        {[...votacion.candidatos]
+                          .sort((a, b) => (b.votosRecibidos || 0) - (a.votosRecibidos || 0))
+                          .map((c, idx) => {
+                            const pct = votacion.totalVotos > 0
+                              ? Math.round((c.votosRecibidos / votacion.totalVotos) * 100)
+                              : 0;
+                            // Escala de verdes para los 3 primeros, plomo para el resto
+                            const pos = idx === 0
+                              ? { bg: "#ecfdf5", border: "#a7f3d0", badge: "#059669", barra: "#059669", textBadge: "#fff", label: "1°" }
+                              : idx === 1
+                              ? { bg: "#f0fdf4", border: "#bbf7d0", badge: "#22c55e", barra: "#22c55e", textBadge: "#fff", label: "2°" }
+                              : idx === 2
+                              ? { bg: "#f9fafb", border: "#d1d5db", badge: "#86efac", barra: "#86efac", textBadge: "#166534", label: "3°" }
+                              : { bg: "#fff", border: "#e8e8e4", badge: "#d6d3d1", barra: "#a8a29e", textBadge: "#78716c", label: `${idx + 1}°` };
+                            return (
+                              <div key={c.estudianteId} style={{
+                                display: "flex", alignItems: "center", gap: 12,
+                                padding: "14px 18px", borderRadius: 12,
+                                background: pos.bg, border: `1px solid ${pos.border}`,
+                                marginBottom: 6,
+                                boxShadow: idx === 0 ? "0 2px 8px rgba(5,150,105,0.1)" : "none",
+                              }}>
+                                <span style={{
+                                  width: 32, height: 32, borderRadius: 8,
+                                  background: c.esGanador ? "#059669" : pos.badge,
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  color: c.esGanador ? "#fff" : pos.textBadge,
+                                  fontSize: 13, fontWeight: 700, flexShrink: 0,
+                                }}>
+                                  {idx + 1}
+                                </span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                      <span style={{ fontSize: 13, fontWeight: 600, color: "#1c1917" }}>
+                                        {c.estudianteNombre}
+                                      </span>
+                                      {c.esGanador && (
+                                        <span style={{
+                                          fontSize: 9, fontWeight: 600, color: "#059669",
+                                          background: "#ecfdf5", padding: "1px 7px",
+                                          borderRadius: 5, border: "0.5px solid #a7f3d0",
+                                        }}>Ganador</span>
+                                      )}
+                                    </div>
+                                    <div style={{ textAlign: "right" }}>
+                                      <span style={{ fontSize: 14, fontWeight: 700, color: "#1c1917" }}>
+                                        {c.votosRecibidos}
+                                      </span>
+                                      <span style={{ fontSize: 10, color: "#78716c", marginLeft: 3 }}>
+                                        {c.votosRecibidos !== 1 ? "votos" : "voto"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div style={{ height: 6, borderRadius: 4, background: "#e7e5e4", overflow: "hidden" }}>
+                                    <motion.div
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${pct}%` }}
+                                      transition={{ duration: 1, ease: "easeOut" }}
+                                      style={{
+                                        height: "100%", borderRadius: 4,
+                                        background: c.esGanador
+                                          ? "linear-gradient(90deg, #059669, #10b981)"
+                                          : idx === 0
+                                          ? "linear-gradient(90deg, #059669, #34d399)"
+                                          : idx === 1
+                                          ? "linear-gradient(90deg, #22c55e, #86efac)"
+                                          : idx === 2
+                                          ? "linear-gradient(90deg, #86efac, #bbf7d0)"
+                                          : "linear-gradient(90deg, #d6d3d1, #a8a29e)",
+                                      }}
+                                    />
+                                  </div>
+                                  <span style={{ fontSize: 10, color: "#9ca3af", marginTop: 3, display: "block" }}>
+                                    {pct}%
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    )}
+
+                    {/* ✅ Si son 2: mostrar tarjetas simples SIN votos ni barras */}
+                    {votacion.candidatos?.length === 2 && (
+                      <div style={{ maxWidth: 400, margin: "0 auto", display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+                        {votacion.candidatos?.map((c, idx) => (
+                          <motion.div
                             key={c.estudianteId}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.15 }}
                             style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 12,
-                              padding: "12px 16px",
-                              borderRadius: 12,
-                              background: c.esGanador ? "#fffbeb" : "#f9fafb",
+                              flex: 1,
+                              minWidth: 140,
+                              padding: "16px 18px",
+                              borderRadius: 14,
+                              background: c.esGanador
+                                ? "linear-gradient(135deg, #fffbeb, #fef3c7)"
+                                : "#f9fafb",
                               border: c.esGanador
                                 ? "2px solid #fbbf24"
                                 : "1px solid #e5e7eb",
-                              marginBottom: 8,
+                              textAlign: "center",
                             }}
                           >
-                            <span
+                            <div
                               style={{
-                                width: 28,
-                                height: 28,
+                                width: 44,
+                                height: 44,
                                 borderRadius: "50%",
                                 background: c.esGanador
                                   ? "linear-gradient(135deg, #fbbf24, #f59e0b)"
-                                  : "#e5e7eb",
+                                  : "linear-gradient(135deg, #e0e7ff, #c7d2fe)",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                color: "#fff",
-                                fontSize: 12,
+                                margin: "0 auto 10px",
+                                color: c.esGanador ? "#fff" : "#4f46e5",
                                 fontWeight: 700,
-                                flexShrink: 0,
+                                fontSize: 16,
                               }}
                             >
-                              {idx + 1}
-                            </span>
-                            <div style={{ flex: 1, textAlign: "left" }}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "space-between",
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                    color: "#0f1f3d",
-                                  }}
-                                >
-                                  {c.estudianteNombre}
-                                </span>
-                                <span
-                                  style={{
-                                    fontSize: 12,
-                                    fontWeight: 700,
-                                    color: "#6b7280",
-                                  }}
-                                >
-                                  {c.votosRecibidos} voto
-                                  {c.votosRecibidos !== 1 ? "s" : ""}
-                                </span>
-                              </div>
-                              <div
-                                style={{
-                                  marginTop: 6,
-                                  height: 4,
-                                  borderRadius: 2,
-                                  background: "#e5e7eb",
-                                  overflow: "hidden",
-                                }}
-                              >
-                                <motion.div
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${pct}%` }}
-                                  transition={{ duration: 1, ease: "easeOut" }}
-                                  style={{
-                                    height: "100%",
-                                    borderRadius: 2,
-                                    background: c.esGanador
-                                      ? "linear-gradient(90deg, #fbbf24, #f59e0b)"
-                                      : "#9ca3af",
-                                  }}
-                                />
-                              </div>
+                              {c.esGanador ? "👑" : c.estudianteNombre?.charAt(0)}
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                            <span
+                              style={{
+                                fontSize: 13,
+                                fontWeight: 700,
+                                color: "#0f1f3d",
+                                display: "block",
+                              }}
+                            >
+                              {c.estudianteNombre}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: 11,
+                                color: c.esGanador ? "#92400e" : "#6b7280",
+                                fontWeight: 600,
+                                marginTop: 4,
+                                display: "block",
+                              }}
+                            >
+                              {c.esGanador ? " Delegado elegido" : " Miembro del equipo"}
+                            </span>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ) : votacionActiva ? (
                   <div style={{ textAlign: "center", padding: "20px 0" }}>
@@ -2567,7 +2784,7 @@ export function ProyectoWorkspacePage() {
                         marginBottom: 6,
                       }}
                     >
-                      🗳️ Votación en curso
+                       Votación en curso
                     </h3>
                     <p
                       style={{

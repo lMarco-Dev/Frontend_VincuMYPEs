@@ -43,6 +43,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import PostularButton from "../../features/proyecto-postular/PostularButton";
 
+// ═══════════════════════════════════════════════
+// CONSTANTES DE ESTADOS
+// ═══════════════════════════════════════════════
+
+// Estados de POSTULACIÓN que cuentan como "activa"
+const ESTADOS_POSTULACION_ACTIVA = ['CONFIRMADO', 'ACEPTADO', 'Aceptado'];
+
+// Estados de PROYECTO que cuentan como "activo" (igual que el backend)
+const ESTADOS_PROYECTO_ACTIVOS = ['PENDIENTE', 'EN_DESARROLLO', 'EN_REVISION'];
+
+// Estados de PROYECTO que NO cuentan como activo
+const ESTADOS_PROYECTO_INACTIVOS = ['COMPLETADO', 'FINALIZADO', 'CANCELADO', 'ARCHIVADO'];
+
 /* ─── Variantes de animación ─── */
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
@@ -1308,12 +1321,23 @@ const ProyectosPage = () => {
     return map;
   }, [postulaciones]);
 
-  const proyectosActivos = useMemo(() => {
-    return (
-      postulaciones?.filter(
-        (p) => p.estado === "CONFIRMADO" || p.estado === "ACEPTADO" || p.estado === "Aceptado",
-      ) || []
-    );
+    const proyectosActivos = useMemo(() => {
+    return postulaciones?.filter(p => {
+      // 1. Verificar que la postulación esté en estado activo
+      const postulacionActiva = ESTADOS_POSTULACION_ACTIVA.includes(p.estado);
+      
+      // 2. Verificar que el proyecto esté en estado activo
+      const proyectoActivo = p.proyectoEstado && 
+                            ESTADOS_PROYECTO_ACTIVOS.includes(p.proyectoEstado);
+      
+      // 3. Si proyectoEstado está vacío (datos viejos), contar como activo
+      const proyectoEstadoVacio = !p.proyectoEstado;
+      
+      // Solo contar como activo si:
+      // - Postulación está activa Y
+      // - Proyecto está en estado activo O no tiene estado definido
+      return postulacionActiva && (proyectoActivo || proyectoEstadoVacio);
+    }) || [];
   }, [postulaciones]);
 
   const limiteProyectos = userProfile?.limiteProyectos ?? 1;

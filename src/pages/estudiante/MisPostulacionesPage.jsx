@@ -210,8 +210,12 @@ const styles = {
 };
 
 const MisPostulacionesPage = () => {
-  const { data: postulaciones = [], isLoading, isError, error } = useMisPostulaciones();
+  const { data: postulacionesRaw = [], isLoading, isError, error } = useMisPostulaciones();
 
+// Oculta los proyectos ya completados (pasan al historial del Workspace)
+const postulaciones = postulacionesRaw.filter(
+  (p) => p.proyectoEstado !== "COMPLETADO"
+);
   if (isLoading) {
     return (
       <div style={styles.page}>
@@ -279,11 +283,7 @@ const MisPostulacionesPage = () => {
               const tituloProyecto = postulacion.proyectoTitulo || "Proyecto";
               const iniciales = tituloProyecto.slice(0, 2).toUpperCase();
               
-             // ✅ Si no hay botón de votar, verificamos por el total de aceptadas
-            // Si solo hay 1 postulación aceptada/confirmada, es proyecto individual
-            const esProyectoIndividual = aceptadas <= 1;
-              
-
+            
               return (
                 <motion.div key={postulacion.id || index} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: index * 0.05 }}
                   style={{ ...styles.cardBase, display: 'flex', flexDirection: 'column', gap: 16, padding: '20px 24px', cursor: 'default' }}
@@ -320,15 +320,6 @@ const MisPostulacionesPage = () => {
                             Ir al workspace
                           </Link>
                           
-                          {/* ✅ Solo mostrar si NO es proyecto individual */}
-                          {!esProyectoIndividual && (
-                            <Link to={`/workspace/${postulacion.proyectoId}?tab=votacion`}
-                              style={{ padding: '9px 20px', borderRadius: 8, background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: '#7c2d12', border: 'none', fontSize: 12, fontWeight: 600, textDecoration: 'none', textAlign: 'center', width: '100%', whiteSpace: 'nowrap', transition: 'all 0.2s ease' }}
-                              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(245,158,11,0.3)'; }}
-                              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                              Votar delegado
-                            </Link>
-                          )}
                         </>
                       )}
                     </div>
