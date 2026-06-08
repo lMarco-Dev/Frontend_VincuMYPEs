@@ -1,17 +1,5 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ArrowRight,
-  ArrowLeft,
-  HelpCircle,
-  CheckCircle2,
-  Sparkles,
-  Loader2,
-  AlertCircle,
-  Clock,
-  Calendar,
-  FileText,
-} from "lucide-react";
 import { useCrearProyecto } from "./useCrearProyecto";
 import { useArbolDecision } from "./useArbolDecision";
 import { useInsumosProyecto } from "./useInsumosProyecto";
@@ -26,10 +14,10 @@ const AREA = {
   OTRO: "OTRO",
 };
 
-const FONT = "'Angro Std', 'Outfit', sans-serif";
-const ease = [0.22, 1, 0.36, 1];
+const FONT = "'Inter', 'Angro Std', 'Outfit', -apple-system, sans-serif";
+const FONT_MONO = "ui-monospace, SFMono-Regular, Consolas, 'Courier New', monospace";
+const ease = [0.16, 1, 0.3, 1];
 
-// ── Duraciones estándar por tipo (fallback) ──────────────────
 const DURACIONES = {
   1.1: { min: 7, sugerido: 10 },
   1.2: { min: 7, sugerido: 10 },
@@ -48,101 +36,82 @@ const DURACIONES = {
   personalizado: { min: 7, sugerido: 14 },
 };
 
-const sumarDias = (n) => {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
-  return d.toISOString().split("T")[0];
-};
-
-// ── Árbol de decisiones (fallback) ───────────────────────────
 const ARBOL = {
   inicio: {
-    pregunta: "¿Cuál es la principal necesidad actual de tu negocio?",
+    pregunta: "Principales objetivos estratégicos o cuellos de botella de negocio",
     tieneInputLibre: true,
-    inputPlaceholder: "O descríbela con tus propias palabras...",
+    inputPlaceholder: "Ingresar problema técnico no listado y presionar Entrar...",
     opciones: [
-      { texto: "Mostrar mi negocio en internet o captar clientes", siguiente: "mostrar_internet" },
-      { texto: "Organizar u ordenar la información interna de mi negocio", siguiente: "organizar_info" },
-      { texto: "Mejorar la experiencia digital de mis clientes", siguiente: "experiencia_clientes" },
-      { texto: "Mejorar mi red local o mi infraestructura tecnológica", siguiente: "infraestructura" },
+      { texto: "Presencia de marca en internet y/o atracción comercial de clientes", siguiente: "mostrar_internet" },
+      { texto: "Gestión, estructuración o depuración de la información operativa interna", siguiente: "organizar_info" },
+      { texto: "Fricción o fallas críticas en los canales y aplicaciones para usuarios", siguiente: "experiencia_clientes" },
+      { texto: "Problemas y vulnerabilidades en red o escalamiento en hardware de puntos", siguiente: "infraestructura" },
     ],
   },
   mostrar_internet: {
-    pregunta: "¿Cuál es tu situación digital actual?",
+    pregunta: "Fase actual del posicionamiento o madurez de los activos web",
     opciones: [
-      { texto: "No tengo presencia en internet todavía", resultado: "1.1" },
-      { texto: "Tengo redes sociales activas pero no una página web", resultado: "1.1" },
-      { texto: "Tengo una web básica pero quiero mostrar mejor mis productos", resultado: "1.2" },
+      { texto: "Identidad digital nula (iniciando presencia) en motores de búsqueda", resultado: "1.1" },
+      { texto: "Presencia informal exclusiva en redes (sin embudo transaccional web)", resultado: "1.1" },
+      { texto: "Sistema web estático desactualizado (requiere catálogo o visualización web)", resultado: "1.2" },
     ],
   },
   organizar_info: {
-    pregunta: "¿Qué tipo de información necesitas organizar prioritariamente?",
+    pregunta: "Identificación de los nodos de datos clave que demandan atención",
     opciones: [
-      { texto: "Control de clientes, pedidos, citas o reservas", resultado: "1.3" },
-      { texto: "Registro de ventas, inventario o datos en Excel", siguiente: "excel_opciones" },
-      { texto: "No lo sé con certeza, mi información está muy desorganizada", resultado: "2.2" },
+      { texto: "Datos relacionales de seguimiento (ventas, stock, reservas o agenda de citas)", resultado: "1.3" },
+      { texto: "Datos no centralizados almacenados en libros manuales o dispersos en .xlsx", siguiente: "excel_opciones" },
+      { texto: "Infraestructura carente de modelo lógico (Datos perdidos, silos y alta fricción)", resultado: "2.2" },
     ],
   },
   excel_opciones: {
-    pregunta: "¿Qué te gustaría lograr principalmente con esos datos?",
+    pregunta: "Requisito táctico de transformación y analítica",
     opciones: [
-      { texto: "Entender patrones ocultos y qué me dicen los datos", resultado: "2.3" },
-      { texto: "Visualizarlos en gráficos interactivos fáciles de entender", resultado: "1.4" },
-      { texto: "Estructurarlos en una base de datos real y segura", resultado: "2.1" },
+      { texto: "Descubrimiento de insights a través del modelado exploratorio", resultado: "2.3" },
+      { texto: "Proyección interactiva en cuadros de mando (indicadores, reportes visuales)", resultado: "1.4" },
+      { texto: "Consolidación rígida dentro de una Base de Datos central transaccional (SQL)", resultado: "2.1" },
     ],
   },
   experiencia_clientes: {
-    pregunta: "¿Tienes identificado qué aspecto deseas optimizar con tus clientes?",
+    pregunta: "Priorización de mejora UX según métricas del viaje del cliente",
     opciones: [
-      { texto: "Sí, sé exactamente qué aplicación o sistema web requiero mapear", resultado: "3.1" },
-      { texto: "Tengo un proceso digital que suele confundir a mis clientes", resultado: "3.2" },
-      { texto: "No sé dónde está el cuello de botella o por qué abandonan mi web", resultado: "3.3" },
+      { texto: "Mapeo esquemático o Wireframing (aplicativo con especificación definida)", resultado: "3.1" },
+      { texto: "Problemas en etapas específicas del funnel (tasa de conversión lenta, UI obsoleta)", resultado: "3.2" },
+      { texto: "Ataque frontal a la pérdida de clientes: Desconocimiento total de por qué abandonan", resultado: "3.3" },
     ],
   },
   infraestructura: {
-    pregunta: "¿Cuál es la situación más crítica de tu entorno tecnológico?",
+    pregunta: "Definición del nivel de gravedad/escalamiento requerido en entorno TI",
     tieneInputLibre: true,
-    inputPlaceholder: "O descríbela con tus propias palabras...",
+    inputPlaceholder: "Declaración abierta del evento en infraestructura de redes o hardware...",
     opciones: [
-      { texto: "Mi red local falla, la conexión va lenta y desconozco el motivo", resultado: "4.1" },
-      { texto: "Voy a abrir un local nuevo y necesito saber qué equipos instalar", resultado: "4.2" },
-      { texto: "Quiero saber si las cuentas y datos de mi negocio están protegidos", resultado: "5.1" },
-      { texto: "Quiero asegurar que nunca perderé mis archivos importantes", resultado: "5.2" },
+      { texto: "Latencias locales crónicas, hardware obsoleto o incidentes sin solución clara", resultado: "4.1" },
+      { texto: "Lanzamiento u apertura de ubicación. Despliegue primario y auditoría", resultado: "4.2" },
+      { texto: "Test general de protocolos, seguridad lógica e indentificación de vectores de riesgo", resultado: "5.1" },
+      { texto: "Protección a nivel archivo: Restauraciones y almacenamiento a resguardo total", resultado: "5.2" },
     ],
   },
 };
 
-// ── Proyectos hoja (fallback) ────────────────────────────────
 const LEAF_PROJECTS = {
-  1.1: { titulo: "Página web de presentación (Landing Page) con formulario", areaSistemas: AREA.WEB, cupos: 1, entregables: ["Diseño visual previo", "Código fuente en GitHub", "Página publicada", "Formulario al WhatsApp/correo", "Manual de edición"] },
-  1.2: { titulo: "Prototipo interactivo de Catálogo Digital de Productos", areaSistemas: AREA.WEB, cupos: 2, entregables: ["Estructura de categorías", "Web con buscador", "Código en Git", "Manual de administración"] },
-  1.3: { titulo: "Prototipo de sistema de registro de clientes y pedidos", areaSistemas: AREA.SOFTWARE, cupos: 2, entregables: ["Formulario de captura", "Panel de consulta", "Código con sesiones seguras", "Guía de operación"] },
-  1.4: { titulo: "Dashboard interactivo para visualización de datos", areaSistemas: AREA.DATOS, cupos: 2, entregables: ["Maquetación del panel", "Dashboard con KPIs", "Importación desde Excel/CSV", "Manual de análisis"] },
-  2.1: { titulo: "Diseño e implementación de Base de Datos relacional", areaSistemas: AREA.BD, cupos: 2, entregables: ["Diagrama ER", "Scripts SQL", "Diccionario de datos", "Reporte de pruebas"] },
-  2.2: { titulo: "Servicio de limpieza y migración de datos", areaSistemas: AREA.BD, cupos: 2, entregables: ["Informe diagnóstico", "Datos limpios", "Scripts de transformación", "Documentación"] },
-  2.3: { titulo: "Análisis exploratorio de datos y diagnóstico", areaSistemas: AREA.DATOS, cupos: 2, entregables: ["Informe ejecutivo", "Gráficos de tendencias", "Segmentación de clientes", "Presentación"] },
-  3.1: { titulo: "Diseño de interfaz UI/UX en Figma", areaSistemas: AREA.SOFTWARE, cupos: 1, entregables: ["Wireframes", "Prototipo en Figma", "Guía de estilo", "Recursos exportados"] },
-  3.2: { titulo: "Rediseño optimizado de experiencia de usuario", areaSistemas: AREA.SOFTWARE, cupos: 1, entregables: ["Auditoría de usabilidad", "Propuesta visual", "Prototipo comparativo", "Estándares UX"] },
-  3.3: { titulo: "Mapa de experiencia del cliente (Journey Map)", areaSistemas: AREA.SOFTWARE, cupos: 1, entregables: ["Journey visual", "Puntos de fricción", "Matriz de oportunidades", "Informe estratégico"] },
-  4.1: { titulo: "Diagnóstico y plan de mejora de red", areaSistemas: AREA.SOPORTE, cupos: 2, entregables: ["Informe de red", "Topología con fallas", "Plan de acción", "Lista de equipos"] },
-  4.2: { titulo: "Diseño técnico de red para nuevos locales", areaSistemas: AREA.SOPORTE, cupos: 2, entregables: ["Plano de conexiones", "Cableado y Wi-Fi", "Hardware recomendado", "Seguridad perimetral"] },
-  5.1: { titulo: "Auditoría preventiva de seguridad digital", areaSistemas: AREA.SOPORTE, cupos: 2, entregables: ["Informe de riesgos", "Reporte de accesos", "Manual de ciberseguridad", "Plan de blindaje"] },
-  5.2: { titulo: "Plan y despliegue de backup en nube", areaSistemas: AREA.SOPORTE, cupos: 2, entregables: ["Política de backup", "Backup automático", "Manual de recuperación", "Pruebas de restauración"] },
+  1.1: { titulo: "Página web de presentación (Landing Page) con formulario", areaSistemas: AREA.WEB, cupos: 1, entregables: ["Diseño visual de interfaz (Previa)", "Entregable en repositorio (Git)", "Implementación en producción web", "Inyección del Webform a Correo/App", "Documento táctico para editores"] },
+  1.2: { titulo: "Prototipo interactivo de Catálogo Digital de Productos", areaSistemas: AREA.WEB, cupos: 2, entregables: ["Modelado lógico de las taxonomías", "Buscador modular y panel", "Release taggeado en ambiente de versión", "Guía y soporte post-configuración"] },
+  1.3: { titulo: "Prototipo de sistema de registro de clientes y pedidos", areaSistemas: AREA.SOFTWARE, cupos: 2, entregables: ["Vista o formulario modular central", "Capa de presentación o vista para administradores", "Controles estrictos (Manejo de estados con sesión)", "Fichas técnicas / de usuario"] },
+  1.4: { titulo: "Dashboard interactivo para visualización de datos", areaSistemas: AREA.DATOS, cupos: 2, entregables: ["Arquitectura lógica del cuadro de mando", "Implementación sobre KPI dictaminados", "Pipeline básico en importación plana (Csv)", "Documento funcional metodológico"] },
+  2.1: { titulo: "Diseño e implementación de Base de Datos relacional", areaSistemas: AREA.BD, cupos: 2, entregables: ["Matriz o Diagrama de ER normativo", "DDL Scripts con constraints documentados", "Mapeo al modelo (Diccionario)", "Resumen ejecutivo post ejecución y unit tests"] },
+  2.2: { titulo: "Servicio de limpieza y migración de datos", areaSistemas: AREA.BD, cupos: 2, entregables: ["Inventario previo / de consistencias", "Depuración, homologación (Dataset maestro)", "Algoritmo y/o Query generativo o Transformación ETL básica", "Planimetría táctica de pasos y resultados"] },
+  2.3: { titulo: "Análisis exploratorio de datos y diagnóstico", areaSistemas: AREA.DATOS, cupos: 2, entregables: ["Informe C-level orientado y procesado a acciones", "Dashboard u outputs tabulares, estadísticos temporales", "Separación en cortes de cliente para targetización pura", "Cierre ejecutivo guiado"] },
+  3.1: { titulo: "Diseño de interfaz UI/UX de alta fidelidad", areaSistemas: AREA.SOFTWARE, cupos: 1, entregables: ["Arquitectura de pantallas esquematizadas (Frames)", "Render clickeable para usuario e ingenieros UI", "Bibliotecas con definiciones semánticas para componentes", "Lotes empaquetados con fuentes y gráficos web listos"] },
+  3.2: { titulo: "Auditoría, plan y despliegue interactivo para la eficiencia y satisfacción final", areaSistemas: AREA.SOFTWARE, cupos: 1, entregables: ["Auditoría heurística", "Esqueleto técnico", "Implementación estándar UI"] },
+  3.3: { titulo: "Mapas dinámicos de experiencia centrados el problema cliente", areaSistemas: AREA.SOFTWARE, cupos: 1, entregables: ["Cuerpo maestro mapa completo", "Detección específica de cuellos", "Listados de estrategias", "Entrega global e integral"] },
+  4.1: { titulo: "Monitoreo e identificación a fallas de protocolos topológicos", areaSistemas: AREA.SOPORTE, cupos: 2, entregables: ["Monitoreo completo", "Mapeado a la planimetría", "Gestión de recomendaciones", "Especificación técnica"] },
+  4.2: { titulo: "Modelado LAN/WLAN plan estructural locales operacionales", areaSistemas: AREA.SOPORTE, cupos: 2, entregables: ["Levantamiento de especificaciones", "Routing cables", "Requisitos BOM", "Medidas perimetrales"] },
+  5.1: { titulo: "Consultoría de seguridad informática local", areaSistemas: AREA.SOPORTE, cupos: 2, entregables: ["Scouting base", "Análisis de accesos", "Guía de reglas", "Modelos de contingencias"] },
+  5.2: { titulo: "Política Resiliencia Recuperación", areaSistemas: AREA.SOPORTE, cupos: 2, entregables: ["Diseño de esquema backup", "Configuración de herramienta", "Script automático", "Test de contingencia"] },
 };
 
-const ARBOL_FALLBACK = ARBOL;
-const LEAF_PROJECTS_FALLBACK = LEAF_PROJECTS;
-const DURACIONES_FALLBACK = DURACIONES;
-const AREA_FALLBACK = AREA;
-
-// ── Componente principal ──────────────────────────────────────
 export function CrearProyectoForm() {
   const { crearProyecto, isLoading, error: apiError, rawError } = useCrearProyecto();
-
-  // Bloque de error visible cuando el back rechaza la publicación.
-  // Reemplaza al modal "Sí, es distinto" porque ese flujo ya no aplica:
-  // la regla de negocio bloquea duro publicar dos proyectos del mismo tipo
-  // activos para la misma MYPE.
   const [errorPublicar, setErrorPublicar] = useState(null);
 
   useEffect(() => {
@@ -150,39 +119,26 @@ export function CrearProyectoForm() {
     const status = rawError?.response?.status;
     const message = rawError?.response?.data?.message || rawError?.message;
     if (status === 409) {
-      setErrorPublicar({
-        tipo: "duplicado",
-        mensaje: message || "Ya tienes un proyecto activo del mismo tipo.",
-      });
+      setErrorPublicar("Proyecto duplicado: Actualmente gestiona un esfuerzo de la misma índole técnica. Archívelo antes.");
     } else if (status === 400) {
-      setErrorPublicar({
-        tipo: "validacion",
-        mensaje: message || "No se pudo publicar el proyecto.",
-      });
+      setErrorPublicar(message || "Fallo sistémico de publicación debido a validaciones no cubiertas.");
     } else if (status) {
-      setErrorPublicar({
-        tipo: "generico",
-        mensaje: message || "Ocurrió un error al publicar.",
-      });
+      setErrorPublicar(message || "Transacción abortada: Discrepancias generales durante post-request.");
     }
   }, [rawError]);
 
   const { data: arbolData, isLoading: arbolIsLoading, isError: arbolIsError } = useArbolDecision();
-
-  // Árbol dinámico con fallback a constantes
   const arbol = arbolData && !arbolIsError ? arbolData : {
     nodoRaizCodigo: "inicio",
-    nodos: ARBOL_FALLBACK,
-    resultados: LEAF_PROJECTS_FALLBACK,
+    nodos: ARBOL,
+    resultados: LEAF_PROJECTS,
   };
 
-  const [plazo, setPlazo] = useState("corto");
-
+  const [plazo, setPlazo] = useState("CORTO");
   const [history, setHistory] = useState(["inicio"]);
   const [currentKey, setCurrentKey] = useState("inicio");
   const [selectedResult, setSelectedResult] = useState(null);
   const [inputLibre, setInputLibre] = useState("");
-
   const [comentario, setComentario] = useState("");
   const [duracionInfo, setDuracionInfo] = useState(null);
   const [cuposSeleccionados, setCuposSeleccionados] = useState(1);
@@ -197,11 +153,9 @@ export function CrearProyectoForm() {
   const handleOptionClick = (opcion) => {
     if (opcion.resultado) {
       const resultadoData = arbol.resultados[opcion.resultado];
-      const dur = resultadoData
-        ? { min: resultadoData.diasMin, sugerido: resultadoData.diasSugerido }
-        : DURACIONES_FALLBACK.personalizado;
+      const dur = resultadoData ? { min: resultadoData.diasMin, sugerido: resultadoData.diasSugerido } : DURACIONES.personalizado;
       setDuracionInfo(dur);
-      setSelectedResult(arbol.resultados[opcion.resultado] || LEAF_PROJECTS_FALLBACK[opcion.resultado]);
+      setSelectedResult(arbol.resultados[opcion.resultado] || LEAF_PROJECTS[opcion.resultado]);
       setCuposSeleccionados(resultadoData?.cuposMin || 1);
       setDiasSeleccionados(resultadoData?.diasSugerido || 7);
       setErrorPublicar(null);
@@ -214,13 +168,12 @@ export function CrearProyectoForm() {
 
   const handleInputLibreSubmit = () => {
     if (!inputLibre.trim()) return;
-    const dur = DURACIONES_FALLBACK.personalizado;
-    setDuracionInfo(dur);
+    setDuracionInfo(DURACIONES.personalizado);
     setSelectedResult({
       titulo: inputLibre.trim(),
-      areaSistemas: AREA_FALLBACK.OTRO,
+      areaSistemas: AREA.OTRO,
       cupos: 1,
-      entregables: ["Entregable a definir junto con el equipo asignado"],
+      entregables: ["Cuerpo resolutivo por determinar luego de sesión kick-off técnica asignada"],
       esPersonalizado: true,
     });
     setErrorPublicar(null);
@@ -239,7 +192,6 @@ export function CrearProyectoForm() {
     }
   };
 
-  // Insumos obligatorios que aún no se cargaron
   const insumosFaltantes = insumos.filter(i => i.obligatorio && !insumoFiles[i.id]);
   const canPublish = insumosFaltantes.length === 0;
 
@@ -251,14 +203,10 @@ export function CrearProyectoForm() {
 
     const payload = {
       titulo: selectedResult.titulo || selectedResult.nombre,
-      descripcion: comentario.trim()
-        ? comentario.trim()
-        : `Requerimiento para el desarrollo de: ${selectedResult.titulo || selectedResult.nombre}.`,
-      objetivo: `Solucionar la necesidad empresarial mediante ${selectedResult.titulo || selectedResult.nombre}.`,
-      entregablesSugeridos: (selectedResult.entregables || [])
-        .map((e) => `• ${e.titulo || e}`)
-        .join("\n"),
-      areaSistemas: selectedResult.areaSistemas || AREA_FALLBACK.OTRO,
+      descripcion: comentario.trim() ? comentario.trim() : `Requerimiento automatizado. Desarrollo: ${selectedResult.titulo || selectedResult.nombre}.`,
+      objetivo: `Ejecución iterativa enfocada en solucionar inoperancias vinculadas a ${selectedResult.titulo || selectedResult.nombre}.`,
+      entregablesSugeridos: (selectedResult.entregables || []).map((ent) => `- ${ent.titulo || ent}`).join("\n"),
+      areaSistemas: selectedResult.areaSistemas || AREA.OTRO,
       cupos: cuposSeleccionados,
       fechaInicio: null,
       diasEstimados: diasSeleccionados,
@@ -274,533 +222,276 @@ export function CrearProyectoForm() {
 
     try {
       await crearProyecto({ payload, insumos: insumosToUpload });
-      // En éxito el hook navega; no reseteo isSubmitting porque el componente
-      // se va a desmontar.
     } catch (err) {
       setIsSubmitting(false);
-      // El useEffect del rawError ya setea errorPublicar; no hace falta hacer
-      // nada extra acá.
     }
   };
 
-  // ── Estilos reutilizables ────────────────────────────────────
-  const inputStyle = () => ({
-    width: "100%",
-    background: "#081828",
-    border: "1px solid rgba(27,111,232,0.2)",
-    borderRadius: 10,
-    color: "#E2E8F0",
-    padding: "10px 14px",
-    fontFamily: FONT,
-    fontSize: 14,
-    outline: "none",
-    resize: "vertical",
-    transition: "border-color 0.2s",
-    boxSizing: "border-box",
-  });
-
   return (
-    <div style={{ fontFamily: FONT }}>
+    <div style={{ fontFamily: FONT, width: "100%", maxWidth: 1400, margin: "0 auto", padding: "16px 24px 32px", color: "#111827", lineHeight: 1.5 }}>
       <style>{`
-        .wizard-btn {
-          width: 100%; padding: 14px 18px; background: #081828;
-          border: 1px solid rgba(27,111,232,0.25); color: #E2E8F0;
-          border-radius: 12px; font-family: inherit; font-weight: 500;
-          font-size: 14px; text-align: left; cursor: pointer;
-          display: flex; align-items: center; justify-content: space-between;
-          transition: all 0.2s;
-        }
-        .wizard-btn:hover {
-          border-color: #F97316; background: #0F2A4A;
-          color: #fff; transform: translateX(3px);
-        }
-        .date-input:focus { border-color: #1B6FE8 !important; }
-        .saas-textarea:focus { border-color: #F97316 !important; }
-        .plazo-btn {
-          flex: 1; padding: 10px 16px; border-radius: 8px;
-          font-family: inherit; font-size: 13px; font-weight: 600;
-          cursor: pointer; border: 1.5px solid transparent;
-          transition: all 0.2s;
-          display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
+        * { box-sizing: border-box; }
+        .b-tool-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB; padding-bottom: 12px; margin-bottom: 20px; }
+        .b-text-xs { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #6B7280; margin-bottom: 4px; }
+        .b-text-base { font-size: 13px; font-weight: 500; color: #111827; }
+        .b-text-lg { font-size: 15px; font-weight: 600; color: #111827; letter-spacing: -0.01em; }
+        .b-text-xl { font-size: 17px; font-weight: 600; color: #111827; letter-spacing: -0.02em; }
+        .b-text-mute { color: #6B7280; font-size: 12px; font-weight: 400; }
+        
+        .b-border-box { border: 1px solid #E5E7EB; border-radius: 6px; background: #FFFFFF; }
+        
+        .b-toggle-group { display: flex; gap: 4px; background: #F3F4F6; padding: 3px; border-radius: 5px; }
+        .b-toggle { border: none; background: transparent; padding: 5px 12px; font-size: 11px; font-weight: 600; font-family: ${FONT}; color: #6B7280; border-radius: 4px; cursor: pointer; transition: all 0.15s ease; }
+        .b-toggle.active { background: #FFFFFF; color: #111827; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+        .b-toggle:disabled { cursor: not-allowed; opacity: 0.6; }
+
+        .b-menu-row { display: flex; align-items: center; width: 100%; text-align: left; background: #FFFFFF; border: none; border-bottom: 1px solid #E5E7EB; padding: 12px 14px; cursor: pointer; font-family: ${FONT}; font-size: 13px; font-weight: 500; color: #111827; transition: background 0.1s ease; line-height: 1.4; }
+        .b-menu-row:last-child { border-bottom: none; }
+        .b-menu-row:hover { background: #F9FAFB; }
+        .b-menu-row .b-indicator { margin-right: 12px; color: #D1D5DB; font-weight: bold; width: 24px; text-align: center; font-family: ${FONT_MONO}; font-size: 11px; }
+
+        .b-input-minimal { width: 100%; border: none; padding: 14px; background: transparent; font-family: ${FONT}; font-size: 13px; font-weight: 500; outline: none; }
+        .b-input-minimal::placeholder { color: #9CA3AF; }
+
+        .b-textarea { width: 100%; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 6px; padding: 10px 12px; font-family: ${FONT}; font-size: 13px; color: #111827; outline: none; transition: border-color 0.15s; min-height: 100px; resize: vertical; line-height: 1.5; }
+        .b-textarea:focus { border-color: #000000; box-shadow: inset 0 0 0 1px #000000; }
+        .b-textarea::placeholder { color: #9CA3AF; }
+
+        .b-slider-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #E5E7EB; }
+        .b-slider-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .b-slider-top { display: flex; justify-content: space-between; align-items: center; }
+        .b-slider-val { font-family: ${FONT_MONO}; font-size: 12px; font-weight: 600; background: #F3F4F6; padding: 2px 8px; border-radius: 4px; }
+        .b-slider { -webkit-appearance: none; width: 100%; height: 2px; background: #E5E7EB; border-radius: 2px; outline: none; margin: 6px 0; }
+        .b-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #000000; cursor: pointer; transition: transform 0.1s; }
+        .b-slider::-webkit-slider-thumb:hover { transform: scale(1.1); }
+        
+        .b-file-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #F9FAFB; border-radius: 4px; border: 1px solid #E5E7EB; margin-top: 8px; transition: border-color 0.1s; }
+        .b-file-row.has-file { border-color: #000000; background: #FFFFFF; }
+        .b-file-btn { border: 1px solid #D1D5DB; background: #FFFFFF; border-radius: 4px; font-family: ${FONT}; font-size: 11px; font-weight: 600; padding: 3px 8px; cursor: pointer; color: #374151; white-space: nowrap; }
+        .b-file-btn:hover { background: #F3F4F6; }
+
+        .b-button-primary { background: #000000; color: #FFFFFF; border: 1px solid #000000; width: 100%; height: 38px; border-radius: 6px; font-family: ${FONT}; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.1s; display: inline-flex; align-items: center; justify-content: center; margin-top: 12px; }
+        .b-button-primary:hover:not(:disabled) { background: #111827; }
+        .b-button-primary:disabled { opacity: 0.3; cursor: not-allowed; border-color: transparent; }
+        
+        .b-btn-text { background: transparent; border: none; font-family: ${FONT}; font-size: 12px; font-weight: 500; color: #6B7280; padding: 0; cursor: pointer; transition: color 0.15s; }
+        .b-btn-text:hover { color: #111827; }
+
+        .b-status-banner { padding: 8px 10px; background: #FEF2F2; border-left: 2px solid #EF4444; border-radius: 0 4px 4px 0; margin-top: 12px; font-size: 12px; color: #991B1B; font-weight: 500; line-height: 1.4; }
+
+        @keyframes bTyping { 0% { content: "."; } 33% { content: ".."; } 66% { content: "..."; } }
+        .b-loader::after { content: "."; animation: bTyping 1.2s infinite steps(1); display: inline-block; width: 14px; text-align: left; }
       `}</style>
 
-      {/* Toggle corto / largo plazo */}
-      <div style={{ background: "#0A1E35", border: "1px solid rgba(27,111,232,0.2)", borderRadius: 12, padding: 16, marginBottom: 20 }}>
-        <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.8px", margin: "0 0 10px" }}>
-          Tipo de proyecto
-        </p>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            type="button"
-            onClick={() => setPlazo("corto")}
-            className="plazo-btn"
-            style={plazo === "corto"
-              ? { background: "rgba(27,111,232,0.18)", color: "#93C5FD", borderColor: "rgba(27,111,232,0.4)" }
-              : { background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", borderColor: "rgba(255,255,255,0.08)" }}
-          >
-            <Clock size={14} /> Corto plazo
-            <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 6, background: "rgba(6,182,212,0.15)", color: "#67E8F9", border: "1px solid rgba(6,182,212,0.2)" }}>
-              Activo
-            </span>
-          </button>
-          <button
-            type="button"
-            disabled
-            className="plazo-btn"
-            title="Disponible próximamente"
-            style={{ background: "rgba(255,255,255,0.02)", color: "rgba(255,255,255,0.2)", borderColor: "rgba(255,255,255,0.05)", cursor: "not-allowed", opacity: 0.5 }}
-          >
-            <Calendar size={14} /> Largo plazo
-            <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 6, background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.3)" }}>
-              Próximamente
-            </span>
-          </button>
+      {/* HEADER COMPACTO */}
+      <div className="b-tool-header">
+        <div>
+          <span className="b-text-xs">Flujo Maestro Operativo</span>
+          <div className="b-text-lg" style={{ marginTop: 2 }}>{selectedResult ? "Gestión de Requerimiento TI" : "Motor de Diagnóstico Lógico"}</div>
         </div>
-        {plazo === "corto" && (
-          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "8px 0 0", lineHeight: 1.5 }}>
-            Proyectos de días a pocas semanas. Ideal para soluciones puntuales y rápidas.
-          </p>
-        )}
+        <div className="b-toggle-group">
+          <button className={`b-toggle ${plazo === "CORTO" ? "active" : ""}`} onClick={() => setPlazo("CORTO")}>Corto Plazo</button>
+          <button className="b-toggle" onClick={() => {}} disabled>Largo Plazo</button>
+        </div>
       </div>
 
       {arbolIsLoading ? (
-        <div style={{ textAlign: "center", padding: "40px 0" }}>
-          <Loader2 size={24} color="#67E8F9" style={{ animation: "spin 1s linear infinite" }} />
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 12, fontFamily: FONT }}>
-            Cargando recomendaciones...
-          </p>
+        <div style={{ textAlign: "center", paddingTop: 60, color: "#6B7280", fontSize: 12, fontFamily: FONT_MONO, fontWeight: 500 }}>
+          ESTABLECIENDO CONEXIÓN DE ESTADO <span className="b-loader"></span>
         </div>
       ) : (
         <AnimatePresence mode="wait">
+          
+          {/* FASE 1: DIAGNÓSTICO - LAYOUT HORIZONTAL COMPACTO */}
           {!selectedResult && (
             <motion.div
               key={currentKey}
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.22, ease }}
-              style={{ display: "flex", flexDirection: "column", gap: 16 }}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              transition={{ duration: 0.2, ease }}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "280px minmax(0, 1fr)",
+                gap: 32,
+                alignItems: "start"
+              }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <HelpCircle size={16} color="#06B6D4" />
-                <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.8px" }}>
-                  Asistente de clasificación MYPElink
-                </span>
+              <div>
+                <div className="b-text-xs">Secuencia Operativa Actual</div>
+                <h3 className="b-text-xl" style={{ marginTop: 4, marginBottom: 12 }}>{currentNode.pregunta}</h3>
+                <p className="b-text-mute" style={{ marginBottom: 20 }}>Seleccione el eje temático que presenta fricción interna.</p>
+                {history.length > 1 && (
+                  <button className="b-btn-text" onClick={handleBack}>← Retroceder capa</button>
+                )}
               </div>
 
-              <h3 style={{ fontSize: 17, fontWeight: 700, color: "#fff", margin: 0, lineHeight: 1.4 }}>
-                {currentNode.pregunta}
-              </h3>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {currentNode.opciones.map((op, idx) => (
-                  <button key={idx} type="button" className="wizard-btn" onClick={() => handleOptionClick(op)}>
-                    <span>{op.texto}</span>
-                    <ArrowRight size={15} style={{ color: "#475569", flexShrink: 0 }} />
-                  </button>
-                ))}
-              </div>
-
-              {currentNode.tieneInputLibre && (
-                <div style={{ marginTop: 4 }}>
-                  <div style={{ height: "0.5px", background: "rgba(255,255,255,0.07)", margin: "4px 0 12px" }} />
-                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "0 0 8px", fontWeight: 500 }}>
-                    ¿Tu caso no está en la lista? Descríbelo:
-                  </p>
-                  <div style={{ display: "flex", gap: 8 }}>
+              <div className="b-border-box">
+                {currentNode.opciones.map((op, idx) => {
+                  const numberPrefix = (idx + 1).toString().padStart(2, "0");
+                  return (
+                    <button key={idx} className="b-menu-row" onClick={() => handleOptionClick(op)}>
+                      <span className="b-indicator">{numberPrefix}</span>
+                      <span style={{ flex: 1 }}>{op.texto}</span>
+                      <span style={{ fontFamily: FONT_MONO, fontSize: 9, color: "#9CA3AF" }}>{op.resultado ? "→" : "↘"}</span>
+                    </button>
+                  );
+                })}
+                {currentNode.tieneInputLibre && (
+                  <div style={{ display: "flex", borderTop: "1px solid #E5E7EB", width: "100%", background: "#F9FAFB", borderRadius: "0 0 6px 6px" }}>
                     <input
+                      className="b-input-minimal"
                       type="text"
                       value={inputLibre}
                       onChange={(e) => setInputLibre(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleInputLibreSubmit()}
                       placeholder={currentNode.inputPlaceholder}
-                      style={{ ...inputStyle(), height: 40, padding: "0 12px", resize: "none" }}
                     />
-                    <button
-                      type="button"
-                      onClick={handleInputLibreSubmit}
-                      disabled={!inputLibre.trim()}
-                      style={{
-                        fontFamily: FONT, padding: "0 16px", height: 40, borderRadius: 8,
-                        background: inputLibre.trim() ? "linear-gradient(135deg,#1B6FE8,#0E54C4)" : "rgba(255,255,255,0.05)",
-                        color: inputLibre.trim() ? "#fff" : "rgba(255,255,255,0.2)",
-                        border: "none", fontSize: 12, fontWeight: 600, flexShrink: 0,
-                        cursor: inputLibre.trim() ? "pointer" : "not-allowed", transition: "all 0.2s",
-                      }}
-                    >
-                      Continuar
-                    </button>
                   </div>
-                </div>
-              )}
-
-              {history.length > 1 && (
-                <button type="button" onClick={handleBack} style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  display: "flex", alignItems: "center", gap: 6,
-                  fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.35)",
-                  padding: 0, fontFamily: FONT, marginTop: 4,
-                }}>
-                  <ArrowLeft size={13} /> Volver a la pregunta anterior
-                </button>
-              )}
+                )}
+              </div>
             </motion.div>
           )}
 
+          {/* FASE 2: CONFIGURACIÓN - 3 COLUMNAS MÁS ANCHAS Y MENOS ALTAS */}
           {selectedResult && (
             <motion.form
-              key="resultado-final"
+              key="formulario"
               onSubmit={handleSubmit}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.22, ease }}
-              style={{ display: "flex", flexDirection: "column", gap: 16 }}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              transition={{ duration: 0.25, ease }}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr 320px",
+                gap: 24,
+                alignItems: "start"
+              }}
             >
-              {/* Badge */}
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 6,
-                background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)",
-                padding: "5px 12px", borderRadius: 8, width: "fit-content",
-              }}>
-                <Sparkles size={13} color="#F97316" />
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#FB923C", textTransform: "uppercase", letterSpacing: "0.6px" }}>
-                  Proyecto sugerido para tu negocio
-                </span>
-              </div>
-
-              {/* Ficha del proyecto */}
-              <div style={{
-                background: "#081828", border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 12,
-              }}>
+              
+              {/* COLUMNA 1: DIRECTRIZ */}
+              <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                {/* Título y contenido principal */}
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.8px", margin: "0 0 6px" }}>
-                    Título del proyecto propuesto
-                  </p>
-                  <h4 style={{ fontSize: 15, fontWeight: 700, color: "#fff", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                    <Sparkles size={15} color="#F97316" style={{ flexShrink: 0 }} />
-                    {selectedResult.titulo}
-                  </h4>
-
-                  {selectedResult.cuposMin && selectedResult.cuposMax && (
-                    <div style={{
-                      background: "rgba(27,111,232,0.08)", border: "1px solid rgba(27,111,232,0.2)",
-                      borderRadius: 8, padding: "10px 14px",
-                      display: "flex", alignItems: "center", gap: 12, marginTop: 12,
-                    }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>
-                        Cupos del proyecto:
-                      </span>
-                      {selectedResult.cuposMax > selectedResult.cuposMin ? (
-                        <>
-                          <input
-                            type="range"
-                            min={selectedResult.cuposMin}
-                            max={selectedResult.cuposMax}
-                            value={cuposSeleccionados}
-                            onChange={(e) => setCuposSeleccionados(Number(e.target.value))}
-                            style={{ flex: 1, accentColor: "#F97316" }}
-                          />
-                          <span style={{ fontSize: 13, fontWeight: 700, color: "#F97316", minWidth: 20, textAlign: "center" }}>
-                            {cuposSeleccionados}
-                          </span>
-                        </>
-                      ) : (
-                        <span style={{ fontSize: 13, fontWeight: 700, color: "#F97316" }}>
-                          {selectedResult.cuposMin} {selectedResult.cuposMin === 1 ? "cupo" : "cupos"} (fijo)
-                        </span>
-                      )}
+                  <div className="b-text-xs">Directriz Establecida</div>
+                  <h4 className="b-text-xl" style={{ marginTop: 2, marginBottom: 16 }}>{selectedResult.titulo}</h4>
+                  
+                  {!selectedResult.esPersonalizado && (
+                    <div style={{ marginTop: 20 }}>
+                      <div className="b-text-xs" style={{ borderBottom: "1px solid #E5E7EB", paddingBottom: 5, marginBottom: 10 }}>Vector De Ejecutables</div>
+                      <ul style={{ padding: 0, margin: 0, listStyle: "none" }}>
+                        {selectedResult.entregables.slice(0, 5).map((ent, i) => (
+                          <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, color: "#4B5563", marginBottom: 8, lineHeight: 1.4 }}>
+                            <span style={{ color: "#D1D5DB" }}>—</span> {typeof ent === "string" ? ent.substring(0, 60) : (ent.titulo || ent.nombre).substring(0, 60)}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </div>
+                
+                {/* Botón VOLVER al final - abajo a la izquierda */}
+                <div style={{ marginTop: "auto", paddingTop: 20 }}>
+                  <button 
+                    type="button" 
+                    className="b-btn-text" 
+                    onClick={handleBack} 
+                    style={{ fontSize: 10, fontWeight: 600 }}
+                  >
+                    ← VOLVER
+                  </button>
+                </div>
+              </div>
 
-                {!selectedResult.esPersonalizado && (
-                  <div>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.8px", margin: "0 0 8px" }}>
-                      Lo que recibirás de los estudiantes
-                    </p>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      {selectedResult.entregables.map((ent, i) => (
-                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                          <CheckCircle2 size={13} color="#F97316" style={{ flexShrink: 0, marginTop: 2 }} />
-                          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
-                            {typeof ent === "string" ? ent : ent.titulo || ent.nombre || JSON.stringify(ent)}
-                          </span>
-                        </div>
-                      ))}
+              {/* COLUMNA 2: PARÁMETROS OPERATIVOS */}
+              <div className="b-border-box" style={{ padding: 14 }}>
+                <div className="b-text-xs" style={{ marginBottom: 12 }}>Controles Sistémicos</div>
+                
+                <div className="b-slider-row">
+                  <div className="b-slider-top">
+                    <span className="b-text-base" style={{ fontSize: 12 }}>Estudiantes</span>
+                    <span className="b-slider-val">{cuposSeleccionados}</span>
+                  </div>
+                  {selectedResult.cuposMin && selectedResult.cuposMax && selectedResult.cuposMax > selectedResult.cuposMin ? (
+                    <input type="range" className="b-slider" min={selectedResult.cuposMin} max={selectedResult.cuposMax} value={cuposSeleccionados} onChange={(e) => setCuposSeleccionados(Number(e.target.value))} />
+                  ) : (
+                    <div className="b-text-mute" style={{ fontSize: 10 }}>Régimen operativo base fijo.</div>
+                  )}
+                </div>
+
+                {duracionInfo && (
+                  <div className="b-slider-row">
+                    <div className="b-slider-top">
+                      <span className="b-text-base" style={{ fontSize: 12 }}>Tiempo Estimado</span>
+                      <span className="b-slider-val">{diasSeleccionados}d</span>
                     </div>
+                    <input type="range" className="b-slider" min={duracionInfo.min} max={Math.max(duracionInfo.sugerido, duracionInfo.min)} value={diasSeleccionados} onChange={(e) => setDiasSeleccionados(Number(e.target.value))} />
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "#9CA3AF", fontFamily: FONT_MONO }}>
+                      <span>MIN:{duracionInfo.min}</span>
+                      <span>MAX:{Math.max(duracionInfo.sugerido, duracionInfo.min)}</span>
+                    </div>
+                  </div>
+                )}
 
-                    {/* Insumos requeridos */}
-                    {insumos.length > 0 && (
-                      <div style={{
-                        background: "#081828", border: "1px solid rgba(27,111,232,0.2)",
-                        borderRadius: 12, padding: 14,
-                        display: "flex", flexDirection: "column", gap: 12, marginTop: 16,
-                      }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <FileText size={14} color="#06B6D4" />
-                          <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.8px", margin: 0 }}>
-                            Requisitos para publicar
-                          </p>
-                        </div>
-
-                        {insumos.map((insumo) => (
-                          <div key={insumo.id} style={{
-                            background: "rgba(255,255,255,0.03)",
-                            border: "1px solid rgba(255,255,255,0.06)",
-                            borderRadius: 8, padding: "10px 14px",
-                            display: "flex", flexDirection: "column", gap: 6,
-                          }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                              <div>
-                                <p style={{ fontSize: 12, fontWeight: 700, color: "#E2E8F0", margin: 0 }}>
-                                  {insumo.nombre}
-                                  {insumo.obligatorio && (
-                                    <span style={{ fontSize: 9, color: "#F97316", marginLeft: 6 }}>(Obligatorio)</span>
-                                  )}
-                                </p>
-                                {insumo.descripcion && (
-                                  <p style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", margin: "2px 0 0" }}>
-                                    {insumo.descripcion}
-                                  </p>
-                                )}
-                                {insumo.formato && (
-                                  <p style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", margin: "2px 0 0" }}>
-                                    Formato: {insumo.formato}
-                                  </p>
-                                )}
-                              </div>
-                              <div>
-                                <label style={{
-                                  display: "inline-block",
-                                  padding: "6px 12px",
-                                  background: insumoFiles[insumo.id] ? "rgba(27,111,232,0.15)" : "rgba(255,255,255,0.05)",
-                                  border: `1px solid ${insumoFiles[insumo.id] ? "rgba(27,111,232,0.4)" : "rgba(255,255,255,0.1)"}`,
-                                  borderRadius: 6,
-                                  cursor: "pointer",
-                                  fontSize: 11,
-                                  fontWeight: 600,
-                                  color: insumoFiles[insumo.id] ? "#93C5FD" : "rgba(255,255,255,0.4)",
-                                }}>
-                                  {insumoFiles[insumo.id] ? insumoFiles[insumo.id].name : "Adjuntar archivo"}
-                                  <input
-                                    type="file"
-                                    accept={insumo.formato === "PDF" ? ".pdf" : insumo.formato === "IMAGEN" ? "image/*" : undefined}
-                                    onChange={(e) => {
-                                      const file = e.target.files[0];
-                                      if (file) {
-                                        setInsumoFiles(prev => ({ ...prev, [insumo.id]: file }));
-                                      }
-                                    }}
-                                    style={{ display: "none" }}
-                                  />
-                                </label>
-                              </div>
+                {insumos.length > 0 && !selectedResult.esPersonalizado && (
+                  <div style={{ marginTop: 16 }}>
+                    <div className="b-text-xs">Archivos Matriz</div>
+                    {insumos.slice(0, 3).map((insumo) => {
+                      const fileInfo = insumoFiles[insumo.id];
+                      return (
+                        <div key={insumo.id} className={`b-file-row ${fileInfo ? "has-file" : ""}`}>
+                          <div style={{ overflow: "hidden", flex: 1 }}>
+                            <div style={{ fontSize: 12, fontWeight: 500, color: fileInfo ? "#111827" : "#4B5563", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {insumo.nombre}
+                            </div>
+                            <div style={{ fontSize: 9, fontFamily: FONT_MONO, color: "#9CA3AF" }}>
+                              {insumo.obligatorio ? "OB" : "OP"} • {fileInfo ? "OK" : "PEND"}
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    )}
+                          <label className="b-file-btn">
+                            {fileInfo ? "EDIT" : "SUBIR"}
+                            <input type="file" style={{ display: "none" }} accept={insumo.formato === "PDF" ? ".pdf" : insumo.formato === "IMAGEN" ? "image/*" : undefined} onChange={(e) => { const f = e.target.files[0]; if (f) setInsumoFiles(prev => ({ ...prev, [insumo.id]: f })); }} />
+                          </label>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
-              {/* Duración */}
-              {duracionInfo && (
-                <div style={{ background: "#081828", border: "1px solid rgba(27,111,232,0.2)", borderRadius: 12, padding: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-                    <Clock size={14} color="#06B6D4" />
-                    <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.8px", margin: 0 }}>
-                      Duración estimada del proyecto
-                    </p>
-                  </div>
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 8,
-                    background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.15)",
-                    borderRadius: 8, padding: "8px 12px", marginBottom: 12,
-                  }}>
-                    <Clock size={12} color="#67E8F9" style={{ flexShrink: 0 }} />
-                    <p style={{ fontFamily: FONT, fontSize: 11, color: "#67E8F9", margin: 0 }}>
-                      Mínimo: <strong>{duracionInfo.min} días</strong> · Sugerido: <strong>{duracionInfo.sugerido} días</strong>
-                    </p>
-                  </div>
-                  <label style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", display: "block", marginBottom: 6 }}>
-                    ¿Cuántos días necesitas para completar el proyecto?
-                  </label>
-                  <input
-                    type="range"
-                    min={duracionInfo.min}
-                    max={Math.max(duracionInfo.sugerido, duracionInfo.min)}
-                    value={diasSeleccionados}
-                    onChange={(e) => setDiasSeleccionados(Number(e.target.value))}
-                    style={{ width: "100%", accentColor: "#F97316" }}
-                  />
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{duracionInfo.min} días</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#F97316" }}>{diasSeleccionados} días</span>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{Math.max(duracionInfo.sugerido, duracionInfo.min)} días</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Descripción adicional */}
+              {/* COLUMNA 3: EJECUCIÓN */}
               <div>
-                <label style={{
-                  fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.4)",
-                  textTransform: "uppercase", letterSpacing: "0.8px",
-                  display: "block", marginBottom: 8,
-                }}>
-                  Describe tu problema o requerimiento (obligatorio)
-                </label>
+                <label className="b-text-xs" style={{ display: "block" }}>Especificación [Obligatoria]</label>
                 <textarea
                   required
-                  rows={3}
                   value={comentario}
                   onChange={(e) => setComentario(e.target.value)}
-                  placeholder="Cuéntanos en detalle qué necesitas resolver en tu negocio..."
-                  className="saas-textarea"
-                  style={{ ...inputStyle(), minHeight: 90 }}
+                  placeholder="Instrucciones detalladas del alcance comercial..."
+                  className="b-textarea"
+                  style={{ minHeight: 80 }}
                 />
-              </div>
 
-              {/* ── BANNER: insumos faltantes ──
-                  Aparece arriba del botón cuando hay obligatorios sin cargar,
-                  para que la MYPE sepa por qué el botón está bloqueado en lugar
-                  de quedarse mirando un disabled silencioso. */}
-              {insumosFaltantes.length > 0 && (
-                <div style={{
-                  display: "flex", alignItems: "flex-start", gap: 10,
-                  background: "rgba(251,191,36,0.08)",
-                  border: "1px solid rgba(251,191,36,0.25)",
-                  borderRadius: 10, padding: "12px 14px",
-                }}>
-                  <AlertCircle size={16} color="#FBBF24" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <div>
-                    <p style={{ fontSize: 12, fontWeight: 700, color: "#FBBF24", margin: "0 0 4px" }}>
-                      Falta{insumosFaltantes.length === 1 ? "" : "n"} {insumosFaltantes.length} insumo{insumosFaltantes.length === 1 ? "" : "s"} obligatorio{insumosFaltantes.length === 1 ? "" : "s"}
-                    </p>
-                    <ul style={{ margin: 0, paddingLeft: 18, fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.6 }}>
-                      {insumosFaltantes.map(i => (
-                        <li key={i.id}>{i.nombre}</li>
-                      ))}
-                    </ul>
-                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", margin: "6px 0 0" }}>
-                      Adjúntalos arriba para poder publicar el proyecto.
-                    </p>
-                  </div>
-                </div>
-              )}
+                {insumosFaltantes.length > 0 && (
+                  <div className="b-status-banner">⚠️ Requiere adjuntar documentación obligatoria (OB).</div>
+                )}
 
-              {/* ── BLOQUE DE ERROR del backend ──
-                  Reemplaza al viejo modal "Sí, es distinto". Hard block del 409:
-                  la MYPE no puede insistir; le explicamos qué hacer. */}
-              {errorPublicar && (
-                <div style={{
-                  display: "flex", alignItems: "flex-start", gap: 10,
-                  background: errorPublicar.tipo === "duplicado"
-                    ? "rgba(249,115,22,0.08)"
-                    : "rgba(239,68,68,0.08)",
-                  border: errorPublicar.tipo === "duplicado"
-                    ? "1px solid rgba(249,115,22,0.25)"
-                    : "1px solid rgba(239,68,68,0.25)",
-                  borderRadius: 10, padding: "12px 14px",
-                }}>
-                  <AlertCircle
-                    size={16}
-                    color={errorPublicar.tipo === "duplicado" ? "#F97316" : "#F87171"}
-                    style={{ flexShrink: 0, marginTop: 1 }}
-                  />
-                  <div>
-                    <p style={{
-                      fontSize: 12, fontWeight: 700,
-                      color: errorPublicar.tipo === "duplicado" ? "#FB923C" : "#F87171",
-                      margin: "0 0 4px",
-                    }}>
-                      {errorPublicar.tipo === "duplicado"
-                        ? "No puedes publicar otro proyecto del mismo tipo"
-                        : "No se pudo publicar el proyecto"}
-                    </p>
-                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: 1.5 }}>
-                      {errorPublicar.mensaje}
-                    </p>
-                    {errorPublicar.tipo === "duplicado" && (
-                      <p style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", margin: "6px 0 0", lineHeight: 1.5 }}>
-                        Si necesitas más estudiantes para algo parecido, espera a que el proyecto actual termine y vuelve a publicar otro.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Error genérico del hook (si viene de otro lado, no del rawError) */}
-              {apiError && !errorPublicar && (
-                <div style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)",
-                  borderRadius: 8, padding: "10px 14px",
-                }}>
-                  <AlertCircle size={15} color="#F87171" style={{ flexShrink: 0 }} />
-                  <p style={{ fontSize: 13, color: "#F87171", margin: 0 }}>{apiError}</p>
-                </div>
-              )}
-
-              {/* Botones */}
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  disabled={isLoading}
-                  style={{
-                    fontFamily: FONT, width: 44, height: 46, borderRadius: 9, flexShrink: 0,
-                    background: "#081828", border: "1.5px solid rgba(27,111,232,0.25)",
-                    color: "#94A3B8", cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    transition: "all 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#F97316";
-                    e.currentTarget.style.color = "#fff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(27,111,232,0.25)";
-                    e.currentTarget.style.color = "#94A3B8";
-                  }}
-                >
-                  <ArrowLeft size={17} />
-                </button>
+                {errorPublicar && (
+                  <div className="b-status-banner">⚠️ {errorPublicar}</div>
+                )}
+                {apiError && !errorPublicar && (
+                  <div className="b-status-banner">⚠️ {apiError}</div>
+                )}
 
                 <button
                   type="submit"
                   disabled={isLoading || isSubmitting || !canPublish}
-                  style={{
-                    fontFamily: FONT, flex: 1, height: 46, borderRadius: 9,
-                    border: "none", color: "#fff",
-                    background: canPublish
-                      ? "linear-gradient(135deg,#F97316,#DC4A00)"
-                      : "rgba(255,255,255,0.08)",
-                    cursor: (isLoading || !canPublish) ? "not-allowed" : "pointer",
-                    fontWeight: 600, fontSize: 14,
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    opacity: isLoading ? 0.7 : 1,
-                    transition: "transform 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isLoading && canPublish) e.currentTarget.style.transform = "translateY(-1px)";
-                  }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+                  className="b-button-primary"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
-                      Publicando...
-                    </>
-                  ) : (
-                    "Publicar proyecto"
-                  )}
+                  {isLoading || isSubmitting ? "PROCESANDO..." : "PUBLICAR PROYECTO"}
                 </button>
               </div>
+
             </motion.form>
           )}
         </AnimatePresence>

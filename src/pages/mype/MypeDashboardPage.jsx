@@ -10,92 +10,124 @@ import {
   Play,
   CheckCircle,
   ArrowRight,
+  ArrowUpRight,
   TrendingUp,
   Building2,
   Sparkles,
   Search,
+  Activity,
+  Clock,
+  Layers,
+  Zap,
+  AlertTriangle,
+  Inbox,
+  ShieldCheck,
+  Radio,
+  ChevronRight,
 } from "lucide-react";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
-/* ─── Animadores de scroll ─── */
+/* ─── Paleta corporativa (SIN CAMBIOS) ─── */
+const C = {
+  ink: "#0F1F3D",
+  navyDeep: "#0A1628",
+  navyMid: "#0F2A4A",
+  navySoft: "#1E3A5F",
+  blue: "#1B6FE8",
+  cyan: "#06B6D4",
+  amber: "#F59E0B",
+  amberText: "#D97706",
+  green: "#059669",
+  violet: "#7C3AED",
+  gray400: "#9CA3AF",
+  gray500: "#6B7280",
+  gray600: "#4B5563",
+  border: "#E5E7EB",
+  surface: "#FFFFFF",
+  canvas: "#F7F8FA",
+};
+
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 20 },
+  initial: { opacity: 0, y: 18 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] },
 });
 
 /* ═══════════════════════════════════════════════
-   ESTADO BADGE COMPONENTE (AGREGADO)
+   HOOK: Contador animado (sensación "viva")
+═══════════════════════════════════════════════ */
+const useCountUp = (target, duration = 1100) => {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    let raf;
+    const start = performance.now();
+    const tick = (now) => {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(target * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return val;
+};
+
+/* ═══════════════════════════════════════════════
+   ESTADO BADGE (lógica intacta)
 ═══════════════════════════════════════════════ */
 export const EstadoBadge = ({ estado }) => {
   const getEstadoConfig = () => {
     switch (estado) {
       case PROYECTO_ESTADO.PENDIENTE:
-        return {
-          label: "Pendiente",
-          color: "#D97706",
-          bg: "#FFFBEB",
-          border: "#FDE68A",
-        };
+        return { label: "Pendiente", color: C.amberText, bg: "#FFFBEB", border: "#FDE68A", dot: C.amber };
       case PROYECTO_ESTADO.EN_DESARROLLO:
-        return {
-          label: "En Desarrollo",
-          color: "#059669",
-          bg: "#ECFDF5",
-          border: "#BBF7D0",
-        };
+        return { label: "En Desarrollo", color: C.green, bg: "#ECFDF5", border: "#BBF7D0", dot: "#10B981" };
       case PROYECTO_ESTADO.COMPLETADO:
-        return {
-          label: "Completado",
-          color: "#7C3AED",
-          bg: "#F5F3FF",
-          border: "#DDD6FE",
-        };
+        return { label: "Completado", color: C.violet, bg: "#F5F3FF", border: "#DDD6FE", dot: "#8B5CF6" };
       case PROYECTO_ESTADO.BORRADOR:
-        return {
-          label: "Borrador",
-          color: "#6B7280",
-          bg: "#F3F4F6",
-          border: "#E5E7EB",
-        };
+        return { label: "Borrador", color: C.gray500, bg: "#F3F4F6", border: C.border, dot: "#9CA3AF" };
       default:
         return {
           label: estado?.replace("_", " ") || "Desconocido",
-          color: "#6B7280",
+          color: C.gray500,
           bg: "#F3F4F6",
-          border: "#E5E7EB",
+          border: C.border,
+          dot: "#9CA3AF",
         };
     }
   };
-
-  const config = getEstadoConfig();
-
+  const cfg = getEstadoConfig();
   return (
     <span
       style={{
         fontSize: 10,
         fontWeight: 700,
-        color: config.color,
-        background: config.bg,
-        border: `1px solid ${config.border}`,
-        padding: "2px 8px",
-        borderRadius: 6,
-        display: "inline-block",
+        color: cfg.color,
+        background: cfg.bg,
+        border: `1px solid ${cfg.border}`,
+        padding: "3px 9px 3px 7px",
+        borderRadius: 999,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
         whiteSpace: "nowrap",
       }}
     >
-      {config.label}
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: cfg.dot }} />
+      {cfg.label}
     </span>
   );
 };
 
 /* ═══════════════════════════════════════════════
-   HERO BANNER ANIMADO PARA MYPE (Canvas + Framer)
+   COMMAND HEADER (canvas + Health Score, sin botones duplicados)
 ═══════════════════════════════════════════════ */
-const MypeHeroBanner = ({ proyectosActivos, totalProyectos }) => {
+const CommandHeader = ({ healthScore, totalProyectos, activos, completados }) => {
   const canvasRef = useRef(null);
   const heroRef = useRef(null);
+  const animatedScore = useCountUp(healthScore, 1400);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -104,7 +136,6 @@ const MypeHeroBanner = ({ proyectosActivos, totalProyectos }) => {
     const ctx = canvas.getContext("2d");
     let W, H, animId;
     const mouse = { x: -999, y: -999 };
-    // Colores corporativos MYPE: Naranja, Cian, Azul profundo
     const COLORS = ["rgba(245,158,11,", "rgba(6,182,212,", "rgba(27,111,232,"];
 
     const resize = () => {
@@ -115,33 +146,34 @@ const MypeHeroBanner = ({ proyectosActivos, totalProyectos }) => {
     const ro = new ResizeObserver(resize);
     ro.observe(hero);
 
-    hero.addEventListener("mousemove", (e) => {
+    const onMove = (e) => {
       const r = canvas.getBoundingClientRect();
       mouse.x = e.clientX - r.left;
       mouse.y = e.clientY - r.top;
-    });
-    hero.addEventListener("mouseleave", () => {
+    };
+    const onLeave = () => {
       mouse.x = -999;
       mouse.y = -999;
-    });
+    };
+    hero.addEventListener("mousemove", onMove);
+    hero.addEventListener("mouseleave", onLeave);
 
     class Particle {
       constructor() {
         this.x = Math.random() * W;
         this.y = Math.random() * H;
         this.size = Math.random() * 2 + 1;
-        this.speedX = (Math.random() - 0.5) * 0.5;
-        this.speedY = (Math.random() - 0.5) * 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.45;
+        this.speedY = (Math.random() - 0.5) * 0.45;
         this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
       }
       update() {
-        // Interacción con el mouse
         const dx = this.x - mouse.x;
         const dy = this.y - mouse.y;
         const d = Math.sqrt(dx * dx + dy * dy);
-        if (d < 100) {
-          this.x += dx * 0.02;
-          this.y += dy * 0.02;
+        if (d < 110) {
+          this.x += dx * 0.025;
+          this.y += dy * 0.025;
         }
         this.x += this.speedX;
         this.y += this.speedY;
@@ -156,7 +188,7 @@ const MypeHeroBanner = ({ proyectosActivos, totalProyectos }) => {
       }
     }
 
-    const particles = Array.from({ length: 60 }, () => new Particle());
+    const particles = Array.from({ length: 70 }, () => new Particle());
 
     const animate = () => {
       ctx.clearRect(0, 0, W, H);
@@ -167,11 +199,11 @@ const MypeHeroBanner = ({ proyectosActivos, totalProyectos }) => {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 80) {
+          if (dist < 95) {
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(245,158,11,${0.15 * (1 - dist / 80)})`;
+            ctx.strokeStyle = `rgba(6,182,212,${0.14 * (1 - dist / 95)})`;
             ctx.stroke();
           }
         }
@@ -179,69 +211,64 @@ const MypeHeroBanner = ({ proyectosActivos, totalProyectos }) => {
       animId = requestAnimationFrame(animate);
     };
     animate();
+
     return () => {
       cancelAnimationFrame(animId);
       ro.disconnect();
+      hero.removeEventListener("mousemove", onMove);
+      hero.removeEventListener("mouseleave", onLeave);
     };
   }, []);
+
+  /* Anillo del health score */
+  const ringSize = 132;
+  const stroke = 11;
+  const r = (ringSize - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const dash = (animatedScore / 100) * circ;
+  const scoreColor = healthScore >= 70 ? "#4ade80" : healthScore >= 40 ? C.amber : "#f87171";
+
+  const MiniContext = ({ value, label }) => {
+    const v = useCountUp(value);
+    return (
+      <div style={{ textAlign: "center", minWidth: 64 }}>
+        <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{v}</div>
+        <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 5, fontWeight: 600 }}>
+          {label}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <motion.div
       ref={heroRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
       style={{
         position: "relative",
         overflow: "hidden",
-        borderRadius: "2rem",
-        background:
-          "linear-gradient(135deg, #0A1628 0%, #0F2A4A 60%, #1E3A5F 100%)",
-        padding: "40px 48px",
+        borderRadius: 24,
+        background: `linear-gradient(135deg, ${C.navyDeep} 0%, ${C.navyMid} 55%, ${C.navySoft} 100%)`,
+        padding: "30px 36px",
         color: "#fff",
-        marginBottom: 24,
-        minHeight: 220,
-        display: "flex",
-        alignItems: "center",
+        boxShadow: "0 24px 48px -28px rgba(10,22,40,0.7)",
+        border: "1px solid rgba(255,255,255,0.06)",
       }}
     >
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* Luces Ambientales */}
+      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} />
       <div
         style={{
           position: "absolute",
-          top: -50,
-          right: -50,
-          width: 250,
-          height: 250,
+          top: -60,
+          right: 180,
+          width: 240,
+          height: 240,
           borderRadius: "50%",
-          background: "radial-gradient(circle, #F59E0B, transparent 70%)",
-          opacity: 0.15,
-          filter: "blur(40px)",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          bottom: -50,
-          left: 100,
-          width: 200,
-          height: 200,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, #06B6D4, transparent 70%)",
-          opacity: 0.1,
-          filter: "blur(40px)",
+          background: `radial-gradient(circle, ${C.cyan}, transparent 70%)`,
+          opacity: 0.13,
+          filter: "blur(45px)",
           pointerEvents: "none",
         }}
       />
@@ -252,439 +279,467 @@ const MypeHeroBanner = ({ proyectosActivos, totalProyectos }) => {
           zIndex: 10,
           display: "flex",
           justifyContent: "space-between",
-          width: "100%",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: 24,
+          gap: 28,
         }}
       >
-        <div style={{ maxWidth: 500 }}>
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
+        <div style={{ maxWidth: 520 }}>
+          {/* Indicador EN VIVO pulsante */}
+          <div
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 6,
-              background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: 20,
-              padding: "6px 14px",
+              gap: 8,
+              background: "rgba(74,222,128,0.12)",
+              border: "1px solid rgba(74,222,128,0.3)",
+              borderRadius: 999,
+              padding: "6px 13px",
               fontSize: 10,
               fontWeight: 700,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
-              color: "#fff",
               marginBottom: 16,
               backdropFilter: "blur(8px)",
             }}
           >
-            <Sparkles size={12} className="text-amber-400" /> Modo Empresa
-          </motion.div>
-          <h1
-            style={{
-              fontSize: "clamp(26px, 3vw, 36px)",
-              fontWeight: 800,
-              lineHeight: 1.1,
-              letterSpacing: "-0.02em",
-              marginBottom: 12,
-            }}
-          >
-            Impulsa tu negocio con{" "}
-            <span style={{ color: "#06B6D4" }}>talento joven</span>
-          </h1>
-          <p
-            style={{
-              fontSize: 14,
-              color: "rgba(255,255,255,0.6)",
-              lineHeight: 1.6,
-              margin: 0,
-              fontWeight: 400,
-            }}
-          >
-            Publica requerimientos, recibe soluciones tecnológicas y gestiona a
-            tus postulantes desde un solo lugar.
-          </p>
+            <span style={{ position: "relative", display: "inline-flex", width: 8, height: 8 }}>
+              <span style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#4ade80", animation: "vping 1.8s cubic-bezier(0,0,.2,1) infinite" }} />
+              <span style={{ position: "relative", width: 8, height: 8, borderRadius: "50%", background: "#4ade80" }} />
+            </span>
+            Sistema activo
+          </div>
+
+        <motion.h1
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        style={{ 
+          fontSize: "clamp(24px, 2.8vw, 34px)", 
+          fontWeight: 800, 
+          lineHeight: 1.15, 
+          letterSpacing: "-0.025em", 
+          margin: "0 0 12px",
+        }}
+      >
+        <span style={{ color: "#fff" }}>Impulsa </span>
+        <motion.span
+          initial={{ opacity: 0, filter: "blur(4px)" }}
+          animate={{ opacity: 1, filter: "blur(0px)" }}
+          transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          style={{ 
+            background: "linear-gradient(135deg, #10B981 0%, #34D399 40%, #6EE7B7 70%, #10B981 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            display: "inline-block",
+          }}
+          whileHover={{
+            scale: 1.03,
+            transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
+          }}
+        >
+          tu negocio
+        </motion.span>
+        <span style={{ color: "#fff" }}> con </span>
+        <motion.span
+          initial={{ opacity: 0, filter: "blur(4px)" }}
+          animate={{ opacity: 1, filter: "blur(0px)" }}
+          transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          style={{ 
+            background: "linear-gradient(135deg, #06B6D4 0%, #22D3EE 40%, #67E8F9 70%, #06B6D4 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            display: "inline-block",
+          }}
+          whileHover={{
+            scale: 1.03,
+            transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
+          }}
+        >
+          talento joven
+        </motion.span>
+      </motion.h1>
+
+      <motion.p
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        style={{ 
+          fontSize: 14, 
+          color: "rgba(255,255,255,0.55)", 
+          lineHeight: 1.5, 
+          margin: 0, 
+          fontWeight: 400,
+          letterSpacing: "0.01em",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Gestiona tus proyectos, entregables y postulaciones desde un solo lugar.
+      </motion.p>
+
+          <div style={{ display: "flex", gap: 26, marginTop: 22 }}>
+            <MiniContext value={totalProyectos} label="Total" />
+            <div style={{ width: 1, background: "rgba(255,255,255,0.12)" }} />
+            <MiniContext value={activos} label="Activos" />
+            <div style={{ width: 1, background: "rgba(255,255,255,0.12)" }} />
+            <MiniContext value={completados} label="Completados" />
+          </div>
         </div>
 
-        <div style={{ display: "flex", gap: 16 }}>
-          <div
-            style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 16,
-              padding: "16px 24px",
-              textAlign: "center",
-              backdropFilter: "blur(10px)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 32,
-                fontWeight: 800,
-                color: "#F59E0B",
-                lineHeight: 1,
-              }}
-            >
-              {proyectosActivos}
-            </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: "rgba(255,255,255,0.5)",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-                marginTop: 4,
-                fontWeight: 600,
-              }}
-            >
-              Proyectos Activos
-            </div>
-          </div>
-          <div
-            style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 16,
-              padding: "16px 24px",
-              textAlign: "center",
-              backdropFilter: "blur(10px)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 32,
-                fontWeight: 800,
-                color: "#06B6D4",
-                lineHeight: 1,
-              }}
-            >
-              {totalProyectos}
-            </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: "rgba(255,255,255,0.5)",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-                marginTop: 4,
-                fontWeight: 600,
-              }}
-            >
-              Total Creados
-            </div>
-          </div>
-        </div>
+       
       </div>
     </motion.div>
   );
 };
 
 /* ═══════════════════════════════════════════════
-   TARJETAS DE MÉTRICAS BENTO
+   PANEL BASE reutilizable (microinteracción hover)
 ═══════════════════════════════════════════════ */
-const MypeMetricCard = ({
-  label,
-  value,
-  sub,
-  color,
-  bg,
-  border,
-  icon: Icon,
-  delay,
-}) => (
-  <motion.div
+const Panel = ({ children, delay = 0, dark = false, style = {} }) => (
+  <motion.section
     {...fadeUp(delay)}
+    transition={{ duration: 0.25 }}
     style={{
-      background: "#fff",
-      border: "1px solid #E5E7EB",
-      borderRadius: "1.5rem",
+      background: dark ? `linear-gradient(145deg, ${C.navyDeep}, ${C.navySoft})` : C.surface,
+      border: dark ? "1px solid rgba(255,255,255,0.06)" : `1px solid ${C.border}`,
+      borderRadius: 22,
       padding: 24,
-      display: "flex",
-      alignItems: "center",
-      gap: 16,
-      transition: "all 0.3s ease",
-      cursor: "default",
+      color: dark ? "#fff" : C.ink,
+      boxShadow: dark ? "0 16px 32px -22px rgba(10,22,40,0.7)" : "0 8px 24px -18px rgba(15,31,61,0.14)",
       position: "relative",
       overflow: "hidden",
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = "translateY(-4px)";
-      e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.06)";
-      e.currentTarget.style.borderColor = border;
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = "translateY(0)";
-      e.currentTarget.style.boxShadow = "none";
-      e.currentTarget.style.borderColor = "#E5E7EB";
+      ...style,
     }}
   >
-    <div
-      style={{
-        width: 56,
-        height: 56,
-        borderRadius: "1.2rem",
-        background: bg,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-      }}
-    >
-      <Icon size={26} color={color} />
-    </div>
-    <div>
-      <div
-        style={{
-          fontSize: 10,
-          fontWeight: 700,
-          color: "#9CA3AF",
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
-          marginBottom: 4,
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontSize: 28,
-          fontWeight: 800,
-          color: "#0F1F3D",
-          lineHeight: 1,
-        }}
-      >
-        {value}
-      </div>
-      {sub && (
-        <div
-          style={{
-            fontSize: 12,
-            fontWeight: 500,
-            color: "#6B7280",
-            marginTop: 4,
-          }}
-        >
-          {sub}
-        </div>
-      )}
-    </div>
-    <div
-      style={{
-        position: "absolute",
-        bottom: 0,
-        right: 0,
-        width: 80,
-        height: 80,
-        background: bg,
-        borderRadius: "50%",
-        filter: "blur(30px)",
-        opacity: 0.5,
-        pointerEvents: "none",
-      }}
-    />
-  </motion.div>
+    {children}
+  </motion.section>
+);
+
+const PanelTitle = ({ children, action }) => (
+  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+    <h2 style={{ fontSize: 15.5, fontWeight: 800, margin: 0, color: "inherit", letterSpacing: "-0.01em" }}>{children}</h2>
+    {action}
+  </div>
 );
 
 /* ═══════════════════════════════════════════════
-   COMPONENTE PRINCIPAL MYPE DASHBOARD
+   DONUT (Salud de proyectos — única fuente de distribución)
+═══════════════════════════════════════════════ */
+const DonutChart = ({ segments, total, size = 150, stroke = 17 }) => {
+  const r = (size - stroke) / 2;
+  const cx = size / 2;
+  const circ = 2 * Math.PI * r;
+  const animatedTotal = useCountUp(total);
+  let offset = 0;
+  return (
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <circle cx={cx} cy={cx} r={r} fill="none" stroke="#EEF1F5" strokeWidth={stroke} />
+        {total > 0 &&
+          segments.map((s, i) => {
+            const len = (s.value / total) * circ;
+            const seg = (
+              <motion.circle
+                key={i}
+                cx={cx}
+                cy={cx}
+                r={r}
+                fill="none"
+                stroke={s.color}
+                strokeWidth={stroke}
+                strokeLinecap="round"
+                strokeDasharray={`${len} ${circ - len}`}
+                initial={{ strokeDashoffset: -circ }}
+                animate={{ strokeDashoffset: -offset }}
+                transition={{ duration: 0.9, delay: 0.3 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+              />
+            );
+            offset += len;
+            return seg;
+          })}
+      </svg>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ fontSize: 32, fontWeight: 800, color: C.ink, lineHeight: 1, letterSpacing: "-0.03em" }}>{animatedTotal}</span>
+        <span style={{ fontSize: 9.5, fontWeight: 700, color: C.gray400, textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 3 }}>Proyectos</span>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   PROGRESS RING
+═══════════════════════════════════════════════ */
+const ProgressRing = ({ percent, color, label, value, size = 92, stroke = 8 }) => {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const dash = (percent / 100) * circ;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 9 }}>
+      <div style={{ position: "relative", width: size, height: size }}>
+        <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+          {/* Fondo suave (sutil, sin degradado) */}
+          <circle 
+            cx={size / 2} 
+            cy={size / 2} 
+            r={r} 
+            fill="none" 
+            stroke="rgba(255,255,255,0.08)" 
+            strokeWidth={stroke} 
+          />
+          <motion.circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke={color}
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={`${dash} ${circ - dash}`}
+            initial={{ strokeDashoffset: circ }}
+            animate={{ strokeDashoffset: 0 }}
+            transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          />
+        </svg>
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ fontSize: 18, fontWeight: 800, color: "#fff" }}>{value}</span>
+        </div>
+      </div>
+      <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", textAlign: "center" }}>{label}</span>
+    </div>
+  );
+};
+
+/* ─── Acceso rápido ─── */
+const QuickAction = ({ to, icon: Icon, label, bg, border, color }) => (
+  <Link to={to} style={{ textDecoration: "none" }}>
+    <motion.div
+      whileHover={{ x: 3 }}
+      style={{
+        padding: 12,
+        borderRadius: 13,
+        background: bg,
+        border: `1px solid ${border}`,
+        color,
+        display: "flex",
+        alignItems: "center",
+        gap: 11,
+        fontWeight: 700,
+        fontSize: 13,
+      }}
+    >
+      <div style={{ width: 30, height: 30, borderRadius: 9, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Icon size={15} />
+      </div>
+      {label}
+      <ArrowUpRight size={15} style={{ marginLeft: "auto", opacity: 0.55 }} />
+    </motion.div>
+  </Link>
+);
+
+/* ─── Fila de postulaciones (flujo, no duplica estados) ─── */
+const FlowRow = ({ label, value, color, max }) => {
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: C.gray600 }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 800, color: C.ink }}>{value}</span>
+      </div>
+      <div style={{ height: 6, background: "#EEF1F5", borderRadius: 999, overflow: "hidden" }}>
+        <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.9, delay: 0.4, ease: [0.22, 1, 0.36, 1] }} style={{ height: "100%", background: color, borderRadius: 999 }} />
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   COMPONENTE PRINCIPAL (lógica de datos intacta)
 ═══════════════════════════════════════════════ */
 export function MypeDashboardPage() {
   const { proyectos, isLoading } = useMisProyectos();
   const navigate = useNavigate();
 
-  const pendientes = proyectos.filter(
-    (p) => p.estado === PROYECTO_ESTADO.PENDIENTE,
-  ).length;
-  const enDesarrollo = proyectos.filter(
-    (p) => p.estado === PROYECTO_ESTADO.EN_DESARROLLO,
-  ).length;
-  const completados = proyectos.filter(
-    (p) => p.estado === PROYECTO_ESTADO.COMPLETADO,
-  ).length;
-  const borradores = proyectos.filter(
-    (p) => p.estado === PROYECTO_ESTADO.BORRADOR,
-  ).length;
+  const pendientes = proyectos.filter((p) => p.estado === PROYECTO_ESTADO.PENDIENTE).length;
+  const enDesarrollo = proyectos.filter((p) => p.estado === PROYECTO_ESTADO.EN_DESARROLLO).length;
+  const completados = proyectos.filter((p) => p.estado === PROYECTO_ESTADO.COMPLETADO).length;
+  const borradores = proyectos.filter((p) => p.estado === PROYECTO_ESTADO.BORRADOR).length;
 
   const recientes = [...proyectos]
     .sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion))
-    .slice(0, 4);
+    .slice(0, 5);
+
+  const totalProyectos = proyectos.length;
+
+  /* Derivados de visualización (no alteran lógica de negocio) */
+  const segments = [
+    { label: "Publicados", value: pendientes, color: C.amber },
+    { label: "En Desarrollo", value: enDesarrollo, color: "#10B981" },
+    { label: "Completados", value: completados, color: "#8B5CF6" },
+    { label: "Borradores", value: borradores, color: "#9CA3AF" },
+  ];
+  const completadosPct = totalProyectos > 0 ? Math.round((completados / totalProyectos) * 100) : 0;
+  const healthScore =
+    totalProyectos === 0
+      ? 0
+      : Math.min(100, Math.round(((completados * 1 + enDesarrollo * 0.8 + pendientes * 0.6) / totalProyectos) * 100));
+
+  /* Alertas y riesgos derivados */
+  const hoy = new Date();
+  const porVencer = proyectos.filter((p) => {
+    if (!p.fechaLimite || p.estado === PROYECTO_ESTADO.COMPLETADO) return false;
+    const dias = (new Date(p.fechaLimite) - hoy) / (1000 * 60 * 60 * 24);
+    return dias >= 0 && dias <= 7;
+  });
+
+  const alertas = [
+    porVencer.length > 0 && {
+      titulo: `${porVencer.length} proyecto${porVencer.length > 1 ? "s" : ""} por vencer`,
+      sub: "Vencen en los próximos 7 días",
+      color: "#DC2626",
+      bg: "#FEF2F2",
+      to: "/dashboard/mype/proyectos",
+    },
+    borradores > 0 && {
+      titulo: `${borradores} borrador${borradores > 1 ? "es" : ""} sin publicar`,
+      sub: "Termina de configurarlos y publícalos",
+      color: C.amberText,
+      bg: "#FFFBEB",
+      to: "/dashboard/mype/proyectos",
+    },
+    pendientes > 0 && {
+      titulo: `${pendientes} esperando postulantes`,
+      sub: "Revisa y promociona estos proyectos",
+      color: C.blue,
+      bg: "#EFF6FF",
+      to: "/dashboard/mype/postulantes",
+    },
+  ].filter(Boolean);
+
+  const maxFlow = Math.max(pendientes, enDesarrollo, completados, 1);
 
   return (
     <MypeLayout titulo="Dashboard Empresarial">
-      <div style={{ fontFamily: FONT, maxWidth: 1200, margin: "0 auto" }}>
-        <MypeHeroBanner
-          proyectosActivos={enDesarrollo + pendientes}
-          totalProyectos={proyectos.length}
-        />
+      <style>{`
+        @keyframes vping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
+        @keyframes vpulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+        @keyframes vshimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+      `}</style>
 
-        {/* Bento Grid: Métricas */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: 20,
-            marginBottom: 32,
-          }}
-        >
-          <MypeMetricCard
-            delay={0.1}
-            label="Total Proyectos"
-            value={proyectos.length}
-            sub={`${borradores} en borrador`}
-            icon={FileText}
-            bg="#EFF6FF"
-            color="#1B6FE8"
-            border="#BFDBFE"
-          />
-          <MypeMetricCard
-            delay={0.15}
-            label="Publicados"
-            value={pendientes}
-            sub="Esperando postulantes"
-            icon={Users}
-            bg="#F0FDF4"
-            color="#059669"
-            border="#BBF7D0"
-          />
-          <MypeMetricCard
-            delay={0.2}
-            label="En Desarrollo"
-            value={enDesarrollo}
-            sub="Trabajando actualmente"
-            icon={Play}
-            bg="#FFFBEB"
-            color="#D97706"
-            border="#FDE68A"
-          />
-          <MypeMetricCard
-            delay={0.25}
-            label="Completados"
-            value={completados}
-            sub="Soluciones entregadas"
-            icon={CheckCircle}
-            bg="#F5F3FF"
-            color="#7C3AED"
-            border="#DDD6FE"
-          />
+      <div style={{ fontFamily: FONT, maxWidth: 1320, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
+        {/* ─── COMMAND HEADER ─── */}
+        <CommandHeader healthScore={healthScore} totalProyectos={totalProyectos} activos={enDesarrollo + pendientes} completados={completados} />
+
+        {/* ─── FILA ESTRATÉGICA: Salud · Rendimiento · Alertas ─── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 0.9fr 1fr", gap: 20, alignItems: "stretch" }}>
+          {/* Salud de proyectos */}
+          <Panel delay={0.1}>
+            <PanelTitle>Salud de Proyectos</PanelTitle>
+            <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
+              <DonutChart segments={segments} total={totalProyectos} />
+              <div style={{ flex: 1, minWidth: 150, display: "flex", flexDirection: "column", gap: 11 }}>
+                {segments.map((s, i) => {
+                  const pct = totalProyectos > 0 ? Math.round((s.value / totalProyectos) * 100) : 0;
+                  return (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                      <span style={{ width: 9, height: 9, borderRadius: 3, background: s.color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 12.5, fontWeight: 600, color: C.gray600, flex: 1 }}>{s.label}</span>
+                      <span style={{ fontSize: 12.5, fontWeight: 800, color: C.ink }}>{s.value}</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 600, color: C.gray400, minWidth: 30, textAlign: "right" }}>{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </Panel>
+
+          {/* Rendimiento (dark) */}
+          <Panel delay={0.15} dark>
+            <div style={{ position: "absolute", top: -30, right: -30, width: 110, height: 110, background: "rgba(6,182,212,0.2)", borderRadius: "50%", filter: "blur(24px)" }} />
+            <PanelTitle>
+              <span style={{ textTransform: "uppercase", letterSpacing: "0.05em", fontSize: 13 }}>Rendimiento</span>
+            </PanelTitle>
+            <div style={{ display: "flex", justifyContent: "space-around", position: "relative", zIndex: 2, marginTop: 6 }}>
+              <ProgressRing percent={85} color="#4ade80" label="Tasa de respuesta" value="85%" />
+              <ProgressRing percent={completadosPct} color="#60a5fa" label="Tasa de entrega" value={`${completadosPct}%`} />
+            </div>
+          </Panel>
+
+          {/* Alertas y riesgos */}
+          <Panel delay={0.2}>
+            <PanelTitle>Alertas y Riesgos</PanelTitle>
+            {alertas.length === 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px 10px", gap: 10, height: "calc(100% - 36px)" }}>
+                <div style={{ width: 46, height: 46, borderRadius: "50%", background: "#ECFDF5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <ShieldCheck size={22} color={C.green} />
+                </div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: C.gray600, margin: 0, textAlign: "center" }}>Todo en orden</p>
+                <p style={{ fontSize: 11.5, color: C.gray400, margin: 0, textAlign: "center" }}>No hay riesgos pendientes por ahora.</p>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {alertas.map((a, i) => (
+                  <Link key={i} to={a.to} style={{ textDecoration: "none" }}>
+                    <motion.div
+                      whileHover={{ x: 3 }}
+                      style={{
+                        padding: "12px 14px",
+                        borderRadius: 12,
+                        background: a.bg,
+                        border: `1px solid ${a.color}18`,
+                        cursor: "pointer",
+                      }}
+                    >
+                      <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, lineHeight: 1.3 }}>{a.titulo}</div>
+                      <div style={{ fontSize: 11.5, color: C.gray500, marginTop: 3 }}>{a.sub}</div>
+                    </motion.div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </Panel>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 340px",
-            gap: 24,
-            alignItems: "start",
-          }}
-        >
-          {/* Proyectos Recientes */}
-          <motion.div
-            {...fadeUp(0.3)}
-            style={{
-              background: "#fff",
-              border: "1px solid #E5E7EB",
-              borderRadius: "2rem",
-              padding: 28,
-              boxShadow: "0 4px 6px rgba(0,0,0,0.02)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 24,
-              }}
+        {/* ─── FILA INFERIOR: Timeline + Gestión ─── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 20, alignItems: "start" }}>
+          {/* Actividad reciente (timeline) */}
+          <Panel delay={0.25} style={{ padding: 26 }}>
+            <PanelTitle
+              action={
+                <Link to="/dashboard/mype/proyectos" style={{ fontSize: 13, fontWeight: 700, color: C.blue, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+                  Ver todos <ArrowRight size={14} />
+                </Link>
+              }
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div
-                  style={{
-                    width: 4,
-                    height: 20,
-                    background: "#F59E0B",
-                    borderRadius: 4,
-                  }}
-                />
-                <h2
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 800,
-                    color: "#0F1F3D",
-                    margin: 0,
-                  }}
-                >
-                  Proyectos Recientes
-                </h2>
-              </div>
-              <Link
-                to="/dashboard/mype/proyectos"
-                style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: "#1B6FE8",
-                  textDecoration: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}
-              >
-                Ver todos <ArrowRight size={14} />
-              </Link>
-            </div>
+              Actividad Reciente
+            </PanelTitle>
 
             {isLoading ? (
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 12 }}
-              >
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    style={{
-                      height: 64,
-                      background: "#F3F4F6",
-                      borderRadius: 16,
-                      animation: "pulse 1.5s infinite",
-                    }}
-                  />
+                  <div key={i} style={{ height: 62, background: "#F3F4F6", borderRadius: 14, animation: "vpulse 1.5s infinite" }} />
                 ))}
               </div>
             ) : recientes.length === 0 ? (
-              <div
-                style={{
-                  padding: "40px 20px",
-                  textAlign: "center",
-                  border: "1px dashed #D1D5DB",
-                  borderRadius: 20,
-                  background: "#F9FAFB",
-                }}
-              >
-                <Search
-                  size={32}
-                  color="#9CA3AF"
-                  style={{ margin: "0 auto 12px" }}
-                />
-                <p
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "#4B5563",
-                    marginBottom: 16,
-                  }}
-                >
-                  Aún no tienes proyectos creados
-                </p>
+              <div style={{ padding: "44px 20px", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: 18, background: C.canvas }}>
+                <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#fff", border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+                  <Search size={26} color={C.gray400} />
+                </div>
+                <p style={{ fontSize: 15, fontWeight: 700, color: C.gray600, margin: "0 0 4px" }}>Aún no tienes proyectos creados</p>
+                <p style={{ fontSize: 13, color: C.gray400, margin: "0 0 18px" }}>Publica tu primer requerimiento y empieza a recibir postulantes.</p>
                 <Link to="/dashboard/mype/crear">
                   <button
                     style={{
-                      padding: "10px 24px",
+                      padding: "11px 26px",
                       borderRadius: 12,
-                      background: "linear-gradient(135deg, #1B6FE8, #06B6D4)",
+                      background: `linear-gradient(135deg, ${C.blue}, ${C.cyan})`,
                       color: "#fff",
                       border: "none",
                       fontSize: 13,
                       fontWeight: 700,
                       cursor: "pointer",
+                      boxShadow: "0 10px 22px -10px rgba(27,111,232,0.6)",
                     }}
                   >
                     Publicar mi primer proyecto
@@ -692,300 +747,98 @@ export function MypeDashboardPage() {
                 </Link>
               </div>
             ) : (
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 12 }}
-              >
-                {recientes.map((p) => (
-                  <div
-                    key={p.id}
-                    onClick={() => navigate("/dashboard/mype/proyectos")}
-                    style={{
-                      padding: 16,
-                      borderRadius: 16,
-                      border: "1px solid #F3F4F6",
-                      background: "#FAFAFA",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#BFDBFE";
-                      e.currentTarget.style.background = "#EFF6FF";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#F3F4F6";
-                      e.currentTarget.style.background = "#FAFAFA";
-                    }}
-                  >
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 14 }}
+              <div style={{ position: "relative", paddingLeft: 8 }}>
+                <div style={{ position: "absolute", left: 19, top: 8, bottom: 8, width: 1.5, background: "#E5E7EB" }} />
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  {recientes.map((p, idx) => (
+                    <motion.div
+                      key={p.id}
+                      {...fadeUp(0.3 + idx * 0.06)}
+                      onClick={() => navigate("/dashboard/mype/proyectos")}
+                      style={{
+                        position: "relative",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 16,
+                        padding: "10px 14px",
+                        borderRadius: 12,
+                        cursor: "pointer",
+                        transition: "background 0.15s ease",
+                        background: "transparent",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#F7F8FA";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                      }}
                     >
+                      {/* Punto indicador */}
                       <div
                         style={{
-                          width: 42,
-                          height: 42,
-                          borderRadius: 12,
-                          background: "#fff",
-                          border: "1px solid #E5E7EB",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "#1B6FE8",
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          background: idx === 0 ? C.cyan : C.blue,
+                          flexShrink: 0,
+                          zIndex: 1,
+                          boxShadow: idx === 0
+                            ? "0 0 0 3px rgba(6,182,212,0.15)"
+                            : "0 0 0 3px rgba(27,111,232,0.1)",
                         }}
-                      >
-                        <Building2 size={20} />
-                      </div>
-                      <div>
-                        <h4
-                          style={{
-                            fontSize: 14,
-                            fontWeight: 700,
-                            color: "#0F1F3D",
-                            margin: "0 0 4px",
-                          }}
-                        >
-                          {p.titulo}
-                        </h4>
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: 8,
-                            alignItems: "center",
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 600,
-                              color: "#6B7280",
-                            }}
-                          >
-                            {p.fechaLimite
-                              ? `Vence: ${new Date(p.fechaLimite).toLocaleDateString("es-PE")}`
-                              : "Sin límite"}
-                          </span>
-                          <span
-                            style={{
-                              width: 4,
-                              height: 4,
-                              borderRadius: "50%",
-                              background: "#D1D5DB",
-                            }}
-                          />
+                      />
+
+                      {/* Contenido */}
+                      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+                          <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", color: C.gray500, flexShrink: 0 }}>
+                            <Building2 size={17} />
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <h4 style={{ fontSize: 13, fontWeight: 600, color: C.ink, margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {p.titulo}
+                            </h4>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 500, color: C.gray400 }}>
+                              <Clock size={11} />
+                              {p.fechaLimite ? `Vence: ${new Date(p.fechaLimite).toLocaleDateString("es-PE")}` : "Sin límite"}
+                            </span>
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                           <EstadoBadge estado={p.estado} />
                         </div>
                       </div>
-                    </div>
-                    <ArrowRight size={18} color="#9CA3AF" />
-                  </div>
-                ))}
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             )}
-          </motion.div>
+          </Panel>
 
-          {/* Panel Lateral: Accesos y Resumen */}
-          <motion.div
-            {...fadeUp(0.4)}
-            style={{ display: "flex", flexDirection: "column", gap: 24 }}
-          >
-            {/* Acciones Rápidas */}
-            <div
-              style={{
-                background: "#fff",
-                border: "1px solid #E5E7EB",
-                borderRadius: "2rem",
-                padding: 24,
-                boxShadow: "0 4px 6px rgba(0,0,0,0.02)",
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: 15,
-                  fontWeight: 800,
-                  color: "#0F1F3D",
-                  marginBottom: 16,
-                }}
-              >
-                Accesos Rápidos
-              </h3>
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 10 }}
-              >
-                <Link
-                  to="/dashboard/mype/crear"
-                  style={{ textDecoration: "none" }}
-                >
-                  <div
-                    style={{
-                      padding: 14,
-                      borderRadius: 16,
-                      background: "#EFF6FF",
-                      border: "1px solid #BFDBFE",
-                      color: "#1B6FE8",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      fontWeight: 700,
-                      fontSize: 13,
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.transform = "translateY(-2px)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.transform = "translateY(0)")
-                    }
-                  >
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 10,
-                        background: "#fff",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Play size={16} />
-                    </div>{" "}
-                    Publicar Nuevo Proyecto
-                  </div>
-                </Link>
-                <Link
-                  to="/dashboard/mype/postulantes"
-                  style={{ textDecoration: "none" }}
-                >
-                  <div
-                    style={{
-                      padding: 14,
-                      borderRadius: 16,
-                      background: "#FFFBEB",
-                      border: "1px solid #FDE68A",
-                      color: "#D97706",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      fontWeight: 700,
-                      fontSize: 13,
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.transform = "translateY(-2px)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.transform = "translateY(0)")
-                    }
-                  >
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 10,
-                        background: "#fff",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Users size={16} />
-                    </div>{" "}
-                    Evaluar Postulantes
-                  </div>
-                </Link>
+          {/* Columna de gestión */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Estado de postulaciones (flujo, info nueva) */}
+            <Panel delay={0.3}>
+              <PanelTitle>Estado de Postulaciones</PanelTitle>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <FlowRow label="Esperando postulantes" value={pendientes} color={C.amber} max={maxFlow} />
+                <FlowRow label="En desarrollo activo" value={enDesarrollo} color={C.green} max={maxFlow} />
+                <FlowRow label="Soluciones entregadas" value={completados} color={C.violet} max={maxFlow} />
               </div>
-            </div>
+            </Panel>
 
-            {/* Resumen Gráfico */}
-            <div
-              style={{
-                background: "linear-gradient(145deg, #0A1628, #1E3A5F)",
-                borderRadius: "2rem",
-                padding: 28,
-                color: "#fff",
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  top: -30,
-                  right: -30,
-                  width: 100,
-                  height: 100,
-                  background: "rgba(6,182,212,0.2)",
-                  borderRadius: "50%",
-                  filter: "blur(20px)",
-                }}
-              />
-              <h3
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: "rgba(255,255,255,0.7)",
-                  textTransform: "uppercase",
-                  letterSpacing: "1px",
-                  marginBottom: 20,
-                }}
-              >
-                Rendimiento
-              </h3>
-
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 16 }}
-              >
-                {[
-                  {
-                    label: "Tasa de respuesta",
-                    value: "85%",
-                    color: "#4ade80",
-                  },
-                  {
-                    label: "Proyectos llenos",
-                    value: "3 de 5",
-                    color: "#60a5fa",
-                  },
-                ].map((item, idx) => (
-                  <div key={idx}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "rgba(255,255,255,0.9)",
-                        marginBottom: 6,
-                      }}
-                    >
-                      <span>{item.label}</span>
-                      <span style={{ color: item.color }}>{item.value}</span>
-                    </div>
-                    <div
-                      style={{
-                        width: "100%",
-                        height: 6,
-                        background: "rgba(255,255,255,0.1)",
-                        borderRadius: 4,
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: item.value.includes("%") ? item.value : "60%",
-                          height: "100%",
-                          background: item.color,
-                          borderRadius: 4,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
+            {/* Accesos rápidos (única ubicación de acciones) */}
+            <Panel delay={0.35}>
+              <PanelTitle>Accesos Rápidos</PanelTitle>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <QuickAction to="/dashboard/mype/crear" icon={Play} label="Publicar Nuevo Proyecto" bg="#EFF6FF" border="#BFDBFE" color={C.blue} />
+                <QuickAction to="/dashboard/mype/postulantes" icon={Users} label="Evaluar Postulantes" bg="#FFFBEB" border="#FDE68A" color={C.amberText} />
               </div>
-            </div>
-          </motion.div>
+            </Panel>
+
+            {/* Calificaciones pendientes (original preservado) */}
+            <CalificacionesPendientesCard />
+          </div>
         </div>
       </div>
     </MypeLayout>

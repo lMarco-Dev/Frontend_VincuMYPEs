@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useConfirmarPostulacion } from "@/features/proyecto-postulaciones/usePostulaciones";
 import { useQueryClient } from "@tanstack/react-query"; // ✨ Añadido para refresco inmediato
-
+import { ConfirmModal } from "@/shared/components/ConfirmModal";
 export function OfertaAceptadaBanner({ postulacion }) {
   const queryClient = useQueryClient(); // ✨ Instanciamos el cliente de consultas
   const { confirmar, isLoading, error } = useConfirmarPostulacion();
