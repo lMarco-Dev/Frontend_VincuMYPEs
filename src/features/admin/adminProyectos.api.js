@@ -1,7 +1,9 @@
 import { httpClient } from "@/shared/api/httpClient";
 
-export const getProyectosAdmin = async () => {
-  return await httpClient.get("/admin/proyectos");
+export const getProyectosAdmin = async (page = 0, size = 10, sortField = "id", sortDirection = "asc") => {
+  return await httpClient.get("/admin/proyectos", {
+    params: { page, size, sortField, sortDirection }
+  });
 };
 
 export const cederGestionMype = async (proyectoId) => {
@@ -30,4 +32,17 @@ export const cambiarEstadoPostulacionAdmin = async ({
     `/proyectos/${proyectoId}/postulaciones/${postulacionId}/estado`,
     { estado },
   );
+};
+
+export const cancelarProyectoAdmin = async (proyectoId) => {
+  const response = await httpClient.post(`/admin/proyectos/${proyectoId}/cancelar`);
+  return response.data;
+};
+
+// Abrir vacantes (expulsar múltiples estudiantes)
+export const abrirVacantesAdmin = async ({ proyectoId, estudianteIds }) => {
+  const response = await httpClient.post(`/admin/proyectos/${proyectoId}/abrir-vacantes`, {
+    estudianteIds,
+  });
+  return response.data;
 };

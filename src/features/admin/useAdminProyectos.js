@@ -1,3 +1,4 @@
+// src/features/admin/useAdminProyectos.js
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getProyectosAdmin,
@@ -18,16 +19,18 @@ export function useAdminProyectos() {
 
   const mutationCederGestion = useMutation({
     mutationFn: cederGestionMype,
-    onSuccess: () => queryClient.invalidateQueries(["adminProyectos"]),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["adminProyectos"] }),
   });
 
   const mutationAuditarAbandono = useMutation({
     mutationFn: auditarAbandonoEstudiante,
-    onSuccess: () => queryClient.invalidateQueries(["adminProyectos"]),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["adminProyectos"] }),
   });
 
   return {
-    proyectos: queryProyectos.data || [],
+    proyectosData: queryProyectos.data || { content: [], totalPages: 0 },
     isLoading: queryProyectos.isLoading,
     isError: queryProyectos.isError,
     cederGestion: mutationCederGestion.mutate,
@@ -37,7 +40,7 @@ export function useAdminProyectos() {
   };
 }
 
-// ← AGREGAR ESTO: hook separado para postulaciones de un proyecto
+// ✅ EXPORTAR usePostulacionesAdmin AQUÍ MISMO
 export function usePostulacionesAdmin(proyectoId) {
   const queryClient = useQueryClient();
 
@@ -51,8 +54,10 @@ export function usePostulacionesAdmin(proyectoId) {
   const mutation = useMutation({
     mutationFn: cambiarEstadoPostulacionAdmin,
     onSuccess: () => {
-      queryClient.invalidateQueries(["adminPostulaciones", proyectoId]);
-      queryClient.invalidateQueries(["adminProyectos"]);
+      queryClient.invalidateQueries({
+        queryKey: ["adminPostulaciones", proyectoId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["adminProyectos"] });
     },
   });
 

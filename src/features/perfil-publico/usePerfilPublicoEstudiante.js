@@ -16,9 +16,10 @@ export function usePerfilPublicoEstudiante(estudianteId) {
   });
 
   const status = error?.response?.status;
+  const perfilConUsuarioId = data ? { ...data, usuarioId: data.usuarioId || data.usuario?.id } : null;
 
   return {
-    perfil: data ?? null,
+    perfil: perfilConUsuarioId,
     isLoading,
     isError,
     isForbidden: status === 403,

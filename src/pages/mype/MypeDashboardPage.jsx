@@ -5,6 +5,7 @@ import { PROYECTO_ESTADO } from "@/entities/proyecto/proyecto.constants";
 import { Link, useNavigate } from "react-router-dom";
 import { CalificacionesPendientesCard } from "@/features/calificaciones/CalificacionesPendientesCard";
 import { motion } from "framer-motion";
+import CalificacionesPendientesCard from "@/features/calificaciones/CalificacionesPendientesCard";
 import {
   FileText,
   Users,

@@ -31,6 +31,8 @@ export function useEntregables(proyectoId, isEstudiante = false, soloSubidos = f
     mutationFn: ({ entregableId, payload }) => revisarEntregableApi(proyectoId, entregableId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["entregables", proyectoId] });
+      queryClient.invalidateQueries({ queryKey: ["proyecto", proyectoId] });
+      queryClient.invalidateQueries({ queryKey: ["proyectos"] });
     },
   });
 

@@ -5,13 +5,13 @@ import { useState, useEffect, useRef } from "react";
 import {
   User, Mail, Lock, Building2, Briefcase, FileText,
   GraduationCap, BookOpen, BadgeInfo, AlertCircle, Phone,
-  CheckCircle2, ChevronDown, Eye, EyeOff, ArrowRight, ArrowLeft, 
+  CheckCircle2, ChevronDown, Eye, EyeOff, ArrowRight, ArrowLeft,
   Loader2, Search, IdCard, Clock
 } from "lucide-react";
 import { useRegister } from "./useRegister";
 import { useConsultaDni } from "./hooks/useConsultaDni";
 import { useConsultaRuc } from "./hooks/useConsultaRuc";
-import { checkEmailApi, checkCodigoApi } from "./authRegister.api";
+import { checkDniApi, checkRucApi, checkEmailApi, checkCodigoApi, checkTelefonoApi } from "./authRegister.api";
 import { authRecoveryApi } from "@features/auth-recovery/authRecovery.api";
 
 // ── Security ──────────────────────────────────────────────────────────────────
@@ -30,9 +30,8 @@ const PHONE_RE   = /^9\d{8}$/;
 const CODIGO_RE  = /^N00\d{6}$/i;
 const PASS_RE    = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-_#])[A-Za-z\d@$!%*?&\-_#]{8,}$/;
 
-
 const UNIVERSIDADES = [
-  "Universidad Privada del Norte (UPN)" 
+  "Universidad Privada del Norte (UPN)"
 ];
 
 const CARRERAS = [
@@ -54,7 +53,7 @@ const RUBROS = [
   "Otro",
 ];
 
-// ── Field strength indicator for password ─────────────────────────────────────
+// ── Field strength indicator for password (mejorado con barra) ───────────────
 function PasswordStrength({ value = "" }) {
   const checks = [
     { label: "8 caracteres",     ok: value.length >= 8 },
@@ -63,6 +62,15 @@ function PasswordStrength({ value = "" }) {
     { label: "Número",           ok: /\d/.test(value) },
     { label: "Símbolo (@$!...)", ok: /[@$!%*?&\-_#]/.test(value) },
   ];
+
+  const score = checks.filter(c => c.ok).length;
+  const getColor = () => {
+    if (score <= 2) return "#EF4444";
+    if (score <= 3) return "#F59E0B";
+    if (score <= 4) return "#10B981";
+    return "#22C55E";
+  };
+  const width = `${(score / 5) * 100}%`;
 
   if (!value) return null;
 
@@ -74,19 +82,25 @@ function PasswordStrength({ value = "" }) {
       transition={{ duration: 0.25, ease }}
       style={{ marginTop: 10 }}
     >
+      {/* Barra de fortaleza */}
+      <div style={{ height: 4, background: "#E5E7EB", borderRadius: 2, overflow: "hidden", marginBottom: 8 }}>
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          style={{ height: "100%", background: getColor(), borderRadius: 2 }}
+        />
+      </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px" }}>
         {checks.map(c => (
           <span key={c.label} style={{
             fontSize: 11, display: "flex", alignItems: "center", gap: 4,
             color: c.ok ? "#22C55E" : "#9CA3AF",
-            fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif", 
+            fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
             fontWeight: c.ok ? 500 : 400,
             transition: "color 0.3s ease",
           }}>
-            <CheckCircle2 size={11} style={{ 
-              opacity: c.ok ? 1 : 0.4,
-              transition: "opacity 0.3s ease" 
-            }} />
+            <CheckCircle2 size={11} style={{ opacity: c.ok ? 1 : 0.4 }} />
             {c.label}
           </span>
         ))}
@@ -95,7 +109,7 @@ function PasswordStrength({ value = "" }) {
   );
 }
 
-// ── Input field wrapper ───────────────────────────────────────────────────────
+// ── Input field wrapper (sin cambios) ───────────────────────────────────────
 function Field({ label, icon: Icon, error, rightEl, hint, children }) {
   return (
     <div style={{ paddingBottom: error?.message ? 20 : 14 }}>
@@ -156,14 +170,18 @@ function Field({ label, icon: Icon, error, rightEl, hint, children }) {
 
 // ── Shared input/select style ─────────────────────────────────────────────────
 const inputStyle = (hasErr, hasRight = false) => ({
-  width: "100%", height: 48,
+  width: "100%",
+  height: 52, // aumentado de 48 a 52
   background: hasErr ? "#FFF5F5" : "#F9FAFB",
   border: `1.5px solid ${hasErr ? "#FCA5A5" : "#E5E7EB"}`,
-  borderRadius: 10, outline: "none", 
+  borderRadius: 12,
+  outline: "none",
   paddingLeft: 56,
   paddingRight: hasRight ? 48 : 16,
-  fontSize: 14, color: "#111827",
-  fontFamily: "inherit", fontWeight: 400,
+  fontSize: 15,
+  color: "#111827",
+  fontFamily: "inherit",
+  fontWeight: 500,
   transition: "border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease",
   boxSizing: "border-box",
   appearance: "none",
@@ -177,10 +195,11 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
   const TOTAL_STEPS = EMAIL_VERIFICATION_ENABLED ? 4 : 3;
 
   const { register: registerUser, isLoading, error: backendError } = useRegister(tipo);
-const [showBackendError, setShowBackendError] = useState(false);
+  const [showBackendError, setShowBackendError] = useState(false);
   const { buscarDni, isLoading: isLoadingDni, error: dniError, clearError: clearDniError } = useConsultaDni();
   const { buscarRuc, isLoading: isLoadingRuc, error: rucError, clearError: clearRucError } = useConsultaRuc();
-  
+  const [isValidating, setIsValidating] = useState(false);
+
   // ── ESTADOS DEL WIZARD ──
   const [step, setStep] = useState(0);
   const [showPass, setShowPass] = useState(false);
@@ -189,19 +208,19 @@ const [showBackendError, setShowBackendError] = useState(false);
   const [dniData, setDniData] = useState(null);
   const [rucConsultado, setRucConsultado] = useState(false);
   const [rucData, setRucData] = useState(null);
-  
+
   // ── ESTADOS PARA COOLDOWN ──
   const [dniCooldown, setDniCooldown] = useState(false);
   const [dniCooldownTime, setDniCooldownTime] = useState(0);
   const [rucCooldown, setRucCooldown] = useState(false);
   const [rucCooldownTime, setRucCooldownTime] = useState(0);
-    // ── ESTADOS OTP (VERIFICACIÓN) ──
+  // ── ESTADOS OTP (VERIFICACIÓN) ──
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpError, setOtpError] = useState("");
   const [otpSending, setOtpSending] = useState(false);
   const otpRefs = useRef([]);
-  
+
   const dniTimerRef = useRef(null);
   const rucTimerRef = useRef(null);
 
@@ -209,7 +228,7 @@ const [showBackendError, setShowBackendError] = useState(false);
     register, handleSubmit, watch, trigger, clearErrors,
     setValue, setError,
     formState: { errors },
-  } = useForm({ 
+  } = useForm({
     mode: "onChange",
     defaultValues: {
       dni: "", nombres: "", apellidoPaterno: "", apellidoMaterno: "",
@@ -228,21 +247,21 @@ const [showBackendError, setShowBackendError] = useState(false);
   }, []);
 
   useEffect(() => {
-  if (backendError) {
-    setShowBackendError(true);
-  } else {
-    clearErrors();
-    setShowBackendError(false);
-  }
-}, [step, backendError, clearErrors]);
+    if (backendError) {
+      setShowBackendError(true);
+    } else {
+      clearErrors();
+      setShowBackendError(false);
+    }
+  }, [step, backendError, clearErrors]);
 
   const passValue = watch("password", "");
   const dniValue = watch("dni", "");
   const rucValue = watch("ruc", "");
   const formValues = watch();
 
-    // ── LÓGICA DE VALIDACIÓN REACTIVA POR PASO ──
-  const isStep0Valid = esEstudiante 
+  // ── LÓGICA DE VALIDACIÓN REACTIVA POR PASO ──
+  const isStep0Valid = esEstudiante
     ? (formValues.dni?.length === 8 && formValues.nombres && formValues.apellidoPaterno && formValues.apellidoMaterno)
     : (formValues.ruc?.length === 11 && formValues.nombre && formValues.nombreComercial && formValues.direccion);
 
@@ -250,11 +269,11 @@ const [showBackendError, setShowBackendError] = useState(false);
     ? (esEstudiante
         ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
         : (formValues.rubro && formValues.telefono?.length === 9))
-    : (EMAIL_RE.test(formValues.email) && PASS_RE.test(formValues.password) && 
+    : (EMAIL_RE.test(formValues.email) && PASS_RE.test(formValues.password) &&
        (formValues.confirmPassword === formValues.password && formValues.password.length > 0));
 
   const isStep2Valid = EMAIL_VERIFICATION_ENABLED
-    ? (EMAIL_RE.test(formValues.email) && PASS_RE.test(formValues.password) && 
+    ? (EMAIL_RE.test(formValues.email) && PASS_RE.test(formValues.password) &&
        (formValues.confirmPassword === formValues.password && formValues.password.length > 0))
     : (esEstudiante
         ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
@@ -262,9 +281,9 @@ const [showBackendError, setShowBackendError] = useState(false);
 
   const isStep3Valid = true;
 
-  const isCurrentStepValid = step === 0 ? isStep0Valid 
-    : (step === 1 ? isStep1Valid 
-    : (step === 2 ? isStep2Valid 
+  const isCurrentStepValid = step === 0 ? isStep0Valid
+    : (step === 1 ? isStep1Valid
+    : (step === 2 ? isStep2Valid
     : isStep3Valid));
 
   const canSubmit = EMAIL_VERIFICATION_ENABLED
@@ -273,7 +292,8 @@ const [showBackendError, setShowBackendError] = useState(false);
         ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
         : (formValues.rubro && formValues.telefono?.length === 9)));
 
-  const isNextDisabled = !isCurrentStepValid || isLoading;
+  const isNextDisabled = !isCurrentStepValid || isLoading || isValidating;
+
   // ── AVISAR A LA PÁGINA SI HAY CAMBIOS ──
   useEffect(() => {
     const hasData = Object.values(formValues).some(v => typeof v === 'string' && v.trim().length > 0);
@@ -284,9 +304,7 @@ const [showBackendError, setShowBackendError] = useState(false);
   const iniciarCooldownDni = () => {
     setDniCooldown(true);
     setDniCooldownTime(CONSULTA_COOLDOWN / 1000);
-    
     if (dniTimerRef.current) clearInterval(dniTimerRef.current);
-    
     dniTimerRef.current = setInterval(() => {
       setDniCooldownTime(prev => {
         if (prev <= 1) {
@@ -304,9 +322,7 @@ const [showBackendError, setShowBackendError] = useState(false);
   const iniciarCooldownRuc = () => {
     setRucCooldown(true);
     setRucCooldownTime(CONSULTA_COOLDOWN / 1000);
-    
     if (rucTimerRef.current) clearInterval(rucTimerRef.current);
-    
     rucTimerRef.current = setInterval(() => {
       setRucCooldownTime(prev => {
         if (prev <= 1) {
@@ -320,49 +336,42 @@ const [showBackendError, setShowBackendError] = useState(false);
     }, 1000);
   };
 
-const handleConsultarDni = async () => {
-  if (dniValue.length !== 8 || dniCooldown) return;
-  
-  clearDniError();
-  const data = await buscarDni(dniValue);
-  
-  iniciarCooldownDni();
-  
-  if (data) {
-    setDniData(data);
-    setDniConsultado(true);
-    setValue("nombres", data.nombres, { shouldValidate: true });
-    setValue("apellidoPaterno", data.apellidoPaterno, { shouldValidate: true });
-    setValue("apellidoMaterno", data.apellidoMaterno, { shouldValidate: true });
-  } else {
-    setDniConsultado(false);
-    setDniData(null);
-    setValue("nombres", "", { shouldValidate: false });
-    setValue("apellidoPaterno", "", { shouldValidate: false });
-    setValue("apellidoMaterno", "", { shouldValidate: false });
-  }
-};
+  const handleConsultarDni = async () => {
+    if (dniValue.length !== 8 || dniCooldown) return;
+    clearDniError();
+    const data = await buscarDni(dniValue);
+    iniciarCooldownDni();
+    if (data) {
+      setDniData(data);
+      setDniConsultado(true);
+      setValue("nombres", data.nombres, { shouldValidate: true });
+      setValue("apellidoPaterno", data.apellidoPaterno, { shouldValidate: true });
+      setValue("apellidoMaterno", data.apellidoMaterno, { shouldValidate: true });
+    } else {
+      setDniConsultado(false);
+      setDniData(null);
+      setValue("nombres", "", { shouldValidate: false });
+      setValue("apellidoPaterno", "", { shouldValidate: false });
+      setValue("apellidoMaterno", "", { shouldValidate: false });
+    }
+  };
 
-// ── FUNCIÓN PARA CONSULTAR RUC ──
-const handleConsultarRuc = async () => {
-  if (rucValue.length !== 11 || rucCooldown) return;
-  
-  clearRucError();
-  const data = await buscarRuc(rucValue);
-  
-  iniciarCooldownRuc();
-  
-  if (data) {
-    setRucData(data);
-    setRucConsultado(true);
-    setValue("nombre", data.razonSocial, { shouldValidate: true });
-    setValue("nombreComercial", data.razonSocial, { shouldValidate: false });
-    setValue("direccion", data.direccion, { shouldValidate: true });
-  } else {
-    setRucConsultado(false);
-    setRucData(null);
-  }
-};
+  const handleConsultarRuc = async () => {
+    if (rucValue.length !== 11 || rucCooldown) return;
+    clearRucError();
+    const data = await buscarRuc(rucValue);
+    iniciarCooldownRuc();
+    if (data) {
+      setRucData(data);
+      setRucConsultado(true);
+      setValue("nombre", data.razonSocial, { shouldValidate: true });
+      setValue("nombreComercial", data.razonSocial, { shouldValidate: false });
+      setValue("direccion", data.direccion, { shouldValidate: true });
+    } else {
+      setRucConsultado(false);
+      setRucData(null);
+    }
+  };
 
   // ── Limpiar estado si se modifica manualmente el DNI ──
   useEffect(() => {
@@ -386,30 +395,50 @@ const handleConsultarRuc = async () => {
     }
   }, [rucValue, rucConsultado, setValue]);
 
-    const handleNext = async () => {
-    const maxStep = TOTAL_STEPS - 1;
-    if (step >= maxStep) return;
+  const handleNext = async () => {
+  const maxStep = TOTAL_STEPS - 1;
+  if (step >= maxStep) return;
 
-    try {
-      if (EMAIL_VERIFICATION_ENABLED) {
-        if (step === 2) {
-          const { data: emailExists } = await checkEmailApi(watch("email"));
-          if (emailExists) {
-            setError("email", { message: "Este correo ya está registrado" });
-            return;
-          }
-          // Enviar OTP
-          await authRecoveryApi.sendVerificationOtp(watch("email"));
+  setIsValidating(true);
+  try {
+    // 🔹 Paso 0: Identidad - Validar DNI (estudiante) o RUC (mype)
+    if (step === 0) {
+      if (esEstudiante) {
+        const dni = watch("dni");
+        if (!dni || dni.length !== 8) {
+          setError("dni", { message: "El DNI debe tener 8 dígitos" });
+          return;
+        }
+        // Validar unicidad del DNI
+        const { data: dniExists } = await checkDniApi(dni);
+        if (dniExists) {
+          setError("dni", { message: "Este DNI ya está registrado" });
+          return;
         }
       } else {
-        if (step === 1) {
-          const { data: emailExists } = await checkEmailApi(watch("email"));
-          if (emailExists) {
-            setError("email", { message: "Este correo ya está registrado" });
-            return;
-          }
+        const ruc = watch("ruc");
+        if (!ruc || ruc.length !== 11) {
+          setError("ruc", { message: "El RUC debe tener 11 dígitos" });
+          return;
         }
-        if (step === 2 && esEstudiante) {
+        // Validar unicidad del RUC
+        const { data: rucExists } = await checkRucApi(ruc);
+        if (rucExists) {
+          setError("ruc", { message: "Este RUC ya está registrado" });
+          return;
+        }
+      }
+    }
+
+    // Resto de validaciones (teléfono, email, código, etc.) - ya las tienes
+    if (EMAIL_VERIFICATION_ENABLED) {
+      if (step === 1) {
+        const { data: telefonoExists } = await checkTelefonoApi(watch("telefono"));
+        if (telefonoExists) {
+          setError("telefono", { message: "Este número de teléfono ya está registrado" });
+          return;
+        }
+        if (esEstudiante) {
           const { data: codExists } = await checkCodigoApi(watch("codigoEstudiante"));
           if (codExists) {
             setError("codigoEstudiante", { message: "Este código ya está registrado" });
@@ -417,25 +446,62 @@ const handleConsultarRuc = async () => {
           }
         }
       }
-    } catch (err) {
-      console.error("Error validando en backend:", err);
-      return;
+      if (step === 2) {
+        const { data: emailExists } = await checkEmailApi(watch("email"));
+        if (emailExists) {
+          setError("email", { message: "Este correo ya está registrado" });
+          return;
+        }
+        await authRecoveryApi.sendVerificationOtp(watch("email"));
+      }
+    } else {
+      if (step === 1) {
+        const { data: emailExists } = await checkEmailApi(watch("email"));
+        if (emailExists) {
+          setError("email", { message: "Este correo ya está registrado" });
+          return;
+        }
+      }
+      if (step === 2 && esEstudiante) {
+        const { data: codExists } = await checkCodigoApi(watch("codigoEstudiante"));
+        if (codExists) {
+          setError("codigoEstudiante", { message: "Este código ya está registrado" });
+          return;
+        }
+        const { data: telefonoExists } = await checkTelefonoApi(watch("telefono"));
+        if (telefonoExists) {
+          setError("telefono", { message: "Este número de teléfono ya está registrado" });
+          return;
+        }
+      } else if (step === 2 && !esEstudiante) {
+        const { data: telefonoExists } = await checkTelefonoApi(watch("telefono"));
+        if (telefonoExists) {
+          setError("telefono", { message: "Este número de teléfono ya está registrado" });
+          return;
+        }
+      }
     }
+  } catch (err) {
+    console.error("Error en validación asíncrona:", err);
+  } finally {
+    setIsValidating(false);
+  }
 
-    const fieldsToValidate = step === 0 
-      ? (esEstudiante ? ["dni", "nombres"] : ["ruc", "nombre"]) 
-      : ["email", "password"];
-    const isStepValid = await trigger(fieldsToValidate);
+  // Luego, validar campos obligatorios con react-hook-form
+  const fieldsToValidate = step === 0
+    ? (esEstudiante ? ["dni", "nombres"] : ["ruc", "nombre"])
+    : ["email", "password"];
+  const isStepValid = await trigger(fieldsToValidate);
 
-    if (isStepValid) {
-      setStep(s => s + 1);
-      setTimeout(() => clearErrors(), 10);
-    }
-  };
+  if (isStepValid) {
+    setStep(s => s + 1);
+    setTimeout(() => clearErrors(), 10);
+  }
+};
 
   const checkKeyDown = (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault(); 
+      e.preventDefault();
       if (step < TOTAL_STEPS - 1) handleNext();
     }
   };
@@ -450,11 +516,11 @@ const handleConsultarRuc = async () => {
       handleNext();
       return;
     }
-    
+
     const clean = {};
     Object.keys(data).forEach(k => { clean[k] = stripXSS(String(data[k] || "")).trim(); });
     delete clean.confirmPassword;
-    
+
     if (esEstudiante) {
       clean.nombre = `${clean.nombres} ${clean.apellidoPaterno} ${clean.apellidoMaterno}`.trim();
       delete clean.nombres;
@@ -469,19 +535,23 @@ const handleConsultarRuc = async () => {
 
         if (msgLower.includes("dni")) {
           setError("dni", { type: "server", message: errorMsg });
-          setStep(0); 
-        } 
+          setStep(0);
+        }
         else if (msgLower.includes("ruc")) {
           setError("ruc", { type: "server", message: errorMsg });
           setStep(0);
-        } 
+        }
         else if (msgLower.includes("correo") || msgLower.includes("email")) {
           setError("email", { type: "server", message: errorMsg });
           setStep(1);
-        } 
+        }
         else if (msgLower.includes("código") || msgLower.includes("codigo")) {
           setError("codigoEstudiante", { type: "server", message: errorMsg });
-          setStep(2);
+          setStep(EMAIL_VERIFICATION_ENABLED ? 1 : 2);
+        }
+        else if (msgLower.includes("teléfono") || msgLower.includes("telefono")) {
+          setError("telefono", { type: "server", message: errorMsg });
+          setStep(EMAIL_VERIFICATION_ENABLED ? 1 : 2);
         }
       }
     });
@@ -501,16 +571,16 @@ const handleConsultarRuc = async () => {
   );
 
   const onChangeNombre = (e) => {
-  e.target.value = e.target.value
-    .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "")
-    .toUpperCase();
-};
+    e.target.value = e.target.value
+      .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "")
+      .toUpperCase();
+  };
 
-const onChangeApellido = (e) => {
-  e.target.value = e.target.value
-    .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/g, "")
-    .toUpperCase();
-};
+  const onChangeApellido = (e) => {
+    e.target.value = e.target.value
+      .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]/g, "")
+      .toUpperCase();
+  };
 
   const handleOtpChange = (index, value) => {
     if (!/^\d*$/.test(value)) return;
@@ -569,17 +639,16 @@ const onChangeApellido = (e) => {
 
   const isDniSearchBlocked = dniCooldown || isLoadingDni;
   const isRucSearchBlocked = rucCooldown || isLoadingRuc;
-  const nombresBloqueados = false;
-  const empresaBloqueados = false;
 
   return (
     <>
       <style>{`
         .rf-input:focus {
-          border-color: ${colorTema} !important;
+          border-color: transparent !important;
           box-shadow: 0 0 0 3px ${colorTema}20 !important;
           background: white !important;
           outline: none !important;
+          border-image: linear-gradient(135deg, ${colorTema}, ${colorTema === "#1B6FE8" ? "#0E54C4" : "#DC4A00"}) 1 !important;
         }
         .rf-input.err:focus {
           border-color: #F87171 !important;
@@ -626,13 +695,13 @@ const onChangeApellido = (e) => {
         </div>
       </div>
 
-      <form 
-        onKeyDown={checkKeyDown} 
-        onSubmit={handleSubmit(onSubmit)} 
+      <form
+        onKeyDown={checkKeyDown}
+        onSubmit={handleSubmit(onSubmit)}
         style={{ display: "flex", flexDirection: "column", gap: 18, minHeight: 280 }}
       >
         <AnimatePresence mode="wait">
-          {/* ── PASO 1: CONTACTO ─────────────────────────────────────────── */}
+          {/* ── PASO 1: CONTACTO / IDENTIDAD ── */}
           {step === 0 && (
             <motion.div key="step0" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               
@@ -652,22 +721,14 @@ const onChangeApellido = (e) => {
                           inputMode="numeric" 
                           maxLength={8} 
                           placeholder="12345678"
-                  
                           className={`rf-input${errors.dni || dniError ? " err" : ""} ${dniConsultado ? " dni-input-success" : ""}`}
-                          style={{
-                              ...inputStyle(!!errors.dni || !!dniError),
-                              paddingRight: 16
-                            }}
+                          style={{ ...inputStyle(!!errors.dni || !!dniError), paddingRight: 16 }}
                           {...register("dni", {
                             required: "El DNI es obligatorio",
                             minLength: { value: 8, message: "El DNI debe tener 8 dígitos" },
                             maxLength: { value: 8, message: "El DNI debe tener 8 dígitos" },
-                            validate: {
-                              soloNumeros: (v) => /^\d{8}$/.test(v) || "Solo se permiten números",
-                            },
-                            onChange: (e) => { 
-                              e.target.value = e.target.value.replace(/\D/g, "").slice(0, 8);
-                            },
+                            validate: { soloNumeros: (v) => /^\d{8}$/.test(v) || "Solo se permiten números" },
+                            onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 8); },
                           })}
                         />
                       </div>
@@ -722,11 +783,7 @@ const onChangeApellido = (e) => {
                   </Field>
 
                   <div style={{ marginTop: dniConsultado ? 12 : 0 }}>
-                    <Field 
-                      label="Nombres" 
-                      icon={User} 
-                      error={errors.nombres}
-                    >
+                    <Field label="Nombres" icon={User} error={errors.nombres}>
                       <input
                         type="text" maxLength={40}
                         className={`rf-input${errors.nombres ? " err" : ""}`}
@@ -742,17 +799,9 @@ const onChangeApellido = (e) => {
                           minLength: { value: 2, message: "Mínimo 2 caracteres" },
                           maxLength: { value: 40, message: "Máximo 40 caracteres" },
                           validate: {
-                            soloLetras: (v) =>
-                              /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(v) || "Solo se permiten letras",
-                            sinEspaciosExcesivos: (v) =>
-                              (v.trim().split(/\s+/).length <= 4) || "Máximo 4 nombres",
-                            sinEspaciosBordes: (v) =>
-                              v.trim() === v || "No debe empezar ni terminar con espacios",
-                            nombreReal: (v) => {
-                              const palabras = v.trim().split(/\s+/);
-                              const patronValido = /^[bcdfghjklmnñpqrstvwxyz]*[aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2}([aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2})*[aeiouáéíóúü]?$/i;
-                              return palabras.every(p => p.length >= 2 && patronValido.test(p)) || "Ingresa un nombre real";
-                            },
+                            soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(v) || "Solo se permiten letras y espacios",
+                            sinEspaciosExcesivos: (v) => (v.trim().split(/\s+/).length <= 4) || "Máximo 4 nombres",
+                            sinEspaciosBordes: (v) => v.trim() === v || "No debe empezar ni terminar con espacios",
                           },
                           onChange: onChangeNombre,
                         })}
@@ -776,16 +825,7 @@ const onChangeApellido = (e) => {
                           required: "El apellido paterno es obligatorio",
                           minLength: { value: 2, message: "Mínimo 2 caracteres" },
                           maxLength: { value: 40, message: "Máximo 40 caracteres" },
-                          validate: {
-                            soloLetras: (v) =>
-                              /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/.test(v) || "Solo letras, sin espacios",
-                            sinEspacios: (v) =>
-                              !/\s/.test(v) || "El apellido no debe contener espacios",
-                            apellidoReal: (v) => {
-                              const patron = /^[bcdfghjklmnñpqrstvwxyz]*[aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2}([aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2})*[aeiouáéíóúü]?$/i;
-                              return (v.length >= 2 && patron.test(v)) || "Ingresa un apellido real";
-                            },
-                          },
+                          validate: { soloLetrasEspacios: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]+$/.test(v) || "Solo letras, espacios y guiones" },
                           onChange: onChangeApellido,
                         })}
                       />
@@ -806,16 +846,7 @@ const onChangeApellido = (e) => {
                           required: "El apellido materno es obligatorio",
                           minLength: { value: 2, message: "Mínimo 2 caracteres" },
                           maxLength: { value: 40, message: "Máximo 40 caracteres" },
-                          validate: {
-                            soloLetras: (v) =>
-                              /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/.test(v) || "Solo letras, sin espacios",
-                            sinEspacios: (v) =>
-                              !/\s/.test(v) || "El apellido no debe contener espacios",
-                            apellidoReal: (v) => {
-                              const patron = /^[bcdfghjklmnñpqrstvwxyz]*[aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2}([aeiouáéíóúü][bcdfghjklmnñpqrstvwxyz]{0,2})*[aeiouáéíóúü]?$/i;
-                              return (v.length >= 2 && patron.test(v)) || "Ingresa un apellido real";
-                            },
-                          },
+                          validate: { soloLetrasEspacios: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s-]+$/.test(v) || "Solo letras, espacios y guiones" },
                           onChange: onChangeApellido,
                         })}
                       />
@@ -824,165 +855,165 @@ const onChangeApellido = (e) => {
                 </>
               ) : (
                 <>
-                {/* CAMPO RUC CON BOTÓN DE CONSULTA */}
-                <Field
-                  label="RUC"
-                  icon={FileText}
-                  error={errors.ruc || (rucError ? { message: rucError } : null)}
-                  hint={rucConsultado ? "" : "Ingresa tu RUC y haz clic en buscar"}
-                >
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <div style={{ position: "relative", flex: 1 }}>
-                      <input
-                        type="text" inputMode="numeric" maxLength={11} placeholder="20123456789"
-                        className={`rf-input${errors.ruc || rucError ? " err" : ""} ${rucConsultado ? " dni-input-success" : ""}`}
-                        style={{ ...inputStyle(!!errors.ruc || !!rucError), paddingRight: 16 }}
-                        {...register("ruc", {
-                          required: "El RUC es obligatorio",
-                          minLength: { value: 11, message: "El RUC debe tener 11 dígitos" },
-                          maxLength: { value: 11, message: "El RUC debe tener 11 dígitos" },
-                          validate: { formato: (v) => RUC_RE.test(v) || "Debe empezar con 10 o 20" },
-                          onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 11); },
-                        })}
-                      />
+                  {/* CAMPO RUC CON BOTÓN DE CONSULTA */}
+                  <Field
+                    label="RUC"
+                    icon={FileText}
+                    error={errors.ruc || (rucError ? { message: rucError } : null)}
+                    hint={rucConsultado ? "" : "Ingresa tu RUC y haz clic en buscar"}
+                  >
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <div style={{ position: "relative", flex: 1 }}>
+                        <input
+                          type="text" inputMode="numeric" maxLength={11} placeholder="20123456789"
+                          className={`rf-input${errors.ruc || rucError ? " err" : ""} ${rucConsultado ? " dni-input-success" : ""}`}
+                          style={{ ...inputStyle(!!errors.ruc || !!rucError), paddingRight: 16 }}
+                          {...register("ruc", {
+                            required: "El RUC es obligatorio",
+                            minLength: { value: 11, message: "El RUC debe tener 11 dígitos" },
+                            maxLength: { value: 11, message: "El RUC debe tener 11 dígitos" },
+                            validate: { formato: (v) => RUC_RE.test(v) || "Debe empezar con 10 o 20" },
+                            onChange: (e) => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 11); },
+                          })}
+                        />
+                      </div>
+                      <button
+                        type="button" onClick={handleConsultarRuc}
+                        disabled={rucValue.length !== 11 || isRucSearchBlocked}
+                        style={{
+                          width: 48, height: 48, borderRadius: 10,
+                          border: `1.5px solid ${rucConsultado ? "#86EFAC" : rucCooldown ? "#FCD34D" : "#E5E7EB"}`,
+                          background: rucConsultado ? "#F0FDF4" : rucCooldown ? "#FFFBEB" : "white",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          cursor: (rucValue.length === 11 && !isRucSearchBlocked) ? "pointer" : "not-allowed",
+                          opacity: (rucValue.length === 11 && !isRucSearchBlocked) ? 1 : 0.5,
+                          transition: "all 0.2s ease",
+                          color: rucConsultado ? "#22C55E" : rucCooldown ? "#D97706" : "#9CA3AF",
+                          position: "relative",
+                        }}
+                        className="dni-button"
+                        title={rucCooldown ? `Espera ${rucCooldownTime}s` : rucConsultado ? "RUC ya consultado" : "Consultar RUC"}
+                      >
+                        {isLoadingRuc ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : rucCooldown ? (
+                          <>
+                            <Clock size={18} />
+                            <span style={{
+                              position: "absolute", top: -8, right: -8,
+                              background: "#F97316", color: "white", borderRadius: "50%",
+                              width: 20, height: 20, fontSize: 10, fontWeight: 700,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              fontFamily: "inherit",
+                            }}>
+                              {rucCooldownTime}
+                            </span>
+                          </>
+                        ) : rucConsultado ? (
+                          <CheckCircle2 size={18} />
+                        ) : (
+                          <Search size={18} />
+                        )}
+                      </button>
                     </div>
-                    <button
-                      type="button" onClick={handleConsultarRuc}
-                      disabled={rucValue.length !== 11 || isRucSearchBlocked}
+                    {rucConsultado && rucData && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+                        style={{ fontSize: 12, color: "#22C55E", marginTop: 6, display: "flex", alignItems: "center", gap: 4, fontWeight: 500, fontFamily: "inherit" }}
+                      >
+                        <CheckCircle2 size={12} /> RUC encontrado y verificado
+                      </motion.p>
+                    )}
+                  </Field>
+
+                  {/* Razón Social - editable, precargado por RUC */}
+                  <Field label="Razón Social" icon={Building2} error={errors.nombre}>
+                    <input
+                      type="text" maxLength={100}
+                      className={`rf-input${errors.nombre ? " err" : ""}`}
                       style={{
-                        width: 48, height: 48, borderRadius: 10,
-                        border: `1.5px solid ${rucConsultado ? "#86EFAC" : rucCooldown ? "#FCD34D" : "#E5E7EB"}`,
-                        background: rucConsultado ? "#F0FDF4" : rucCooldown ? "#FFFBEB" : "white",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        cursor: (rucValue.length === 11 && !isRucSearchBlocked) ? "pointer" : "not-allowed",
-                        opacity: (rucValue.length === 11 && !isRucSearchBlocked) ? 1 : 0.5,
-                        transition: "all 0.2s ease",
-                        color: rucConsultado ? "#22C55E" : rucCooldown ? "#D97706" : "#9CA3AF",
-                        position: "relative",
+                        ...inputStyle(!!errors.nombre),
+                        background: rucConsultado ? "#F0FDF4" : "#F9FAFB",
+                        borderColor: rucConsultado ? "#86EFAC" : "#E5E7EB",
+                        color: "#111827",
                       }}
-                      className="dni-button"
-                      title={rucCooldown ? `Espera ${rucCooldownTime}s` : rucConsultado ? "RUC ya consultado" : "Consultar RUC"}
-                    >
-                      {isLoadingRuc ? (
-                        <Loader2 size={18} className="animate-spin" />
-                      ) : rucCooldown ? (
-                        <>
-                          <Clock size={18} />
-                          <span style={{
-                            position: "absolute", top: -8, right: -8,
-                            background: "#F97316", color: "white", borderRadius: "50%",
-                            width: 20, height: 20, fontSize: 10, fontWeight: 700,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontFamily: "inherit",
-                          }}>
-                            {rucCooldownTime}
-                          </span>
-                        </>
-                      ) : rucConsultado ? (
-                        <CheckCircle2 size={18} />
-                      ) : (
-                        <Search size={18} />
-                      )}
-                    </button>
-                  </div>
-                  {rucConsultado && rucData && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-                      style={{ fontSize: 12, color: "#22C55E", marginTop: 6, display: "flex", alignItems: "center", gap: 4, fontWeight: 500, fontFamily: "inherit" }}
-                    >
-                      <CheckCircle2 size={12} /> RUC encontrado y verificado
-                    </motion.p>
-                  )}
-                </Field>
+                      placeholder="Autocompletado por RUC o escribe aquí"
+                      {...register("nombre", {
+                        required: "La razón social es obligatoria",
+                        minLength: { value: 2, message: "Mínimo 2 caracteres" },
+                        maxLength: { value: 100, message: "Máximo 100 caracteres" },
+                        validate: {
+                          soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,\-]+$/.test(v.trim()) || "Solo letras, puntos y comas",
+                          sinEspaciosBordes: (v) => v.trim() === v || "Sin espacios al inicio o final",
+                        },
+                        onChange: (e) => {
+                          e.target.value = e.target.value
+                            .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,\-]/g, "")
+                            .toUpperCase();
+                        },
+                      })}
+                    />
+                  </Field>
 
-                {/* Razón Social - editable, precargado por RUC */}
-                <Field label="Razón Social" icon={Building2} error={errors.nombre}>
-                  <input
-                    type="text" maxLength={100}
-                    className={`rf-input${errors.nombre ? " err" : ""}`}
-                    style={{
-                      ...inputStyle(!!errors.nombre),
-                      background: rucConsultado ? "#F0FDF4" : "#F9FAFB",
-                      borderColor: rucConsultado ? "#86EFAC" : "#E5E7EB",
-                      color: "#111827",
-                    }}
-                    placeholder="Autocompletado por RUC o escribe aquí"
-                    {...register("nombre", {
-                      required: "La razón social es obligatoria",
-                      minLength: { value: 2, message: "Mínimo 2 caracteres" },
-                      maxLength: { value: 100, message: "Máximo 100 caracteres" },
-                      validate: {
-                        soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,\-]+$/.test(v.trim()) || "Solo letras, puntos y comas",
-                        sinEspaciosBordes: (v) => v.trim() === v || "Sin espacios al inicio o final",
-                      },
-                      onChange: (e) => {
-                        e.target.value = e.target.value
-                          .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,\-]/g, "")
-                          .toUpperCase();
-                      },
-                    })}
-                  />
-                </Field>
+                  {/* Nombre Comercial - editable, ingreso manual */}
+                  <Field label="Nombre Comercial" icon={Building2} error={errors.nombreComercial}
+                    hint="Nombre que verán los usuarios en la plataforma">
+                    <input
+                      type="text" maxLength={50}
+                      className={`rf-input${errors.nombreComercial ? " err" : ""}`}
+                      style={inputStyle(!!errors.nombreComercial)}
+                      placeholder="Ej: Restaurante El Sabor"
+                      {...register("nombreComercial", {
+                        required: "El nombre comercial es obligatorio",
+                        minLength: { value: 2, message: "Mínimo 2 caracteres" },
+                        maxLength: { value: 50, message: "Máximo 50 caracteres" },
+                        validate: {
+                          soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,\-]+$/.test(v.trim()) || "Solo letras, puntos y comas",
+                          sinEspaciosBordes: (v) => v.trim() === v || "Sin espacios al inicio o final",
+                        },
+                        onChange: (e) => {
+                          e.target.value = e.target.value
+                            .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,\-]/g, "")
+                            .toUpperCase();
+                        },
+                      })}
+                    />
+                  </Field>
 
-                {/* Nombre Comercial - editable, ingreso manual */}
-                <Field label="Nombre Comercial" icon={Building2} error={errors.nombreComercial}
-                  hint="Nombre que verán los usuarios en la plataforma">
-                  <input
-                    type="text" maxLength={50}
-                    className={`rf-input${errors.nombreComercial ? " err" : ""}`}
-                    style={inputStyle(!!errors.nombreComercial)}
-                    placeholder="Ej: Restaurante El Sabor"
-                    {...register("nombreComercial", {
-                      required: "El nombre comercial es obligatorio",
-                      minLength: { value: 2, message: "Mínimo 2 caracteres" },
-                      maxLength: { value: 50, message: "Máximo 50 caracteres" },
-                      validate: {
-                        soloLetras: (v) => /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,\-]+$/.test(v.trim()) || "Solo letras, puntos y comas",
-                        sinEspaciosBordes: (v) => v.trim() === v || "Sin espacios al inicio o final",
-                      },
-                      onChange: (e) => {
-                        e.target.value = e.target.value
-                          .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s.,\-]/g, "")
-                          .toUpperCase();
-                      },
-                    })}
-                  />
-                </Field>
-
-                {/* Dirección - editable, precargado por RUC */}
-                <Field label="Dirección" icon={Building2} error={errors.direccion}>
-                  <input
-                    type="text" maxLength={100}
-                    className={`rf-input${errors.direccion ? " err" : ""}`}
-                    style={{
-                      ...inputStyle(!!errors.direccion),
-                      background: rucConsultado ? "#F0FDF4" : "#F9FAFB",
-                      borderColor: rucConsultado ? "#86EFAC" : "#E5E7EB",
-                      color: "#111827",
-                    }}
-                    placeholder="Autocompletado por RUC o escribe aquí"
-                    {...register("direccion", {
-                      required: "La dirección es obligatoria",
-                      minLength: { value: 5, message: "Mínimo 5 caracteres" },
-                      maxLength: { value: 100, message: "Máximo 100 caracteres" },
-                      validate: {
-                        soloLetrasYNumeros: (v) => /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.,\-]+$/.test(v.trim()) || "Solo letras, números, puntos y comas",
-                        sinEspaciosBordes: (v) => v.trim() === v || "Sin espacios al inicio o final",
-                      },
-                      onChange: (e) => {
-                        e.target.value = e.target.value
-                          .replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.,\-]/g, "")
-                          .toUpperCase();
-                      },
-                    })}
-                  />
-                </Field>
-              </>
+                  {/* Dirección - editable, precargado por RUC */}
+                  <Field label="Dirección" icon={Building2} error={errors.direccion}>
+                    <input
+                      type="text" maxLength={100}
+                      className={`rf-input${errors.direccion ? " err" : ""}`}
+                      style={{
+                        ...inputStyle(!!errors.direccion),
+                        background: rucConsultado ? "#F0FDF4" : "#F9FAFB",
+                        borderColor: rucConsultado ? "#86EFAC" : "#E5E7EB",
+                        color: "#111827",
+                      }}
+                      placeholder="Autocompletado por RUC o escribe aquí"
+                      {...register("direccion", {
+                        required: "La dirección es obligatoria",
+                        minLength: { value: 5, message: "Mínimo 5 caracteres" },
+                        maxLength: { value: 100, message: "Máximo 100 caracteres" },
+                        validate: {
+                          soloLetrasYNumeros: (v) => /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.,\-]+$/.test(v.trim()) || "Solo letras, números, puntos y comas",
+                          sinEspaciosBordes: (v) => v.trim() === v || "Sin espacios al inicio o final",
+                        },
+                        onChange: (e) => {
+                          e.target.value = e.target.value
+                            .replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s.,\-]/g, "")
+                            .toUpperCase();
+                        },
+                      })}
+                    />
+                  </Field>
+                </>
               )}
             </motion.div>
           )}
 
-                    {/* ── PASO 2: PERFIL (si verification) / SEGURIDAD (si no) ──────── */}
+          {/* ── PASO 2: PERFIL (si verification) / SEGURIDAD (si no) ── */}
           {step === 1 && EMAIL_VERIFICATION_ENABLED && (
             <motion.div key="step1-ver" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               {esEstudiante ? (
@@ -1172,22 +1203,22 @@ const onChangeApellido = (e) => {
           )}
         </AnimatePresence>
 
-                {/* Backend error display - solo si no hay errores de campo específicos */}
+        {/* Backend error display - solo si no hay errores de campo específicos */}
         <AnimatePresence>
-          {showBackendError && backendError && !errors.dni && !errors.ruc && !errors.email && !errors.codigoEstudiante && (
+          {showBackendError && backendError && !errors.dni && !errors.ruc && !errors.email && !errors.codigoEstudiante && !errors.telefono && (
             <motion.div
-              initial={{ opacity: 0, y: -8, height: 0 }} 
-              animate={{ opacity: 1, y: 0, height: "auto" }} 
-              exit={{ opacity: 0, height: 0 }} 
+              initial={{ opacity: 0, y: -8, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.25, ease }}
-              style={{ 
-                display: "flex", alignItems: "center", gap: 10, 
-                padding: "12px 16px", 
-                background: "#FFF5F5", 
-                borderLeft: "4px solid #F87171", 
-                borderRadius: "0 8px 8px 0", 
-                fontSize: 13, color: "#EF4444", 
-                fontWeight: 500, fontFamily: "inherit" 
+              style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "12px 16px",
+                background: "#FFF5F5",
+                borderLeft: "4px solid #F87171",
+                borderRadius: "0 8px 8px 0",
+                fontSize: 13, color: "#EF4444",
+                fontWeight: 500, fontFamily: "inherit"
               }}
             >
               <AlertCircle size={15} style={{ flexShrink: 0 }} /> {backendError}
@@ -1236,40 +1267,81 @@ const onChangeApellido = (e) => {
               <ArrowLeft size={20} />
             </button>
           )}
-          
+
           {step < TOTAL_STEPS - 1 ? (
-            <button 
-              type="button" 
-              onClick={handleNext} 
-              disabled={isNextDisabled} // ✨ AQUÍ ESTÁ LA MAGIA
-              style={{ 
-                flex: 1, height: 50, borderRadius: 10, border: "none", color: "white", 
-                background: isNextDisabled ? "#D1D5DB" : (esEstudiante ? "linear-gradient(135deg,#1B6FE8,#0E54C4)" : "linear-gradient(135deg,#F97316,#DC4A00)"), 
-                cursor: isNextDisabled ? "not-allowed" : "pointer",
-                fontFamily: "inherit", fontWeight: 600, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, 
-                transition: "transform 0.2s" 
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={isNextDisabled}
+              style={{
+                flex: 1,
+                height: 52,
+                borderRadius: 12,
+                border: "none",
+                color: "white",
+                background: (isLoading || isValidating || !isCurrentStepValid)
+                  ? "#D1D5DB"
+                  : `linear-gradient(135deg, ${colorTema} 0%, ${colorTema === "#1B6FE8" ? "#0E54C4" : "#DC4A00"} 100%)`,
+                cursor: (isLoading || isValidating || !isCurrentStepValid) ? "not-allowed" : "pointer",
+                fontFamily: "inherit",
+                fontWeight: 600,
+                fontSize: 15,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                transition: "transform 0.2s, box-shadow 0.2s, opacity 0.2s",
+                boxShadow: (isLoading || isValidating || !isCurrentStepValid) ? "none" : `0 4px 12px ${colorTema}40`,
               }}
-              onMouseEnter={e => { if(!isNextDisabled) e.currentTarget.style.transform = "translateY(-2px)" }}
-              onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
+              onMouseEnter={e => {
+                if (!isLoading && !isValidating && isCurrentStepValid) {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = `0 8px 20px ${colorTema}60`;
+                }
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = (isLoading || isValidating || !isCurrentStepValid) ? "none" : `0 4px 12px ${colorTema}40`;
+              }}
             >
-              Continuar <ArrowRight size={18} />
+              {isLoading ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
+              {isLoading ? "Procesando..." : "Continuar"}
             </button>
           ) : (
-            <button 
-              type="submit" 
-              disabled={isLoading || !canSubmit} 
-              style={{ 
-                flex: 1, height: 50, borderRadius: 10, border: "none", color: "white", 
-                background: (!canSubmit || isLoading) ? "#D1D5DB" : (esEstudiante ? "linear-gradient(135deg,#1B6FE8,#0E54C4)" : "linear-gradient(135deg,#F97316,#DC4A00)"), 
+            <button
+              type="submit"
+              disabled={isLoading || !canSubmit}
+              style={{
+                flex: 1,
+                height: 52,
+                borderRadius: 12,
+                border: "none",
+                color: "white",
+                background: (!canSubmit || isLoading) ? "#D1D5DB" : (esEstudiante ? "linear-gradient(135deg,#1B6FE8,#0E54C4)" : "linear-gradient(135deg,#F97316,#DC4A00)"),
                 cursor: (!canSubmit || isLoading) ? "not-allowed" : "pointer",
-                fontFamily: "inherit", fontWeight: 600, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, 
-                transition: "all 0.2s", 
-                opacity: (isLoading || !canSubmit) ? 0.5 : 1 
+                fontFamily: "inherit",
+                fontWeight: 600,
+                fontSize: 15,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                transition: "all 0.2s",
+                boxShadow: (!canSubmit || isLoading) ? "none" : `0 4px 12px ${esEstudiante ? "#1B6FE8" : "#F97316"}40`,
               }}
-              onMouseEnter={e => { if(!isLoading && canSubmit) e.currentTarget.style.transform = "translateY(-2px)" }}
-              onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
+              onMouseEnter={e => {
+                if (!isLoading && canSubmit) {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = `0 8px 20px ${esEstudiante ? "#1B6FE8" : "#F97316"}60`;
+                }
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = (!canSubmit || isLoading) ? "none" : `0 4px 12px ${esEstudiante ? "#1B6FE8" : "#F97316"}40`;
+              }}
             >
-              {isLoading ? <><Loader2 size={18} className="animate-spin" /> Registrando...</> : <>Crear cuenta</>}
+              {isLoading ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
+              {isLoading ? "Registrando..." : "Crear cuenta"}
             </button>
           )}
         </div>

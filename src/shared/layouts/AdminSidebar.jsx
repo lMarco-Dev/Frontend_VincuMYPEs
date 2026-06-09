@@ -1,68 +1,308 @@
-import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, Users, LogOut, ShieldCheck, History, BarChart, Settings } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
-import { Logo } from '../ui/Logo';
+// src/shared/layouts/AdminSidebar.jsx
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
+import { queryClient } from "@/shared/api/queryClient";
+import { Logo } from "@/shared/ui/Logo";
+import {
+  LayoutDashboard,
+  FolderKanban,
+  Users,
+  History,
+  BarChart,
+  Settings,
+  Award,
+  LogOut,
+  ShieldCheck,
+  UserCheck,
+  Star,
+} from "lucide-react";
+import { clsx } from "clsx";
 
-const AdminSidebar = () => {
+const FONT = "'Angro Std', 'Outfit', sans-serif";
+
+// ✅ NAVEGACIÓN CORREGIDA - SIN DUPLICADOS
+const NAV = [
+  {
+    label: "Principal",
+    items: [
+      {
+        to: "/admin/dashboard",
+        icon: LayoutDashboard,
+        label: "Panel de Control",
+      },
+      { to: "/admin/proyectos", icon: FolderKanban, label: "Proyectos" },
+      { to: "/admin/usuarios", icon: Users, label: "Usuarios" },
+    ],
+  },
+  {
+    label: "Gestión",
+    items: [
+      { to: "/admin/postulaciones", icon: UserCheck, label: "Postulaciones" },
+      { to: "/admin/calificaciones", icon: Star, label: "Calificaciones" },
+      { to: "/admin/certificados", icon: Award, label: "Certificados" },
+      { to: "/admin/auditoria", icon: History, label: "Auditoría" },
+      { to: "/admin/reportes", icon: BarChart, label: "Reportes" },
+      { to: "/admin/configuracion", icon: Settings, label: "Configuración" },
+    ],
+  },
+];
+
+function NavItem({ to, icon: Icon, label }) {
   const { pathname } = useLocation();
+  const active = pathname === to || pathname.startsWith(to + "/");
+
+  return (
+    <Link
+      to={to}
+      style={{ fontFamily: FONT }}
+      className={clsx(
+        "flex items-center gap-2 px-2.5 py-[7px] rounded-lg text-[12px] transition-all duration-150 mb-[2px] border no-underline",
+        active
+          ? "bg-[rgba(27,111,232,0.18)] text-white border-[rgba(27,111,232,0.3)] font-semibold"
+          : "text-white/45 hover:bg-white/[0.06] hover:text-white/80 border-transparent",
+      )}
+    >
+      <Icon
+        size={15}
+        className={clsx("shrink-0", active && "text-[#06B6D4]")}
+      />
+      <span className="flex-1">{label}</span>
+    </Link>
+  );
+}
+
+export default function AdminSidebar() {
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
-  const logout = useAuthStore((state) => state.logout);
 
-  const navItems = [
-    { name: 'Panel de Control', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Gestión de Proyectos', path: '/admin/proyectos', icon: <FolderKanban size={20} /> },
-    { name: 'Directorio de Usuarios', path: '/admin/usuarios', icon: <Users size={20} /> },
-    { name: 'Auditoría', path: '/admin/auditoria', icon: <History size={20} /> },
-    { name: 'Reportes y Extracción', path: '/admin/reportes', icon: <BarChart size={20} /> },
-    { name: 'Configuración', path: '/admin/configuracion', icon: <Settings size={20} /> },
-    { name: 'Gestión de Postulaciones', path: '/admin/postulaciones', icon: <Users size={20} /> }
-
-  ];
+  const initials =
+    user?.nombre
+      ?.split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() ?? "A";
 
   const handleLogout = () => {
+    queryClient.clear();
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
-    <aside className="w-64 bg-[#1e3a5f] min-h-screen text-white flex flex-col fixed left-0 top-0 shadow-2xl z-50">
-      <div className="p-6 border-b border-white/10 flex items-center gap-3">
-        <ShieldCheck size={28} className="text-emerald-400" />
-        <span className="font-extrabold text-xl tracking-tight">SuperAdmin</span>
-      </div>
-      
-      <div className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = pathname.includes(item.path);
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm ${
-                isActive 
-                  ? 'bg-primary text-white shadow-lg shadow-primary/30' 
-                  : 'text-slate-300 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              {item.icon}
-              {item.name}
-            </Link>
-          );
-        })}
+    <aside
+      style={{
+        width: 210,
+        flexShrink: 0,
+        display: "flex",
+        flexDirection: "column",
+        background:
+          "linear-gradient(170deg, #0A1628 0%, #0F2A4A 60%, #0C3260 100%)",
+        position: "relative",
+        overflow: "hidden",
+        fontFamily: FONT,
+      }}
+    >
+      {/* Dot grid decorativo */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.045) 1px, transparent 0)",
+          backgroundSize: "28px 28px",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+
+      {/* Glow orbes */}
+      <div
+        style={{
+          position: "absolute",
+          top: -80,
+          right: -80,
+          width: 200,
+          height: 200,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, #06B6D4, transparent 70%)",
+          opacity: 0.12,
+          filter: "blur(40px)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: -60,
+          left: -60,
+          width: 180,
+          height: 180,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, #A855F7, transparent 70%)",
+          opacity: 0.08,
+          filter: "blur(40px)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+
+      {/* Logo */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          padding: "16px 14px 12px",
+          borderBottom: "0.5px solid rgba(255,255,255,0.07)",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <Logo />
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: "rgba(255,255,255,0.5)",
+            letterSpacing: "0.5px",
+          }}
+        >
+          ADMIN
+        </span>
       </div>
 
-      <div className="p-4 border-t border-white/10">
-        <button 
-          onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-red-300 hover:bg-red-500/10 hover:text-red-200 rounded-xl transition-colors"
+      {/* Info del Administrador */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          padding: "10px 14px",
+          borderBottom: "0.5px solid rgba(255,255,255,0.07)",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            flexShrink: 0,
+            background: "linear-gradient(135deg, #7C3AED, #A855F7)",
+            border: "1.5px solid rgba(168,85,247,0.35)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 11,
+            fontWeight: 700,
+            color: "#fff",
+          }}
         >
-          <LogOut size={20} />
-          Cerrar Sesión
+          {initials}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              color: "rgba(255,255,255,0.85)",
+              margin: 0,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {user?.nombre || "Administrador"}
+          </p>
+          <p
+            style={{
+              fontSize: 10,
+              color: "rgba(255,255,255,0.35)",
+              margin: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <ShieldCheck size={10} style={{ color: "#A855F7" }} />
+            Super Admin
+          </p>
+        </div>
+      </div>
+
+      {/* Navegación */}
+      <nav
+        style={{
+          position: "relative",
+          zIndex: 1,
+          flex: 1,
+          padding: "10px 8px",
+          overflowY: "auto",
+        }}
+      >
+        {NAV.map((section) => (
+          <div key={section.label} style={{ marginBottom: 16 }}>
+            <p
+              style={{
+                fontSize: 9,
+                fontWeight: 700,
+                color: "rgba(255,255,255,0.25)",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                padding: "0 8px",
+                marginBottom: 4,
+              }}
+            >
+              {section.label}
+            </p>
+            {section.items.map((item) => (
+              <NavItem key={item.to} {...item} />
+            ))}
+          </div>
+        ))}
+      </nav>
+
+      {/* Botón de Cerrar Sesión */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          padding: 8,
+          borderTop: "0.5px solid rgba(255,255,255,0.07)",
+        }}
+      >
+        <button
+          onClick={handleLogout}
+          style={{
+            fontFamily: FONT,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "7px 10px",
+            borderRadius: 8,
+            fontSize: 12,
+            color: "rgba(255,255,255,0.3)",
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            width: "100%",
+            transition: "all 0.15s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+            e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "rgba(255,255,255,0.3)";
+            e.currentTarget.style.background = "transparent";
+          }}
+        >
+          <LogOut size={15} /> Cerrar sesión
         </button>
       </div>
     </aside>
   );
-};
-
-export default AdminSidebar;
+}

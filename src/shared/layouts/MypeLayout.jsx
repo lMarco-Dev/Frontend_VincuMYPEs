@@ -1,6 +1,11 @@
-import { Sidebar } from "./MypeSidebar";
-import { Plus } from "lucide-react";
-import { Link } from "react-router-dom";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
+import { queryClient } from '@/shared/api/queryClient';
+import { Sidebar } from './MypeSidebar';
+import { Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
@@ -25,14 +30,12 @@ function BtnPrimary({ to, label }) {
           transition: "all 0.25s ease",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background =
-            "linear-gradient(135deg,#06B6D4 0%,#1B6FE8 100%)";
+          e.currentTarget.style.background = "linear-gradient(135deg,#06B6D4 0%,#1B6FE8 100%)";
           e.currentTarget.style.transform = "translateY(-2px)";
           e.currentTarget.style.boxShadow = "0 6px 20px rgba(27,111,232,0.35)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background =
-            "linear-gradient(135deg,#1B6FE8 0%,#0E54C4 100%)";
+          e.currentTarget.style.background = "linear-gradient(135deg,#1B6FE8 0%,#0E54C4 100%)";
           e.currentTarget.style.transform = "translateY(0)";
           e.currentTarget.style.boxShadow = "none";
         }}
@@ -44,6 +47,17 @@ function BtnPrimary({ to, label }) {
 }
 
 export function MypeLayout({ children, titulo, accion }) {
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { logout } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleConfirmLogout = () => {
+    queryClient.clear();
+    logout();
+    navigate('/login');
+    setShowLogoutModal(false);
+  };
+
   return (
     <div
       style={{
@@ -54,7 +68,7 @@ export function MypeLayout({ children, titulo, accion }) {
         fontFamily: FONT,
       }}
     >
-      <Sidebar />
+      <Sidebar onLogoutClick={() => setShowLogoutModal(true)} />
       <div
         style={{
           flex: 1,
@@ -92,6 +106,15 @@ export function MypeLayout({ children, titulo, accion }) {
           {children}
         </main>
       </div>
+      <ConfirmModal
+        isOpen={showLogoutModal}
+        title="Cerrar sesión"
+        message="¿Estás seguro de que deseas cerrar sesión? Se cerrará tu sesión actual."
+        confirmText="Cerrar sesión"
+        variant="warning"
+        onConfirm={handleConfirmLogout}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </div>
   );
 }

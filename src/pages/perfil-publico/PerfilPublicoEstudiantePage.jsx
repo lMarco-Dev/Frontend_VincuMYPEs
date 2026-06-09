@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import RatingDisplay from "@/features/calificaciones/RatingDisplay";
 import {
   ChevronLeft,
   GraduationCap,
@@ -25,8 +26,6 @@ import {
 import { usePerfilPublicoEstudiante } from "@/features/perfil-publico/usePerfilPublicoEstudiante";
 import { useAuthStore } from "@/store/authStore";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyDTDupf0OMm6qC2DP8HTP3qUOmMclUAvMw";
-
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
@@ -36,6 +35,7 @@ const fadeUp = (delay = 0) => ({
 const StaticMapWithCircle = ({ lat, lng, height = 180 }) => {
   const mapRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY; // Asegúrate de tener tu clave en .env
 
   useEffect(() => {
     if (!window.google || !window.google.maps) {
@@ -164,7 +164,7 @@ const Section = ({ title, children, admin = false }) => {
   );
 };
 
-const HeroBannerPublico = ({ nombre, displayRol, academicInfo, fotoPerfil, iniciales }) => {
+const HeroBannerPublico = ({ nombre, displayRol, academicInfo, fotoPerfil, iniciales, usuarioId  }) => {
   const canvasRef = useRef(null);
   const heroRef = useRef(null);
 
@@ -265,26 +265,20 @@ const HeroBannerPublico = ({ nombre, displayRol, academicInfo, fotoPerfil, inici
         @keyframes orbF1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-18px,14px) scale(1.08)}66%{transform:translate(9px,-9px) scale(0.95)}}
         @keyframes orbF2{0%,100%{transform:translate(0,0)}40%{transform:translate(14px,-18px)}70%{transform:translate(-9px,11px)}}
         @keyframes orbF3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-13px,18px) scale(1.1)}}
+        .hero-rating span { color: rgba(255,255,255,0.8) !important; }
       `}</style>
       <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.6, pointerEvents: "none" }} />
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none", backgroundImage: "linear-gradient(rgba(27,111,232,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(27,111,232,0.06) 1px,transparent 1px)", backgroundSize: "48px 48px", WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 55% 50%,black,transparent)", maskImage: "radial-gradient(ellipse 80% 80% at 55% 50%,black,transparent)" }} />
       <div style={{ position: "absolute", top: -70, right: -40, width: 250, height: 250, borderRadius: "50%", background: "rgba(27,111,232,0.16)", filter: "blur(40px)", animation: "orbF1 8s ease-in-out infinite" }} />
       <div style={{ position: "absolute", bottom: -65, right: 140, width: 190, height: 190, borderRadius: "50%", background: "rgba(212,88,10,0.09)", filter: "blur(40px)", animation: "orbF2 10s ease-in-out infinite" }} />
       <div style={{ position: "absolute", top: 10, right: 210, width: 150, height: 150, borderRadius: "50%", background: "rgba(6,182,212,0.07)", filter: "blur(40px)", animation: "orbF3 13s ease-in-out infinite" }} />
-      <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.5 }} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "5px 14px", fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)", marginBottom: 18 }}>
-        <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", display: "inline-block", animation: "heroPulse 2s ease-in-out infinite" }} /> Perfil Público
-      </motion.div>
+
       <div style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ maxWidth: 500 }}>
           <div style={{ fontSize: "clamp(23px,2.5vw,30px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-0.035em", marginBottom: 6 }}>
             <div style={{ overflow: "hidden" }}>
               <motion.div initial={{ y: "110%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} style={{ color: "#fff" }}>
                 {nombre}
-              </motion.div>
-            </div>
-            <div style={{ overflow: "hidden" }}>
-              <motion.div initial={{ y: "110%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.27, duration: 0.6, ease: [0.22, 1, 0.36, 1] }} style={{ background: "linear-gradient(90deg,#67d4f8,#1B6FE8,#06B6D4)", backgroundSize: "200% 100%", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", animation: "shimmer 4s ease-in-out infinite", fontSize: "clamp(15px,1.7vw,19px)" }}>
-                perfil profesional
               </motion.div>
             </div>
           </div>
@@ -294,6 +288,9 @@ const HeroBannerPublico = ({ nombre, displayRol, academicInfo, fotoPerfil, inici
             </span>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>
               {academicInfo.universidad}
+            </span>
+            <span className="hero-rating">
+              <RatingDisplay usuarioId={usuarioId} size="sm" />
             </span>
           </motion.div>
         </div>
@@ -442,13 +439,13 @@ export default function PerfilPublicoEstudiantePage() {
   };
 
   const locationInfo = {
-    ciudad: perfil.ciudad || "",
-    pais: perfil.pais || "",
-    sector: perfil.sector || "",
-    barrio: perfil.barrio || "",
-    lat: perfil.lat || null,
-    lng: perfil.lng || null,
-  };
+  ciudad: perfil.ciudad || "",
+  pais: perfil.pais || "",
+  sector: perfil.sector || "",
+  barrio: perfil.barrio || "",
+  lat: perfil.lat || null,
+  lng: perfil.lng || null,
+};
   const locationString = [locationInfo.barrio, locationInfo.ciudad, locationInfo.pais]
     .filter(Boolean)
     .join(", ");
@@ -529,6 +526,7 @@ export default function PerfilPublicoEstudiantePage() {
       academicInfo={academicInfo}
       fotoPerfil={perfil.fotoPerfil}
       iniciales={iniciales}
+      usuarioId={perfil.usuarioId} 
     />
 
     <div style={{ display: "grid", gridTemplateColumns: "1.4fr 0.9fr", gap: 24 }}>
@@ -725,7 +723,8 @@ export default function PerfilPublicoEstudiantePage() {
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {/* Ubicación (solo texto, sin mapa) */}
         <Section title="Ubicación">
-          {locationString ? (
+        {locationString ? (
+          <>
             <div
               style={{
                 display: "flex",
@@ -735,6 +734,7 @@ export default function PerfilPublicoEstudiantePage() {
                 background: "#f8fafc",
                 borderRadius: 12,
                 border: "0.5px solid #e8e8e4",
+                marginBottom: 12,
               }}
             >
               <MapPin size={18} color="#1B6FE8" />
@@ -742,27 +742,31 @@ export default function PerfilPublicoEstudiantePage() {
                 {locationString}
               </span>
             </div>
-          ) : (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 24,
-                background: "#f8fafc",
-                borderRadius: 12,
-                border: "0.5px dashed #e2e8f0",
-                color: "#94a3b8",
-              }}
-            >
-              <MapPin size={28} strokeWidth={1.5} />
-              <p style={{ fontSize: 11, fontWeight: 500, marginTop: 8, marginBottom: 0 }}>
-                Sin ubicación
-              </p>
-            </div>
-          )}
-        </Section>
+            {locationInfo.lat && locationInfo.lng && (
+              <StaticMapWithCircle lat={locationInfo.lat} lng={locationInfo.lng} height={180} />
+            )}
+          </>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 24,
+              background: "#f8fafc",
+              borderRadius: 12,
+              border: "0.5px dashed #e2e8f0",
+              color: "#94a3b8",
+            }}
+          >
+            <MapPin size={28} strokeWidth={1.5} />
+            <p style={{ fontSize: 11, fontWeight: 500, marginTop: 8, marginBottom: 0 }}>
+              Sin ubicación
+            </p>
+          </div>
+        )}
+      </Section>
 
         {/* Habilidades */}
         <Section title="Habilidades">

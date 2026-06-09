@@ -1,4 +1,6 @@
-import React from 'react';
+import { useState } from "react";
+import { useCalificacionesPendientes } from "@/features/calificaciones/useCalificacionesPendientes";
+import RateUserModal from "@/features/calificaciones/RateUserModal";
 import { useCertificados } from '@features/certificados/useCertificados';
 import { 
   Award, 
@@ -14,6 +16,7 @@ import {
   Cpu
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
 /* ─── Animaciones ─── */
@@ -25,6 +28,9 @@ const fadeUp = (delay = 0) => ({
 
 const CertificadosPage = () => {
   const { data: certificados = [], isLoading, isError, error } = useCertificados();
+  const { pendientes: pendientesCalificacion } = useCalificacionesPendientes();
+  const [modalCalificacion, setModalCalificacion] = useState({ open: false, data: null });
+  const queryClient = useQueryClient();
 
   if (isLoading) {
     return (
@@ -132,7 +138,6 @@ const CertificadosPage = () => {
               const colores = ['#1B6FE8', '#06B6D4', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444'];
               const colorFondo = colores[index % colores.length];
               const iniciales = (cert.tituloCertificado || 'C').slice(0, 2).toUpperCase();
-              
               return (
                 <motion.div
                   key={cert.id || index}
@@ -244,10 +249,27 @@ const CertificadosPage = () => {
                     </div>
 
                     {/* Botón Ver Credencial */}
-                    <a
-                      href={cert.urlCertificado}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => {
+                        const pendiente = pendientesCalificacion.some(
+                          (p) => p.proyectoId === cert.proyectoId && p.calificadoId === cert.mypeUsuarioId
+                        );
+
+                        if (pendiente) {
+                          setModalCalificacion({
+                            open: true,
+                            data: {
+                              proyectoId: cert.proyectoId,
+                              calificadoId: cert.mypeUsuarioId,
+                              calificadoNombre: cert.nombreMype,
+                              proyectoTitulo: cert.proyectoTitulo,
+                              urlCertificado: cert.urlCertificado,
+                            },
+                          });
+                        } else {
+                          window.open(cert.urlCertificado, '_blank');
+                        }
+                      }}
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -260,7 +282,8 @@ const CertificadosPage = () => {
                         color: '#1B6FE8',
                         fontSize: 11,
                         fontWeight: 600,
-                        textDecoration: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
                         transition: 'all 0.2s'
                       }}
                       onMouseEnter={e => {
@@ -274,7 +297,7 @@ const CertificadosPage = () => {
                     >
                       Ver Credencial
                       <ExternalLink size={12} />
-                    </a>
+                    </button>
                   </div>
                 </motion.div>
               );
@@ -329,6 +352,23 @@ const CertificadosPage = () => {
           </div>
         </motion.div>
       </div>
+      {modalCalificacion.open && (
+      <RateUserModal
+        open={modalCalificacion.open}
+        pendiente={modalCalificacion.data}
+        onClose={() => setModalCalificacion({ open: false, data: null })}
+        onSuccess={() => {
+          const urlCertificado = modalCalificacion.data?.urlCertificado;
+          queryClient.invalidateQueries(['calificaciones-pendientes']);
+          queryClient.invalidateQueries(['certificados']);
+          setTimeout(() => {
+            if (urlCertificado) window.open(urlCertificado, '_blank');
+            else console.warn('No se encontró URL del certificado');
+          }, 100);
+          setModalCalificacion({ open: false, data: null });
+        }}
+      />
+    )}
     </div>
   );
 };

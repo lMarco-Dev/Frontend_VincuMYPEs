@@ -1,15 +1,48 @@
-import { Clock } from "lucide-react";
+import { useState } from "react";
+import { useCalificacionesPendientes } from "./useCalificacionesPendientes";
+import RateUserModal from "./RateUserModal";
+import { Star } from "lucide-react";
 
-export function CalificacionesPendientesCard({ pendientes = 0 }) {
+export default function CalificacionesPendientesCard() {
+  const { pendientes, isLoading } = useCalificacionesPendientes();
+  const [seleccionado, setSeleccionado] = useState(null);
+
+  if (isLoading || pendientes.length === 0) return null;
+
   return (
-    <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <Clock size={18} color="#f59e0b" />
-        <div>
-          <p style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>Calificaciones pendientes</p>
-          <p style={{ fontSize: 20, fontWeight: 700, color: "#f59e0b" }}>{pendientes}</p>
+    <>
+      <div style={{
+        background: "#fff", borderRadius: 16, padding: 20, border: "1px solid #e5e7eb",
+        marginBottom: 24
+      }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>
+          Tienes {pendientes.length} calificación{pendientes.length > 1 ? "es" : ""} pendiente{pendientes.length > 1 ? "s" : ""}
+        </h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {pendientes.map((p, idx) => (
+            <button
+              key={idx}
+              onClick={() => setSeleccionado(p)}
+              style={{
+                display: "flex", alignItems: "center", gap: 10, padding: 10,
+                border: "1px solid #e5e7eb", borderRadius: 10, background: "#fff",
+                cursor: "pointer", textAlign: "left", width: "100%",
+              }}
+            >
+              <Star size={16} color="#facc15" />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{p.calificadoNombre}</p>
+                <p style={{ fontSize: 11, color: "#6b7280", margin: 0 }}>{p.proyectoTitulo}</p>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
-    </div>
+      <RateUserModal
+        open={!!seleccionado}
+        pendiente={seleccionado}
+        onClose={() => setSeleccionado(null)}
+      />
+    </>
   );
 }

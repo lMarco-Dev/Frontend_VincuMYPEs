@@ -7,12 +7,38 @@ import {
 } from "@/features/mensajes/useMensajes";
 import {
   MessageSquare, Send, Loader2, Search,
-  Users, Building2, User, CheckCircle2,
+  Users, Building2, User, Check, CheckCheck,
 } from "lucide-react";
 import { useChatsGrupo, useMensajesGrupo, useEnviarMensajeGrupo } from "@/features/chat-grupal/useChatGrupal";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
+
+function formatHoraLista(fecha) {
+  if (!fecha) return "";
+  const d = new Date(fecha);
+  const hoy = new Date();
+  const mismoDia = d.toDateString() === hoy.toDateString();
+  return mismoDia
+    ? d.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })
+    : d.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit" });
+}
+
+function InfoSistema({ tipo }) {
+  const texto =
+    tipo === "EQUIPO"
+      ? "Chat de equipo · Solo visible para los estudiantes del proyecto. Coordinen sus entregables y recuerden votar por su delegado."
+      : tipo === "PROYECTO"
+      ? "Chat del proyecto · Espacio para que el equipo se comunique con la MYPE."
+      : "Chat directo · Comunicación entre el estudiante y la MYPE.";
+  return (
+    <div style={{ display: "flex", justifyContent: "center", margin: "10px 0 18px" }}>
+      <div style={{ maxWidth: "85%", textAlign: "center", background: "rgba(15,31,61,0.04)", border: "1px solid #e5e7eb", borderRadius: 12, padding: "8px 14px" }}>
+        <p style={{ fontFamily: FONT, fontSize: 11, color: "#6b7280", margin: 0, lineHeight: 1.5 }}>{texto}</p>
+      </div>
+    </div>
+  );
+}
 
 function Burbuja({ mensaje, mypeNombre }) {
   const hora = new Date(mensaje.fechaEnvio).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
@@ -23,7 +49,11 @@ function Burbuja({ mensaje, mypeNombre }) {
         <p style={{ fontFamily: FONT, fontSize: 13, margin: 0, lineHeight: 1.5, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{mensaje.mensaje}</p>
         <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end", marginTop: 4 }}>
           <span style={{ fontFamily: FONT, fontSize: 10, color: mensaje.esMio ? "rgba(255,255,255,0.6)" : "#9CA3AF" }}>{hora}</span>
-          {mensaje.esMio && <CheckCircle2 size={10} color="rgba(255,255,255,0.6)" />}
+          {mensaje.esMio && (
+            mensaje.leido
+              ? <CheckCheck size={14} color="#7DD3FC" />              // 2 checks azul = leído
+              : <Check size={14} color="rgba(255,255,255,0.6)" />     // 1 check plomo = enviado
+          )}
         </div>
       </div>
     </div>
@@ -64,8 +94,9 @@ function ChatPanel({ tipo, data, mypeNombre, onEnviar, isEnviando, isLoading }) 
         </div>
       </div>
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px", background: "#f8fafc" }}>
+        <InfoSistema tipo={tipo} />
         {isLoading ? <div style={{ display: "flex", justifyContent: "center", paddingTop: 40 }}><Loader2 size={24} color="#9CA3AF" style={{ animation: "spin 1s linear infinite" }} /></div>
-        : mensajes.length === 0 ? <div style={{ textAlign: "center", paddingTop: 60 }}><div style={{ width: 56, height: 56, borderRadius: 16, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}><MessageSquare size={24} color="#d1d5db" /></div><p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 600, color: "#9CA3AF" }}>No hay mensajes aún</p></div>
+        : mensajes.length === 0 ? <div style={{ textAlign: "center", paddingTop: 40 }}><p style={{ fontFamily: FONT, fontSize: 13, fontWeight: 600, color: "#9CA3AF" }}>Aún no hay mensajes. ¡Escribe el primero!</p></div>
         : mensajes.map((msg, idx) => (<Burbuja key={msg.id || idx} mensaje={msg} mypeNombre={mypeNombre} />))}
         <div ref={bottomRef} />
       </div>
@@ -84,56 +115,67 @@ function ChatPanel({ tipo, data, mypeNombre, onEnviar, isEnviando, isLoading }) 
 
 export function MensajesPage() {
   const { conversaciones, isLoading: loadingConversaciones } = useConversaciones();
-  const [seleccionada, setSeleccionada] = useState(null);
-  const [activeTab, setActiveTab] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [proyectoId, setProyectoId] = useState(null);
-
   const { proyectos } = useMisProyectos();
 
-  // ✅ Obtener proyectoId: del estado > primera conversación > primer proyecto
-  const idParaChats = proyectoId || conversaciones?.[0]?.proyectoId || proyectos?.[0]?.id || null;
+  const [searchTerm, setSearchTerm] = useState("");
+  const [chatSel, setChatSel] = useState(null);
 
-  const { mensajes: mensajes1v1, isLoading: loading1v1 } = useMensajes(seleccionada?.id);
-  const { enviar: enviar1v1, isLoading: enviando1v1 } = useEnviarMensaje(seleccionada?.id);
+  const idParaListar = conversaciones?.[0]?.proyectoId || proyectos?.[0]?.id || null;
+  const { chats: chatsGrupales } = useChatsGrupo(idParaListar);
 
-  const { chats: chatsGrupales } = useChatsGrupo(idParaChats);
-  const chatActivo = chatsGrupales?.find(c => c.tipo === activeTab);
-  const { mensajes: mensajesGrupo, isLoading: loadingGrupo } = useMensajesGrupo(idParaChats, chatActivo?.id);
-  const { enviar: enviarGrupo, isEnviando: enviandoGrupo } = useEnviarMensajeGrupo(idParaChats, chatActivo?.id);
+  const esPrivada = chatSel?.tipo === "PRIVADA";
 
-  useEffect(() => {
-    if (conversaciones.length > 0 && !seleccionada) {
-      setSeleccionada(conversaciones[0]);
-      setProyectoId(conversaciones[0].proyectoId);
-      setActiveTab("PRIVADA");
-    }
-  }, [conversaciones]);
+  const convId = esPrivada ? chatSel.id : null;
+  const { mensajes: mensajes1v1, isLoading: loading1v1 } = useMensajes(convId);
+  const { enviar: enviar1v1, isLoading: enviando1v1 } = useEnviarMensaje(convId);
 
-  const handleSelectConv = (conv) => {
-    setSeleccionada(conv);
-    setProyectoId(conv.proyectoId);
-    setActiveTab("PRIVADA");
-  };
+  const grupoProyectoId = !esPrivada ? chatSel?.proyectoId : null;
+  const grupoChatId = !esPrivada ? chatSel?.id : null;
+  const { mensajes: mensajesGrupo, isLoading: loadingGrupo } = useMensajesGrupo(grupoProyectoId, grupoChatId);
+  const { enviar: enviarGrupo, isEnviando: enviandoGrupo } = useEnviarMensajeGrupo(grupoProyectoId, grupoChatId);
 
-  const handleSelectGrupal = (tipo, chat) => {
-    setActiveTab(tipo);
-    setSeleccionada(null);
-    if (chat?.proyectoId) setProyectoId(chat.proyectoId);
-  };
+  // Oculta el grupal duplicado de proyectos de 1 estudiante que ya tienen chat directo
+  const proyectosConDirecto = new Set((conversaciones || []).map((c) => c.proyectoId));
+  const grupalesVisibles = (chatsGrupales || []).filter((c) => {
+    const equipoDeUno = (c.totalMiembros ?? 99) <= 2;
+    const tieneDirecto = proyectosConDirecto.has(c.proyectoId);
+    return !(equipoDeUno && tieneDirecto);
+  });
 
-  const handleEnviar = (texto) => {
-    if (activeTab === "PRIVADA") enviar1v1(texto);
-    else enviarGrupo(texto);
-  };
-
-  // ✅ Lista unificada de TODOS los chats (1:1 + grupales)
+  // Lista unificada cargando preview, hora y no-leídos
   const allChats = [
-    ...(conversaciones || []).map(c => ({ ...c, tipo: "PRIVADA", label: c.estudianteNombre, subtitulo: c.proyectoTitulo || "Chat directo" })),
-    ...(chatsGrupales || []).map(c => ({ ...c, label: c.nombre || (c.tipo === "EQUIPO" ? "Chat de Equipo" : "Chat del Proyecto"), subtitulo: c.tipo === "EQUIPO" ? "Solo estudiantes" : "Equipo + MYPE" })),
+    ...(conversaciones || []).map((c) => ({
+      tipo: "PRIVADA",
+      id: c.id,
+      proyectoId: c.proyectoId,
+      label: c.estudianteNombre,
+      subtitulo: c.proyectoTitulo || "Chat directo",
+      ultimoMensaje: c.ultimoMensaje,
+      fechaUltimoMensaje: c.fechaUltimoMensaje,
+      noLeidos: c.noLeidos || 0,
+    })),
+    ...grupalesVisibles.map((c) => ({
+      tipo: c.tipo,
+      id: c.id,
+      proyectoId: c.proyectoId,
+      label: c.nombre || (c.tipo === "EQUIPO" ? "Chat de Equipo" : "Chat del Proyecto"),
+      subtitulo: c.tipo === "EQUIPO" ? "Solo estudiantes" : (c.proyectoTitulo || "Equipo + MYPE"),
+      ultimoMensaje: c.ultimoMensaje,
+      fechaUltimoMensaje: c.fechaUltimoMensaje,
+      noLeidos: c.mensajesNoLeidos ?? 0, // hoy 0 hasta arreglar backend grupal
+    })),
   ];
 
-  const filteredChats = allChats.filter(c => c.label?.toLowerCase().includes(searchTerm.toLowerCase()));
+  useEffect(() => {
+    if (!chatSel && allChats.length > 0) setChatSel(allChats[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allChats.length]);
+
+  const filteredChats = allChats.filter((c) =>
+    c.label?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleEnviar = (texto) => (esPrivada ? enviar1v1(texto) : enviarGrupo(texto));
 
   const getIcon = (tipo) => {
     if (tipo === "EQUIPO") return <Users size={16} />;
@@ -159,11 +201,12 @@ export function MensajesPage() {
     return "#059669";
   };
 
-  const currentData = activeTab === "PRIVADA"
-    ? { mensajes: mensajes1v1 || [], nombre: seleccionada?.estudianteNombre }
-    : { mensajes: mensajesGrupo || [], nombre: chatActivo?.nombre };
-  const currentLoading = activeTab === "PRIVADA" ? loading1v1 : loadingGrupo;
-  const currentEnviando = activeTab === "PRIVADA" ? enviando1v1 : enviandoGrupo;
+  const currentData = {
+    mensajes: esPrivada ? (mensajes1v1 || []) : (mensajesGrupo || []),
+    nombre: chatSel?.label,
+  };
+  const currentLoading = esPrivada ? loading1v1 : loadingGrupo;
+  const currentEnviando = esPrivada ? enviando1v1 : enviandoGrupo;
   const mypeNombre = "MYPE";
 
   return (
@@ -178,7 +221,7 @@ export function MensajesPage() {
         </div>
       ) : (
         <div style={{ display: "flex", height: "calc(100vh - 140px)", background: "#fff", borderRadius: 16, border: "1px solid #e5e7eb", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-          <div style={{ width: 300, borderRight: "1px solid #e5e7eb", display: "flex", flexDirection: "column", flexShrink: 0, background: "#fff" }}>
+          <div style={{ width: 320, borderRight: "1px solid #e5e7eb", display: "flex", flexDirection: "column", flexShrink: 0, background: "#fff" }}>
             <div style={{ padding: "16px", borderBottom: "1px solid #f3f4f6" }}>
               <h2 style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: "#0F1F3D", margin: "0 0 12px" }}>Conversaciones</h2>
               <div style={{ position: "relative" }}>
@@ -189,9 +232,10 @@ export function MensajesPage() {
             </div>
             <div style={{ flex: 1, overflowY: "auto" }}>
               {filteredChats.map((c) => {
-                const isActive = activeTab === c.tipo && (c.tipo === "PRIVADA" ? seleccionada?.id === c.id : chatActivo?.id === c.id);
+                const isActive = chatSel?.tipo === c.tipo && chatSel?.id === c.id;
+                const tieneNoLeidos = c.noLeidos > 0 && !isActive;
                 return (
-                  <button key={c.id || c.tipo} onClick={() => c.tipo === "PRIVADA" ? handleSelectConv(c) : handleSelectGrupal(c.tipo, c)}
+                  <button key={`${c.tipo}-${c.id}`} onClick={() => setChatSel(c)}
                     style={{ width: "100%", padding: "12px 16px", background: isActive ? "#eff6ff" : "transparent", border: "none", borderBottom: "1px solid #f9fafb", borderLeft: isActive ? "3px solid #1B6FE8" : "3px solid transparent", cursor: "pointer", textAlign: "left", transition: "all 0.15s", display: "flex", alignItems: "center", gap: 10 }}
                     onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = "#f9fafb"; }}
                     onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}>
@@ -199,8 +243,20 @@ export function MensajesPage() {
                       <span style={{ color: getIconColor(c.tipo, isActive) }}>{getIcon(c.tipo)}</span>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontFamily: FONT, fontSize: 12, fontWeight: 600, color: "#0F1F3D", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.label}</p>
-                      <p style={{ fontFamily: FONT, fontSize: 11, color: "#9CA3AF", margin: "2px 0 0" }}>{c.subtitulo || c.proyectoTitulo}</p>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <p style={{ fontFamily: FONT, fontSize: 12.5, fontWeight: tieneNoLeidos ? 800 : 600, color: "#0F1F3D", margin: 0, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.label}</p>
+                        <span style={{ fontFamily: FONT, fontSize: 10, color: tieneNoLeidos ? "#1B6FE8" : "#9CA3AF", flexShrink: 0, fontWeight: tieneNoLeidos ? 700 : 400 }}>{formatHoraLista(c.fechaUltimoMensaje)}</span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+                        <p style={{ fontFamily: FONT, fontSize: 11, color: tieneNoLeidos ? "#374151" : "#9CA3AF", fontWeight: tieneNoLeidos ? 600 : 400, margin: 0, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {c.ultimoMensaje || c.subtitulo}
+                        </p>
+                        {tieneNoLeidos && (
+                          <span style={{ background: "#22C55E", color: "#fff", fontFamily: FONT, fontSize: 10, fontWeight: 700, minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            {c.noLeidos > 99 ? "99+" : c.noLeidos}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </button>
                 );
@@ -211,8 +267,8 @@ export function MensajesPage() {
             </div>
           </div>
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            {activeTab ? (
-              <ChatPanel tipo={activeTab} data={currentData} mypeNombre={mypeNombre} onEnviar={handleEnviar} isEnviando={currentEnviando} isLoading={currentLoading} />
+            {chatSel ? (
+              <ChatPanel tipo={chatSel.tipo} data={currentData} mypeNombre={mypeNombre} onEnviar={handleEnviar} isEnviando={currentEnviando} isLoading={currentLoading} />
             ) : (
               <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc" }}>
                 <div style={{ textAlign: "center" }}>

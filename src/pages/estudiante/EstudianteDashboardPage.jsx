@@ -5,6 +5,8 @@ import { useCertificados } from '../../features/certificados/useCertificados';
 import { useNotificaciones, useLeerNotificacion } from '../../features/notificaciones/useNotificaciones';
 import { useProyectos } from '../../features/proyectos-list/useProyectos';
 import { usePerfil } from '../../features/perfil/usePerfil';
+import CalificacionesPendientesCard from "@/features/calificaciones/CalificacionesPendientesCard";
+
 
 import {
   ArrowRight,

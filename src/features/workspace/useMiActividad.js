@@ -5,12 +5,12 @@ export function useMiActividad() {
   return useQuery({
     queryKey: ["mi-actividad-entregables"],
     queryFn: async () => {
-      const { data } = await httpClient.get("/estudiantes/me/entregables");
-      return data;
+      try {
+        const { data } = await httpClient.get("/mi-actividad/entregables");
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
     },
-    staleTime: 60_000,
-    retry: 1,
-    // Si el endpoint aún no existe en el backend, devuelve array vacío en lugar de romper la UI
-    onError: () => [],
   });
 }

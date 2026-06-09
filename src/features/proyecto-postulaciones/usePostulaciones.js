@@ -46,9 +46,11 @@ export function useCambiarEstadoPostulacion(proyectoId) {
 
   const mutation = useMutation({
     mutationFn: cambiarEstadoPostulacionApi,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["postulaciones", proyectoId] });
-      queryClient.invalidateQueries({ queryKey: ["postulaciones-aceptadas", proyectoId] });
+    // AQUÍ: Agrega 'variables' a los parámetros de onSuccess
+    onSuccess: (data, variables) => {
+      // Usa variables.proyectoId en lugar de proyectoId
+      queryClient.invalidateQueries({ queryKey: ["postulaciones", variables.proyectoId] });
+      queryClient.invalidateQueries({ queryKey: ["postulaciones-aceptadas", variables.proyectoId] });
       setErrorActual(null);
     },
     onError: (error, variables) => {

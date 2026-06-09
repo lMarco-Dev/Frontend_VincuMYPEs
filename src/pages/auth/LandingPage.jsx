@@ -632,7 +632,7 @@ export function LandingPage() {
                     </Link>
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
-                    {["100% Gratuito para empresas", "Talento verificado", "Entregables garantizados"].map(t => (
+                    {["Gratuito para empresas", "Talento verificado", "Entregables garantizados"].map(t => (
                       <span key={t} style={{ 
                         display: "flex", 
                         alignItems: "center", 

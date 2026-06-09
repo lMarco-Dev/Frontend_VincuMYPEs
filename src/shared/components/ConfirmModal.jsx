@@ -1,173 +1,92 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, CheckCircle2, Loader2, X } from "lucide-react";
+import { motion, AnimatePresence } from 'framer-motion';
+import { AlertTriangle, XCircle, CheckCircle } from 'lucide-react';
 
-export function ConfirmModal({
+export const ConfirmModal = ({
   isOpen,
   title,
   message,
   confirmText = "Confirmar",
   cancelText = "Cancelar",
-  variant = "danger",
+  variant = "warning",
   onConfirm,
   onCancel,
   isLoading = false,
-}) {
-  const isDanger = variant === "danger";
+}) => {
+  if (!isOpen) return null;
+
+  const variantStyles = {
+    danger: {
+      icon: <XCircle size={24} className="text-red-600" />,
+      buttonBg: "from-red-600 to-red-700 hover:from-red-700 hover:to-red-800",
+      shadow: "shadow-red-600/20",
+      borderColor: "border-red-100",
+    },
+  warning: {
+    icon: <AlertTriangle size={24} className="text-amber-600" />,
+    buttonBg: "from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800",
+    shadow: "shadow-amber-600/20",
+    borderColor: "border-amber-100",
+  },
+  info: {
+    icon: <CheckCircle size={24} className="text-blue-600" />,
+    buttonBg: "from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800",
+    shadow: "shadow-blue-600/20",
+    borderColor: "border-blue-100",
+  },
+  // ✅ Agregar success
+  success: {
+    icon: <CheckCircle size={24} className="text-green-600" />,
+    buttonBg: "from-green-600 to-green-700 hover:from-green-700 hover:to-green-800",
+    shadow: "shadow-green-600/20",
+    borderColor: "border-green-100",
+  },
+};
+
+  const styles = variantStyles[variant];
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
-          }}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(0,0,0,0.45)",
-              backdropFilter: "blur(2px)",
-            }}
-            onClick={onCancel}
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 12 }}
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 12 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            style={{
-              position: "relative",
-              background: "#fff",
-              borderRadius: 20,
-              padding: "28px 28px 24px",
-              width: "100%",
-              maxWidth: 420,
-              boxShadow: "0 20px 60px rgba(0,0,0,0.18)",
-            }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="relative max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden"
           >
-            <button
-              onClick={onCancel}
-              style={{
-                position: "absolute",
-                top: 14,
-                right: 14,
-                background: "#f1f5f9",
-                border: "none",
-                borderRadius: 8,
-                width: 30,
-                height: 30,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                color: "#64748b",
-              }}
-            >
-              <X size={15} />
-            </button>
-
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 16 }}>
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 14,
-                  background: isDanger ? "#fef2f2" : "#ecfdf5",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                {isDanger ? (
-                  <AlertTriangle size={22} color="#dc2626" />
-                ) : (
-                  <CheckCircle2 size={22} color="#059669" />
-                )}
+            <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${styles.buttonBg.split(' ')[0]}`} />
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                  {styles.icon}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">{title}</h3>
+                  <p className="text-slate-500 text-sm mt-0.5">¿Seguro que quieres continuar?</p>
+                </div>
               </div>
-              <div>
-                <h3
-                  style={{
-                    fontSize: 15,
-                    fontWeight: 700,
-                    color: "#0f1f3d",
-                    margin: "0 0 6px",
-                    lineHeight: 1.3,
-                  }}
+              <p className="text-slate-600 text-sm mb-6">{message}</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={onCancel}
+                  disabled={isLoading}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50"
                 >
-                  {title}
-                </h3>
-                <p
-                  style={{
-                    fontSize: 13,
-                    color: "#6b7280",
-                    margin: 0,
-                    lineHeight: 1.6,
-                  }}
+                  {cancelText}
+                </button>
+                <button
+                  onClick={onConfirm}
+                  disabled={isLoading}
+                  className={`flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r ${styles.buttonBg} rounded-xl transition-all shadow-md ${styles.shadow} disabled:opacity-50`}
                 >
-                  {message}
-                </p>
+                  {isLoading ? "Procesando..." : confirmText}
+                </button>
               </div>
-            </div>
-
-            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
-              <button
-                onClick={onCancel}
-                disabled={isLoading}
-                style={{
-                  padding: "9px 18px",
-                  borderRadius: 10,
-                  border: "0.5px solid #e2e8f0",
-                  background: "#fff",
-                  color: "#374151",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  opacity: isLoading ? 0.5 : 1,
-                }}
-              >
-                {cancelText}
-              </button>
-              <button
-                onClick={onConfirm}
-                disabled={isLoading}
-                style={{
-                  padding: "9px 20px",
-                  borderRadius: 10,
-                  border: "none",
-                  background: isDanger
-                    ? "linear-gradient(135deg, #ef4444, #dc2626)"
-                    : "linear-gradient(135deg, #10b981, #059669)",
-                  color: "#fff",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: isLoading ? "wait" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 7,
-                  opacity: isLoading ? 0.7 : 1,
-                  boxShadow: isDanger
-                    ? "0 4px 12px rgba(220,38,38,0.25)"
-                    : "0 4px 12px rgba(5,150,105,0.25)",
-                }}
-              >
-                {isLoading && <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />}
-                {confirmText}
-              </button>
             </div>
           </motion.div>
         </div>
       )}
     </AnimatePresence>
   );
-}
+};

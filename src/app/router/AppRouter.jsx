@@ -23,6 +23,7 @@ import { MypePerfilPage } from "@/pages/mype/MypePerfilPage";
 import { MypeConfiguracionPage } from "@/pages/mype/MypeConfiguracionPage";
 import { MensajesPage } from "@/pages/mype/MensajesPage";
 import { EjecucionPage } from "@/pages/mype/EjecucionPage";
+import PerfilPublicoMypePage from "@pages/perfil-publico/PerfilPublicoMypePage";
 
 // Estudiante pages
 import EstudianteDashboardPage from "@pages/estudiante/EstudianteDashboardPage";
@@ -44,7 +45,8 @@ import AdminReportesPage from "@pages/admin/AdminReportesPage";
 import AdminConfiguracionPage from "@pages/admin/AdminConfiguracionPage";
 import AdminPostulacionesPage from "@pages/admin/AdminPostulacionesPage";
 import PerfilPublicoEstudiantePage from "@pages/perfil-publico/PerfilPublicoEstudiantePage";
-
+import AdminCertificadosPage from "@pages/admin/AdminCertificadosPage";
+import AdminCalificacionesPage from "@pages/admin/AdminCalificacionesPage";
 
 // Layouts
 import StudentLayout from "@shared/layouts/StudentLayout";
@@ -62,6 +64,8 @@ const router = createBrowserRouter([
   { path: "/forgot-password", element: <ForgotPasswordPage /> },
   { path: "/verify-otp", element: <VerifyOtpPage /> },
   { path: "/reset-password", element: <ResetPasswordPage /> },
+  
+
 
   /* ===========================================================================================
                                         RUTAS MYPEs
@@ -82,6 +86,7 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  
   {
     path: "/dashboard/mype/proyectos",
     element: (
@@ -130,6 +135,10 @@ const router = createBrowserRouter([
         {/* ✨ Corregido: Ahora renderiza la página de certificados de la MYPE */}
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/mypes/:id",
+    element: <PerfilPublicoMypePage />
   },
   {
     path: "/dashboard/mype/perfil",
@@ -197,7 +206,9 @@ const router = createBrowserRouter([
       { path: "/admin/auditoria", element: <AdminAuditoriaPage /> },
       { path: "/admin/reportes", element: <AdminReportesPage /> },
       { path: "/admin/configuracion", element: <AdminConfiguracionPage /> },
-      { path: "/admin/postulaciones", element: <AdminPostulacionesPage /> }
+      { path: "/admin/postulaciones", element: <AdminPostulacionesPage /> },
+      { path: "/admin/certificados", element: <AdminCertificadosPage /> },
+      { path: "/admin/calificaciones", element: <AdminCalificacionesPage /> },
     ],
   },
 

@@ -1,8 +1,10 @@
 import { useRef, useEffect, useState } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import { usePostulacionesAceptadas } from "@/features/proyecto-postulaciones/usePostulaciones";
 import { useEntregables } from "@/features/proyecto-entregables/useEntregables";
+import { getEntregablesPorProyecto } from "@/features/proyecto-entregables/entregables.api";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -12,9 +14,7 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
-  TrendingUp,
   Calendar,
-  Crown,
 } from "lucide-react";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
@@ -48,7 +48,6 @@ const BADGE_ENTREGABLE = {
   },
 };
 
-// ── Colores por proyecto (cicla según índice) ─────────────────
 const PROYECTO_COLORS = [
   {
     from: "#1B6FE8",
@@ -193,7 +192,6 @@ function EjecucionHero({ totalActivos, totalEstudiantes, porRevisar }) {
         ref={canvasRef}
         style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
       />
-      {/* Glow top-right */}
       <div
         style={{
           position: "absolute",
@@ -207,7 +205,6 @@ function EjecucionHero({ totalActivos, totalEstudiantes, porRevisar }) {
           pointerEvents: "none",
         }}
       />
-      {/* Glow bottom-left */}
       <div
         style={{
           position: "absolute",
@@ -367,7 +364,6 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
           borderBottom: "0.5px solid #F3F4F6",
         }}
       >
-        {/* Ícono con gradiente del color del proyecto */}
         <div
           style={{
             width: 44,
@@ -384,7 +380,6 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Título + badges */}
           <div
             style={{
               display: "flex",
@@ -440,7 +435,6 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
             )}
           </div>
 
-          {/* Meta info */}
           <div
             style={{
               display: "flex",
@@ -483,7 +477,6 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
             ))}
           </div>
 
-          {/* Barra de progreso */}
           {entregables.length > 0 && (
             <div style={{ marginTop: 8, maxWidth: 340 }}>
               <div
@@ -531,7 +524,6 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
           )}
         </div>
 
-        {/* Botón revisar entregables */}
         <Link
           to={`/dashboard/mype/proyectos/${proyecto.id}/entregables`}
           style={{
@@ -546,15 +538,7 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
             padding: "6px 14px",
             borderRadius: 9,
             flexShrink: 0,
-            background: `rgba(${
-              colorScheme.accent === "#1B6FE8"
-                ? "27,111,232"
-                : colorScheme.accent === "#7C3AED"
-                  ? "124,58,237"
-                  : colorScheme.accent === "#059669"
-                    ? "5,150,105"
-                    : "249,115,22"
-            },0.07)`,
+            background: `rgba(${colorScheme.accent === "#1B6FE8" ? "27,111,232" : colorScheme.accent === "#7C3AED" ? "124,58,237" : colorScheme.accent === "#059669" ? "5,150,105" : "249,115,22"},0.07)`,
             border: `1px solid ${colorScheme.from}30`,
             transition: "all 0.15s",
           }}
@@ -634,10 +618,7 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
                   .slice(0, 2)
                   .join("")
                   .toUpperCase() ?? "E";
-              
-              // ✅ NUEVO: Detectar si es delegado
               const esDelegado = e.esDelegado === true;
-              
               return (
                 <div
                   key={e.id}
@@ -656,11 +637,11 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
                       height: 32,
                       borderRadius: "50%",
                       flexShrink: 0,
-                      background: esDelegado 
-                        ? "linear-gradient(135deg, #fbbf24, #f59e0b)" 
+                      background: esDelegado
+                        ? "linear-gradient(135deg, #fbbf24, #f59e0b)"
                         : colorScheme.avatarBg,
-                      border: esDelegado 
-                        ? "2px solid #f59e0b" 
+                      border: esDelegado
+                        ? "2px solid #f59e0b"
                         : `1.5px solid ${colorScheme.avatarBorder}`,
                       display: "flex",
                       alignItems: "center",
@@ -673,7 +654,6 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
                     }}
                   >
                     {iniciales}
-                    {/* ✅ Corona para el delegado */}
                     {esDelegado && (
                       <span
                         style={{
@@ -702,13 +682,13 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
                       }}
                     >
                       {e.estudianteNombre}
-                      {/* ✅ Badge de delegado */}
                       {esDelegado && (
                         <span
                           style={{
                             fontSize: 9,
                             fontWeight: 700,
-                            background: "linear-gradient(135deg, #fef3c7, #fde68a)",
+                            background:
+                              "linear-gradient(135deg, #fef3c7, #fde68a)",
                             color: "#92400e",
                             padding: "1px 6px",
                             borderRadius: 8,
@@ -836,7 +816,6 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
                       i < arr.length - 1 ? "0.5px solid #F9FAFB" : "none",
                   }}
                 >
-                  {/* Dot de estado */}
                   <div
                     style={{
                       width: 7,
@@ -923,9 +902,31 @@ function ProyectoCard({ proyecto, colorScheme, delay }) {
 export function EjecucionPage() {
   const { proyectos, isLoading } = useMisProyectos();
   const enDesarrollo = proyectos.filter((p) => p.estado === "EN_DESARROLLO");
-
-  // Calcular totales para el hero (estimados desde los datos disponibles)
   const totalActivos = enDesarrollo.length;
+
+  // ── Stats reales del hero con useQueries ──────────────────
+  // Lanza N fetches en paralelo. Comparte queryKey con ProyectoCard
+  // así React Query reutiliza el caché — sin doble petición al backend.
+  const entregablesQueries = useQueries({
+    queries: enDesarrollo.map((p) => ({
+      queryKey: ["entregables", p.id],
+      queryFn: () => getEntregablesPorProyecto(p.id),
+      enabled: !isLoading && enDesarrollo.length > 0,
+      staleTime: 1000 * 30,
+    })),
+  });
+
+  const todosEntregables = entregablesQueries.flatMap((q) => q.data ?? []);
+  const porRevisar = todosEntregables.filter(
+    (e) => e.estado === "PENDIENTE",
+  ).length;
+
+  // Suma de cupos como aproximación de estudiantes totales
+  const totalEstudiantes = enDesarrollo.reduce(
+    (acc, p) => acc + (p.cupos ?? 0),
+    0,
+  );
+  // ─────────────────────────────────────────────────────────
 
   return (
     <MypeLayout titulo="En ejecución">
@@ -933,11 +934,10 @@ export function EjecucionPage() {
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
       `}</style>
 
-      {/* Hero siempre visible con totales */}
       <EjecucionHero
         totalActivos={totalActivos}
-        totalEstudiantes={0} // se calcula en los cards hijos
-        porRevisar={0} // idem — o puedes sumarlo cuando carguen
+        totalEstudiantes={totalEstudiantes}
+        porRevisar={porRevisar}
       />
 
       {isLoading ? (
