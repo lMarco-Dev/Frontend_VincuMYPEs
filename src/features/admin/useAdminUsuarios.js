@@ -4,14 +4,19 @@ import {
   getUsuariosAdmin,
   cambiarEstadoUsuarioAdmin,
   cambiarBypassLimiteAdmin,
+  obtenerDetalleUsuarioAdmin,
+  crearUsuarioAdmin,
+  actualizarUsuarioAdmin,
+  eliminarUsuarioAdmin,
 } from "./adminUsuarios.api";
 
-export function useAdminUsuarios(page = 0, size = 10, sortField = "id", sortDirection = "asc", rol = null) {
+export function useAdminUsuarios(params = {}) {
+  const queryClient = useQueryClient();
+
   const queryUsuarios = useQuery({
-    queryKey: ["adminUsuarios", page, size, sortField, sortDirection, rol],
-    queryFn: () => getUsuariosAdmin(page, size, sortField, sortDirection, rol),
+    queryKey: ["adminUsuarios", params],
+    queryFn: () => getUsuariosAdmin(params),
     select: (response) => response.data,
-    keepPreviousData: true,
   });
 
   const mutationCambiarEstado = useMutation({
@@ -24,14 +29,52 @@ export function useAdminUsuarios(page = 0, size = 10, sortField = "id", sortDire
     onSuccess: () => queryClient.invalidateQueries(["adminUsuarios"]),
   });
 
+  // NUEVAS MUTACIONES
+  const mutationCrearUsuario = useMutation({
+    mutationFn: crearUsuarioAdmin,
+    onSuccess: () => queryClient.invalidateQueries(["adminUsuarios"]),
+  });
+
+  const mutationActualizarUsuario = useMutation({
+    mutationFn: ({ usuarioId, data }) =>
+      actualizarUsuarioAdmin(usuarioId, data),
+    onSuccess: () => queryClient.invalidateQueries(["adminUsuarios"]),
+  });
+
+  const mutationEliminarUsuario = useMutation({
+    mutationFn: ({ usuarioId, permanente }) =>
+      eliminarUsuarioAdmin(usuarioId, permanente),
+    onSuccess: () => queryClient.invalidateQueries(["adminUsuarios"]),
+  });
+
+  const obtenerDetalle = (usuarioId) => {
+    return useQuery({
+      queryKey: ["adminUsuarioDetalle", usuarioId],
+      queryFn: () => obtenerDetalleUsuarioAdmin(usuarioId),
+      select: (response) => response.data,
+      enabled: !!usuarioId,
+    });
+  };
+
   return {
-    usuariosPage: queryUsuarios.data,
+    usuarios: queryUsuarios.data?.content || [],
+    totalElements: queryUsuarios.data?.totalElements || 0,
+    totalPages: queryUsuarios.data?.totalPages || 0,
     isLoading: queryUsuarios.isLoading,
     isError: queryUsuarios.isError,
     cambiarEstado: mutationCambiarEstado.mutate,
     isCambiandoEstado: mutationCambiarEstado.isPending,
     cambiarBypassLimite: mutationCambiarBypassLimite.mutate,
     isCambiandoBypass: mutationCambiarBypassLimite.isPending,
-    errorBypass: mutationCambiarBypassLimite.error?.response?.data?.message || null,
+    errorBypass:
+      mutationCambiarBypassLimite.error?.response?.data?.message || null,
+    // Nuevos
+    crearUsuario: mutationCrearUsuario.mutateAsync,
+    isCreando: mutationCrearUsuario.isPending,
+    actualizarUsuario: mutationActualizarUsuario.mutateAsync,
+    isActualizando: mutationActualizarUsuario.isPending,
+    eliminarUsuario: mutationEliminarUsuario.mutateAsync,
+    isEliminando: mutationEliminarUsuario.isPending,
+    obtenerDetalle,
   };
 }

@@ -1,96 +1,261 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+// src/shared/layouts/AdminSidebar.jsx
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
+import { queryClient } from "@/shared/api/queryClient";
+import { Logo } from "@/shared/ui/Logo";
 import {
   LayoutDashboard,
-  ClipboardList,
   FolderKanban,
   Users,
-  Award,
   History,
   BarChart,
   Settings,
+  Award,
   LogOut,
-  Menu,
-  X,
-} from 'lucide-react';
-import { useAuthStore } from '@/store/authStore';
-import { Logo } from '@/shared/ui/Logo';
-import { motion, AnimatePresence } from 'framer-motion';
+  ShieldCheck,
+  UserCheck,
+  Star,
+} from "lucide-react";
+import { clsx } from "clsx";
 
-const NAV_SECTIONS = [
+const FONT = "'Angro Std', 'Outfit', sans-serif";
+
+// ✅ NAVEGACIÓN CORREGIDA - SIN DUPLICADOS
+const NAV = [
   {
-    label: 'Principal',
+    label: "Principal",
     items: [
-      { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-      { to: '/admin/postulaciones', icon: ClipboardList, label: 'Postulaciones' },
+      {
+        to: "/admin/dashboard",
+        icon: LayoutDashboard,
+        label: "Panel de Control",
+      },
+      { to: "/admin/proyectos", icon: FolderKanban, label: "Proyectos" },
+      { to: "/admin/usuarios", icon: Users, label: "Usuarios" },
     ],
   },
   {
-    label: 'Gestión',
+    label: "Gestión",
     items: [
-      { to: '/admin/proyectos', icon: FolderKanban, label: 'Proyectos' },
-      { to: '/admin/usuarios', icon: Users, label: 'Usuarios' },
-      { to: '/admin/certificados', icon: Award, label: 'Certificados' },
-    ],
-  },
-  {
-    label: 'Sistema',
-    items: [
-      { to: '/admin/auditoria', icon: History, label: 'Auditoría' },
-      { to: '/admin/reportes', icon: BarChart, label: 'Reportes' },
-      { to: '/admin/configuracion', icon: Settings, label: 'Configuración' },
+      { to: "/admin/postulaciones", icon: UserCheck, label: "Postulaciones" },
+      { to: "/admin/calificaciones", icon: Star, label: "Calificaciones" },
+      { to: "/admin/certificados", icon: Award, label: "Certificados" },
+      { to: "/admin/auditoria", icon: History, label: "Auditoría" },
+      { to: "/admin/reportes", icon: BarChart, label: "Reportes" },
+      { to: "/admin/configuracion", icon: Settings, label: "Configuración" },
     ],
   },
 ];
 
 function NavItem({ to, icon: Icon, label }) {
   const { pathname } = useLocation();
-  const active = pathname === to || pathname.startsWith(to + '/');
+  const active = pathname === to || pathname.startsWith(to + "/");
+
   return (
     <Link
       to={to}
-      className={`flex items-center gap-2.5 py-2 rounded-lg text-sm font-medium transition-all duration-150 mb-0.5 ${
+      style={{ fontFamily: FONT }}
+      className={clsx(
+        "flex items-center gap-2 px-2.5 py-[7px] rounded-lg text-[12px] transition-all duration-150 mb-[2px] border no-underline",
         active
-          ? 'bg-blue-800/30 text-white border-l-4 border-blue-400 pl-2 pr-3'
-          : 'text-gray-300 hover:bg-blue-800/20 hover:text-white pl-3 pr-3'
-      }`}
+          ? "bg-[rgba(27,111,232,0.18)] text-white border-[rgba(27,111,232,0.3)] font-semibold"
+          : "text-white/45 hover:bg-white/[0.06] hover:text-white/80 border-transparent",
+      )}
     >
-      <Icon size={16} className="shrink-0" strokeWidth={1.8} />
-      {label}
+      <Icon
+        size={15}
+        className={clsx("shrink-0", active && "text-[#06B6D4]")}
+      />
+      <span className="flex-1">{label}</span>
     </Link>
   );
 }
 
-const AdminSidebar = ({ onLogoutClick }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user } = useAuthStore();
+export default function AdminSidebar() {
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
 
   const initials =
     user?.nombre
-      ?.split(' ')
+      ?.split(" ")
       .map((n) => n[0])
       .slice(0, 2)
-      .join('')
-      .toUpperCase() ?? 'A';
+      .join("")
+      .toUpperCase() ?? "A";
 
-  const sidebarContent = (
-    <>
-      <div className="px-4 py-5 border-b border-blue-800/40">
-        <Logo theme="dark" />
+  const handleLogout = () => {
+    queryClient.clear();
+    logout();
+    navigate("/login");
+  };
+
+  return (
+    <aside
+      style={{
+        width: 210,
+        flexShrink: 0,
+        display: "flex",
+        flexDirection: "column",
+        background:
+          "linear-gradient(170deg, #0A1628 0%, #0F2A4A 60%, #0C3260 100%)",
+        position: "relative",
+        overflow: "hidden",
+        fontFamily: FONT,
+      }}
+    >
+      {/* Dot grid decorativo */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.045) 1px, transparent 0)",
+          backgroundSize: "28px 28px",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+
+      {/* Glow orbes */}
+      <div
+        style={{
+          position: "absolute",
+          top: -80,
+          right: -80,
+          width: 200,
+          height: 200,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, #06B6D4, transparent 70%)",
+          opacity: 0.12,
+          filter: "blur(40px)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: -60,
+          left: -60,
+          width: 180,
+          height: 180,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, #A855F7, transparent 70%)",
+          opacity: 0.08,
+          filter: "blur(40px)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+
+      {/* Logo */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          padding: "16px 14px 12px",
+          borderBottom: "0.5px solid rgba(255,255,255,0.07)",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <Logo />
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: "rgba(255,255,255,0.5)",
+            letterSpacing: "0.5px",
+          }}
+        >
+          ADMIN
+        </span>
       </div>
-      <div className="px-4 py-3 border-b border-blue-800/40 flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
+
+      {/* Info del Administrador */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          padding: "10px 14px",
+          borderBottom: "0.5px solid rgba(255,255,255,0.07)",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            flexShrink: 0,
+            background: "linear-gradient(135deg, #7C3AED, #A855F7)",
+            border: "1.5px solid rgba(168,85,247,0.35)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 11,
+            fontWeight: 700,
+            color: "#fff",
+          }}
+        >
           {initials}
         </div>
-        <div className="min-w-0">
-          <p className="text-white text-xs font-medium truncate">{user?.nombre}</p>
-          <p className="text-blue-300/70 text-[11px]">Administrador</p>
+        <div style={{ minWidth: 0 }}>
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              color: "rgba(255,255,255,0.85)",
+              margin: 0,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {user?.nombre || "Administrador"}
+          </p>
+          <p
+            style={{
+              fontSize: 10,
+              color: "rgba(255,255,255,0.35)",
+              margin: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <ShieldCheck size={10} style={{ color: "#A855F7" }} />
+            Super Admin
+          </p>
         </div>
       </div>
-      <nav className="flex-1 px-2 py-4 overflow-y-auto">
-        {NAV_SECTIONS.map((section) => (
-          <div key={section.label} className="mb-5">
-            <p className="text-[10px] font-semibold text-blue-300/60 uppercase tracking-wider px-3 mb-2">
+
+      {/* Navegación */}
+      <nav
+        style={{
+          position: "relative",
+          zIndex: 1,
+          flex: 1,
+          padding: "10px 8px",
+          overflowY: "auto",
+        }}
+      >
+        {NAV.map((section) => (
+          <div key={section.label} style={{ marginBottom: 16 }}>
+            <p
+              style={{
+                fontSize: 9,
+                fontWeight: 700,
+                color: "rgba(255,255,255,0.25)",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                padding: "0 8px",
+                marginBottom: 4,
+              }}
+            >
               {section.label}
             </p>
             {section.items.map((item) => (
@@ -99,65 +264,45 @@ const AdminSidebar = ({ onLogoutClick }) => {
           </div>
         ))}
       </nav>
-      <div className="p-2 border-t border-blue-800/40">
+
+      {/* Botón de Cerrar Sesión */}
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          padding: 8,
+          borderTop: "0.5px solid rgba(255,255,255,0.07)",
+        }}
+      >
         <button
-          onClick={onLogoutClick}
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-blue-800/20 transition-all w-full"
+          onClick={handleLogout}
+          style={{
+            fontFamily: FONT,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "7px 10px",
+            borderRadius: 8,
+            fontSize: 12,
+            color: "rgba(255,255,255,0.3)",
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            width: "100%",
+            transition: "all 0.15s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+            e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "rgba(255,255,255,0.3)";
+            e.currentTarget.style.background = "transparent";
+          }}
         >
-          <LogOut size={16} strokeWidth={1.8} />
-          Cerrar sesión
+          <LogOut size={15} /> Cerrar sesión
         </button>
       </div>
-    </>
+    </aside>
   );
-
-  return (
-    <>
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-[220px] bg-[#0F2A4A] flex-shrink-0 h-screen sticky top-0">
-        {sidebarContent}
-      </aside>
-
-      {/* Mobile header y sidebar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[#0F2A4A] flex items-center justify-between px-4 z-40">
-        <Logo theme="dark" />
-        <button
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"
-        >
-          <Menu size={24} />
-        </button>
-      </div>
-
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-            <motion.aside
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="absolute top-0 left-0 w-[240px] h-full bg-[#0F2A4A] shadow-2xl flex flex-col"
-            >
-              <div className="flex justify-end p-2">
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              {sidebarContent}
-            </motion.aside>
-          </div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-};
-
-export default AdminSidebar;
+}

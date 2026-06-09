@@ -1,414 +1,822 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+// src/pages/admin/AdminDashboardPage.jsx
+import React, { useRef, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-import { useDashboardStats } from '@features/admin/useDashboardStats';
-import { AREA_SISTEMAS_LABELS } from '@entities/proyecto/proyecto.constants';
-import {
-  Users,
   Building2,
-  FolderKanban,
-  ClipboardList,
-  TrendingUp,
-  TrendingDown,
-  Award,
-  Download,
+  Users,
+  Rocket,
   Star,
-} from 'lucide-react';
+  History,
+  TrendingUp,
+  Laptop,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  ShieldCheck,
+  Activity,
+  Award,
+  BarChart4,
+  Zap,
+  ChevronRight,
+  Calendar,
+  UserCheck,
+  Briefcase,
+  GraduationCap,
+} from "lucide-react";
+import { useAdminReportes } from "@features/admin/useAdminReportes";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+const FONT = "'Angro Std', 'Outfit', sans-serif";
 
-// ─── Framer Motion variants ───────────────────────────────────────────────────
-const fadeUp = {
-  hidden: { opacity: 0, y: 18 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.38, ease: 'easeOut' } },
-};
+// ─── Animaciones ───
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
+});
 
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.07 } },
-};
+const fadeScale = (delay = 0) => ({
+  initial: { opacity: 0, scale: 0.95 },
+  animate: { opacity: 1, scale: 1 },
+  transition: { duration: 0.4, delay, ease: [0.22, 1, 0.36, 1] },
+});
 
-// ─── CountUp ─────────────────────────────────────────────────────────────────
-const CountUp = ({ end, duration = 1400 }) => {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const animated = useRef(false);
+// ─── Hero Banner con Canvas de Partículas ─────────────────────────────────
+const AdminDashboardHero = () => {
+  const canvasRef = useRef(null);
+  const heroRef = useRef(null);
 
   useEffect(() => {
-    animated.current = false;
-    setCount(0);
-  }, [end]);
+    const canvas = canvasRef.current;
+    const hero = heroRef.current;
+    if (!canvas || !hero) return;
+    const ctx = canvas.getContext("2d");
+    let W, H, animId;
+    const mouse = { x: -999, y: -999 };
+    const COLORS = ["rgba(27,111,232,", "rgba(6,182,212,", "rgba(124,58,237,"];
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !animated.current) {
-          animated.current = true;
-          const step = (ts, start = null) => {
-            if (!start) start = ts;
-            const p = Math.min((ts - start) / duration, 1);
-            setCount(Math.floor(p * end));
-            if (p < 1) requestAnimationFrame((t) => step(t, start));
-          };
-          requestAnimationFrame(step);
+    const resize = () => {
+      W = canvas.width = hero.offsetWidth;
+      H = canvas.height = hero.offsetHeight;
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(hero);
+
+    hero.addEventListener("mousemove", (e) => {
+      const r = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - r.left;
+      mouse.y = e.clientY - r.top;
+    });
+    hero.addEventListener("mouseleave", () => {
+      mouse.x = -999;
+      mouse.y = -999;
+    });
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.size = Math.random() * 2 + 0.8;
+        this.speedX = (Math.random() - 0.5) * 0.4;
+        this.speedY = (Math.random() - 0.5) * 0.4;
+        this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        this.alpha = Math.random() * 0.5 + 0.2;
+      }
+      update() {
+        const dx = this.x - mouse.x;
+        const dy = this.y - mouse.y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 100) {
+          this.x += dx * 0.02;
+          this.y += dy * 0.02;
         }
-      },
-      { threshold: 0.3 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [end, duration]);
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > W) this.speedX *= -1;
+        if (this.y < 0 || this.y > H) this.speedY *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color + this.alpha + ")";
+        ctx.fill();
+      }
+    }
 
-  return <span ref={ref}>{count.toLocaleString()}</span>;
+    const particles = Array.from({ length: 55 }, () => new Particle());
+
+    const animate = () => {
+      ctx.clearRect(0, 0, W, H);
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 80) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(124,58,237,${0.12 * (1 - dist / 80)})`;
+            ctx.stroke();
+          }
+        }
+      }
+      animId = requestAnimationFrame(animate);
+    };
+    animate();
+    return () => {
+      cancelAnimationFrame(animId);
+      ro.disconnect();
+    };
+  }, []);
+
+  return (
+    <motion.div
+      ref={heroRef}
+      {...fadeUp(0)}
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: "2rem",
+        background:
+          "linear-gradient(135deg, #0A1628 0%, #0F2A4A 60%, #1E3A5F 100%)",
+        padding: "40px 48px",
+        color: "#fff",
+        marginBottom: 28,
+        minHeight: 200,
+        display: "flex",
+        alignItems: "center",
+      }}
+    >
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Luces Ambientales */}
+      <div
+        style={{
+          position: "absolute",
+          top: -50,
+          right: -50,
+          width: 250,
+          height: 250,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, #A855F7, transparent 70%)",
+          opacity: 0.12,
+          filter: "blur(40px)",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: -50,
+          left: 100,
+          width: 200,
+          height: 200,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, #06B6D4, transparent 70%)",
+          opacity: 0.1,
+          filter: "blur(40px)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div
+        style={{
+          position: "relative",
+          zIndex: 10,
+          display: "flex",
+          justifyContent: "space-between",
+          width: "100%",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 24,
+        }}
+      >
+        <div style={{ maxWidth: 550 }}>
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              borderRadius: 20,
+              padding: "6px 14px",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "#fff",
+              marginBottom: 16,
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <ShieldCheck size={12} style={{ color: "#A855F7" }} /> Panel de
+            Control
+          </motion.div>
+          <h1
+            style={{
+              fontSize: "clamp(26px, 3vw, 36px)",
+              fontWeight: 800,
+              lineHeight: 1.1,
+              letterSpacing: "-0.02em",
+              marginBottom: 12,
+            }}
+          >
+            Bienvenido,{" "}
+            <span style={{ color: "#A855F7" }}>Super Administrador</span>
+          </h1>
+          <p
+            style={{
+              fontSize: 14,
+              color: "rgba(255,255,255,0.6)",
+              lineHeight: 1.6,
+              margin: 0,
+              fontWeight: 400,
+            }}
+          >
+            Monitoreo operativo del ecosistema Linkuy. Control de vinculaciones,
+            métricas de rendimiento y auditoría de la plataforma.
+          </p>
+        </div>
+
+        <div style={{ display: "flex", gap: 16 }}>
+          <div
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 16,
+              padding: "12px 20px",
+              textAlign: "center",
+              backdropFilter: "blur(10px)",
+            }}
+          >
+            <Activity size={24} style={{ color: "#06B6D4", marginBottom: 4 }} />
+            <div
+              style={{
+                fontSize: 10,
+                color: "rgba(255,255,255,0.5)",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+              }}
+            >
+              Plataforma Activa
+            </div>
+          </div>
+          <div
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 16,
+              padding: "12px 20px",
+              textAlign: "center",
+              backdropFilter: "blur(10px)",
+            }}
+          >
+            <Calendar size={24} style={{ color: "#F59E0B", marginBottom: 4 }} />
+            <div
+              style={{
+                fontSize: 10,
+                color: "rgba(255,255,255,0.5)",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+              }}
+            >
+              {new Date().toLocaleDateString("es-PE", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
 };
 
-// ─── ProgressBar ─────────────────────────────────────────────────────────────
-function ProgressBar({ value, max, colorClass = 'bg-blue-600' }) {
-  const pct = max > 0 ? Math.min(Math.round((value / max) * 100), 100) : 0;
+// ─── Tarjeta de Métrica Premium ─────────────────────────────────────────
+const MetricCard = ({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  color,
+  trend,
+  delay,
+}) => {
+  const colors = {
+    blue: {
+      bg: "#EFF6FF",
+      icon: "#1B6FE8",
+      border: "#BFDBFE",
+      glow: "rgba(27,111,232,0.15)",
+    },
+    green: {
+      bg: "#ECFDF5",
+      icon: "#059669",
+      border: "#A7F3D0",
+      glow: "rgba(5,150,105,0.15)",
+    },
+    purple: {
+      bg: "#F5F3FF",
+      icon: "#7C3AED",
+      border: "#DDD6FE",
+      glow: "rgba(124,58,237,0.15)",
+    },
+    orange: {
+      bg: "#FFFBEB",
+      icon: "#D97706",
+      border: "#FDE68A",
+      glow: "rgba(217,119,6,0.15)",
+    },
+    cyan: {
+      bg: "#EFF6FF",
+      icon: "#0891B2",
+      border: "#A5F3FC",
+      glow: "rgba(8,145,178,0.15)",
+    },
+  };
+  const c = colors[color] || colors.blue;
+
   return (
-    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+    <motion.div
+      {...fadeScale(delay)}
+      style={{
+        background: "#fff",
+        border: `1px solid ${c.border}`,
+        borderRadius: "1.5rem",
+        padding: "20px",
+        transition: "all 0.3s ease",
+        cursor: "default",
+        position: "relative",
+        overflow: "hidden",
+      }}
+      whileHover={{
+        y: -4,
+        boxShadow: `0 20px 25px -12px ${c.glow}`,
+        borderColor: c.icon,
+      }}
+    >
       <div
-        className={`h-full rounded-full transition-all duration-700 ${colorClass}`}
-        style={{ width: `${pct}%` }}
+        style={{
+          position: "absolute",
+          top: -20,
+          right: -20,
+          width: 80,
+          height: 80,
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${c.icon}15, transparent 70%)`,
+          pointerEvents: "none",
+        }}
       />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 12,
+        }}
+      >
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: "1rem",
+            background: c.bg,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Icon size={24} style={{ color: c.icon }} />
+        </div>
+        {trend && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 11,
+              fontWeight: 600,
+              color: trend.up ? "#059669" : "#DC2626",
+              background: trend.up ? "#ECFDF5" : "#FEF2F2",
+              padding: "4px 8px",
+              borderRadius: 20,
+            }}
+          >
+            <TrendingUp size={12} />
+            {trend.value}%
+          </div>
+        )}
+      </div>
+      <div>
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#9CA3AF",
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+            marginBottom: 4,
+          }}
+        >
+          {title}
+        </p>
+        <p
+          style={{
+            fontSize: 32,
+            fontWeight: 800,
+            color: "#0F1F3D",
+            lineHeight: 1,
+          }}
+        >
+          {value}
+        </p>
+        {subtitle && (
+          <p style={{ fontSize: 11, color: "#9CA3AF", marginTop: 6 }}>
+            {subtitle}
+          </p>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// ─── Tarjeta de Área con barra de progreso ──────────────────────────────
+const AreaProgressCard = ({ area, cantidad, porcentaje, color }) => {
+  const colors = {
+    DesarrolloWeb: { bg: "#EFF6FF", bar: "#1B6FE8", text: "#1B6FE8" },
+    DesarrolloMóvil: { bg: "#ECFDF5", bar: "#059669", text: "#059669" },
+    BaseDeDatos: { bg: "#FFFBEB", bar: "#D97706", text: "#D97706" },
+    AnálisisDatos: { bg: "#F5F3FF", bar: "#7C3AED", text: "#7C3AED" },
+    SoporteTI: { bg: "#FEF2F2", bar: "#DC2626", text: "#DC2626" },
+  };
+  const c = colors[area.replace(/\s/g, "")] || colors.DesarrolloWeb;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <div
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              background: c.bar,
+            }}
+          />
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>
+            {area}
+          </span>
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 600, color: c.text }}>
+          {cantidad} ({porcentaje}%)
+        </span>
+      </div>
+      <div
+        style={{
+          height: 6,
+          background: "#F1F5F9",
+          borderRadius: 3,
+          overflow: "hidden",
+        }}
+      >
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${porcentaje}%` }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          style={{
+            height: "100%",
+            background: c.bar,
+            borderRadius: 3,
+          }}
+        />
+      </div>
     </div>
   );
-}
+};
 
-// ─── Skeleton block ───────────────────────────────────────────────────────────
-const Skel = ({ className }) => (
-  <div className={`bg-slate-100 rounded animate-pulse ${className}`} />
-);
+// ─── Componente de Rating con estrellas ─────────────────────────────────
+const RatingStars = ({ rating, size = 14 }) => {
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          size={size}
+          className={
+            star <= Math.round(rating)
+              ? "fill-amber-400 text-amber-400"
+              : "text-slate-200 fill-slate-200"
+          }
+        />
+      ))}
+    </div>
+  );
+};
 
-// ─── Main component ───────────────────────────────────────────────────────────
-const AdminDashboardPage = () => {
-  const { data, isLoading, isError } = useDashboardStats();
+// ═══════════════════════════════════════════════════════════════════════════
+// COMPONENTE PRINCIPAL
+// ═══════════════════════════════════════════════════════════════════════════
+export default function AdminDashboardPage() {
+  const {
+    totalMypes,
+    estudiantesActivos,
+    proyectosEnDesarrollo,
+    satisfaccionPromedio,
+    totalEvaluaciones,
+    distribucionAreas,
+    isLoading,
+  } = useAdminReportes();
 
-  // Derived values
-  const totalUsers =
-    (data?.totalEstudiantes ?? 0) + (data?.totalMypes ?? 0) + (data?.totalAdmins ?? 0);
-  const totalProjects = (data?.proyectosActivos ?? 0) + (data?.proyectosCompletados ?? 0);
-  const completionPct =
-    totalProjects > 0
-      ? Math.round(((data?.proyectosCompletados ?? 0) / totalProjects) * 100)
-      : 0;
-  const activePct =
-    totalProjects > 0
-      ? Math.round(((data?.proyectosActivos ?? 0) / totalProjects) * 100)
-      : 0;
-
-  // proyectosPorArea: handles both array [{area,cantidad}] and object {AREA: n}
-  const areaArray = (() => {
-    if (!data?.proyectosPorArea) return [];
-    if (Array.isArray(data.proyectosPorArea)) return data.proyectosPorArea;
-    return Object.entries(data.proyectosPorArea).map(([area, cantidad]) => ({ area, cantidad }));
-  })();
-
-  const maxArea =
-    areaArray.length > 0
-      ? areaArray.reduce((a, b) => (b.cantidad > a.cantidad ? b : a))
-      : null;
-  const minArea =
-    areaArray.length > 0
-      ? areaArray.reduce((a, b) => (b.cantidad < a.cantidad ? b : a))
-      : null;
-
-  // Bar chart config
-  const barData = {
-    labels: areaArray.map((i) => AREA_SISTEMAS_LABELS[i.area] ?? i.area),
-    datasets: [
-      {
-        label: 'Proyectos',
-        data: areaArray.map((i) => i.cantidad),
-        backgroundColor: '#1B6FE8',
-        borderRadius: 8,
-        barPercentage: 0.65,
-        categoryPercentage: 0.75,
-      },
-    ],
-  };
-
-  const barOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: '#1e293b',
-        titleColor: '#f8fafc',
-        bodyColor: '#94a3b8',
-        padding: 10,
-        cornerRadius: 8,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: { stepSize: 1, precision: 0, color: '#94a3b8', font: { size: 11 } },
-        grid: { color: '#f1f5f9' },
-      },
-      x: {
-        ticks: { color: '#94a3b8', font: { size: 11 }, maxRotation: 35, minRotation: 20 },
-        grid: { display: false },
-      },
-    },
-  };
-
-  // KPI cards
-  const KPIS = [
+  // Datos de ejemplo para KPIs adicionales (puedes ajustarlos desde tu API)
+  const kpis = [
     {
-      label: 'Total usuarios',
-      value: totalUsers,
-      icon: Users,
-      iconBg: 'bg-blue-50',
-      iconColor: 'text-blue-600',
-    },
-    {
-      label: 'MYPEs activas',
-      value: data?.totalMypes ?? 0,
+      title: "Empresas Registradas",
+      value: totalMypes,
+      subtitle: "MYPEs activas en la plataforma",
       icon: Building2,
-      iconBg: 'bg-violet-50',
-      iconColor: 'text-violet-600',
+      color: "blue",
+      trend: { up: true, value: 12 },
+      delay: 0.05,
     },
     {
-      label: 'Proyectos totales',
-      value: totalProjects,
-      icon: FolderKanban,
-      iconBg: 'bg-emerald-50',
-      iconColor: 'text-emerald-600',
+      title: "Estudiantes Activos",
+      value: estudiantesActivos,
+      subtitle: "Participando en proyectos",
+      icon: GraduationCap,
+      color: "green",
+      trend: { up: true, value: 8 },
+      delay: 0.1,
     },
     {
-      label: 'Postulaciones pendientes',
-      value: data?.postulacionesPendientes ?? 0,
-      icon: ClipboardList,
-      iconBg: 'bg-amber-50',
-      iconColor: 'text-amber-600',
-    },
-  ];
-
-  // Insights — solo datos reales derivados de `data`
-  const INSIGHTS = [
-    {
-      label: 'Área más activa',
-      value: maxArea ? (AREA_SISTEMAS_LABELS[maxArea.area] ?? maxArea.area) : '—',
-      sub: maxArea ? `${maxArea.cantidad} proyectos` : 'Sin datos',
-      icon: TrendingUp,
-      bg: 'bg-blue-50',
-      color: 'text-blue-600',
+      title: "Proyectos en Curso",
+      value: proyectosEnDesarrollo,
+      subtitle: "En desarrollo actualmente",
+      icon: Rocket,
+      color: "purple",
+      trend: { up: false, value: 3 },
+      delay: 0.15,
     },
     {
-      label: 'Área menos activa',
-      value: minArea ? (AREA_SISTEMAS_LABELS[minArea.area] ?? minArea.area) : '—',
-      sub: minArea ? `${minArea.cantidad} proyectos` : 'Sin datos',
-      icon: TrendingDown,
-      bg: 'bg-orange-50',
-      color: 'text-orange-500',
-    },
-    {
-      label: 'Certificados emitidos',
-      value: data?.certificadosEmitidos ?? 0,
-      sub: 'en la plataforma',
+      title: "Satisfacción Global",
+      value: satisfaccionPromedio,
+      subtitle: `${totalEvaluaciones} evaluaciones recibidas`,
       icon: Award,
-      bg: 'bg-emerald-50',
-      color: 'text-emerald-600',
-    },
-    {
-      label: 'Cal. promedio MYPEs',
-      value:
-        data?.promedioCalificacionMypes != null
-          ? Number(data.promedioCalificacionMypes).toFixed(1)
-          : '—',
-      sub: 'promedio de calificaciones',
-      icon: Star,
-      bg: 'bg-yellow-50',
-      color: 'text-yellow-500',
+      color: "orange",
+      delay: 0.2,
     },
   ];
 
-  if (isError) {
+  // Datos de acciones rápidas
+  const quickActions = [
+    {
+      label: "Gestionar Usuarios",
+      icon: Users,
+      path: "/admin/usuarios",
+      color: "#1B6FE8",
+    },
+    {
+      label: "Revisar Proyectos",
+      icon: Briefcase,
+      path: "/admin/proyectos",
+      color: "#059669",
+    },
+    {
+      label: "Ver Postulaciones",
+      icon: UserCheck,
+      path: "/admin/postulaciones",
+      color: "#D97706",
+    },
+    {
+      label: "Auditoría",
+      icon: History,
+      path: "/admin/auditoria",
+      color: "#7C3AED",
+    },
+  ];
+
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-slate-400">
-          Error al cargar las estadísticas. Intenta recargar la página.
-        </p>
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+        <p className="text-slate-500 font-medium">Cargando dashboard...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-[1440px] mx-auto">
+    <div
+      className="space-y-6 pb-12"
+      style={{ fontFamily: FONT, maxWidth: 1400, margin: "0 auto" }}
+    >
+      {/* Hero Banner */}
+      <AdminDashboardHero />
 
-      {/* ── Title bar ──────────────────────────────────────────────────────── */}
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        animate="show"
-        className="flex flex-col sm:flex-row sm:items-end justify-between gap-3"
-      >
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-        </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
-          <Download size={15} />
-          Exportar reporte
-        </button>
-      </motion.div>
+      {/* Grid de KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        {kpis.map((kpi) => (
+          <MetricCard key={kpi.title} {...kpi} />
+        ))}
+      </div>
 
-      {/* ── Row 1: KPI cards ───────────────────────────────────────────────── */}
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-      >
-        {KPIS.map((kpi) => {
-          const Icon = kpi.icon;
-          return (
-            <motion.div
-              key={kpi.label}
-              variants={fadeUp}
-              className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-2">
-                    {kpi.label}
-                  </p>
-                  <p className="text-3xl font-bold text-slate-900">
-                    {isLoading ? (
-                      <Skel className="h-8 w-16" />
-                    ) : (
-                      <CountUp end={kpi.value} />
-                    )}
-                  </p>
-                </div>
-                <div className={`p-2.5 rounded-lg shrink-0 ${kpi.iconBg}`}>
-                  <Icon size={17} className={kpi.iconColor} />
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </motion.div>
-
-      {/* ── Row 2: Bar chart + Estado proyectos ────────────────────────────── */}
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-        className="grid grid-cols-12 gap-5"
-      >
-        {/* Bar chart: col-span-8 */}
+      {/* Sección de contenido principal: 2 columnas */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Columna Izquierda: Áreas de Demanda */}
         <motion.div
-          variants={fadeUp}
-          className="col-span-12 lg:col-span-8 bg-white border border-slate-200 rounded-xl p-5 shadow-sm"
+          {...fadeUp(0.25)}
+          className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
         >
-          <h2 className="text-sm font-semibold text-slate-700 mb-4">Proyectos por área</h2>
-          {isLoading ? (
-            <Skel className="h-[200px]" />
-          ) : (
-            <div className="h-[200px]">
-              <Bar data={barData} options={barOptions} />
-            </div>
-          )}
-        </motion.div>
-
-        {/* Estado proyectos: col-span-4 */}
-        <motion.div
-          variants={fadeUp}
-          className="col-span-12 lg:col-span-4 bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col"
-        >
-          <h2 className="text-sm font-semibold text-slate-700 mb-5">Estado de proyectos</h2>
-
-          {isLoading ? (
-            <div className="space-y-4 flex-1">
-              <Skel className="h-4" />
-              <Skel className="h-4 w-4/5" />
-            </div>
-          ) : (
-            <div className="space-y-5 flex-1">
-              {/* Activos */}
-              <div>
-                <div className="flex justify-between text-xs font-medium text-slate-600 mb-1.5">
-                  <span>Activos</span>
-                  <span className="text-slate-900 font-bold">{data?.proyectosActivos ?? 0}</span>
-                </div>
-                <ProgressBar
-                  value={data?.proyectosActivos ?? 0}
-                  max={totalProjects}
-                  colorClass="bg-blue-600"
-                />
-                <p className="text-[11px] text-slate-400 mt-1">{activePct}% del total</p>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                <Laptop size={16} className="text-purple-600" />
               </div>
-
-              {/* Completados */}
-              <div>
-                <div className="flex justify-between text-xs font-medium text-slate-600 mb-1.5">
-                  <span>Completados</span>
-                  <span className="text-slate-900 font-bold">{data?.proyectosCompletados ?? 0}</span>
-                </div>
-                <ProgressBar
-                  value={data?.proyectosCompletados ?? 0}
-                  max={totalProjects}
-                  colorClass="bg-emerald-500"
-                />
-                <p className="text-[11px] text-slate-400 mt-1">{completionPct}% del total</p>
-              </div>
+              <h3 className="text-base font-bold text-slate-800">
+                Demanda por Área
+              </h3>
             </div>
-          )}
-
-          {/* Badge resumen */}
-          <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-xs text-slate-400">Total registrados</span>
-            <span className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg">
-              {totalProjects} proyectos
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Tecnológica
             </span>
           </div>
-        </motion.div>
-      </motion.div>
-
-      {/* ── Row 3: Insights ────────────────────────────────────────────────── */}
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-      >
-        {INSIGHTS.map((ins) => {
-          const Icon = ins.icon;
-          return (
-            <motion.div
-              key={ins.label}
-              variants={fadeUp}
-              className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm"
-            >
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className={`p-2 rounded-lg ${ins.bg}`}>
-                  <Icon size={14} className={ins.color} />
-                </div>
-                <p className="text-xs text-slate-400 font-medium leading-tight">{ins.label}</p>
-              </div>
-              <p className="text-lg font-bold text-slate-900 truncate">
-                {isLoading ? <Skel className="h-5 w-20" /> : ins.value}
+          <p className="text-xs text-slate-400 mb-5">
+            Distribución de proyectos según área de especialización
+          </p>
+          <div className="space-y-4">
+            {distribucionAreas?.map((item, idx) => (
+              <AreaProgressCard
+                key={item.area}
+                area={item.label}
+                cantidad={item.cantidad}
+                porcentaje={item.porcentaje}
+                delay={idx * 0.05}
+              />
+            ))}
+          </div>
+          <div className="mt-6 pt-4 border-t border-slate-100">
+            <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl">
+              <Zap size={18} className="text-purple-600" />
+              <p className="text-xs text-slate-600 font-medium">
+                El área de{" "}
+                <strong className="text-purple-700">Desarrollo Web</strong>{" "}
+                concentra la mayor demanda, seguida por{" "}
+                <strong className="text-blue-700">Desarrollo Móvil</strong>.
               </p>
-              <p className="text-[11px] text-slate-400 mt-0.5">{ins.sub}</p>
-            </motion.div>
-          );
-        })}
-      </motion.div>
+            </div>
+          </div>
+        </motion.div>
 
+        {/* Columna Derecha: Actividad Reciente y Acciones Rápidas */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Acciones Rápidas */}
+          <motion.div
+            {...fadeUp(0.3)}
+            className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <Zap size={18} className="text-amber-500" />
+              <h3 className="text-base font-bold text-slate-800">
+                Acciones Rápidas
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {quickActions.map((action, idx) => (
+                <motion.a
+                  key={action.label}
+                  href={action.path}
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-100 hover:shadow-md transition-all cursor-pointer"
+                  style={{ textDecoration: "none" }}
+                >
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ background: `${action.color}15` }}
+                  >
+                    <action.icon size={20} style={{ color: action.color }} />
+                  </div>
+                  <span className="text-xs font-medium text-slate-700 text-center">
+                    {action.label}
+                  </span>
+                </motion.a>
+              ))}
+            </div>
+          </motion.div>
 
+          {/* Auditoría Reciente (Resumen) */}
+          <motion.div
+            {...fadeUp(0.35)}
+            className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                  <History size={16} className="text-indigo-600" />
+                </div>
+                <h3 className="text-base font-bold text-slate-800">
+                  Actividad Reciente
+                </h3>
+              </div>
+              <a
+                href="/admin/auditoria"
+                className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+              >
+                Ver todos <ChevronRight size={12} />
+              </a>
+            </div>
+            <div className="space-y-3">
+              {[
+                {
+                  action: "Nuevo proyecto creado",
+                  user: "TechSolutions S.A.C.",
+                  time: "Hace 5 minutos",
+                  icon: Briefcase,
+                },
+                {
+                  action: "Usuario registrado",
+                  user: "Carlos Alarcón",
+                  time: "Hace 23 minutos",
+                  icon: UserCheck,
+                },
+                {
+                  action: "Certificado emitido",
+                  user: "Proyecto E-commerce",
+                  time: "Hace 1 hora",
+                  icon: Award,
+                },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                    <item.icon size={14} className="text-slate-500" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-slate-800">
+                      {item.action}
+                    </p>
+                    <p className="text-xs text-slate-400">{item.user}</p>
+                  </div>
+                  <span className="text-[10px] text-slate-400">
+                    {item.time}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Resumen de Calificaciones */}
+          <motion.div
+            {...fadeUp(0.4)}
+            className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100"
+          >
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Star size={18} className="fill-amber-400 text-amber-400" />
+                  <h3 className="text-base font-bold text-slate-800">
+                    Reputación General
+                  </h3>
+                </div>
+                <div className="flex items-center gap-3">
+                  <RatingStars rating={satisfaccionPromedio} size={18} />
+                  <span className="text-2xl font-black text-slate-800">
+                    {satisfaccionPromedio}
+                  </span>
+                  <span className="text-sm text-slate-500">/ 5.0</span>
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  Basado en {totalEvaluaciones} evaluaciones de proyectos
+                  completados
+                </p>
+              </div>
+              <a
+                href="/admin/reportes"
+                className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl text-sm font-semibold text-primary border border-indigo-200 hover:shadow-md transition-all"
+              >
+                <BarChart4 size={14} /> Ver reportes detallados
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default AdminDashboardPage;
+}

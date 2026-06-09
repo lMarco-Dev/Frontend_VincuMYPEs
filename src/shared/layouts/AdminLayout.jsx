@@ -1,39 +1,78 @@
-import React, { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
-import { queryClient } from '@/shared/api/queryClient';
-import AdminSidebar from './AdminSidebar';
-import { ConfirmModal } from '../components/ConfirmModal';
+// src/shared/layouts/AdminLayout.jsx
+import React from "react";
+import { Outlet } from "react-router-dom";
+import AdminSidebar from "./AdminSidebar";
 
-const AdminLayout = () => {
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const { logout } = useAuthStore();
-  const navigate = useNavigate();
+const FONT = "'Angro Std', 'Outfit', sans-serif";
 
-  const handleConfirmLogout = () => {
-    queryClient.clear();
-    logout();
-    navigate('/login');
-    setShowLogoutModal(false);
-  };
-
+export default function AdminLayout() {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <AdminSidebar onLogoutClick={() => setShowLogoutModal(true)} />
-      <main className="flex-1 p-6 lg:p-8 overflow-y-auto min-h-screen">
-        <Outlet />
-      </main>
-      <ConfirmModal
-        isOpen={showLogoutModal}
-        title="Cerrar sesión"
-        message="¿Estás seguro de que deseas cerrar sesión? Se cerrará tu sesión actual."
-        confirmText="Cerrar sesión"
-        variant="warning"
-        onConfirm={handleConfirmLogout}
-        onCancel={() => setShowLogoutModal(false)}
-      />
+    <div
+      style={{
+        display: "flex",
+        height: "100vh",
+        overflow: "hidden",
+        background: "#F8FAFC",
+        fontFamily: FONT,
+      }}
+    >
+      <AdminSidebar />
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <header
+          style={{
+            background: "#fff",
+            borderBottom: "0.5px solid #E5E7EB",
+            height: 52,
+            padding: "0 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexShrink: 0,
+          }}
+        >
+          <h1
+            style={{
+              fontFamily: FONT,
+              fontSize: 15,
+              fontWeight: 600,
+              color: "#111827",
+              margin: 0,
+            }}
+          >
+            Panel de Administración
+          </h1>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: "#9CA3AF",
+                background: "#F3F4F6",
+                padding: "4px 10px",
+                borderRadius: 20,
+              }}
+            >
+              Super Admin
+            </span>
+          </div>
+        </header>
+        <main style={{ flex: 1, overflowY: "auto", padding: 24 }}>
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
-};
-
-export default AdminLayout;
+}

@@ -46,8 +46,7 @@ import AdminConfiguracionPage from "@pages/admin/AdminConfiguracionPage";
 import AdminPostulacionesPage from "@pages/admin/AdminPostulacionesPage";
 import PerfilPublicoEstudiantePage from "@pages/perfil-publico/PerfilPublicoEstudiantePage";
 import AdminCertificadosPage from "@pages/admin/AdminCertificadosPage";
-
-
+import AdminCalificacionesPage from "@pages/admin/AdminCalificacionesPage";
 
 // Layouts
 import StudentLayout from "@shared/layouts/StudentLayout";
@@ -208,7 +207,8 @@ const router = createBrowserRouter([
       { path: "/admin/reportes", element: <AdminReportesPage /> },
       { path: "/admin/configuracion", element: <AdminConfiguracionPage /> },
       { path: "/admin/postulaciones", element: <AdminPostulacionesPage /> },
-      { path: "/admin/certificados", element: <AdminCertificadosPage /> }
+      { path: "/admin/certificados", element: <AdminCertificadosPage /> },
+      { path: "/admin/calificaciones", element: <AdminCalificacionesPage /> },
     ],
   },
 
