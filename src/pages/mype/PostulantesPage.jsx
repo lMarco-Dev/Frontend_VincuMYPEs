@@ -209,56 +209,20 @@ function EtiquetaCorporativa({ estado }) {
 function TalentExecutiveModule({ postulacion, proyectoId, verTodos, onEstadoChange }) {
   const { cambiarEstado, isLoading } = useCambiarEstadoPostulacion(proyectoId);
   const [expanded, setExpanded] = useState(false);
-<<<<<<< Updated upstream
-
-  // ✅ Detectar si es delegado
-  const esDelegado = postulacion.esDelegado === true;
-=======
   const [modalAction, setModalAction] = useState(null);
 
   const isDelegate = postulacion.esDelegado === true;
->>>>>>> Stashed changes
 
   const puedeValidar = postulacion.estado === "PRESELECCIONADO";
   const puedeRechazar = postulacion.estado === "PRESELECCIONADO" || (verTodos && postulacion.estado === "PENDIENTE");
 
   const avatarText = postulacion.estudianteNombre?.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase() ?? "?";
 
-<<<<<<< Updated upstream
-  const handleValidar = () => {
-    if (
-      window.confirm(
-        `¿Validar la selección de ${postulacion.estudianteNombre}? Pasa a oferta pendiente para el alumno.`,
-      )
-    ) {
-      cambiarEstado({
-        proyectoId,
-        postulacionId: postulacion.id,
-        estado: "VALIDADO_MYPE",
-      });
-      onEstadoChange?.();
-    }
-  };
-
-  const handleRechazar = () => {
-    if (
-      window.confirm(
-        `¿Rechazar a ${postulacion.estudianteNombre}? Se notificará al Administrador.`,
-      )
-    ) {
-      cambiarEstado({
-        proyectoId,
-        postulacionId: postulacion.id,
-        estado: "RECHAZADO",
-      });
-      onEstadoChange?.();
-=======
   const confirmChoice = () => {
     if (modalAction === "validar") {
       cambiarEstado({ proyectoId, postulacionId: postulacion.id, estado: "VALIDADO_MYPE" });
     } else if (modalAction === "rechazar") {
       cambiarEstado({ proyectoId, postulacionId: postulacion.id, estado: "RECHAZADO" });
->>>>>>> Stashed changes
     }
   };
 
@@ -270,57 +234,8 @@ function TalentExecutiveModule({ postulacion, proyectoId, verTodos, onEstadoChan
   };
 
   return (
-<<<<<<< Updated upstream
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -2 }}
-      style={{
-        background: "#fff",
-        border: esDelegado ? "2px solid #fbbf24" : "1px solid #E5E7EB",
-        borderRadius: "1.5rem",
-        padding: 20,
-        transition: "all 0.3s ease",
-        position: "relative",
-        overflow: "hidden",
-        boxShadow: esDelegado ? "0 4px 16px rgba(251,191,36,0.15)" : "none",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = esDelegado 
-          ? "0 12px 24px rgba(251,191,36,0.2)" 
-          : "0 12px 24px rgba(0,0,0,0.08)";
-        e.currentTarget.style.borderColor = esDelegado ? "#f59e0b" : "#BFDBFE";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = esDelegado 
-          ? "0 4px 16px rgba(251,191,36,0.15)" 
-          : "none";
-        e.currentTarget.style.borderColor = esDelegado ? "#fbbf24" : "#E5E7EB";
-      }}
-    >
-      {/* Esquina decorativa según estado */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          width: 60,
-          height: 60,
-          background: esDelegado
-            ? "linear-gradient(135deg, transparent 50%, #fef3c7 50%)"
-            : postulacion.estado === "PRESELECCIONADO"
-              ? "linear-gradient(135deg, transparent 50%, #EFF6FF 50%)"
-              : postulacion.estado === "VALIDADO_MYPE"
-                ? "linear-gradient(135deg, transparent 50%, #F0FDF4 50%)"
-                : "linear-gradient(135deg, transparent 50%, #F8FAFC 50%)",
-          pointerEvents: "none",
-          borderRadius: "0 1.5rem 0 0",
-        }}
-      />
-=======
     <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
       style={{ ...getContainerStyle(), borderRadius: "12px", transition: "all 0.2s" }}>
->>>>>>> Stashed changes
 
       <div style={{ width: 4, position: "absolute", left: 0, top: 0, bottom: 0, background: isDelegate ? "#F59E0B" : "transparent" }} />
       
@@ -405,103 +320,6 @@ function TalentExecutiveModule({ postulacion, proyectoId, verTodos, onEstadoChan
             onMouseEnter={e => { e.currentTarget.style.background = "#DBEAFE"; }}
             onMouseLeave={e => { e.currentTarget.style.background = "#EFF6FF"; }}
         >
-<<<<<<< Updated upstream
-          <span style={{ 
-            fontSize: 18, 
-            fontWeight: 700, 
-            color: esDelegado ? "#fff" : "#1D4ED8" 
-          }}>
-            {iniciales}
-          </span>
-          {/* ✅ Corona para el delegado */}
-          {esDelegado && (
-            <span
-              style={{
-                position: "absolute",
-                top: -10,
-                right: -6,
-                fontSize: 16,
-              }}
-              title="Delegado del equipo"
-            >
-              👑
-            </span>
-          )}
-        </div>
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Header con nombre y estado */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: 8,
-              marginBottom: 8,
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <h3
-                style={{
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: "#0F1F3D",
-                  margin: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  flexWrap: "wrap",
-                }}
-              >
-                {postulacion.estudianteNombre}
-                {/* ✅ Badge de delegado */}
-                {esDelegado && postulacion.cupos !== 1 && (
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      background: "linear-gradient(135deg, #fef3c7, #fde68a)",
-                      color: "#92400e",
-                      padding: "2px 8px",
-                      borderRadius: 10,
-                      border: "1px solid #fbbf24",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
-                    <Crown size={10} /> Delegado
-                  </span>
-                )}
-              </h3>
-              <Link
-                to={`/estudiante/${postulacion.estudianteId}`}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: "#1B6FE8",
-                  background: "rgba(27,111,232,0.08)",
-                  border: "1px solid rgba(27,111,232,0.2)",
-                  borderRadius: 20,
-                  padding: "3px 10px",
-                  textDecoration: "none",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(27,111,232,0.14)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(27,111,232,0.08)";
-                }}
-              >
-                <User size={10} />
-                Ver perfil
-              </Link>
-=======
             <FileText size={14}/> Ver currículum
         </a>
     ) : (
@@ -552,105 +370,8 @@ function TalentExecutiveModule({ postulacion, proyectoId, verTodos, onEstadoChan
                    </motion.div>
                  )}
                </AnimatePresence>
->>>>>>> Stashed changes
             </div>
 
-<<<<<<< Updated upstream
-          {/* Fecha de postulación */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              marginBottom: 12,
-              flexWrap: "wrap",
-            }}
-          >
-            <span
-              style={{
-                fontSize: 11,
-                color: "#9CA3AF",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              <Calendar size={11} />
-              Postuló el{" "}
-              {new Date(postulacion.fechaPostulacion).toLocaleDateString(
-                "es-PE",
-              )}
-            </span>
-            {postulacion.estudianteCvUrl && (
-              <a
-                href={postulacion.estudianteCvUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: "#1B6FE8",
-                  textDecoration: "none",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#06B6D4")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#1B6FE8")}
-              >
-                <FileText size={11} /> Ver CV
-              </a>
-            )}
-            {/* ✅ Indicador de delegado */}
-            {esDelegado && postulacion.cupos !== 1 && (
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: "#f59e0b",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 3,
-                }}
-              >
-                <Crown size={10} /> Sube los entregables
-              </span>
-            )}
-          </div>
-
-          {/* Mensaje de postulación */}
-          <div
-            style={{
-              background: "#F8FAFC",
-              borderRadius: "0.75rem",
-              padding: "12px 14px",
-              marginBottom: 12,
-              border: "1px solid #E5E7EB",
-              cursor: "pointer",
-            }}
-            onClick={() => setExpanded(!expanded)}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: "#9CA3AF",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                Mensaje de postulación
-              </span>
-              <ChevronDown
-                size={12}
-                color="#9CA3AF"
-                style={{
-                  transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "transform 0.2s",
-                }}
-              />
-=======
             <div style={{ borderTop: "1px solid #E2E8F0", paddingTop: "12px", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12, marginTop: expanded ? 0 : "auto" }}>
                {isLoading && <Loader2 size={16} className="animate-spin" style={{ color: "#94A3B8" }}/>}
                
@@ -674,90 +395,11 @@ function TalentExecutiveModule({ postulacion, proyectoId, verTodos, onEstadoChan
                {!isLoading && !puedeValidar && !puedeRechazar && (
                    <span style={{ fontSize: 12, color: "#94A3B8", fontFamily: FONT }}>Ninguna acción pendiente de tu parte en este perfil.</span>
                )}
->>>>>>> Stashed changes
             </div>
 
-<<<<<<< Updated upstream
-          {/* Acciones */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
-              gap: 10,
-            }}
-          >
-            {puedeValidar && !isLoading && (
-              <button
-                onClick={handleValidar}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "8px 18px",
-                  borderRadius: "0.75rem",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: "#15803D",
-                  background: "rgba(21,128,61,0.08)",
-                  border: "1px solid rgba(21,128,61,0.2)",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(21,128,61,0.15)";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(21,128,61,0.08)";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                <UserCheck size={14} /> Validar candidato
-              </button>
-            )}
-
-            {puedeRechazar && !isLoading && (
-              <button
-                onClick={handleRechazar}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "8px 18px",
-                  borderRadius: "0.75rem",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: "#DC2626",
-                  background: "rgba(220,38,38,0.06)",
-                  border: "1px solid rgba(220,38,38,0.15)",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(220,38,38,0.1)";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(220,38,38,0.06)";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                <UserX size={14} /> Rechazar
-              </button>
-            )}
-
-            {isLoading && (
-              <Loader2 size={16} className="animate-spin text-slate-400" />
-            )}
-          </div>
-=======
->>>>>>> Stashed changes
         </div>
 
       </div>
-<<<<<<< Updated upstream
-=======
 
       <ConfirmModal
         isOpen={modalAction !== null}
@@ -773,7 +415,6 @@ function TalentExecutiveModule({ postulacion, proyectoId, verTodos, onEstadoChan
         onCancel={() => setModalAction(null)}
         isLoading={isLoading && modalAction !== null}
       />
->>>>>>> Stashed changes
     </motion.div>
   );
 }

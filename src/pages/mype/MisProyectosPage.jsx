@@ -3,13 +3,9 @@ import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import { AREA_SISTEMAS_LABELS } from "@/entities/proyecto/proyecto.constants";
 import { Link, useNavigate } from "react-router-dom";
-<<<<<<< Updated upstream
-import { motion } from "framer-motion";
-=======
 import { motion, AnimatePresence } from "framer-motion";
 import { ConfirmModal } from '@/shared/components/ConfirmModal';
-
->>>>>>> Stashed changes
+import { CalificacionesPendientesCard } from "@/features/calificaciones/CalificacionesPendientesCard";
 import {
   Users,
   Pencil,
@@ -486,238 +482,10 @@ function PremiumConfigurationModal({ proyecto, onClose }) {
   );
 }
 
-<<<<<<< Updated upstream
-// ── Modal de confirmación eliminar ───────────────────────────
-function ModalEliminar({ proyecto, onConfirm, onClose, isLoading }) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 50,
-        background: "rgba(15,42,74,0.6)",
-        backdropFilter: "blur(4px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-      }}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        style={{
-          background: "#fff",
-          borderRadius: "2rem",
-          width: "100%",
-          maxWidth: 420,
-          boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            height: 4,
-            background: "linear-gradient(90deg, #DC2626, #EF4444)",
-          }}
-        />
-
-        <div style={{ padding: "28px 28px 24px" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              marginBottom: 20,
-            }}
-          >
-            <div
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: "1rem",
-                flexShrink: 0,
-                background: "#FEF2F2",
-                border: "1px solid #FECACA",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Trash2 size={22} color="#DC2626" />
-            </div>
-            <div>
-              <h3
-                style={{
-                  fontFamily: FONT,
-                  fontSize: 18,
-                  fontWeight: 800,
-                  color: "#0F1F3D",
-                  margin: 0,
-                }}
-              >
-                Eliminar proyecto
-              </h3>
-              <p
-                style={{
-                  fontFamily: FONT,
-                  fontSize: 12,
-                  color: "#9CA3AF",
-                  margin: "2px 0 0",
-                }}
-              >
-                Esta acción no se puede deshacer
-              </p>
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: "#F9FAFB",
-              border: "1px solid #E5E7EB",
-              borderRadius: 12,
-              padding: "14px 16px",
-              marginBottom: 18,
-            }}
-          >
-            <p
-              style={{
-                fontFamily: FONT,
-                fontSize: 10,
-                fontWeight: 700,
-                color: "#9CA3AF",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                margin: "0 0 4px",
-              }}
-            >
-              Proyecto a eliminar
-            </p>
-            <p
-              style={{
-                fontFamily: FONT,
-                fontSize: 14,
-                fontWeight: 600,
-                color: "#111827",
-                margin: 0,
-              }}
-            >
-              {proyecto.titulo}
-            </p>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 10,
-              background: "#FEF2F2",
-              border: "1px solid #FECACA",
-              borderRadius: 12,
-              padding: "12px 14px",
-              marginBottom: 24,
-            }}
-          >
-            <AlertTriangle
-              size={16}
-              color="#DC2626"
-              style={{ flexShrink: 0, marginTop: 1 }}
-            />
-            <p
-              style={{
-                fontFamily: FONT,
-                fontSize: 12,
-                color: "#991B1B",
-                margin: 0,
-                lineHeight: 1.5,
-              }}
-            >
-              Se eliminarán permanentemente el proyecto y todos sus datos
-              asociados. Los estudiantes postulados serán notificados.
-            </p>
-          </div>
-
-          <div style={{ display: "flex", gap: 12 }}>
-            <button
-              onClick={onClose}
-              disabled={isLoading}
-              style={{
-                fontFamily: FONT,
-                flex: 1,
-                height: 44,
-                borderRadius: 10,
-                background: "transparent",
-                border: "1px solid #E5E7EB",
-                color: "#6B7280",
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "#F9FAFB")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.background = "transparent")
-              }
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={onConfirm}
-              disabled={isLoading}
-              style={{
-                fontFamily: FONT,
-                flex: 1,
-                height: 44,
-                borderRadius: 10,
-                background: "linear-gradient(135deg, #DC2626, #B91C1C)",
-                color: "#fff",
-                border: "none",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: isLoading ? "not-allowed" : "pointer",
-                opacity: isLoading ? 0.7 : 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
-              onMouseEnter={(e) => {
-                if (!isLoading) {
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 14px rgba(220,38,38,0.3)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" /> Eliminando...
-                </>
-              ) : (
-                <>
-                  <Trash2 size={14} /> Sí, eliminar
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-// ── Página principal ─────────────────────────────────────────
-=======
 
 /* ═══════════════════════════════════════════════
    MAIN SYSTEM WORKSPACE CONTROLLER
 ═══════════════════════════════════════════════ */
->>>>>>> Stashed changes
 export function MisProyectosPage() {
   const { proyectos, isLoading } = useMisProyectos();
   const navigate = useNavigate();
@@ -726,17 +494,13 @@ export function MisProyectosPage() {
   // Internal Logic Engine remains untouched. UI architecture adapted on top.
   const [proyectoEditando, setProyectoEditando] = useState(null);
   const [proyectoEliminando, setProyectoEliminando] = useState(null);
+  
 
-<<<<<<< Updated upstream
-  const handleConfirmarEliminar = () => {
-    eliminarProyecto(proyectoEliminando.id, {
-      onSuccess: () => setProyectoEliminando(null),
-    });
-  };
-=======
-  // Pagination Engine State
+    // Paginación y estado para el flujo de Marco
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState(null);
 
   const handleDeleteClick = (proyecto) => { setProjectToDelete(proyecto); setShowDeleteProjectModal(true); };
   const handleConfirmDeleteProject = () => { if (projectToDelete) { eliminarProyecto(projectToDelete.id, { onSuccess: () => { setShowDeleteProjectModal(false); setProjectToDelete(null); } }); } };
@@ -751,7 +515,6 @@ export function MisProyectosPage() {
       return acc;
     }, { activos: 0, completados: 0, pendientes: 0 });
   }, [proyectos]);
->>>>>>> Stashed changes
 
   const totalProyectos = proyectos?.length || 0;
   const totalPages = Math.ceil(totalProyectos / itemsPerPage);
@@ -768,25 +531,10 @@ export function MisProyectosPage() {
          {proyectoEditando && <PremiumConfigurationModal key="edit-modal" proyecto={proyectoEditando} onClose={() => setProyectoEditando(null)} />}
       </AnimatePresence>
 
-<<<<<<< Updated upstream
-      {proyectoEliminando && (
-        <ModalEliminar
-          proyecto={proyectoEliminando}
-          onConfirm={handleConfirmarEliminar}
-          onClose={() => setProyectoEliminando(null)}
-          isLoading={eliminando}
-        />
-      )}
-
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        {/* Hero Banner */}
-        <MisProyectosHeroBanner totalProyectos={totalProyectos} />
-=======
       {/* Eliminación del actionTop redundante porque lo integraremos en el Master Command Center para una vista más limpia */}
       <div style={{ maxWidth: 1200, margin: "0 auto", paddingBottom: "120px", display: "flex", flexDirection: "column" }}>
         
         <ExecutiveCommandCenter totalProyectos={totalProyectos} metrics={metrics} />
->>>>>>> Stashed changes
 
         {/* ESTRUCTURA CORE DE INICIATIVAS (PIPELINE) */}
         <div>
@@ -798,113 +546,6 @@ export function MisProyectosPage() {
              </div>
            </div>
 
-<<<<<<< Updated upstream
-        {/* Lista de proyectos */}
-        {isLoading ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                style={{
-                  height: 160,
-                  borderRadius: "1.5rem",
-                  background: "#E5E7EB",
-                  animation: "pulse 1.5s ease-in-out infinite",
-                }}
-              />
-            ))}
-          </div>
-        ) : totalProyectos === 0 ? (
-          <motion.div
-            {...fadeUp(0.15)}
-            style={{
-              textAlign: "center",
-              padding: "80px 40px",
-              border: "1px dashed #E5E7EB",
-              borderRadius: "2rem",
-              background: "#fff",
-            }}
-          >
-            <div
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: "2rem",
-                background: "#F3F4F6",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 20px",
-              }}
-            >
-              <FolderOpen size={40} color="#D1D5DB" />
-            </div>
-            <h3
-              style={{
-                fontFamily: FONT,
-                fontSize: 18,
-                fontWeight: 800,
-                color: "#0F1F3D",
-                marginBottom: 8,
-              }}
-            >
-              Aún no has publicado proyectos
-            </h3>
-            <p
-              style={{
-                fontFamily: FONT,
-                fontSize: 13,
-                color: "#9CA3AF",
-                maxWidth: 400,
-                margin: "0 auto 20px",
-              }}
-            >
-              Publica tu primer proyecto y comienza a conectar con talento
-              universitario.
-            </p>
-            <Link to="/dashboard/mype/crear">
-              <button
-                style={{
-                  fontFamily: FONT,
-                  padding: "10px 24px",
-                  borderRadius: "0.75rem",
-                  background: "linear-gradient(135deg, #1B6FE8, #0E54C4)",
-                  color: "#fff",
-                  border: "none",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Publicar mi primer proyecto
-              </button>
-            </Link>
-          </motion.div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {proyectos.map((proyecto) => (
-              <ProjectCard
-                key={proyecto.id}
-                proyecto={proyecto}
-                onEdit={() => setProyectoEditando(proyecto)}
-                onDelete={() => setProyectoEliminando(proyecto)}
-                onViewPostulantes={() =>
-                  navigate(
-                    `/dashboard/mype/postulantes?proyecto=${proyecto.id}`,
-                  )
-                }
-                onReviewEntregables={() =>
-                  navigate(
-                    `/dashboard/mype/proyectos/${proyecto.id}/entregables`,
-                  )
-                }
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-=======
            {/* Workspace Items (No traditional cards) */}
            {isLoading ? (
              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -970,7 +611,6 @@ export function MisProyectosPage() {
         isLoading={eliminando}
       />
 
->>>>>>> Stashed changes
       <style>{`
         @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
         .animate-spin { animation: spin 1s linear infinite; }
