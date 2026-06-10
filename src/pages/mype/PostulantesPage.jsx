@@ -442,8 +442,11 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter, expandedProj
   if (globalOpenStateFilter === 'operativos' && proyecto.estado !== 'EN_DESARROLLO') return null;
   if (globalOpenStateFilter === 'pendientes' && proyecto.estado !== 'PENDIENTE') return null;
 
+  // En la pestaña "General" (todos) NO se puede expandir
+  const esExpandible = globalOpenStateFilter !== 'todos' && puedeExpandir;
+
   const handleToggleExpand = () => {
-    if (puedeExpandir) {
+    if (esExpandible) {
       const newExpanded = !isExpanded;
       setExpandedProjects(prev => ({ ...prev, [proyecto.id]: newExpanded }));
       if (onToggleExpand) onToggleExpand(proyecto.id, newExpanded);
@@ -466,12 +469,12 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter, expandedProj
           background: isExpanded ? "transparent" : "#FFFFFF", 
           border: isExpanded ? "none" : "1px solid #E2E8F0", 
           borderRadius: isExpanded ? "0" : "16px", 
-          cursor: puedeExpandir ? "pointer" : "default",
-          opacity: puedeExpandir ? 1 : 0.7,
+          cursor: esExpandible ? "pointer" : "default",
+          opacity: consolidated.length >= (proyecto.cupos || 1) ? 1 : 0.7,
           transition: "background 0.2s", 
           alignItems: "center" 
         }}
-        onMouseEnter={(e) => !isExpanded && puedeExpandir && (e.currentTarget.style.boxShadow = "0 4px 12px -4px rgba(0,0,0,0.06)")}
+        onMouseEnter={(e) => !isExpanded && esExpandible && (e.currentTarget.style.boxShadow = "0 4px 12px -4px rgba(0,0,0,0.06)")}
         onMouseLeave={(e) => !isExpanded && (e.currentTarget.style.boxShadow = "none")}
       >
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start", minWidth: 0 }}>
@@ -534,7 +537,7 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter, expandedProj
         </div>
 
        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            {puedeExpandir ? (
+            {esExpandible ? (
                 <ChevronDown size={20} color={isExpanded ? "#1E293B" : "#94A3B8"} style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }} />
             ) : (
                 <div style={{ width: 20, height: 20 }} />
@@ -572,12 +575,51 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter, expandedProj
                ) : postulantesRenders.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "60px 40px", border: "1px dashed #CBD5E1", borderRadius: "12px", background: "#FFFFFF", boxShadow: "inset 0 2px 4px rgba(0,0,0,0.01)" }}>
                     <div style={{ width: 64, height: 64, borderRadius: "16px", background: "#F1F5F9", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-                      <LayoutDashboard size={28} color="#94A3B8" />
+                      <Users size={28} color="#94A3B8" />
                     </div>
-                    <h3 style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, color: "#1E293B", margin: "0 0 8px" }}>Sin talento a procesar</h3>
-                    <p style={{ fontFamily: FONT, fontSize: 13, color: "#64748B", margin: "0 auto", maxWidth: 450, lineHeight: 1.5 }}>
-                      No se encontraron perfiles en esta vista del módulo. Permite que más tiempo corra para consolidar datos en las propuestas operativas empresariales.
-                    </p>
+                    
+                    {/* Mensaje específico cuando es pestaña "Equipos en Desarrollo" y no hay estudiantes aceptados */}
+                    {globalOpenStateFilter === 'operativos' && proyecto.estado === "EN_DESARROLLO" ? (
+                      <>
+                        <h3 style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, color: "#1E293B", margin: "0 0 8px" }}>
+                          Proyecto en ejecución sin equipo asignado
+                        </h3>
+                        <p style={{ fontFamily: FONT, fontSize: 13, color: "#64748B", margin: "0 auto", maxWidth: 450, lineHeight: 1.5 }}>
+                          Aún no has aceptado estudiantes para este proyecto. 
+                          Ve a la pestaña <strong>"Fase de Reclutamiento"</strong> para revisar las postulaciones pendientes y aprobar a los candidatos.
+                        </p>
+                        <div style={{ marginTop: 20 }}>
+                          <button
+                            onClick={() => {
+                              const event = new CustomEvent('cambiarTab', { detail: 'pendientes' });
+                              window.dispatchEvent(event);
+                            }}
+                            style={{
+                              background: "#1B6FE8",
+                              color: "#FFFFFF",
+                              border: "none",
+                              borderRadius: "8px",
+                              padding: "8px 20px",
+                              fontSize: 13,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              fontFamily: FONT
+                            }}
+                          >
+                            Ver postulaciones pendientes
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <h3 style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, color: "#1E293B", margin: "0 0 8px" }}>
+                          Sin talento a procesar
+                        </h3>
+                        <p style={{ fontFamily: FONT, fontSize: 13, color: "#64748B", margin: "0 auto", maxWidth: 450, lineHeight: 1.5 }}>
+                          No se encontraron perfiles en esta vista del módulo. Permite que más tiempo corra para consolidar datos en las propuestas operativas empresariales.
+                        </p>
+                      </>
+                    )}
                   </div>
                ) : (
                   <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
@@ -615,6 +657,17 @@ export function PostulantesPage() {
   const [expandedProjects, setExpandedProjects] = useState({});
   const itemsPerPage = 5;
 
+  // Escuchar evento para cambiar de pestaña desde el botón
+  useEffect(() => {
+    const handleCambiarTab = (event) => {
+      if (event.detail) {
+        setTabFocus(event.detail);
+      }
+    };
+    window.addEventListener('cambiarTab', handleCambiarTab);
+    return () => window.removeEventListener('cambiarTab', handleCambiarTab);
+  }, []);
+
   // Recuperar estado al volver de la página del estudiante
   useEffect(() => {
     if (location.state?.returnTab) {
@@ -644,7 +697,7 @@ export function PostulantesPage() {
   };
 
   return (
-    <MypeLayout titulo="Área Ejecutiva del Talento" descripton="Acepta propuestas, maneja el reclutamiento o aprueba miembros organizacionales con reportes estratégicos empresariales.">
+    <MypeLayout titulo="Área Ejecutiva" descripton="Acepta propuestas, maneja el reclutamiento o aprueba miembros organizacionales con reportes estratégicos empresariales.">
       <style>{`
         @keyframes loadingShift { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .animate-spin { animation: core-spin 1s linear infinite; }
@@ -657,9 +710,9 @@ export function PostulantesPage() {
 
         <motion.div {...fadeUp(0.1)} style={{ marginBottom: 32 }}>
             <div style={{ display: "inline-flex", background: "#F1F5F9", padding: "6px", borderRadius: "12px", border: "1px solid #E2E8F0" }}>
-                 <button onClick={() => setTabFocus('todos')} style={{ border: "none", cursor: "pointer", fontFamily: FONT, background: tabFocus === 'todos' ? "#FFFFFF" : "transparent", padding: "10px 24px", borderRadius: "8px", color: tabFocus === 'todos' ? "#0F1F3D" : "#64748B", fontWeight: 600, fontSize: 13, transition: "all 0.3s", boxShadow: tabFocus === 'todos' ? "0 2px 4px rgba(0,0,0,0.04)" : "none" }}>Visión General</button>
-                 <button onClick={() => setTabFocus('pendientes')} style={{ border: "none", cursor: "pointer", fontFamily: FONT, background: tabFocus === 'pendientes' ? "#FFFFFF" : "transparent", padding: "10px 24px", borderRadius: "8px", color: tabFocus === 'pendientes' ? "#0F1F3D" : "#64748B", fontWeight: 600, fontSize: 13, transition: "all 0.3s", boxShadow: tabFocus === 'pendientes' ? "0 2px 4px rgba(0,0,0,0.04)" : "none" }}>Fase de Reclutamiento</button>
-                 <button onClick={() => setTabFocus('operativos')} style={{ border: "none", cursor: "pointer", fontFamily: FONT, background: tabFocus === 'operativos' ? "#FFFFFF" : "transparent", padding: "10px 24px", borderRadius: "8px", color: tabFocus === 'operativos' ? "#0F1F3D" : "#64748B", fontWeight: 600, fontSize: 13, transition: "all 0.3s", boxShadow: tabFocus === 'operativos' ? "0 2px 4px rgba(0,0,0,0.04)" : "none" }}>Equipos en Desarrollo</button>
+                 <button onClick={() => setTabFocus('todos')} style={{ border: "none", cursor: "pointer", fontFamily: FONT, background: tabFocus === 'todos' ? "#FFFFFF" : "transparent", padding: "10px 24px", borderRadius: "8px", color: tabFocus === 'todos' ? "#0F1F3D" : "#64748B", fontWeight: 600, fontSize: 13, transition: "all 0.3s", boxShadow: tabFocus === 'todos' ? "0 2px 4px rgba(0,0,0,0.04)" : "none" }}>General</button>
+                 <button onClick={() => setTabFocus('pendientes')} style={{ border: "none", cursor: "pointer", fontFamily: FONT, background: tabFocus === 'pendientes' ? "#FFFFFF" : "transparent", padding: "10px 24px", borderRadius: "8px", color: tabFocus === 'pendientes' ? "#0F1F3D" : "#64748B", fontWeight: 600, fontSize: 13, transition: "all 0.3s", boxShadow: tabFocus === 'pendientes' ? "0 2px 4px rgba(0,0,0,0.04)" : "none" }}>Reclutamiento</button>
+                 <button onClick={() => setTabFocus('operativos')} style={{ border: "none", cursor: "pointer", fontFamily: FONT, background: tabFocus === 'operativos' ? "#FFFFFF" : "transparent", padding: "10px 24px", borderRadius: "8px", color: tabFocus === 'operativos' ? "#0F1F3D" : "#64748B", fontWeight: 600, fontSize: 13, transition: "all 0.3s", boxShadow: tabFocus === 'operativos' ? "0 2px 4px rgba(0,0,0,0.04)" : "none" }}>En Desarrollo</button>
             </div>
         </motion.div>
 
