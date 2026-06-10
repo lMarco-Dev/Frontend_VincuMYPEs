@@ -215,11 +215,8 @@ const StudentLayout = () => {
       </aside>
 
       {/* MOBILE HEADER */}
-      <div className="lg:hidden" style={{
-        position: 'fixed', top: 0, left: 0, right: 0, height: 56,
-        background: '#fff', borderBottom: '1px solid #e5e7eb',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px', zIndex: 40,
+      <div className="lg:hidden fixed top-0 left-0 right-0 flex items-center justify-between px-4 z-40" style={{
+        height: 56, background: '#fff', borderBottom: '1px solid #e5e7eb',
       }}>
         <Logo theme="light" />
         <button
