@@ -10,28 +10,14 @@ import {
   X,
   Award,
   FolderOpen,
-  Bell,
   AlertTriangle,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuthStore } from "../../store/authStore";
 import { Logo } from "../ui/Logo";
-import { useNotificaciones } from "../../features/notificaciones/useNotificaciones";
-import { useNotificacionesSocket } from "../../features/notificaciones/useNotificacionesSocket";
-import { NotificacionesPanel } from "../../features/notificaciones/NotificacionesPanel";
 import { useSidebarBadges } from "../hooks/useSidebarBadges";
 
 const SIDEBAR_BG = 'linear-gradient(170deg, #081828 0%, #0F2A4A 60%, #0C3260 100%)';
-
-function getPageTitle(pathname) {
-  if (pathname === '/dashboard/estudiante') return 'Mi Panel';
-  if (pathname.startsWith('/proyectos')) return 'Explorar Proyectos';
-  if (pathname === '/mis-postulaciones') return 'Mis Postulaciones';
-  if (pathname.startsWith('/workspace')) return 'Mi Workspace';
-  if (pathname === '/certificados') return 'Mis Certificados';
-  if (pathname === '/perfil') return 'Mi Perfil';
-  return 'Portal Estudiante';
-}
 
 const NavItem = ({ to, icon: Icon, label, pathname, onClick, showDot, dotColor }) => {
   const active = pathname === to || (to !== '/dashboard/estudiante' && pathname.startsWith(to));
@@ -87,14 +73,9 @@ const NavItem = ({ to, icon: Icon, label, pathname, onClick, showDot, dotColor }
 const StudentLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [isNotifPanelOpen, setIsNotifPanelOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-
-  const { data: notificaciones = [] } = useNotificaciones();
-  useNotificacionesSocket(user?.id);
-  const noLeidas = notificaciones.filter((n) => !n.leida).length;
 
   const badges = useSidebarBadges();
 
@@ -241,32 +222,12 @@ const StudentLayout = () => {
         padding: '0 16px', zIndex: 40,
       }}>
         <Logo theme="light" />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            onClick={() => setIsNotifPanelOpen(true)}
-            style={{
-              position: 'relative', width: 36, height: 36, borderRadius: 8,
-              background: '#F1F5F9', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <Bell size={18} color="#64748b" />
-            {noLeidas > 0 && (
-              <span style={{
-                position: 'absolute', top: -3, right: -3, minWidth: 16, height: 16,
-                borderRadius: 8, background: '#EF4444', border: '2px solid #fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 9, fontWeight: 700, color: '#fff', padding: '0 3px',
-              }}>{noLeidas}</span>
-            )}
-          </button>
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            style={{ padding: 8, color: '#475569', background: 'none', border: 'none', cursor: 'pointer' }}
-          >
-            <Menu size={24} />
-          </button>
-        </div>
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          style={{ padding: 8, color: '#475569', background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          <Menu size={24} />
+        </button>
       </div>
 
       {/* MOBILE SIDEBAR */}
@@ -306,41 +267,10 @@ const StudentLayout = () => {
 
       {/* ÁREA DE CONTENIDO */}
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-        {/* Topbar con campanita (solo desktop) */}
-        <div className="hidden lg:flex" style={{
-          height: 44, background: '#fff', borderBottom: '0.5px solid #E5E7EB',
-          flexShrink: 0, alignItems: 'center', justifyContent: 'space-between', padding: '0 24px',
-        }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-            {getPageTitle(location.pathname)}
-          </span>
-          <button
-            onClick={() => setIsNotifPanelOpen(true)}
-            style={{
-              position: 'relative', width: 34, height: 34, borderRadius: 8,
-              background: '#F1F5F9', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <Bell size={17} color="#64748b" />
-            {noLeidas > 0 && (
-              <span style={{
-                position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16,
-                borderRadius: 8, background: '#EF4444', border: '2px solid #fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 9, fontWeight: 700, color: '#fff', padding: '0 3px',
-              }}>{noLeidas}</span>
-            )}
-          </button>
-        </div>
-
         <div style={{ flex: 1, overflowY: 'auto' }} className="pt-14 lg:pt-0">
           <Outlet />
         </div>
       </main>
-
-      {/* PANEL DE NOTIFICACIONES */}
-      <NotificacionesPanel isOpen={isNotifPanelOpen} onClose={() => setIsNotifPanelOpen(false)} />
 
       {/* MODAL LOGOUT */}
       <AnimatePresence>

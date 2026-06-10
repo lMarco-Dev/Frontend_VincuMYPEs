@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Award,
   Building2,
+  Bell,
   Search,
   ScanFace,
   ClipboardList,
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import { NotificacionesPanel } from '../../features/notificaciones/NotificacionesPanel';
 
 /* ─── Variantes de animación ─── */
 const fadeUp = (delay = 0) => ({
@@ -453,6 +455,7 @@ const EstudianteDashboardPage = () => {
   const { data: userProfile, isLoading: loadingPerfil } = usePerfil(); // ✅ AGREGAR ESTO
   const navigate = useNavigate();
   const { mutate: leerNotificacion } = useLeerNotificacion();
+  const [isNotifPanelOpen, setIsNotifPanelOpen] = React.useState(false);
 
   const { data: postulaciones, isLoading: loadingPostulaciones } = useMisPostulaciones();
   const { data: certificados, isLoading: loadingCertificados } = useCertificados();
@@ -518,6 +521,22 @@ if (completitud > 100) completitud = 100;
               <Search size={14} /> Buscar proyectos
             </div>
           </Link>
+          <button
+            onClick={() => setIsNotifPanelOpen(true)}
+            style={{
+              position: 'relative', width: 36, height: 36, borderRadius: 8,
+              border: '0.5px solid #e8e8e4', background: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            }}
+          >
+            <Bell size={16} color="#6b6b7a" />
+            {activityItems.some(n => !n.leida) && (
+              <div style={{
+                position: 'absolute', top: 7, right: 7, width: 7, height: 7,
+                borderRadius: '50%', background: '#d4580a', border: '1.5px solid #fff',
+              }} />
+            )}
+          </button>
         </div>
       </motion.div>
 
@@ -698,8 +717,13 @@ if (completitud > 100) completitud = 100;
           )}
         </div>
 
-          
+
       </motion.div>
+
+      <NotificacionesPanel
+        isOpen={isNotifPanelOpen}
+        onClose={() => setIsNotifPanelOpen(false)}
+      />
     </div>
   );
 };
