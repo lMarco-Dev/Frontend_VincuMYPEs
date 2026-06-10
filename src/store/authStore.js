@@ -38,7 +38,7 @@ export const useAuthStore = create(
       },
 
       logout: () => {
-        // Notificar al backend (fire-and-forget) antes de limpiar tokens
+        localStorage.setItem('vm_last_logout', Date.now().toString());
         const refreshToken = tokenStorage.getRefreshToken();
         if (refreshToken) {
           httpClient
