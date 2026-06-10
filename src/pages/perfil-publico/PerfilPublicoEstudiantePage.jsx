@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import RatingDisplay from "@/features/calificaciones/RatingDisplay";
 import {
@@ -35,7 +35,7 @@ const fadeUp = (delay = 0) => ({
 const StaticMapWithCircle = ({ lat, lng, height = 180 }) => {
   const mapRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY; // Asegúrate de tener tu clave en .env
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   useEffect(() => {
     if (!window.google || !window.google.maps) {
@@ -377,8 +377,25 @@ const btnVolver = {
 export default function PerfilPublicoEstudiantePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const rol = useAuthStore((state) => state.rol);
   const { perfil, isLoading, isForbidden, isNotFound, errorMessage } = usePerfilPublicoEstudiante(id);
+
+  // Función para volver preservando la pestaña
+  // Dentro del componente, después de const location = useLocation();
+  const handleGoBack = () => {
+    const returnTab = location.state?.returnTab || 'todos';
+    const returnProyectoId = location.state?.returnProyectoId;
+    const returnProyectoTitle = location.state?.returnProyectoTitle;
+    
+    navigate('/dashboard/mype/postulantes', { 
+      state: { 
+        returnTab,
+        returnProyectoId,
+        returnProyectoTitle
+      } 
+    });
+  };
 
   if (isLoading) {
     return (
@@ -395,7 +412,7 @@ export default function PerfilPublicoEstudiantePage() {
         <AlertCircle size={44} color="#DC2626" />
         <h2 style={titleError}>Estudiante no encontrado</h2>
         <p style={textError}>El perfil que buscas no existe o fue eliminado.</p>
-        <button onClick={() => navigate(-1)} style={btnVolver}>
+        <button onClick={handleGoBack} style={btnVolver}>
           <ChevronLeft size={14} /> Volver
         </button>
       </Centered>
@@ -411,7 +428,7 @@ export default function PerfilPublicoEstudiantePage() {
           {errorMessage ||
             "Solo puedes ver el perfil de un estudiante con el que estés vinculado por un proyecto."}
         </p>
-        <button onClick={() => navigate(-1)} style={btnVolver}>
+        <button onClick={handleGoBack} style={btnVolver}>
           <ChevronLeft size={14} /> Volver
         </button>
       </Centered>
@@ -502,7 +519,7 @@ export default function PerfilPublicoEstudiantePage() {
     }}
   >
     <button
-      onClick={() => navigate(-1)}
+      onClick={handleGoBack}
       style={{
         display: "inline-flex",
         alignItems: "center",
