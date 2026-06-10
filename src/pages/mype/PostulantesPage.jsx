@@ -14,7 +14,8 @@ import {
   TrendingUp, CheckCircle2, ArrowRight, LayoutDashboard,
   Shield, Building2, CheckSquare
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { ConfirmModal } from "../../shared/components/ConfirmModal";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
@@ -178,35 +179,26 @@ const ExecutiveCommandCenter = ({ totalProyectos, metrics }) => {
 ═══════════════════════════════════════════════ */
 function EtiquetaCorporativa({ estado }) {
   const map = {
-    PENDIENTE: { color: "#64748B", dot: "#94A3B8", label: "Postulado" },
-    PRESELECCIONADO: { color: "#1B6FE8", dot: "#3B82F6", label: "Pre-seleccionado" },
-    VALIDADO_MYPE: { color: "#10B981", dot: "#34D399", label: "Aprobado" },
-    CONFIRMADO: { color: "#059669", dot: "#10B981", label: "Confirmado" },
-    RECHAZADO: { color: "#EF4444", dot: "#F87171", label: "Rechazado" },
-    RETIRADO: { color: "#94A3B8", dot: "#CBD5E1", label: "Retirado" },
-    EXPIRADO: { color: "#D97706", dot: "#F59E0B", label: "Expirado" },
+    PENDIENTE: { bg: "#F8FAFC", color: "#64748B", border: "#E2E8F0", icon: <Clock size={10}/>, label: "Postulado" },
+    PRESELECCIONADO: { bg: "#EFF6FF", color: "#1B6FE8", border: "#BFDBFE", icon: <Eye size={10}/>, label: "Pre-seleccionado" },
+    VALIDADO_MYPE: { bg: "#ECFDF5", color: "#10B981", border: "#A7F3D0", icon: <UserCheck size={10}/>, label: "Aprobado" },
+    CONFIRMADO: { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0", icon: <CheckCircle size={10}/>, label: "Confirmado" },
+    RECHAZADO: { bg: "#FEF2F2", color: "#EF4444", border: "#FECACA", icon: <XCircle size={10}/>, label: "Rechazado" },
+    RETIRADO: { bg: "#F1F5F9", color: "#64748B", border: "#E2E8F0", icon: <UserX size={10}/>, label: "Retirado" },
+    EXPIRADO: { bg: "#FFF7ED", color: "#D97706", border: "#FED7AA", icon: <Clock size={10}/>, label: "Expirado" },
   };
-  const statusConfig = map[estado] ?? map.PENDIENTE;
-
+  const cfg = map[estado] ?? map.PENDIENTE;
   return (
-    <span style={{
-        display: "inline-flex", alignItems: "center", gap: 6,
-        fontFamily: FONT, fontSize: 11, fontWeight: 600,
-        padding: "4px 10px", borderRadius: "6px",
-        background: statusConfig.bg, color: statusConfig.color, border: `1px solid ${statusConfig.border}`,
-      }}
-      title={estado === "RECHAZADO" ? "Decidido internamente no proceder con el perfil" : ""}
-    >
-      {statusConfig.icon} {statusConfig.label}
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: FONT, fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}` }}>
+      {cfg.icon} {cfg.label}
     </span>
   );
 }
 
-
 /* ═══════════════════════════════════════════════
    MÓDULO DE VALORACIÓN DEL TALENTO
 ═══════════════════════════════════════════════ */
-function TalentExecutiveModule({ postulacion, proyectoId, verTodos, onEstadoChange }) {
+function TalentExecutiveModule({ postulacion, proyectoId, verTodos, currentTab, onEstadoChange, proyectoTitle }) {
   const { cambiarEstado, isLoading } = useCambiarEstadoPostulacion(proyectoId);
   const [expanded, setExpanded] = useState(false);
   const [modalAction, setModalAction] = useState(null);
@@ -256,93 +248,97 @@ function TalentExecutiveModule({ postulacion, proyectoId, verTodos, onEstadoChan
           <div style={{ flex: 1 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}>
-    <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "#1E293B", fontFamily: FONT }}>
-        {postulacion.estudianteNombre}
-    </h3>
-    
-    {/* Etiqueta de estado - EN LA MISMA LÍNEA QUE EL NOMBRE */}
-    <EtiquetaCorporativa estado={postulacion.estado} />
-</div>
+                    <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "#1E293B", fontFamily: FONT }}>
+                        {postulacion.estudianteNombre}
+                    </h3>
+                    <EtiquetaCorporativa estado={postulacion.estado} />
+                  </div>
 
-<div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", marginTop: "4px" }}>
-    <span style={{ fontSize: 11, color: "#64748B", display: "flex", alignItems: "center", gap: 4, fontFamily: FONT }}>
-        Fecha: {new Date(postulacion.fechaPostulacion).toLocaleDateString("es-PE")}
-    </span>
-</div>
+                  <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", marginTop: "4px" }}>
+                    <span style={{ fontSize: 11, color: "#64748B", display: "flex", alignItems: "center", gap: 4, fontFamily: FONT }}>
+                        Fecha: {new Date(postulacion.fechaPostulacion).toLocaleDateString("es-PE")}
+                    </span>
+                  </div>
 
-{/* BOTONES EN DOS CUADROS */}
-<div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-    {/* Cuadro 1: Analizar trayectoria */}
-    <Link to={`/estudiante/${postulacion.estudianteId}`} 
-        style={{ 
-            flex: 1,
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center",
-            gap: 6, 
-            fontSize: 12, 
-            fontWeight: 500, 
-            color: "#475569", 
-            textDecoration: "none", 
-            background: "#F8FAFC",
-            border: "1px solid #E2E8F0",
-            padding: "8px 12px", 
-            borderRadius: "8px", 
-            fontFamily: FONT, 
-            transition: "all 0.2s" 
-        }} 
-        onMouseEnter={e => { e.currentTarget.style.background = "#F1F5F9"; e.currentTarget.style.color = "#0F1F3D"; }}
-        onMouseLeave={e => { e.currentTarget.style.background = "#F8FAFC"; e.currentTarget.style.color = "#475569"; }}
-    >
-        <User size={14}/> Analizar trayectoria
-    </Link>
+                  {/* BOTONES EN DOS CUADROS */}
+                  <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+                    {/* Cuadro 1: Analizar trayectoria - GUARDA PROYECTO Y PESTAÑA */}
+                    <Link 
+                        to={`/estudiante/${postulacion.estudianteId}`}
+                        state={{ 
+                          returnTab: currentTab || 'todos',
+                          returnProyectoId: proyectoId,
+                          returnProyectoTitle: proyectoTitle
+                        }}
+                        style={{ 
+                            flex: 1,
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "center",
+                            gap: 6, 
+                            fontSize: 12, 
+                            fontWeight: 500, 
+                            color: "#475569", 
+                            textDecoration: "none", 
+                            background: "#F8FAFC",
+                            border: "1px solid #E2E8F0",
+                            padding: "8px 12px", 
+                            borderRadius: "8px", 
+                            fontFamily: FONT, 
+                            transition: "all 0.2s" 
+                        }} 
+                        onMouseEnter={e => { e.currentTarget.style.background = "#F1F5F9"; e.currentTarget.style.color = "#0F1F3D"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "#F8FAFC"; e.currentTarget.style.color = "#475569"; }}
+                    >
+                        <User size={14}/> Analizar trayectoria
+                    </Link>
 
-    {/* Cuadro 2: Currículum Adjunto */}
-    {postulacion.estudianteCvUrl ? (
-        <a href={postulacion.estudianteCvUrl} target="_blank" rel="noopener noreferrer"
-            style={{ 
-                flex: 1,
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center",
-                gap: 6, 
-                fontSize: 12, 
-                fontWeight: 500, 
-                color: "#1B6FE8", 
-                textDecoration: "none", 
-                background: "#EFF6FF",
-                border: "1px solid #BFDBFE",
-                padding: "8px 12px", 
-                borderRadius: "8px", 
-                fontFamily: FONT, 
-                transition: "all 0.2s" 
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = "#DBEAFE"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "#EFF6FF"; }}
-        >
-            <FileText size={14}/> Ver currículum
-        </a>
-    ) : (
-        <div
-            style={{ 
-                flex: 1,
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center",
-                fontSize: 11, 
-                fontWeight: 500, 
-                color: "#64748B", 
-                background: "#F1F5F9",
-                border: "1px solid #E2E8F0",
-                padding: "8px 12px", 
-                borderRadius: "8px", 
-                fontFamily: FONT 
-            }}
-        >
-            Sin currículum
-        </div>
-    )}
-</div>
+                    {/* Cuadro 2: Currículum Adjunto */}
+                    {postulacion.estudianteCvUrl ? (
+                        <a href={postulacion.estudianteCvUrl} target="_blank" rel="noopener noreferrer"
+                            style={{ 
+                                flex: 1,
+                                display: "flex", 
+                                alignItems: "center", 
+                                justifyContent: "center",
+                                gap: 6, 
+                                fontSize: 12, 
+                                fontWeight: 500, 
+                                color: "#1B6FE8", 
+                                textDecoration: "none", 
+                                background: "#EFF6FF",
+                                border: "1px solid #BFDBFE",
+                                padding: "8px 12px", 
+                                borderRadius: "8px", 
+                                fontFamily: FONT, 
+                                transition: "all 0.2s" 
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = "#DBEAFE"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "#EFF6FF"; }}
+                        >
+                            <FileText size={14}/> Ver currículum
+                        </a>
+                    ) : (
+                        <div
+                            style={{ 
+                                flex: 1,
+                                display: "flex", 
+                                alignItems: "center", 
+                                justifyContent: "center",
+                                fontSize: 11, 
+                                fontWeight: 500, 
+                                color: "#64748B", 
+                                background: "#F1F5F9",
+                                border: "1px solid #E2E8F0",
+                                padding: "8px 12px", 
+                                borderRadius: "8px", 
+                                fontFamily: FONT 
+                            }}
+                        >
+                            Sin currículum
+                        </div>
+                    )}
+                  </div>
               </div>
           </div>
         </div>
@@ -419,12 +415,10 @@ function TalentExecutiveModule({ postulacion, proyectoId, verTodos, onEstadoChan
   );
 }
 
-
 /* ═══════════════════════════════════════════════
    WORKSPACE DE SUPERVISIÓN DEL PROYECTO
 ═══════════════════════════════════════════════ */
-function ProjectEcosystemSection({ proyecto, globalOpenStateFilter }) {
-  const [expanded, setExpanded] = useState(false);
+function ProjectEcosystemSection({ proyecto, globalOpenStateFilter, expandedProjects, setExpandedProjects, onToggleExpand }) {
   const [internalViewAll, setInternalViewAll] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -439,6 +433,8 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter }) {
   const puedeExpandir = postulaciones.length > 0;
   const consolidated = postulaciones.filter((p) => ["CONFIRMADO", "VALIDADO_MYPE"].includes(p.estado));
 
+  const isExpanded = expandedProjects[proyecto.id] || false;
+
   const postulantesRenders = internalViewAll 
      ? postulaciones
      : postulaciones.filter((p) => ["PRESELECCIONADO", "CONFIRMADO", "VALIDADO_MYPE"].includes(p.estado));
@@ -446,32 +442,39 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter }) {
   if (globalOpenStateFilter === 'operativos' && proyecto.estado !== 'EN_DESARROLLO') return null;
   if (globalOpenStateFilter === 'pendientes' && proyecto.estado !== 'PENDIENTE') return null;
 
+  const handleToggleExpand = () => {
+    if (puedeExpandir) {
+      const newExpanded = !isExpanded;
+      setExpandedProjects(prev => ({ ...prev, [proyecto.id]: newExpanded }));
+      if (onToggleExpand) onToggleExpand(proyecto.id, newExpanded);
+    }
+  };
+
   return (
     <motion.div key={`${refreshKey}-${proyecto.id}`}
       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-      style={{ background: expanded ? "#FFFFFF" : "transparent", border: "1px solid", borderColor: expanded ? "#E2E8F0" : "transparent", borderRadius: "16px", marginBottom: "16px", transition: "all 0.3s", boxShadow: expanded ? "0 10px 25px -5px rgba(0, 0, 0, 0.05)" : "none", overflow: "hidden" }}
+      style={{ background: isExpanded ? "#FFFFFF" : "transparent", border: "1px solid", borderColor: isExpanded ? "#E2E8F0" : "transparent", borderRadius: "16px", marginBottom: "16px", transition: "all 0.3s", boxShadow: isExpanded ? "0 10px 25px -5px rgba(0, 0, 0, 0.05)" : "none", overflow: "hidden" }}
     >
       <div 
-        onClick={() => puedeExpandir && setExpanded(!expanded)}
+        onClick={handleToggleExpand}
         style={{ 
           width: "100%", 
           display: "grid", 
           gridTemplateColumns: "minmax(250px, 2fr) auto auto 40px", 
           gap: 24, 
-          padding: expanded ? "24px 28px 20px" : "20px 24px", 
-          background: expanded ? "transparent" : "#FFFFFF", 
-          border: expanded ? "none" : "1px solid #E2E8F0", 
-          borderRadius: expanded ? "0" : "16px", 
+          padding: isExpanded ? "24px 28px 20px" : "20px 24px", 
+          background: isExpanded ? "transparent" : "#FFFFFF", 
+          border: isExpanded ? "none" : "1px solid #E2E8F0", 
+          borderRadius: isExpanded ? "0" : "16px", 
           cursor: puedeExpandir ? "pointer" : "default",
           opacity: puedeExpandir ? 1 : 0.7,
           transition: "background 0.2s", 
           alignItems: "center" 
         }}
-        onMouseEnter={(e) => !expanded && puedeExpandir && (e.currentTarget.style.boxShadow = "0 4px 12px -4px rgba(0,0,0,0.06)")}
-        onMouseLeave={(e) => !expanded && (e.currentTarget.style.boxShadow = "none")}
+        onMouseEnter={(e) => !isExpanded && puedeExpandir && (e.currentTarget.style.boxShadow = "0 4px 12px -4px rgba(0,0,0,0.06)")}
+        onMouseLeave={(e) => !isExpanded && (e.currentTarget.style.boxShadow = "none")}
       >
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start", minWidth: 0 }}>
-          {/* El icono ya no está aquí */}
           <div style={{ textAlign: "left", minWidth: 0, display: "flex", flexDirection: "column", gap: "2px", overflow: "hidden" }}>
               <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0F1F3D", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: FONT }}>{proyecto.titulo}</h3>
               <p style={{ margin: 0, fontSize: 13, color: "#64748B", fontFamily: FONT }}>{proyecto.fechaLimite ? `Tope Integración: ${new Date(proyecto.fechaLimite).toLocaleDateString("es-PE")}` : 'Programa Activo Permanente'}</p>
@@ -495,13 +498,12 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter }) {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 6, borderLeft: "1px solid #E2E8F0", paddingLeft: "24px" }}>
-           {validPendingEvaluation.length > 0 && !expanded && (
+           {validPendingEvaluation.length > 0 && !isExpanded && (
                <div style={{ display: "inline-flex", gap: 6, alignItems: "center", background: "#FEF9C3", padding: "2px 8px", borderRadius: "4px", fontSize: 11, fontWeight: 600, color: "#854D0E", fontFamily: FONT }}>
                    Acción solicitada ({validPendingEvaluation.length})
                </div>
            )}
-           {/* Barra de progreso de ocupación */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 120 }}>
+           <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 120 }}>
               <div style={{ 
                 width: "100%", 
                 height: 6, 
@@ -533,7 +535,7 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter }) {
 
        <div style={{ display: "flex", justifyContent: "flex-end" }}>
             {puedeExpandir ? (
-                <ChevronDown size={20} color={expanded ? "#1E293B" : "#94A3B8"} style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }} />
+                <ChevronDown size={20} color={isExpanded ? "#1E293B" : "#94A3B8"} style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }} />
             ) : (
                 <div style={{ width: 20, height: 20 }} />
             )}
@@ -541,7 +543,7 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter }) {
       </div>
 
       <AnimatePresence>
-        {expanded && (
+        {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}
             style={{ overflow: "hidden", borderTop: "1px solid #F1F5F9" }}>
@@ -581,8 +583,13 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter }) {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
                      {postulantesRenders.map(p => (
                          <TalentExecutiveModule 
-                            key={p.id} postulacion={p} proyectoId={proyecto.id} 
-                            verTodos={internalViewAll} onEstadoChange={() => setRefreshKey(prev => prev + 1)} 
+                            key={p.id} 
+                            postulacion={p} 
+                            proyectoId={proyecto.id} 
+                            verTodos={internalViewAll} 
+                            currentTab={globalOpenStateFilter}
+                            proyectoTitle={proyecto.titulo}
+                            onEstadoChange={() => setRefreshKey(prev => prev + 1)} 
                          />
                      ))}
                   </div>
@@ -596,16 +603,31 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter }) {
   );
 }
 
-
 /* ═══════════════════════════════════════════════
    PÁGINA RAÍZ CORPORATIVA
 ═══════════════════════════════════════════════ */
 export function PostulantesPage() {
+  const location = useLocation();
   const { proyectos, isLoading } = useMisProyectos();
   
   const [tabFocus, setTabFocus] = useState('todos'); 
   const [currentPage, setCurrentPage] = useState(1);
+  const [expandedProjects, setExpandedProjects] = useState({});
   const itemsPerPage = 5;
+
+  // Recuperar estado al volver de la página del estudiante
+  useEffect(() => {
+    if (location.state?.returnTab) {
+      setTabFocus(location.state.returnTab);
+    }
+    if (location.state?.returnProyectoId) {
+      // Expandir automáticamente el proyecto del que venimos
+      setExpandedProjects(prev => ({ 
+        ...prev, 
+        [location.state.returnProyectoId]: true 
+      }));
+    }
+  }, [location.state]);
 
   const getProyectosActivosRaiz = () => {
       let f = proyectos.filter((p) => p.estado === "PENDIENTE" || p.estado === "EN_DESARROLLO");
@@ -658,7 +680,13 @@ export function PostulantesPage() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column" }}>
             {currentViewList.map((proyecto) => (
-                <ProjectEcosystemSection key={proyecto.id} proyecto={proyecto} globalOpenStateFilter={tabFocus} />
+                <ProjectEcosystemSection 
+                    key={proyecto.id} 
+                    proyecto={proyecto} 
+                    globalOpenStateFilter={tabFocus}
+                    expandedProjects={expandedProjects}
+                    setExpandedProjects={setExpandedProjects}
+                />
             ))}
             
             {totalPages > 1 && (
