@@ -15,6 +15,7 @@ import {
   Shield, Building2, CheckSquare
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ConfirmModal } from "../../shared/components/ConfirmModal";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
