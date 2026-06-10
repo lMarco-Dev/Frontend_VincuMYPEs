@@ -98,16 +98,16 @@ export function NotificacionesPanel({ isOpen, onClose }) {
             }}
           >
             {/* Header */}
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e8e8e4', background: '#fafafa' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'linear-gradient(135deg, #081828, #0F2A4A)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{
                     width: 36, height: 36, borderRadius: 10,
-                    background: noLeidas > 0 ? '#eff6ff' : '#f1f5f9',
+                    background: noLeidas > 0 ? 'rgba(27,111,232,0.25)' : 'rgba(255,255,255,0.08)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     position: 'relative',
                   }}>
-                    <Bell size={18} color={noLeidas > 0 ? '#1B6FE8' : '#94a3b8'} />
+                    <Bell size={18} color={noLeidas > 0 ? '#06B6D4' : 'rgba(255,255,255,0.4)'} />
                     {noLeidas > 0 && (
                       <span style={{
                         position: 'absolute', top: -4, right: -4,
@@ -119,30 +119,30 @@ export function NotificacionesPanel({ isOpen, onClose }) {
                     )}
                   </div>
                   <div>
-                    <h3 style={{ fontSize: 15, fontWeight: 700, color: '#0f1f3d', margin: 0 }}>Notificaciones</h3>
-                    <p style={{ fontSize: 11, color: '#6b6b7a', margin: 0 }}>{noLeidas} sin leer de {notificaciones.length}</p>
+                    <h3 style={{ fontSize: 15, fontWeight: 700, color: '#fff', margin: 0 }}>Notificaciones</h3>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', margin: 0 }}>{noLeidas} sin leer de {notificaciones.length}</p>
                   </div>
                 </div>
                 <button onClick={onClose} style={{
                   width: 32, height: 32, borderRadius: 8, border: 'none',
-                  background: '#f1f5f9', cursor: 'pointer',
+                  background: 'rgba(255,255,255,0.1)', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <X size={16} color="#64748b" />
+                  <X size={16} color="rgba(255,255,255,0.7)" />
                 </button>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => setFiltro('todas')} style={{
                   padding: '6px 12px', borderRadius: 6, border: 'none',
                   fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                  background: filtro === 'todas' ? '#1B6FE8' : '#f1f5f9',
-                  color: filtro === 'todas' ? '#fff' : '#64748b',
+                  background: filtro === 'todas' ? '#1B6FE8' : 'rgba(255,255,255,0.1)',
+                  color: filtro === 'todas' ? '#fff' : 'rgba(255,255,255,0.55)',
                 }}>Todas</button>
                 <button onClick={() => setFiltro('no-leidas')} style={{
                   padding: '6px 12px', borderRadius: 6, border: 'none',
                   fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                  background: filtro === 'no-leidas' ? '#1B6FE8' : '#f1f5f9',
-                  color: filtro === 'no-leidas' ? '#fff' : '#64748b',
+                  background: filtro === 'no-leidas' ? '#1B6FE8' : 'rgba(255,255,255,0.1)',
+                  color: filtro === 'no-leidas' ? '#fff' : 'rgba(255,255,255,0.55)',
                 }}>No leídas</button>
               </div>
             </div>

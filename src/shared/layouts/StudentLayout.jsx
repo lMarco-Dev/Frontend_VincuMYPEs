@@ -10,31 +10,76 @@ import {
   X,
   Award,
   FolderOpen,
+  Bell,
   AlertTriangle,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuthStore } from "../../store/authStore";
 import { Logo } from "../ui/Logo";
-import { useMisPostulaciones } from "../../features/postulaciones-list/useMisPostulaciones";
-import { useCertificados } from "../../features/certificados/useCertificados";
+import { useNotificaciones } from "../../features/notificaciones/useNotificaciones";
+import { useNotificacionesSocket } from "../../features/notificaciones/useNotificacionesSocket";
+import { NotificacionesPanel } from "../../features/notificaciones/NotificacionesPanel";
+import { useSidebarBadges } from "../hooks/useSidebarBadges";
 
-const NavItem = ({ to, icon: Icon, label, pathname, onClick, badge }) => {
-  const active = pathname === to;
+const SIDEBAR_BG = 'linear-gradient(170deg, #081828 0%, #0F2A4A 60%, #0C3260 100%)';
+
+function getPageTitle(pathname) {
+  if (pathname === '/dashboard/estudiante') return 'Mi Panel';
+  if (pathname.startsWith('/proyectos')) return 'Explorar Proyectos';
+  if (pathname === '/mis-postulaciones') return 'Mis Postulaciones';
+  if (pathname.startsWith('/workspace')) return 'Mi Workspace';
+  if (pathname === '/certificados') return 'Mis Certificados';
+  if (pathname === '/perfil') return 'Mi Perfil';
+  return 'Portal Estudiante';
+}
+
+const NavItem = ({ to, icon: Icon, label, pathname, onClick, showDot, dotColor }) => {
+  const active = pathname === to || (to !== '/dashboard/estudiante' && pathname.startsWith(to));
+
   return (
     <Link
       to={to}
       onClick={onClick}
-      className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 w-full ${
-        active
-          ? "bg-white/10 text-white font-medium"
-          : "text-white/55 hover:bg-white/5 hover:text-white/85"
-      }`}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '7px 8px',
+        borderRadius: 8,
+        fontSize: 12,
+        marginBottom: 2,
+        textDecoration: 'none',
+        border: active ? '1px solid rgba(27,111,232,0.3)' : '1px solid transparent',
+        background: active ? 'rgba(27,111,232,0.18)' : 'transparent',
+        color: active ? '#fff' : 'rgba(255,255,255,0.45)',
+        transition: 'all 0.15s',
+        fontFamily: "'Inter', sans-serif",
+      }}
+      onMouseEnter={(e) => {
+        if (!active) {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+          e.currentTarget.style.color = 'rgba(255,255,255,0.8)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.color = 'rgba(255,255,255,0.45)';
+        }
+      }}
     >
-      <div className="flex items-center gap-2.5">
-        <Icon size={17} className="shrink-0" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+        <Icon size={15} style={{ flexShrink: 0, color: active ? '#06B6D4' : 'inherit' }} />
         {label}
       </div>
-      {badge}
+      {showDot && (
+        <span style={{
+          width: 6, height: 6, borderRadius: '50%',
+          background: dotColor,
+          boxShadow: `0 0 6px ${dotColor}99`,
+          flexShrink: 0,
+        }} />
+      )}
     </Link>
   );
 };
@@ -42,223 +87,304 @@ const NavItem = ({ to, icon: Icon, label, pathname, onClick, badge }) => {
 const StudentLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isNotifPanelOpen, setIsNotifPanelOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 
-  const { data: postulaciones } = useMisPostulaciones();
-  const { data: certificados } = useCertificados();
+  const { data: notificaciones = [] } = useNotificaciones();
+  useNotificacionesSocket(user?.id);
+  const noLeidas = notificaciones.filter((n) => !n.leida).length;
 
-  const hasCertificados = certificados && certificados.length > 0;
-
-  const proyectoAceptado = postulaciones?.find(
-    (p) => p.estado === "CONFIRMADO" || p.estado === "ACEPTADO" || p.estado === "Aceptado",
-  );
-  const idProyectoParaWorkspace =
-    proyectoAceptado?.proyectoId ||
-    (postulaciones && postulaciones.length > 0
-      ? postulaciones[0].proyectoId
-      : "1");
+  const badges = useSidebarBadges();
 
   const navigationSections = [
     {
-      label: "Principal",
+      label: 'Principal',
       items: [
-        { to: "/dashboard/estudiante", icon: LayoutDashboard, label: "Mi Panel" },
-        { to: "/proyectos", icon: Search, label: "Explorar Proyectos" },
+        { to: '/dashboard/estudiante', icon: LayoutDashboard, label: 'Mi Panel', showDot: false },
+        { to: '/proyectos', icon: Search, label: 'Explorar Proyectos', showDot: badges.explorar, dotColor: '#F59E0B' },
       ],
     },
     {
-      label: "Gestión",
+      label: 'Gestión',
       items: [
-        { to: "/mis-postulaciones", icon: Briefcase, label: "Mis Postulaciones" },
-        { to: "/workspace", icon: FolderOpen, label: "Mi Workspace" },
-        { to: "/certificados", icon: Award, label: "Mis Certificados" },
+        { to: '/mis-postulaciones', icon: Briefcase, label: 'Mis Postulaciones', showDot: badges.postulaciones, dotColor: '#3B82F6' },
+        { to: '/workspace', icon: FolderOpen, label: 'Mi Workspace', showDot: badges.workspace, dotColor: '#8B5CF6' },
+        { to: '/certificados', icon: Award, label: 'Mis Certificados', showDot: badges.certificados, dotColor: '#10B981' },
       ],
     },
     {
-      label: "Cuenta",
-      items: [{ to: "/perfil", icon: User, label: "Mi Perfil" }],
+      label: 'Cuenta',
+      items: [
+        { to: '/perfil', icon: User, label: 'Mi Perfil', showDot: false },
+      ],
     },
   ];
 
   const initials =
-    user?.nombre
-      ?.split(" ")
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase() ?? "?";
+    user?.nombre?.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase() ?? '?';
 
   const handleConfirmLogout = () => {
-    console.log("Confirmando logout...");
     logout();
-    navigate("/login");
+    navigate('/login');
     setShowLogoutModal(false);
   };
 
-  const openModal = () => {
-    console.log("Abriendo modal de logout");
-    setShowLogoutModal(true);
-  };
+  const sidebarContent = (closeMenu) => (
+    <>
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.045) 1px, transparent 0)',
+        backgroundSize: '28px 28px', pointerEvents: 'none', zIndex: 0,
+      }} />
+      <div style={{
+        position: 'absolute', top: -80, right: -80, width: 200, height: 200,
+        borderRadius: '50%', background: 'radial-gradient(circle, #06B6D4, transparent 70%)',
+        opacity: 0.12, filter: 'blur(40px)', pointerEvents: 'none', zIndex: 0,
+      }} />
+      <div style={{
+        position: 'absolute', bottom: -60, left: -60, width: 160, height: 160,
+        borderRadius: '50%', background: 'radial-gradient(circle, #1B6FE8, transparent 70%)',
+        opacity: 0.1, filter: 'blur(30px)', pointerEvents: 'none', zIndex: 0,
+      }} />
+
+      <div style={{
+        position: 'relative', zIndex: 1, padding: '14px 16px',
+        borderBottom: '0.5px solid rgba(255,255,255,0.07)',
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+        <Logo />
+      </div>
+
+      <div style={{
+        position: 'relative', zIndex: 1, padding: '10px 14px',
+        borderBottom: '0.5px solid rgba(255,255,255,0.07)',
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <div style={{
+          width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+          background: 'linear-gradient(135deg, #1B6FE8, #06B6D4)',
+          border: '1.5px solid rgba(6,182,212,0.35)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 10, fontWeight: 700, color: '#fff',
+        }}>
+          {initials}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontSize: 11, fontWeight: 500, color: 'rgba(255,255,255,0.88)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {user?.nombre}
+          </p>
+          <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', margin: 0 }}>Estudiante</p>
+        </div>
+      </div>
+
+      <nav style={{ position: 'relative', zIndex: 1, flex: 1, padding: '8px', overflowY: 'auto' }}>
+        {navigationSections.map((section) => (
+          <div key={section.label} style={{ marginBottom: 16 }}>
+            <p style={{
+              fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,0.25)',
+              textTransform: 'uppercase', letterSpacing: '1px', padding: '0 7px', marginBottom: 3,
+            }}>
+              {section.label}
+            </p>
+            {section.items.map((item) => (
+              <NavItem
+                key={item.to}
+                to={item.to}
+                icon={item.icon}
+                label={item.label}
+                pathname={location.pathname}
+                onClick={closeMenu}
+                showDot={item.showDot}
+                dotColor={item.dotColor}
+              />
+            ))}
+          </div>
+        ))}
+      </nav>
+
+      <div style={{ position: 'relative', zIndex: 1, padding: 8, borderTop: '0.5px solid rgba(255,255,255,0.07)' }}>
+        <button
+          onClick={() => setShowLogoutModal(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px',
+            borderRadius: 8, fontSize: 12, color: 'rgba(255,255,255,0.3)',
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            width: '100%', transition: 'all 0.15s', fontFamily: "'Inter', sans-serif",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'transparent'; }}
+        >
+          <LogOut size={15} /> Cerrar sesión
+        </button>
+      </div>
+    </>
+  );
 
   return (
-    <div className="portal-estudiante min-h-screen bg-[#F8FAFC] flex overflow-hidden">
-      {/* SIDEBAR PARA DESKTOP */}
-      <aside className="hidden lg:flex flex-col w-[220px] bg-[#1e3a5f] flex-shrink-0 z-30">
-        <div className="px-4 py-4 border-b border-white/10">
-          <div className="flex items-center gap-2"><Logo /></div>
-        </div>
-        <div className="px-4 py-3.5 border-b border-white/10 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-xs font-medium shrink-0">{initials}</div>
-          <div className="min-w-0">
-            <p className="text-white/90 text-xs font-medium truncate">{user?.nombre}</p>
-            <p className="text-white/40 text-[11px]">Estudiante</p>
-          </div>
-        </div>
-        <nav className="flex-1 px-2 py-3 overflow-y-auto">
-          {navigationSections.map((section) => (
-            <div key={section.label} className="mb-5">
-              <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-2 mb-1">{section.label}</p>
-              {section.items.map((item) => (
-                <NavItem
-                  key={item.to}
-                  to={item.to}
-                  icon={item.icon}
-                  label={item.label}
-                  pathname={location.pathname}
-                  badge={item.label === "Mis Certificados" && hasCertificados ? (
-                    <span className="flex h-1.5 w-1.5 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                    </span>
-                  ) : null}
-                />
-              ))}
-            </div>
-          ))}
-        </nav>
-        <div className="p-2 border-t border-white/10">
-          <button
-            onClick={openModal}
-            className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-white/40 hover:text-white/70 hover:bg-white/5 transition-all w-full"
-          >
-            <LogOut size={17} />
-            Cerrar sesión
-          </button>
-        </div>
+    <div className="portal-estudiante" style={{ minHeight: '100vh', background: '#F8FAFC', display: 'flex', overflow: 'hidden' }}>
+
+      {/* SIDEBAR DESKTOP */}
+      <aside className="hidden lg:flex" style={{
+        width: 220, flexShrink: 0, flexDirection: 'column',
+        background: SIDEBAR_BG, position: 'relative', overflow: 'hidden', zIndex: 30,
+      }}>
+        {sidebarContent(null)}
       </aside>
 
       {/* MOBILE HEADER */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-100 flex items-center justify-between px-6 z-40">
+      <div className="lg:hidden" style={{
+        position: 'fixed', top: 0, left: 0, right: 0, height: 56,
+        background: '#fff', borderBottom: '1px solid #e5e7eb',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 16px', zIndex: 40,
+      }}>
         <Logo theme="light" />
-        <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl">
-          <Menu size={24} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            onClick={() => setIsNotifPanelOpen(true)}
+            style={{
+              position: 'relative', width: 36, height: 36, borderRadius: 8,
+              background: '#F1F5F9', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <Bell size={18} color="#64748b" />
+            {noLeidas > 0 && (
+              <span style={{
+                position: 'absolute', top: -3, right: -3, minWidth: 16, height: 16,
+                borderRadius: 8, background: '#EF4444', border: '2px solid #fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 9, fontWeight: 700, color: '#fff', padding: '0 3px',
+              }}>{noLeidas}</span>
+            )}
+          </button>
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            style={{ padding: 8, color: '#475569', background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            <Menu size={24} />
+          </button>
+        </div>
       </div>
 
       {/* MOBILE SIDEBAR */}
       <AnimatePresence>
         {isSidebarOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 lg:hidden">
-            <div onClick={() => setIsSidebarOpen(false)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 50 }}
+            className="lg:hidden"
+          >
+            <div
+              onClick={() => setIsSidebarOpen(false)}
+              style={{ position: 'absolute', inset: 0, background: 'rgba(15,26,47,0.5)', backdropFilter: 'blur(4px)' }}
+            />
             <motion.aside
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="absolute inset-y-0 left-0 w-[240px] bg-[#1e3a5f] z-10 flex flex-col shadow-2xl h-full"
+              initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              style={{
+                position: 'absolute', top: 0, left: 0, bottom: 0, width: 240,
+                background: SIDEBAR_BG, display: 'flex', flexDirection: 'column',
+                boxShadow: '4px 0 30px rgba(0,0,0,0.3)', overflow: 'hidden',
+              }}
             >
-              <div className="px-4 py-4 border-b border-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-2 flex-1 mr-2"><Logo /></div>
-                <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"><X size={20} /></button>
-              </div>
-              <div className="px-4 py-3.5 border-b border-white/10 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-xs font-medium shrink-0">{initials}</div>
-                <div className="min-w-0">
-                  <p className="text-white/90 text-xs font-medium truncate">{user?.nombre}</p>
-                  <p className="text-white/40 text-[11px]">Estudiante</p>
-                </div>
-              </div>
-              <nav className="flex-1 px-2 py-3 overflow-y-auto">
-                {navigationSections.map((section) => (
-                  <div key={section.label} className="mb-5">
-                    <p className="text-[10px] font-medium text-white/30 uppercase tracking-wider px-2 mb-1">{section.label}</p>
-                    {section.items.map((item) => (
-                      <NavItem
-                        key={item.to}
-                        to={item.to}
-                        icon={item.icon}
-                        label={item.label}
-                        pathname={location.pathname}
-                        onClick={() => setIsSidebarOpen(false)}
-                        badge={item.label === "Mis Certificados" && hasCertificados ? (
-                          <span className="flex h-1.5 w-1.5 relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                          </span>
-                        ) : null}
-                      />
-                    ))}
-                  </div>
-                ))}
-              </nav>
-              <div className="p-2 border-t border-white/10">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', padding: 8, position: 'relative', zIndex: 1 }}>
                 <button
-                  onClick={openModal}
-                  className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-white/40 hover:text-white/70 hover:bg-white/5 transition-all w-full"
+                  onClick={() => setIsSidebarOpen(false)}
+                  style={{ padding: 6, color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)', border: 'none', cursor: 'pointer', borderRadius: 8 }}
                 >
-                  <LogOut size={17} />
-                  Cerrar sesión
+                  <X size={18} />
                 </button>
               </div>
+              {sidebarContent(() => setIsSidebarOpen(false))}
             </motion.aside>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* MAIN CONTENT */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        <div className="flex-1 overflow-y-auto pt-16 lg:pt-0">
+      {/* ÁREA DE CONTENIDO */}
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+        {/* Topbar con campanita (solo desktop) */}
+        <div className="hidden lg:flex" style={{
+          height: 44, background: '#fff', borderBottom: '0.5px solid #E5E7EB',
+          flexShrink: 0, alignItems: 'center', justifyContent: 'space-between', padding: '0 24px',
+        }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
+            {getPageTitle(location.pathname)}
+          </span>
+          <button
+            onClick={() => setIsNotifPanelOpen(true)}
+            style={{
+              position: 'relative', width: 34, height: 34, borderRadius: 8,
+              background: '#F1F5F9', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <Bell size={17} color="#64748b" />
+            {noLeidas > 0 && (
+              <span style={{
+                position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16,
+                borderRadius: 8, background: '#EF4444', border: '2px solid #fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 9, fontWeight: 700, color: '#fff', padding: '0 3px',
+              }}>{noLeidas}</span>
+            )}
+          </button>
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto' }} className="pt-14 lg:pt-0">
           <Outlet />
         </div>
       </main>
 
-      {/* MODAL DE CONFIRMACIÓN INCRUSTADO (sin dependencias externas) */}
+      {/* PANEL DE NOTIFICACIONES */}
+      <NotificacionesPanel isOpen={isNotifPanelOpen} onClose={() => setIsNotifPanelOpen(false)} />
+
+      {/* MODAL LOGOUT */}
       <AnimatePresence>
         {showLogoutModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 60,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 16, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+          }}>
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="relative max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden"
+              style={{
+                position: 'relative', maxWidth: 420, width: '100%',
+                background: '#fff', borderRadius: 20,
+                boxShadow: '0 25px 60px rgba(0,0,0,0.2)', overflow: 'hidden',
+              }}
             >
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-600 to-amber-700" />
-              <div className="p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-                    <AlertTriangle size={24} className="text-amber-600" />
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg, #d97706, #b45309)' }} />
+              <div style={{ padding: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <AlertTriangle size={22} color="#d97706" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900">Cerrar sesión</h3>
-                    <p className="text-slate-500 text-sm mt-0.5">¿Seguro que quieres salir?</p>
+                    <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0 }}>Cerrar sesión</h3>
+                    <p style={{ fontSize: 13, color: '#64748b', margin: '2px 0 0' }}>¿Seguro que quieres salir?</p>
                   </div>
                 </div>
-                <p className="text-slate-600 text-sm mb-6">
+                <p style={{ fontSize: 13, color: '#475569', marginBottom: 24 }}>
                   Se cerrará tu sesión actual y deberás volver a iniciar sesión para acceder a tu cuenta.
                 </p>
-                <div className="flex gap-3">
+                <div style={{ display: 'flex', gap: 12 }}>
                   <button
                     onClick={() => setShowLogoutModal(false)}
-                    className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"
+                    style={{ flex: 1, padding: '10px 0', borderRadius: 12, border: 'none', background: '#F1F5F9', color: '#475569', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleConfirmLogout}
-                    className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-amber-700 rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all shadow-md shadow-amber-600/20"
+                    style={{ flex: 1, padding: '10px 0', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #d97706, #b45309)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                   >
                     Cerrar sesión
                   </button>

@@ -17,27 +17,23 @@ import {
   Star,
 } from "lucide-react";
 import { clsx } from "clsx";
+import { useSidebarBadges } from "@/shared/hooks/useSidebarBadges";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
-// ✅ NAVEGACIÓN CORREGIDA - SIN DUPLICADOS
-const NAV = [
+const getNAV = (badges) => [
   {
     label: "Principal",
     items: [
-      {
-        to: "/admin/dashboard",
-        icon: LayoutDashboard,
-        label: "Panel de Control",
-      },
-      { to: "/admin/proyectos", icon: FolderKanban, label: "Proyectos" },
+      { to: "/admin/dashboard", icon: LayoutDashboard, label: "Panel de Control" },
+      { to: "/admin/proyectos", icon: FolderKanban, label: "Proyectos", showDot: badges.proyectosMype, dotColor: '#F59E0B' },
       { to: "/admin/usuarios", icon: Users, label: "Usuarios" },
     ],
   },
   {
     label: "Gestión",
     items: [
-      { to: "/admin/postulaciones", icon: UserCheck, label: "Postulaciones" },
+      { to: "/admin/postulaciones", icon: UserCheck, label: "Postulaciones", showDot: badges.postulaciones, dotColor: '#3B82F6' },
       { to: "/admin/calificaciones", icon: Star, label: "Calificaciones" },
       { to: "/admin/certificados", icon: Award, label: "Certificados" },
       { to: "/admin/auditoria", icon: History, label: "Auditoría" },
@@ -47,7 +43,7 @@ const NAV = [
   },
 ];
 
-function NavItem({ to, icon: Icon, label }) {
+function NavItem({ to, icon: Icon, label, showDot, dotColor }) {
   const { pathname } = useLocation();
   const active = pathname === to || pathname.startsWith(to + "/");
 
@@ -62,11 +58,15 @@ function NavItem({ to, icon: Icon, label }) {
           : "text-white/45 hover:bg-white/[0.06] hover:text-white/80 border-transparent",
       )}
     >
-      <Icon
-        size={15}
-        className={clsx("shrink-0", active && "text-[#06B6D4]")}
-      />
+      <Icon size={15} className={clsx("shrink-0", active && "text-[#06B6D4]")} />
       <span className="flex-1">{label}</span>
+      {showDot && (
+        <span style={{
+          width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+          background: dotColor,
+          boxShadow: `0 0 6px ${dotColor}99`,
+        }} />
+      )}
     </Link>
   );
 }
@@ -74,6 +74,8 @@ function NavItem({ to, icon: Icon, label }) {
 export default function AdminSidebar() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const badges = useSidebarBadges();
+  const NAV = getNAV(badges);
 
   const initials =
     user?.nombre

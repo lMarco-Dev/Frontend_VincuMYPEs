@@ -17,24 +17,25 @@ import {
 import { clsx } from 'clsx';
 import { Logo } from '../ui/Logo';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSidebarBadges } from '../hooks/useSidebarBadges';
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
-const NAV = [
+const getNAV = (badges) => [
   {
     label: 'Principal',
     items: [
       { to: '/dashboard/mype', icon: LayoutDashboard, label: 'Dashboard' },
       { to: '/dashboard/mype/proyectos', icon: Briefcase, label: 'Mis proyectos' },
-      { to: '/dashboard/mype/postulantes', icon: Users, label: 'Postulantes', badge: true },
+      { to: '/dashboard/mype/postulantes', icon: Users, label: 'Postulantes', showDot: badges.postulaciones, dotColor: '#3B82F6' },
     ],
   },
   {
     label: 'Gestión',
     items: [
-      { to: '/dashboard/mype/ejecucion', icon: CheckCircle, label: 'En ejecución' },
+      { to: '/dashboard/mype/ejecucion', icon: CheckCircle, label: 'En ejecución', showDot: badges.proyectosMype, dotColor: '#F59E0B' },
       { to: '/dashboard/mype/certificados', icon: Award, label: 'Certificados' },
-      { to: '/dashboard/mype/mensajes', icon: MessageSquare, label: 'Mensajes' },
+      { to: '/dashboard/mype/mensajes', icon: MessageSquare, label: 'Mensajes', showDot: badges.mensajes, dotColor: '#10B981' },
     ],
   },
   {
@@ -46,7 +47,7 @@ const NAV = [
   },
 ];
 
-function NavItem({ to, icon: Icon, label, badge }) {
+function NavItem({ to, icon: Icon, label, showDot, dotColor }) {
   const { pathname } = useLocation();
   const active = pathname === to;
 
@@ -63,20 +64,12 @@ function NavItem({ to, icon: Icon, label, badge }) {
     >
       <Icon size={15} className={clsx('shrink-0', active && 'text-[#06B6D4]')} />
       <span className="flex-1">{label}</span>
-      {badge && (
-        <span
-          style={{
-            background: 'rgba(249,115,22,0.2)',
-            color: '#FB923C',
-            border: '1px solid rgba(249,115,22,0.3)',
-            fontSize: 9,
-            fontWeight: 700,
-            padding: '1px 6px',
-            borderRadius: 10,
-          }}
-        >
-          •
-        </span>
+      {showDot && (
+        <span style={{
+          width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+          background: dotColor,
+          boxShadow: `0 0 6px ${dotColor}99`,
+        }} />
       )}
     </Link>
   );
@@ -85,6 +78,8 @@ function NavItem({ to, icon: Icon, label, badge }) {
 export function Sidebar({ onLogoutClick }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuthStore();
+  const badges = useSidebarBadges();
+  const NAV = getNAV(badges);
 
   const initials =
     user?.nombre
