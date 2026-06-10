@@ -3,7 +3,7 @@ import { useCalificacionesPendientes } from "./useCalificacionesPendientes";
 import RateUserModal from "./RateUserModal";
 import { Star } from "lucide-react";
 
-export default function CalificacionesPendientesCard() {
+export function CalificacionesPendientesCard() {
   const { pendientes, isLoading } = useCalificacionesPendientes();
   const [seleccionado, setSeleccionado] = useState(null);
 
@@ -46,3 +46,5 @@ export default function CalificacionesPendientesCard() {
     </>
   );
 }
+
+export default CalificacionesPendientesCard;

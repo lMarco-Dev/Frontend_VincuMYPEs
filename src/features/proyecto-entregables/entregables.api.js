@@ -18,6 +18,12 @@ export const getEntregablesSubidosPorProyecto = async (proyectoId) => {
   return data;
 };
 
+export const lockEntregable = (proyectoId, entregableId) =>
+  httpClient.post(`/proyectos/${proyectoId}/entregables/${entregableId}/lock`);
+
+export const unlockEntregable = (proyectoId, entregableId) =>
+  httpClient.post(`/proyectos/${proyectoId}/entregables/${entregableId}/unlock`);
+
 export const revisarEntregableApi = async (
   proyectoId,
   entregableId,

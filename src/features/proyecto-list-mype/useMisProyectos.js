@@ -9,6 +9,7 @@ export function useMisProyectos() {
     queryKey: ["mis-proyectos", user?.id],
     queryFn: getMisProyectosApi,
     enabled: !!user?.id,
+    refetchInterval: 15000,
   });
 
   return {

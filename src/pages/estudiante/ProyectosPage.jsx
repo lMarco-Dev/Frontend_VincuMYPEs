@@ -12,7 +12,6 @@ import {
   MapPin,
   Users,
   CheckCircle2,
-  Sparkles,
   Clock,
   Calendar,
   ChevronLeft,
@@ -37,7 +36,6 @@ import {
   GraduationCap,
   Award,
   Bell,
-  RefreshCw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
@@ -185,10 +183,8 @@ const ExploreHero = () => {
   const [badgeColor, setBadgeColor] = useState("#67d4f8");
 
   const messages = [
-    { text: "+28 proyectos activos", color: "#67d4f8" },
-    { text: "+12 empresas registradas", color: "#f59e0b" },
-    { text: "+45 vacantes disponibles", color: "#4ade80" },
-    { text: "3 proyectos urgentes", color: "#f43f5e" },
+    { text: "Proyectos con empresas locales", color: "#67d4f8" },
+    { text: "Vacantes disponibles ahora", color: "#4ade80" },
     { text: "Nuevas oportunidades cada semana", color: "#8b5cf6" },
   ];
 
@@ -339,26 +335,6 @@ const ExploreHero = () => {
         }}
       >
         <div>
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              background: "rgba(255,255,255,0.1)",
-              padding: "4px 14px",
-              borderRadius: 30,
-              fontSize: 11,
-              fontWeight: 600,
-              marginBottom: 16,
-              backdropFilter: "blur(8px)",
-            }}
-          >
-            <Sparkles size={12} /> OPORTUNIDADES EN TIEMPO REAL
-          </motion.div>
-
           <h1
             style={{
               fontSize: "clamp(22px, 2.5vw, 28px)",
@@ -577,6 +553,8 @@ const ProjectCardLinkedIn = ({ proyecto, onClick, yaPostulo, isSelected, postula
 /* ═══════════════════════════════════════════════
    PANEL DE DETALLE - MEJORADO
 ═══════════════════════════════════════════════ */
+const DESC_PREVIEW = 300;
+
 const ProjectDetailPanel = ({
   proyecto,
   cargando = false,
@@ -588,6 +566,7 @@ const ProjectDetailPanel = ({
   onClose,
   postulacionesCount = 0,
 }) => {
+  const [verMasDesc, setVerMasDesc] = React.useState(false);
   // 1. Spinner mientras se carga el detalle
   if (cargando) {
     return (
@@ -823,7 +802,7 @@ const ProjectDetailPanel = ({
             },
             {
               label: "Ubicación",
-              value: proyecto.ubicacion || "Cajamarca",
+              value: proyecto.mypeDireccion || "Cajamarca",
               icon: <MapPin size={13} />,
             },
           ].map((metric, idx) => (
@@ -908,16 +887,26 @@ const ProjectDetailPanel = ({
           >
             Descripción
           </h4>
-          <p
-            style={{
-              fontSize: 13,
-              color: "#475569",
-              lineHeight: 1.6,
-              margin: 0,
-            }}
-          >
-            {proyecto.descripcion}
-          </p>
+          {(() => {
+            const desc = proyecto.descripcion || "";
+            const larga = desc.length > DESC_PREVIEW;
+            const texto = larga && !verMasDesc ? desc.slice(0, DESC_PREVIEW) + "…" : desc;
+            return (
+              <>
+                <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.6, margin: 0 }}>
+                  {texto}
+                </p>
+                {larga && (
+                  <button
+                    onClick={() => setVerMasDesc((v) => !v)}
+                    style={{ marginTop: 6, fontSize: 11, fontWeight: 600, color: "#1B6FE8", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                  >
+                    {verMasDesc ? "Ver menos ▲" : "Ver más ▼"}
+                  </button>
+                )}
+              </>
+            );
+          })()}
         </div>
 
         {proyecto.objetivo && (
@@ -946,47 +935,6 @@ const ProjectDetailPanel = ({
             </p>
           </div>
         )}
-
-        {/* Habilidades requeridas (placeholder) */}
-        <div style={{ marginBottom: 20 }}>
-          <h4
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: "#000000",
-              marginBottom: 8,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-            }}
-          >
-            Habilidades requeridas
-          </h4>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-            {[
-              "Trabajo en equipo",
-              "Comunicación",
-              "Proactividad",
-              "Responsabilidad",
-            ].map((skill, idx) => (
-              <span
-                key={idx}
-                style={{
-                  background: "#f1f5f9",
-                  color: "#475569",
-                  padding: "3px 10px",
-                  borderRadius: 12,
-                  fontSize: 11,
-                  fontWeight: 500,
-                }}
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
-        </div>
 
         <div
           style={{
@@ -1051,18 +999,12 @@ const ProjectDetailPanel = ({
                   <RatingDisplay usuarioId={proyecto.mypeUsuarioId} size="sm" />
                 )}
               </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "#64748b",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}
-              >
-                <MapPin size={10} style={{ color: "#3b82f6" }} />
-                {proyecto.ubicacion || "Cajamarca"}
-              </div>
+              {(proyecto.mypeDireccion) && (
+                <div style={{ fontSize: 11, color: "#64748b", display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+                  <MapPin size={10} style={{ color: "#3b82f6" }} />
+                  {proyecto.mypeDireccion}
+                </div>
+              )}
             </div>
             {proyecto.mypeDescripcion && (
               <p
@@ -1260,7 +1202,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 /* ═══════════════════════════════════════════════
    COMPONENTE PRINCIPAL
 ═══════════════════════════════════════════════ */
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 6;
 
 const ProyectosPage = () => {
   const navigate = useNavigate();
@@ -1274,6 +1216,7 @@ const ProyectosPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [panelCerrado, setPanelCerrado] = useState(false);
 
   const { data: proyectosData, isLoading, refetch } = useProyectos(0, 1000);
   const { data: postulaciones } = useMisPostulaciones();
@@ -1427,12 +1370,12 @@ const ProyectosPage = () => {
     setCurrentPage(1);
   }, [searchTerm, selectedArea]);
 
-    // Seleccionar primer proyecto cuando cambia la lista (SOLO si no hay proyecto desde URL)
+    // Seleccionar primer proyecto cuando carga por primera vez (solo si el usuario no cerró el panel)
   useEffect(() => {
-    if (paginatedProyectos.length > 0 && !selectedProyecto && !selectedIdFromUrl) {
+    if (paginatedProyectos.length > 0 && !selectedProyecto && !selectedIdFromUrl && !panelCerrado) {
       setSelectedProyecto(paginatedProyectos[0]);
     }
-  }, [paginatedProyectos, selectedProyecto, selectedIdFromUrl]);
+  }, [paginatedProyectos, selectedProyecto, selectedIdFromUrl, panelCerrado]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -1473,29 +1416,14 @@ const ProyectosPage = () => {
               fontWeight: 700,
               color: "#0f172a",
               margin: 0,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
             }}
           >
             Proyectos disponibles
-            <motion.span
-              animate={{ rotate: autoRefresh ? 360 : 0 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              style={{ display: "inline-flex" }}
-            >
-              <RefreshCw size={14} style={{ color: autoRefresh ? "#059669" : "#94a3b8" }} />
-            </motion.span>
           </h1>
           <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0 0 0" }}>
             {filteredProyectos.length} proyecto
             {filteredProyectos.length !== 1 ? "s" : ""} encontrado
             {filteredProyectos.length !== 1 ? "s" : ""}
-            {autoRefresh && (
-              <span style={{ color: "#059669", marginLeft: 8 }}>
-                • Actualización automática activada
-              </span>
-            )}
           </p>
         </div>
        
@@ -1778,7 +1706,7 @@ const ProyectosPage = () => {
             yaPostulo={selectedProyecto ? !!yaPostuloMap[selectedProyecto.id] : false}
             haSuperadoLimite={haSuperadoLimite}
             limiteProyectos={limiteProyectos}
-            onClose={() => setSelectedProyecto(null)}
+            onClose={() => { setSelectedProyecto(null); setPanelCerrado(true); }}
             postulacionesCount={proyectoDetalle?.cuposOcupados ?? selectedProyecto?.cuposOcupados ?? 0}
           />
         </div>

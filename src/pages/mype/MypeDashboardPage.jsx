@@ -1,11 +1,10 @@
-import React, { useRef, useEffect, useState } from "react";
-import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import { PROYECTO_ESTADO } from "@/entities/proyecto/proyecto.constants";
 import { Link, useNavigate } from "react-router-dom";
 import { CalificacionesPendientesCard } from "@/features/calificaciones/CalificacionesPendientesCard";
 import { motion } from "framer-motion";
-import CalificacionesPendientesCard from "@/features/calificaciones/CalificacionesPendientesCard";
+import { MypeLayout } from "@shared/layouts/MypeLayout";
+import React, { useState, useEffect, useRef } from "react";
 import {
   FileText,
   Users,

@@ -12,14 +12,11 @@ import {
   ArrowRight,
   Award,
   Building2,
-  Send,
   Bell,
   Search,
   ScanFace,
-  Compass,
   ClipboardList,
   BadgeCheck,
-  RefreshCw,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -342,16 +339,6 @@ const HeroBanner = ({ proyectosTotal = 0, aceptados = 0 }) => {
       {/* Contenido izquierdo */}
       <div style={{ position:'relative', zIndex:10, maxWidth:440 }}>
 
-        {/* Tag pulsante */}
-        <motion.div
-          initial={{ opacity:0, x:-12 }} animate={{ opacity:1, x:0 }}
-          transition={{ delay:0.1, duration:0.5 }}
-          style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:20, padding:'5px 14px', fontSize:10, fontWeight:600, letterSpacing:'0.1em', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', marginBottom:18 }}
-        >
-          <span style={{ width:7, height:7, borderRadius:'50%', background:'#4ade80', display:'inline-block', animation:'heroPulse 2s ease-in-out infinite' }} />
-          Portal de estudiantes · 
-        </motion.div>
-
         {/* Heading con animación moderna */}
         <div style={{ fontSize:'clamp(22px,2.6vw,30px)', fontWeight:800, lineHeight:1.08, letterSpacing:'-0.035em', marginBottom:10 }}>
           <div style={{ overflow:'hidden' }}>
@@ -450,8 +437,8 @@ const HeroBanner = ({ proyectosTotal = 0, aceptados = 0 }) => {
             </div>
           ))}
         </div>
-        <span style={{ fontSize:11, color:'rgba(255,255,255,0.45)' }}>
-          <strong style={{ color:'rgba(255,255,255,0.75)', fontWeight:600 }}>+24 estudiantes</strong> registrados
+        <span style={{ fontSize:11, color:'rgba(255,255,255,0.55)' }}>
+          Cajamarca, Perú
         </span>
       </motion.div>
 
@@ -522,34 +509,9 @@ if (completitud > 100) completitud = 100;
           <h1 style={{ fontSize:22, fontWeight:800, letterSpacing:'-0.03em', color:'#0f1f3d' }}>
             ¡Hola, {firstName}!
           </h1>
-         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2, flexWrap: 'wrap' }}>
-    <p style={{ fontSize: 13, color: '#6b6b7a', margin: 0 }}>
-        {proyectosRecomendados.length > 0
-            ? `${proyectosRecomendados.length} proyectos nuevos esperándote`
-            : 'Tu panel de control profesional'}
-            </p>
-            <div style={{
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 5,
-    background: '#ecfdf5',
-    border: '1px solid #a7f3d0',
-    borderRadius: 12,
-    padding: '3px 10px',
-    fontSize: 10,
-    color: '#059669',
-    fontWeight: 600,
-}}>
-    <motion.span
-        animate={{ rotate: 360 }}
-        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-        style={{ display: 'inline-flex' }}
-    >
-        <RefreshCw size={11} />
-    </motion.span>
-    Actualización automática
-</div>
-        </div>
+         <p style={{ fontSize: 13, color: '#6b6b7a', margin: '2px 0 0 0' }}>
+           Tu panel de control profesional
+         </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           <Link to="/proyectos" style={{ textDecoration:'none' }}>
@@ -615,7 +577,7 @@ if (completitud > 100) completitud = 100;
           pct={completitud}
         />
         <MetricCard
-          label="Aplicaciones"
+          label="Mis Postulaciones"
           value={loadingPostulaciones ? '...' : totalPostulaciones}
           sub={`${aceptados} aceptadas · ${totalPostulaciones - aceptados} pendientes`}
           linkTo="/mis-postulaciones"
@@ -626,7 +588,7 @@ if (completitud > 100) completitud = 100;
           pct={porcentajeExito}
         />
         <MetricCard
-          label="Reconocimientos"
+          label="Mis certificados"
           value={loadingCertificados ? '...' : totalCertificados}
           sub="Certificados obtenidos"
           linkTo="/certificados"
@@ -664,8 +626,8 @@ if (completitud > 100) completitud = 100;
         )}
       </motion.section>
 
-      {/* ── FILA INFERIOR: ACTIVIDAD + ACCIONES RÁPIDAS ── */}
-      <motion.div {...fadeUp(0.24)} style={{ display:'grid', gridTemplateColumns:'1fr 300px', gap:16 }}>
+      {/* ── FILA INFERIOR: ACTIVIDAD RECIENTE ── */}
+      <motion.div {...fadeUp(0.24)} style={{ display:'grid', gridTemplateColumns:'1fr', gap:16 }}>
 
         {/* Actividad reciente */}
         <div style={{ background:'#fff', border:'0.5px solid #e8e8e4', borderRadius:16, padding:22 }}>
@@ -770,54 +732,6 @@ if (completitud > 100) completitud = 100;
           )}
         </div>
 
-        {/* Acciones rápidas */}
-        <div style={{ background:'#fff', border:'0.5px solid #e8e8e4', borderRadius:16, padding:22 }}>
-          <div style={{ ...S.sectionTitle, marginBottom:14 }}><span style={S.sectionBar} />Acciones rápidas</div>
-
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:16 }}>
-            {[
-              { to:'/perfil',            icon:ScanFace,      label:'Mi perfil',    bg:'#eff6ff', color:'#1B6FE8' },
-              { to:'/proyectos',         icon:Compass,       label:'Explorar',     bg:'#f0fdf4', color:'#059669' },
-              { to:'/mis-postulaciones', icon:ClipboardList, label:'Aplicaciones', bg:'#f5f3ff', color:'#8B5CF6' },
-              { to:'/certificados',      icon:BadgeCheck,    label:'Certificados', bg:'#fff7ed', color:'#d4580a' },
-            ].map(({ to, icon: Icon, label, bg, color }) => (
-              <Link key={to} to={to} style={{ textDecoration:'none' }}>
-                <div
-                  style={{ borderRadius:12, border:'0.5px solid #e8e8e4', background:'#fafaf8', padding:'14px 10px', display:'flex', flexDirection:'column', alignItems:'center', gap:8, cursor:'pointer', transition:'all 0.25s', textAlign:'center' }}
-                  onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.borderColor='rgba(27,111,232,0.25)'; e.currentTarget.style.background='#f0f6ff'; e.currentTarget.style.boxShadow='0 6px 20px rgba(27,111,232,0.07)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform='none'; e.currentTarget.style.borderColor='#e8e8e4'; e.currentTarget.style.background='#fafaf8'; e.currentTarget.style.boxShadow='none'; }}
-                >
-                  <div style={{ width:36, height:36, borderRadius:10, background:bg, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    <Icon size={17} color={color} />
-                  </div>
-                  <span style={{ fontSize:11, fontWeight:600, color:'#0f1f3d' }}>{label}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Portafolio profesional */}
-          <Link to="/perfil" style={{ textDecoration:'none' }}>
-            <div
-              style={{ background:'#f8f6f2', border:'0.5px solid #e8e4dc', borderRadius:12, padding:16, position:'relative', overflow:'hidden', cursor:'pointer', transition:'all 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.background='#f2efe8'; e.currentTarget.style.borderColor='#d4c9b8'; e.currentTarget.style.transform='translateY(-1px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background='#f8f6f2'; e.currentTarget.style.borderColor='#e8e4dc'; e.currentTarget.style.transform='none'; }}
-            >
-              <div style={{ position:'absolute', top:0, left:0, width:3, height:'100%', background:'linear-gradient(to bottom,#d4580a,#f59e0b)', borderRadius:0 }} />
-              <div style={{ paddingLeft:12 }}>
-                <div style={{ fontSize:10, fontWeight:600, color:'#b07040', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:5 }}>
-                  Portafolio profesional
-                </div>
-                <div style={{ fontSize:13, fontWeight:700, color:'#3d2b1f', lineHeight:1.35, marginBottom:10 }}>
-                  Completa tu perfil y destaca entre los demás
-                </div>
-                <div style={{ display:'flex', alignItems:'center', gap:5, fontSize:11, fontWeight:700, color:'#d4580a' }}>
-                  Completar ahora <ArrowRight size={11} />
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
           
       </motion.div>
       {/* Panel de Notificaciones */}

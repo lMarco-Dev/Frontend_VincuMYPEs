@@ -2,19 +2,17 @@ import { useState } from "react";
 import { useCalificacionesPendientes } from "@/features/calificaciones/useCalificacionesPendientes";
 import RateUserModal from "@/features/calificaciones/RateUserModal";
 import { useCertificados } from '@features/certificados/useCertificados';
-import { 
-  Award, 
-  Calendar, 
-  ExternalLink, 
-  Loader2, 
-  Search, 
-  Rocket, 
-  PartyPopper,
-  Hammer,
+import {
+  Award,
+  Calendar,
+  ExternalLink,
+  Rocket,
   CheckCircle2,
-  Lock,
-  Cpu
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
+
+const CERTS_PER_PAGE = 10;
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -30,6 +28,7 @@ const CertificadosPage = () => {
   const { data: certificados = [], isLoading, isError, error } = useCertificados();
   const { pendientes: pendientesCalificacion } = useCalificacionesPendientes();
   const [modalCalificacion, setModalCalificacion] = useState({ open: false, data: null });
+  const [certPage, setCertPage] = useState(0);
   const queryClient = useQueryClient();
 
   if (isLoading) {
@@ -56,11 +55,13 @@ const CertificadosPage = () => {
 
   const totalCertificados = certificados?.length || 0;
   const hasCertificados = totalCertificados > 0;
+  const totalPaginasCerts = Math.ceil(totalCertificados / CERTS_PER_PAGE);
+  const certsPaginados = certificados.slice(certPage * CERTS_PER_PAGE, (certPage + 1) * CERTS_PER_PAGE);
 
   return (
     <div style={{ fontFamily: "Inter, Arial, 'Helvetica Neue', sans-serif", background: '#f8fafc', minHeight: '100vh', padding: '32px 36px', maxWidth: 1440, margin: '0 auto' }}>
-      
-      {/* Header consistente con PerfilPage y WorkspaceSelectorPage */}
+
+      {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <div style={{ width: 4, height: 20, borderRadius: 2, background: '#1B6FE8' }} />
@@ -70,40 +71,8 @@ const CertificadosPage = () => {
         </div>
         <p style={{ fontSize: 13, fontWeight: 500, color: '#6b6b7a', margin: 0, marginLeft: 14 }}>
           Reconocimientos oficiales con firma digital por tu participación en proyectos MYPE
+          {hasCertificados && <span style={{ marginLeft: 8, fontWeight: 700, color: '#1B6FE8' }}>· {totalCertificados} emitido{totalCertificados !== 1 ? 's' : ''}</span>}
         </p>
-      </div>
-
-      {/* Estadísticas en formato Bento */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
-        <motion.div {...fadeUp(0.05)} style={{ background: '#fff', borderRadius: 20, padding: '20px 24px', border: '0.5px solid #e8e8e4', display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Award size={22} color="#d97706" />
-          </div>
-          <div>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Credenciales Obtenidas</p>
-            <p style={{ fontSize: 24, fontWeight: 800, color: '#0f1f3d', margin: 0 }}>{totalCertificados}</p>
-          </div>
-        </motion.div>
-
-        <motion.div {...fadeUp(0.1)} style={{ background: '#fff', borderRadius: 20, padding: '20px 24px', border: '0.5px solid #e8e8e4', display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Lock size={22} color="#059669" />
-          </div>
-          <div>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Firma Digital</p>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#059669', margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={12} /> 100% Verificada</p>
-          </div>
-        </motion.div>
-
-        <motion.div {...fadeUp(0.15)} style={{ background: '#fff', borderRadius: 20, padding: '20px 24px', border: '0.5px solid #e8e8e4', display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Cpu size={22} color="#1B6FE8" />
-          </div>
-          <div>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Competencias Validadas</p>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#1B6FE8', margin: 0 }}>Habilidades TI Reales</p>
-          </div>
-        </motion.div>
       </div>
 
       {/* Contenido principal */}
@@ -132,9 +101,10 @@ const CertificadosPage = () => {
             </Link>
           </motion.div>
         ) : (
-          /* Grid de certificados estilo tarjetas modernas */
+          /* Grid de certificados paginado */
+          <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 20 }}>
-            {certificados.map((cert, index) => {
+            {certsPaginados.map((cert, index) => {
               const colores = ['#1B6FE8', '#06B6D4', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444'];
               const colorFondo = colores[index % colores.length];
               const iniciales = (cert.tituloCertificado || 'C').slice(0, 2).toUpperCase();
@@ -303,54 +273,21 @@ const CertificadosPage = () => {
               );
             })}
           </div>
+          {totalPaginasCerts > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 24 }}>
+              <button onClick={() => setCertPage((p) => Math.max(0, p - 1))} disabled={certPage === 0}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 14px', borderRadius: 8, border: '0.5px solid #e8e8e4', background: '#fff', color: certPage === 0 ? '#d1d5db' : '#1B6FE8', fontSize: 13, fontWeight: 600, cursor: certPage === 0 ? 'default' : 'pointer' }}>
+                <ChevronLeft size={14} /> Anterior
+              </button>
+              <span style={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>{certPage + 1} / {totalPaginasCerts}</span>
+              <button onClick={() => setCertPage((p) => Math.min(totalPaginasCerts - 1, p + 1))} disabled={certPage >= totalPaginasCerts - 1}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 14px', borderRadius: 8, border: '0.5px solid #e8e8e4', background: '#fff', color: certPage >= totalPaginasCerts - 1 ? '#d1d5db' : '#1B6FE8', fontSize: 13, fontWeight: 600, cursor: certPage >= totalPaginasCerts - 1 ? 'default' : 'pointer' }}>
+                Siguiente <ChevronRight size={14} />
+              </button>
+            </div>
+          )}
+          </>
         )}
-
-        {/* Step-by-Step Flow Cards - Estilo consistente */}
-        <motion.div {...fadeUp(0.3)} style={{
-          marginTop: 32,
-          background: 'linear-gradient(135deg, #f8fafc, #fff)',
-          borderRadius: 24,
-          border: '0.5px solid #e8e8e4',
-          padding: '28px 32px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center'
-        }}>
-          <h4 style={{ fontSize: 15, fontWeight: 700, color: '#0f1f3d', marginBottom: 8 }}>¿Cómo obtener tu certificado oficial?</h4>
-          <p style={{ fontSize: 12, fontWeight: 500, color: '#6b6b7a', marginBottom: 24, maxWidth: 500 }}>
-            Postula a un proyecto MYPE, completa los entregables y una vez que la empresa valide tu desempeño, tu certificado se emitirá con firma criptográfica.
-          </p>
-          
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 32 }}>
-            {/* Paso 1 */}
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
-                <Search size={22} color="#1B6FE8" />
-              </div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#0f1f3d', margin: 0 }}>1. Postula</p>
-              <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8' }}>Elige proyecto</p>
-            </div>
-            
-            {/* Paso 2 */}
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
-                <Hammer size={22} color="#d97706" />
-              </div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#0f1f3d', margin: 0 }}>2. Ejecuta</p>
-              <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8' }}>Trabaja hitos</p>
-            </div>
-            
-            {/* Paso 3 */}
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
-                <PartyPopper size={22} color="#059669" />
-              </div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#0f1f3d', margin: 0 }}>3. Recibe</p>
-              <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8' }}>Logro oficial</p>
-            </div>
-          </div>
-        </motion.div>
       </div>
       {modalCalificacion.open && (
       <RateUserModal

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useState } from "react";
 import {
   Briefcase,
   Clock,
@@ -6,12 +6,10 @@ import {
   XCircle,
   Building2,
   Calendar,
-  Lightbulb,
-  TrendingUp,
   ClipboardList,
   MessageSquare,
-  Send,
-  UserCheck,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -26,26 +24,48 @@ const fadeUp = (delay = 0) => ({
 });
 
 /* ═══════════════════════════════════════════════
-   HERO BANNER (sin cambios, igual que tenías)
+   HERO — KPIs reales
 ═══════════════════════════════════════════════ */
 const PostulacionesHero = ({ total = 0, aceptadas = 0, enRevision = 0, rechazadas = 0 }) => {
-  // ... (mantén exactamente el mismo código del hero que ya tenías, no lo cambio por brevedad)
-  // Asegúrate de copiarlo desde tu archivo original, porque aquí lo resumo.
-  // En la respuesta final te incluiré el hero completo si lo necesitas, pero para no alargar, lo dejo igual.
-  // Por ahora pondré un marcador, pero tú debes dejar el tuyo intacto.
-  return <div>Hero original – reemplazar con tu código actual</div>;
+  const FONT = "Inter, Arial, 'Helvetica Neue', sans-serif";
+  const kpis = [
+    { label: "Total postulaciones", value: total, bg: "#eff6ff", color: "#1B6FE8" },
+    { label: "En revisión", value: enRevision, bg: "#fffbeb", color: "#d97706" },
+    { label: "Aceptadas", value: aceptadas, bg: "#ecfdf5", color: "#059669" },
+    { label: "No seleccionadas", value: rechazadas, bg: "#fef2f2", color: "#dc2626" },
+  ];
+  return (
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+        <div style={{ width: 4, height: 20, borderRadius: 2, background: '#1B6FE8' }} />
+        <h1 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: '#0f1f3d', margin: 0 }}>Mis Postulaciones</h1>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>
+        {kpis.map((k) => (
+          <div key={k.label} style={{ background: '#fff', border: '0.5px solid #e8e8e4', borderRadius: 16, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: k.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontFamily: FONT, fontSize: 20, fontWeight: 800, color: k.color }}>{k.value}</span>
+            </div>
+            <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 600, color: '#6b7280', lineHeight: 1.3 }}>{k.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
+
+const HISTORIAL_PER_PAGE = 12;
 
 /* ─── Badge de estado ─── */
 const getStatusStyle = (estado) => {
   switch (estado) {
-    case "CONFIRMADO": return { bg: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0', icon: <CheckCircle2 size={13} />, label: "Confirmado ✓✓" };
+    case "CONFIRMADO":   return { bg: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0', icon: <CheckCircle2 size={13} />, label: "Confirmado" };
     case "VALIDADO_MYPE": return { bg: '#f0fdf4', color: '#059669', borderColor: '#86efac', icon: <CheckCircle2 size={13} />, label: "Aceptado — confirma ahora" };
     case "PRESELECCIONADO": return { bg: '#eff6ff', color: '#1B6FE8', borderColor: '#bfdbfe', icon: <Clock size={13} />, label: "Preseleccionado" };
-    case "RECHAZADO": return { bg: '#fef2f2', color: '#dc2626', borderColor: '#fecaca', icon: <XCircle size={13} />, label: "No seleccionado" };
-    case "RETIRADO": return { bg: '#f8fafc', color: '#64748b', borderColor: '#e2e8f0', icon: <XCircle size={13} />, label: "Retirado" };
-    case "EXPIRADO": return { bg: '#fff7ed', color: '#ea580c', borderColor: '#fed7aa', icon: <Clock size={13} />, label: "Expirado" };
-    default: return { bg: '#fffbeb', color: '#d97706', borderColor: '#fde68a', icon: <Clock size={13} />, label: "En revisión" };
+    case "RECHAZADO":    return { bg: '#fef2f2', color: '#dc2626', borderColor: '#fecaca', icon: <XCircle size={13} />, label: "No seleccionado" };
+    case "RETIRADO":     return { bg: '#f8fafc', color: '#64748b', borderColor: '#e2e8f0', icon: <XCircle size={13} />, label: "Retirado" };
+    case "EXPIRADO":     return { bg: '#fff7ed', color: '#ea580c', borderColor: '#fed7aa', icon: <Clock size={13} />, label: "Expirado" };
+    default:             return { bg: '#fffbeb', color: '#d97706', borderColor: '#fde68a', icon: <Clock size={13} />, label: "En revisión" };
   }
 };
 
@@ -63,6 +83,7 @@ const styles = {
 ═══════════════════════════════════════════════ */
 const MisPostulacionesPage = () => {
   const { data: postulacionesRaw = [], isLoading, isError, error } = useMisPostulaciones();
+  const [historialPage, setHistorialPage] = useState(0);
 
   // Separar activas e historial según el plan
   const postulacionesActivas = postulacionesRaw.filter(p =>
@@ -85,6 +106,13 @@ const MisPostulacionesPage = () => {
 
   // Flag para saber si hay al menos una postulación (activa o historial)
   const hasAnyPostulacion = total > 0;
+
+  // Paginación del historial
+  const totalPaginasHistorial = Math.ceil(postulacionesHistorial.length / HISTORIAL_PER_PAGE);
+  const historialPaginado = postulacionesHistorial.slice(
+    historialPage * HISTORIAL_PER_PAGE,
+    (historialPage + 1) * HISTORIAL_PER_PAGE
+  );
 
   if (isLoading) {
     return (
@@ -178,40 +206,53 @@ const MisPostulacionesPage = () => {
               Aún no hay postulaciones en el historial.
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {postulacionesHistorial.map((postulacion, idx) => (
-                <CardPostulacion key={postulacion.id} postulacion={postulacion} index={idx} />
-              ))}
-            </div>
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 14 }}>
+                {historialPaginado.map((postulacion, idx) => (
+                  <CardPostulacion key={postulacion.id} postulacion={postulacion} index={idx} isHistorial />
+                ))}
+              </div>
+              {totalPaginasHistorial > 1 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 20 }}>
+                  <button
+                    onClick={() => setHistorialPage((p) => Math.max(0, p - 1))}
+                    disabled={historialPage === 0}
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 14px', borderRadius: 8, border: '0.5px solid #e8e8e4', background: '#fff', color: historialPage === 0 ? '#d1d5db' : '#1B6FE8', fontSize: 13, fontWeight: 600, cursor: historialPage === 0 ? 'default' : 'pointer' }}
+                  >
+                    <ChevronLeft size={14} /> Anterior
+                  </button>
+                  <span style={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>
+                    {historialPage + 1} / {totalPaginasHistorial}
+                  </span>
+                  <button
+                    onClick={() => setHistorialPage((p) => Math.min(totalPaginasHistorial - 1, p + 1))}
+                    disabled={historialPage >= totalPaginasHistorial - 1}
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 14px', borderRadius: 8, border: '0.5px solid #e8e8e4', background: '#fff', color: historialPage >= totalPaginasHistorial - 1 ? '#d1d5db' : '#1B6FE8', fontSize: 13, fontWeight: 600, cursor: historialPage >= totalPaginasHistorial - 1 ? 'default' : 'pointer' }}
+                  >
+                    Siguiente <ChevronRight size={14} />
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </motion.div>
       )}
 
-      {/* Tips finales (sin cambios) */}
-      <motion.div {...fadeUp(0.24)} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <motion.div whileHover={{ y: -4, transition: { duration: 0.2 } }} style={{ background: '#ffffff', borderRadius: 24, boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03)', overflow: 'hidden', position: 'relative', cursor: 'pointer' }}>
-          <div style={{ padding: '24px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-            <div style={{ width: 52, height: 52, borderRadius: 18, background: '#F0F7FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Lightbulb size={24} color="#1B6FE8" strokeWidth={1.5} /></div>
-            <div style={{ flex: 1 }}><h4 style={{ fontSize: 15, fontWeight: 600, color: '#1E293B', margin: '0 0 8px 0' }}>¿Sabías que?</h4><p style={{ fontSize: 14, color: '#475569', margin: 0, lineHeight: 1.5 }}>Los estudiantes con <strong style={{ color: '#1B6FE8' }}>perfiles completos</strong> tienen <strong style={{ color: '#1B6FE8' }}>3 veces más probabilidades</strong> de ser aceptados por MYPEs.</p></div>
-          </div>
-        </motion.div>
-        <motion.div whileHover={{ y: -4, transition: { duration: 0.2 } }} style={{ background: '#ffffff', borderRadius: 24, boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03)', overflow: 'hidden', position: 'relative', cursor: 'pointer' }}>
-          <div style={{ padding: '24px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-            <div style={{ width: 52, height: 52, borderRadius: 18, background: '#FFF7ED', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><TrendingUp size={24} color="#EA580C" strokeWidth={1.5} /></div>
-            <div style={{ flex: 1 }}><h4 style={{ fontSize: 15, fontWeight: 600, color: '#1E293B', margin: '0 0 8px 0' }}>Tendencia esta semana</h4><p style={{ fontSize: 14, color: '#475569', margin: 0, lineHeight: 1.5 }}><strong style={{ color: '#EA580C' }}>Desarrollo Web</strong> y <strong style={{ color: '#EA580C' }}>Base de Datos</strong> son los proyectos más buscados y con mayor respuesta.</p></div>
-          </div>
-        </motion.div>
-      </motion.div>
     </div>
   );
 };
 
-/* ─── Componente de tarjeta reutilizable (sin cambios, pero lo mantienes) ─── */
-const CardPostulacion = ({ postulacion, index }) => {
+/* ─── Componente de tarjeta reutilizable ─── */
+const CardPostulacion = ({ postulacion, index, isHistorial = false }) => {
+  const [verMas, setVerMas] = useState(false);
   const status = getStatusStyle(postulacion.estado);
   const fecha = postulacion.fechaPostulacion ? new Date(postulacion.fechaPostulacion).toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric" }) : "Fecha no disponible";
   const tituloProyecto = postulacion.proyectoTitulo || "Proyecto";
   const iniciales = tituloProyecto.slice(0, 2).toUpperCase();
+  const mypeNombre = postulacion.mypeNombre || "MYPE Asociada";
+  const MSG_PREVIEW = 100;
+  const mensaje = postulacion.mensajePostulacion || "";
+  const mensajeCorto = mensaje.length > MSG_PREVIEW ? mensaje.slice(0, MSG_PREVIEW) + "…" : mensaje;
 
   return (
     <motion.div
@@ -230,27 +271,32 @@ const CardPostulacion = ({ postulacion, index }) => {
             <span style={{ fontSize: 11, color: '#6b6b7a', display: 'flex', alignItems: 'center', gap: 4 }}><Calendar size={12} /> {fecha}</span>
           </div>
           <h3 style={{ fontSize: 13, fontWeight: 700, color: '#0f1f3d', margin: '0 0 4px', letterSpacing: '-0.01em' }}>{postulacion.proyectoTitulo || "Proyecto sin título"}</h3>
-          <div style={{ fontSize: 11, color: '#6b6b7a', display: 'flex', alignItems: 'center', gap: 4 }}><Building2 size={12} /> MYPE Asociada</div>
-          {postulacion.mensajePostulacion && (
+          <div style={{ fontSize: 11, color: '#6b6b7a', display: 'flex', alignItems: 'center', gap: 4 }}><Building2 size={12} /> {mypeNombre}</div>
+          {mensaje && (
             <div style={{ marginTop: 10, padding: '12px 14px', background: '#f8fafc', borderRadius: 12, border: '0.5px solid #e8e8e4', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
               <MessageSquare size={14} style={{ color: '#6b6b7a', marginTop: 2, flexShrink: 0 }} />
               <div>
                 <div style={{ fontSize: 9, fontWeight: 700, color: '#6b6b7a', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>Tu Mensaje de Presentación</div>
-                <p style={{ fontSize: 12, color: '#334155', margin: 0, fontStyle: 'italic' }}>"{postulacion.mensajePostulacion}"</p>
+                <p style={{ fontSize: 12, color: '#334155', margin: 0, fontStyle: 'italic' }}>"{verMas ? mensaje : mensajeCorto}"</p>
+                {mensaje.length > MSG_PREVIEW && (
+                  <button onClick={() => setVerMas(v => !v)} style={{ marginTop: 4, background: 'none', border: 'none', fontSize: 11, fontWeight: 600, color: '#1B6FE8', cursor: 'pointer', padding: 0 }}>
+                    {verMas ? "Ver menos" : "Ver más"}
+                  </button>
+                )}
               </div>
             </div>
           )}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          {postulacion.estado === "CONFIRMADO" && (
+        {!isHistorial && postulacion.estado === "CONFIRMADO" && (
+          <div style={{ flexShrink: 0 }}>
             <Link to={`/workspace/${postulacion.proyectoId}`}
-              style={{ padding: '9px 20px', borderRadius: 8, background: '#1B6FE8', color: '#FFFFFF', border: 'none', fontSize: 12, fontWeight: 600, textDecoration: 'none', textAlign: 'center', width: '100%', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', whiteSpace: 'nowrap', transition: 'all 0.2s ease' }}
+              style={{ padding: '9px 20px', borderRadius: 8, background: '#1B6FE8', color: '#FFFFFF', border: 'none', fontSize: 12, fontWeight: 600, textDecoration: 'none', textAlign: 'center', display: 'block', whiteSpace: 'nowrap', transition: 'all 0.2s ease' }}
               onMouseEnter={e => { e.currentTarget.style.background = '#1557B0'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = '#1B6FE8'; e.currentTarget.style.transform = 'translateY(0)'; }}>
               Ir al workspace
             </Link>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );

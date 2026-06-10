@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Briefcase, ArrowRight, Building2, FolderOpen, Users, ChevronDown } from "lucide-react";
+import { Briefcase, ArrowRight, Building2, FolderOpen, Users, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMisPostulaciones } from "@/features/postulaciones-list/useMisPostulaciones";
 import { useMiActividad } from "@/features/workspace/useMiActividad";
 
 const FONT = "Inter, Arial, 'Helvetica Neue', sans-serif";
 const ESTADOS_CONFIRMADO = ["CONFIRMADO", "Confirmado", "ACEPTADO"];
+const ACTIVOS_PER_PAGE = 6;
+const HISTORIAL_PER_PAGE = 10;
 
 function SectionTitle({ text, count }) {
   return (
@@ -33,6 +35,7 @@ function tipoDe(cupos) {
 /* ─── Tarjeta de proyecto activo ─── */
 function TarjetaActiva({ p, color, onClick }) {
   const iniciales = (p.proyectoTitulo || "P").slice(0, 2).toUpperCase();
+  const mypeNombre = p.mypeNombre || "MYPE Asociada";
   return (
     <div
       onClick={onClick}
@@ -50,7 +53,7 @@ function TarjetaActiva({ p, color, onClick }) {
 
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
           <Building2 size={11} color="#94a3b8" />
-          <span style={{ fontFamily: FONT, fontSize: 10, fontWeight: 500, color: "#6b6b7a" }}>MYPE Asociada</span>
+          <span style={{ fontFamily: FONT, fontSize: 10, fontWeight: 500, color: "#6b6b7a" }}>{mypeNombre}</span>
           <span style={{ width: 3, height: 3, borderRadius: "50%", background: "#cbd5e1" }} />
           <Users size={11} color="#94a3b8" />
           <span style={{ fontFamily: FONT, fontSize: 10, fontWeight: 500, color: "#6b6b7a" }}>Workspace activo</span>
@@ -91,7 +94,7 @@ function HistorialItem({ p }) {
   const [open, setOpen] = useState(false);
   const [openInt, setOpenInt] = useState(false);
   const fmt = (d) =>
-    d ? new Date(d).toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+    d ? new Date(d).toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" }) : null;
   const integrantes = p.integrantes || [];
 
   return (
@@ -110,9 +113,9 @@ function HistorialItem({ p }) {
       {open && (
         <div style={{ padding: "4px 14px 12px" }}>
           <DetalleFila label="Tipo" value={tipoDe(p.cupos)} />
-          <DetalleFila label="Área" value={p.proyectoArea || "—"} />
-          <DetalleFila label="Inicio del proyecto" value={fmt(p.proyectoFechaInicioReal)} />
-          <DetalleFila label="Culminación" value={fmt(p.proyectoFechaFin)} />
+          {p.proyectoArea && <DetalleFila label="Área" value={p.proyectoArea} />}
+          {fmt(p.proyectoFechaInicioReal) && <DetalleFila label="Inicio del proyecto" value={fmt(p.proyectoFechaInicioReal)} />}
+          {fmt(p.proyectoFechaFin) && <DetalleFila label="Culminación" value={fmt(p.proyectoFechaFin)} />}
           <DetalleFila label="Tu rol" value={p.esDelegado ? "Delegado" : "Integrante"} />
 
           {/* Integrantes desplegable */}
@@ -148,7 +151,7 @@ function HistorialItem({ p }) {
     </div>
   );
 }
-/* ─── Gráfica de actividad estilo GitHub (general, todos los proyectos) ─── */
+/* ─── Gráfica de actividad compacta (últimas 13 semanas) ─── */
 function ActivityHeatmap({ entregables }) {
   const dates = (entregables || []).map((e) => e.fechaEntrega || e.fechaSubida).filter(Boolean);
   const counts = {};
@@ -157,11 +160,11 @@ function ActivityHeatmap({ entregables }) {
     counts[key] = (counts[key] || 0) + 1;
   });
 
-  const WEEKS = 26;
+  const WEEKS = 13;
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const start = new Date(today);
   start.setDate(start.getDate() - (WEEKS * 7 - 1));
-  start.setDate(start.getDate() - start.getDay()); // alinear a domingo
+  start.setDate(start.getDate() - start.getDay());
 
   const days = [];
   for (let cur = new Date(start); cur <= today; cur.setDate(cur.getDate() + 1)) {
@@ -183,22 +186,25 @@ function ActivityHeatmap({ entregables }) {
     return "";
   });
 
-  const CELL = 12, GAP = 3;
+  const CELL = 10, GAP = 2;
 
   return (
-    <div style={{ background: "#fff", borderRadius: 20, border: "0.5px solid #e8e8e4", padding: "20px 24px", marginTop: 24 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-        <div style={{ width: 4, height: 18, borderRadius: 2, background: "#1B6FE8" }} />
-        <h2 style={{ fontFamily: FONT, fontSize: 15, fontWeight: 700, color: "#0f1f3d", margin: 0 }}>Actividad de entregas</h2>
+    <div style={{ background: "#fff", borderRadius: 16, border: "0.5px solid #e8e8e4", padding: "14px 18px", marginTop: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 3, height: 14, borderRadius: 2, background: "#1B6FE8" }} />
+          <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, color: "#0f1f3d" }}>Actividad de entregas</span>
+          <span style={{ fontFamily: FONT, fontSize: 10, color: "#94a3b8" }}>· últimos 3 meses</span>
+        </div>
+        <span style={{ fontFamily: FONT, fontSize: 11, color: "#6b6b7a" }}>
+          {diasTrabajados} día{diasTrabajados !== 1 ? "s" : ""} activo{diasTrabajados !== 1 ? "s" : ""} · {totalEntregas} entrega{totalEntregas !== 1 ? "s" : ""}
+        </span>
       </div>
-      <p style={{ fontFamily: FONT, fontSize: 12, color: "#6b6b7a", margin: "0 0 16px 14px" }}>
-        {diasTrabajados} día{diasTrabajados !== 1 ? "s" : ""} con actividad · {totalEntregas} entrega{totalEntregas !== 1 ? "s" : ""} en total
-      </p>
 
-      <div style={{ overflowX: "auto", paddingBottom: 4 }}>
-        <div style={{ display: "flex", gap: GAP, marginBottom: 4 }}>
+      <div style={{ overflowX: "auto" }}>
+        <div style={{ display: "flex", gap: GAP, marginBottom: 3 }}>
           {monthLabels.map((m, i) => (
-            <div key={i} style={{ width: CELL, fontFamily: FONT, fontSize: 9, color: "#94a3b8" }}>{m}</div>
+            <div key={i} style={{ width: CELL, fontFamily: FONT, fontSize: 8, color: "#94a3b8" }}>{m}</div>
           ))}
         </div>
         <div style={{ display: "flex", gap: GAP }}>
@@ -208,7 +214,7 @@ function ActivityHeatmap({ entregables }) {
                 <div
                   key={di}
                   title={`${d.date.toLocaleDateString("es-PE")} · ${d.count} entrega${d.count !== 1 ? "s" : ""}`}
-                  style={{ width: CELL, height: CELL, borderRadius: 3, background: color(d.count) }}
+                  style={{ width: CELL, height: CELL, borderRadius: 2, background: color(d.count) }}
                 />
               ))}
             </div>
@@ -216,12 +222,12 @@ function ActivityHeatmap({ entregables }) {
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12, justifyContent: "flex-end" }}>
-        <span style={{ fontFamily: FONT, fontSize: 10, color: "#94a3b8" }}>Menos</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 8, justifyContent: "flex-end" }}>
+        <span style={{ fontFamily: FONT, fontSize: 9, color: "#94a3b8" }}>Menos</span>
         {["#eef0f3", "#cfe0fb", "#93b8f3", "#4d8ae9", "#1B6FE8"].map((c) => (
-          <div key={c} style={{ width: 11, height: 11, borderRadius: 3, background: c }} />
+          <div key={c} style={{ width: 9, height: 9, borderRadius: 2, background: c }} />
         ))}
-        <span style={{ fontFamily: FONT, fontSize: 10, color: "#94a3b8" }}>Más</span>
+        <span style={{ fontFamily: FONT, fontSize: 9, color: "#94a3b8" }}>Más</span>
       </div>
     </div>
   );
@@ -231,11 +237,18 @@ export function WorkspaceSelectorPage() {
   const navigate = useNavigate();
   const { data: postulaciones = [], isLoading } = useMisPostulaciones();
   const { data: actividad = [] } = useMiActividad();
+  const [activosPage, setActivosPage] = useState(0);
+  const [historialPage, setHistorialPage] = useState(0);
 
   const confirmados = postulaciones.filter((p) => ESTADOS_CONFIRMADO.includes(p.estado));
   const completados = confirmados.filter((p) => p.proyectoEstado === "COMPLETADO");
   const activos = confirmados.filter((p) => p.proyectoEstado !== "COMPLETADO");
   const colores = ["#1B6FE8", "#06B6D4", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444"];
+
+  const totalPaginasActivos = Math.ceil(activos.length / ACTIVOS_PER_PAGE);
+  const activosPaginados = activos.slice(activosPage * ACTIVOS_PER_PAGE, (activosPage + 1) * ACTIVOS_PER_PAGE);
+  const totalPaginasHistorial = Math.ceil(completados.length / HISTORIAL_PER_PAGE);
+  const historialPaginado = completados.slice(historialPage * HISTORIAL_PER_PAGE, (historialPage + 1) * HISTORIAL_PER_PAGE);
 
   if (isLoading) {
     return (
@@ -278,11 +291,26 @@ export function WorkspaceSelectorPage() {
             <div>
               <SectionTitle text="Proyectos Activos" count={activos.length} />
               {activos.length > 0 ? (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 18 }}>
-                  {activos.map((p, i) => (
-                    <TarjetaActiva key={p.id} p={p} color={colores[i % colores.length]} onClick={() => navigate(`/workspace/${p.proyectoId}`)} />
-                  ))}
-                </div>
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 18 }}>
+                    {activosPaginados.map((p, i) => (
+                      <TarjetaActiva key={p.id} p={p} color={colores[(activosPage * ACTIVOS_PER_PAGE + i) % colores.length]} onClick={() => navigate(`/workspace/${p.proyectoId}`)} />
+                    ))}
+                  </div>
+                  {totalPaginasActivos > 1 && (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginTop: 16 }}>
+                      <button onClick={() => setActivosPage((p) => Math.max(0, p - 1))} disabled={activosPage === 0}
+                        style={{ display: "flex", alignItems: "center", gap: 4, padding: "7px 12px", borderRadius: 8, border: "0.5px solid #e8e8e4", background: "#fff", color: activosPage === 0 ? "#d1d5db" : "#1B6FE8", fontSize: 12, fontWeight: 600, cursor: activosPage === 0 ? "default" : "pointer" }}>
+                        <ChevronLeft size={13} /> Anterior
+                      </button>
+                      <span style={{ fontFamily: FONT, fontSize: 12, color: "#6b7280" }}>{activosPage + 1} / {totalPaginasActivos}</span>
+                      <button onClick={() => setActivosPage((p) => Math.min(totalPaginasActivos - 1, p + 1))} disabled={activosPage >= totalPaginasActivos - 1}
+                        style={{ display: "flex", alignItems: "center", gap: 4, padding: "7px 12px", borderRadius: 8, border: "0.5px solid #e8e8e4", background: "#fff", color: activosPage >= totalPaginasActivos - 1 ? "#d1d5db" : "#1B6FE8", fontSize: 12, fontWeight: 600, cursor: activosPage >= totalPaginasActivos - 1 ? "default" : "pointer" }}>
+                        Siguiente <ChevronRight size={13} />
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div style={{ padding: "40px 20px", textAlign: "center", border: "1px dashed #e8e8e4", borderRadius: 16, background: "#fff" }}>
                   <p style={{ fontFamily: FONT, fontSize: 13, color: "#94a3b8", fontWeight: 600 }}>No tienes proyectos activos</p>
@@ -294,9 +322,24 @@ export function WorkspaceSelectorPage() {
             <div>
               <SectionTitle text="Historial" count={completados.length} />
               {completados.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {completados.map((p) => <HistorialItem key={p.id} p={p} />)}
-                </div>
+                <>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {historialPaginado.map((p) => <HistorialItem key={p.id} p={p} />)}
+                  </div>
+                  {totalPaginasHistorial > 1 && (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginTop: 14 }}>
+                      <button onClick={() => setHistorialPage((p) => Math.max(0, p - 1))} disabled={historialPage === 0}
+                        style={{ display: "flex", alignItems: "center", gap: 4, padding: "7px 12px", borderRadius: 8, border: "0.5px solid #e8e8e4", background: "#fff", color: historialPage === 0 ? "#d1d5db" : "#1B6FE8", fontSize: 12, fontWeight: 600, cursor: historialPage === 0 ? "default" : "pointer" }}>
+                        <ChevronLeft size={13} /> Anterior
+                      </button>
+                      <span style={{ fontFamily: FONT, fontSize: 12, color: "#6b7280" }}>{historialPage + 1} / {totalPaginasHistorial}</span>
+                      <button onClick={() => setHistorialPage((p) => Math.min(totalPaginasHistorial - 1, p + 1))} disabled={historialPage >= totalPaginasHistorial - 1}
+                        style={{ display: "flex", alignItems: "center", gap: 4, padding: "7px 12px", borderRadius: 8, border: "0.5px solid #e8e8e4", background: "#fff", color: historialPage >= totalPaginasHistorial - 1 ? "#d1d5db" : "#1B6FE8", fontSize: 12, fontWeight: 600, cursor: historialPage >= totalPaginasHistorial - 1 ? "default" : "pointer" }}>
+                        Siguiente <ChevronRight size={13} />
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div style={{ padding: "40px 20px", textAlign: "center", border: "1px dashed #e8e8e4", borderRadius: 16, background: "#fff" }}>
                   <p style={{ fontFamily: FONT, fontSize: 13, color: "#94a3b8", fontWeight: 600 }}>Aún no completas proyectos</p>
