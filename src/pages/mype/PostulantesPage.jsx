@@ -423,9 +423,12 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter, expandedProj
   const [refreshKey, setRefreshKey] = useState(0);
 
   const hookNormal = usePostulacionesAceptadas(proyecto.id);
-  const hookCompleto = usePostulaciones(internalViewAll ? proyecto.id : null);
-  
-  const selectedHook = internalViewAll ? hookCompleto : hookNormal;
+  const hookCompleto = usePostulaciones(
+  (internalViewAll || globalOpenStateFilter === 'pendientes') ? proyecto.id : null
+);
+  // En Reclutamiento, usar siempre hookCompleto para ver postulaciones pendientes
+const usarCompleto = internalViewAll || globalOpenStateFilter === 'pendientes';
+const selectedHook = usarCompleto ? hookCompleto : hookNormal;
   const postulaciones = selectedHook?.postulaciones || [];
   const isLoading = selectedHook?.isLoading || false;
 
@@ -435,9 +438,16 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter, expandedProj
 
   const isExpanded = expandedProjects[proyecto.id] || false;
 
-  const postulantesRenders = internalViewAll 
-     ? postulaciones
-     : postulaciones.filter((p) => ["PRESELECCIONADO", "CONFIRMADO", "VALIDADO_MYPE"].includes(p.estado));
+ const postulantesRenders = internalViewAll 
+   ? postulaciones
+   : postulaciones.filter((p) => {
+       if (globalOpenStateFilter === 'pendientes') {
+         // En Reclutamiento: mostrar solo las que están pendientes de aprobar
+         return ["PRESELECCIONADO", "PENDIENTE"].includes(p.estado);
+       }
+       // En Desarrollo: mostrar solo aceptados
+       return ["CONFIRMADO", "VALIDADO_MYPE"].includes(p.estado);
+     });
 
   if (globalOpenStateFilter === 'operativos' && proyecto.estado !== 'EN_DESARROLLO') return null;
   if (globalOpenStateFilter === 'pendientes' && proyecto.estado !== 'PENDIENTE') return null;
@@ -470,7 +480,7 @@ function ProjectEcosystemSection({ proyecto, globalOpenStateFilter, expandedProj
           border: isExpanded ? "none" : "1px solid #E2E8F0", 
           borderRadius: isExpanded ? "0" : "16px", 
           cursor: esExpandible ? "pointer" : "default",
-          opacity: consolidated.length >= (proyecto.cupos || 1) ? 1 : 0.7,
+          opacity: 1,
           transition: "background 0.2s", 
           alignItems: "center" 
         }}
@@ -656,6 +666,11 @@ export function PostulantesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedProjects, setExpandedProjects] = useState({});
   const itemsPerPage = 5;
+   // Resetear expansiones al cambiar de pestaña
+  useEffect(() => {
+    setExpandedProjects({});
+  }, [tabFocus]);
+
 
   // Escuchar evento para cambiar de pestaña desde el botón
   useEffect(() => {
@@ -674,7 +689,6 @@ export function PostulantesPage() {
       setTabFocus(location.state.returnTab);
     }
     if (location.state?.returnProyectoId) {
-      // Expandir automáticamente el proyecto del que venimos
       setExpandedProjects(prev => ({ 
         ...prev, 
         [location.state.returnProyectoId]: true 

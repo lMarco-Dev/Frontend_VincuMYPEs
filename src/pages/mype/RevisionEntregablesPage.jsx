@@ -441,133 +441,83 @@ function mapDataVisualVisualOnly(dbStateStr) {
  * Genera trazabilidad histórica independiente para cada entregable.
  * Garantiza datos si el backend solo devuelve el estado actual.
  */
+/**
+ * GRÁFICO TIMELINE DE AUDITORÍA - VERSIÓN CON DATOS REALES
+ * Usa el historial real del backend en lugar de generar datos ficticios
+ */
 function TimelineAuditoriaGrafico({ data, onHoverNode }) {
   const PALETTE = ["#3B82F6", "#8B5CF6", "#EC4899", "#14B8A6", "#F59E0B", "#EF4444", "#6366F1", "#10B981"];
   
-  // Reconstrucción del historial analítico en caso el backend no provea `historial`.
-  // Se genera un timeline coherente para satisfacer la vista empresarial basándonos en el estado actual.
+  // ✅ USAR HISTORIAL REAL del backend
   const timelineData = useMemo(() => {
-    const today = new Date();
-    
     return data.map((ent, idx) => {
       const colorLínea = PALETTE[idx % PALETTE.length];
-      const eventos = [];
-      const baseMs = today.getTime() - (30 * 24 * 60 * 60 * 1000); // 30 días atrás
       
-      // Semilla pseudo-aleatoria basada en el ID para mantener las fechas estables
-      const seed = ent.id * 12345;
-      const getFecha = (offsetDays) => new Date(baseMs + ((seed % 10) * 24 * 60 * 60 * 1000) + (offsetDays * 24 * 60 * 60 * 1000));
+      // Obtener eventos del historial real
+      let eventos = [];
       
-      // 1. Siempre hay un registro de creación
-      eventos.push({
-        id: `ev-${ent.id}-1`,
-        estado: 'Registrado',
-        fechaObj: getFecha(0),
-        fechaStr: getFecha(0).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
-        comentario: 'Documento subido a la plataforma.',
-        responsable: ent.estudianteNombre,
-        colorEstado: '#64748B'
-      });
-
-      // 2. Si está observado o aprobado, pasó por revisión.
-      if (ent.estado === 'RECHAZADO' || ent.estado === 'APROBADO') {
-         eventos.push({
-           id: `ev-${ent.id}-2`,
-           estado: 'En Revisión',
-           fechaObj: getFecha(2),
-           fechaStr: getFecha(2).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
-           comentario: 'Inició proceso de auditoría MYPE.',
-           responsable: 'MYPE - Administrador',
-           colorEstado: '#3B82F6'
-         });
+      if (ent.historialReal && ent.historialReal.length > 0) {
+        // ✅ USAR HISTORIAL REAL
+        eventos = [...ent.historialReal];
+      } else if (ent.estado) {
+        // Fallback: si no hay historial, crear un evento con el estado actual
+        eventos = [{
+          id: `estado-${ent.id}`,
+          estado: ent.estado,
+          fechaObj: ent.fechaEntrega ? new Date(ent.fechaEntrega) : new Date(),
+          fechaStr: ent.fechaEntrega ? new Date(ent.fechaEntrega).toLocaleDateString('es-ES') : 'Reciente',
+          comentario: ent.observaciones || 'Estado actual',
+          responsable: ent.subidoPorNombre || ent.estudianteNombre || 'Estudiante',
+          colorEstado: getColorEstado(ent.estado)
+        }];
       }
-
-      // 3. Simular observaciones y correcciones si es necesario para la trazabilidad
-      if (ent.estado === 'RECHAZADO') {
-         eventos.push({
-           id: `ev-${ent.id}-3`,
-           estado: 'Observado',
-           fechaObj: getFecha(5),
-           fechaStr: getFecha(5).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
-           comentario: ent.descripcion || 'Se requieren ajustes en la estructura del documento.',
-           responsable: 'MYPE - Administrador',
-           colorEstado: '#F97316'
-         });
-      }
-
-      if (ent.estado === 'APROBADO') {
-         // A veces un aprobado tuvo observaciones previas (simulamos para enriquecer el gráfico en un % de casos)
-         if (ent.id % 2 !== 0) {
-           eventos.push({
-             id: `ev-${ent.id}-3`,
-             estado: 'Observado',
-             fechaObj: getFecha(4),
-             fechaStr: getFecha(4).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
-             comentario: 'Corrección de formatos y anexos faltantes.',
-             responsable: 'MYPE - Administrador',
-             colorEstado: '#F97316'
-           });
-           eventos.push({
-             id: `ev-${ent.id}-4`,
-             estado: 'Corregido',
-             fechaObj: getFecha(7),
-             fechaStr: getFecha(7).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
-             comentario: 'Nuevo archivo subido corrigiendo las observaciones.',
-             responsable: ent.estudianteNombre,
-             colorEstado: '#3B82F6'
-           });
-         }
-         
-         // Evento final de aprobación
-         eventos.push({
-           id: `ev-${ent.id}-final`,
-           estado: 'Aprobado',
-           fechaObj: getFecha(10),
-           fechaStr: getFecha(10).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
-           comentario: 'El entregable cumple con todos los requisitos.',
-           responsable: 'MYPE - Administrador',
-           colorEstado: '#10B981'
-         });
-      } else if (ent.estado === 'PENDIENTE') {
-         eventos.push({
-           id: `ev-${ent.id}-final`,
-           estado: 'Pendiente',
-           fechaObj: getFecha(3),
-           fechaStr: getFecha(3).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
-           comentario: 'A la espera de revisión.',
-           responsable: 'Sistema',
-           colorEstado: '#3B82F6'
-         });
-      }
-
-      // Ordenar eventos cronológicamente
+      
+      // Ordenar cronológicamente (del más antiguo al más nuevo)
       eventos.sort((a, b) => a.fechaObj - b.fechaObj);
-
+      
       return {
-         ...ent,
-         colorLínea,
-         eventos
+        ...ent,
+        colorLínea,
+        eventos
       };
     });
   }, [data]);
 
-  // Dimensiones del SVG
-  const LABEL_WIDTH = 130;
-  const ROW_HEIGHT = 45;
-  const HEADER_HEIGHT = 20;
-  const WIDTH = Math.max(800, data.length * 150); // Mínimo 800 o escalado por cantidad
-  const HEIGHT = HEADER_HEIGHT + (timelineData.length * ROW_HEIGHT) + 20;
+  // Si no hay datos o todos los eventos están vacíos
+  if (timelineData.length === 0 || timelineData.every(t => t.eventos.length === 0)) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[200px]">
+        <div className="text-center">
+          <Info size={32} className="text-slate-400 mx-auto mb-2" />
+          <p className="text-sm text-slate-500">No hay historial de auditoría disponible</p>
+          <p className="text-xs text-slate-400 mt-1">El historial se generará al revisar entregables</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Escala de X (Fechas)
-  const allDates = timelineData.flatMap(t => t.eventos.map(e => e.fechaObj.getTime()));
-  const minDate = Math.min(...allDates);
-  const maxDate = Math.max(...allDates);
-  const timeSpan = Math.max(maxDate - minDate, 1000 * 60 * 60 * 24); // Al menos 1 día de rango
+  // Calcular fechas reales para la escala
+  const allDates = timelineData.flatMap(t => t.eventos.map(e => e.fechaObj?.getTime())).filter(Boolean);
+  const minDate = allDates.length > 0 ? Math.min(...allDates) : Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const maxDate = allDates.length > 0 ? Math.max(...allDates) : Date.now();
+  const timeSpan = Math.max(maxDate - minDate, 1000 * 60 * 60 * 24 * 7); // Mínimo 7 días
+
+  // Dimensiones del SVG
+  const LABEL_WIDTH = 140;
+  const ROW_HEIGHT = 50;
+  const HEADER_HEIGHT = 30;
+  const WIDTH = Math.max(900, timelineData.length * 160);
+  const HEIGHT = HEADER_HEIGHT + (timelineData.length * ROW_HEIGHT) + 40;
 
   const getX = (date) => {
+    if (!date) return LABEL_WIDTH + 40;
     const ratio = (date.getTime() - minDate) / timeSpan;
-    // Padding lateral en la zona del gráfico
-    return LABEL_WIDTH + 30 + ratio * (WIDTH - LABEL_WIDTH - 80);
+    return LABEL_WIDTH + 40 + ratio * (WIDTH - LABEL_WIDTH - 80);
+  };
+
+  const getFechaEscala = (offset) => {
+    const date = new Date(minDate + (offset / 100) * timeSpan);
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
   };
 
   const handleMouseMove = (e, item, evento, colorLínea) => {
@@ -582,79 +532,135 @@ function TimelineAuditoriaGrafico({ data, onHoverNode }) {
 
   return (
     <div className="w-full h-full" onMouseLeave={() => onHoverNode(null)}>
-        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} width={WIDTH} height={HEIGHT} className="block overflow-visible">
-            
-            {/* Cabecera / Ejes */}
-            <line x1={LABEL_WIDTH} y1={HEADER_HEIGHT} x2={WIDTH} y2={HEADER_HEIGHT} stroke="#E2E8F0" strokeWidth="1" strokeDasharray="4 4" />
-            <text x={LABEL_WIDTH + 30} y={HEADER_HEIGHT - 5} fontSize="10" fill="#94A3B8" fontWeight="bold">INICIO</text>
-            <text x={WIDTH - 50} y={HEADER_HEIGHT - 5} fontSize="10" fill="#94A3B8" fontWeight="bold" textAnchor="end">ACTUAL</text>
+      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} width="100%" height={HEIGHT} className="block overflow-visible" style={{ minHeight: 400 }}>
+        
+        {/* Línea base del timeline */}
+        <line x1={LABEL_WIDTH} y1={HEADER_HEIGHT} x2={WIDTH - 20} y2={HEADER_HEIGHT} stroke="#CBD5E1" strokeWidth="1" />
+        
+        {/* Marcadores de tiempo (0%, 25%, 50%, 75%, 100%) */}
+        {[0, 25, 50, 75, 100].map(percent => (
+          <g key={percent}>
+            <line 
+              x1={LABEL_WIDTH + 40 + (percent / 100) * (WIDTH - LABEL_WIDTH - 80)} 
+              y1={HEADER_HEIGHT - 5} 
+              x2={LABEL_WIDTH + 40 + (percent / 100) * (WIDTH - LABEL_WIDTH - 80)} 
+              y2={HEADER_HEIGHT + 5} 
+              stroke="#CBD5E1" 
+              strokeWidth="1" 
+            />
+            <text 
+              x={LABEL_WIDTH + 40 + (percent / 100) * (WIDTH - LABEL_WIDTH - 80)} 
+              y={HEADER_HEIGHT - 8} 
+              fontSize="9" 
+              fill="#94A3B8" 
+              textAnchor="middle"
+            >
+              {getFechaEscala(percent)}
+            </text>
+          </g>
+        ))}
 
-            {timelineData.map((row, idx) => {
-               const yCenter = HEADER_HEIGHT + (idx * ROW_HEIGHT) + (ROW_HEIGHT / 2);
-               
-               // Coordenadas para la línea de conexión del entregable
-               const firstX = getX(row.eventos[0].fechaObj);
-               const lastX = getX(row.eventos[row.eventos.length - 1].fechaObj);
-
-               return (
-                 <g key={row.id}>
-                    {/* Fila separadora (Background alternate) */}
-                    {idx % 2 === 0 && (
-                      <rect x="0" y={yCenter - (ROW_HEIGHT/2)} width={WIDTH} height={ROW_HEIGHT} fill="#F8FAFC" />
+        {/* Filas de entregables */}
+        {timelineData.map((row, idx) => {
+          const yCenter = HEADER_HEIGHT + (idx * ROW_HEIGHT) + (ROW_HEIGHT / 2);
+          const firstX = row.eventos.length > 0 ? getX(row.eventos[0].fechaObj) : LABEL_WIDTH + 40;
+          const lastX = row.eventos.length > 0 ? getX(row.eventos[row.eventos.length - 1].fechaObj) : LABEL_WIDTH + 40;
+          
+          return (
+            <g key={row.id}>
+              {/* Fila alternada (fondo) */}
+              {idx % 2 === 0 && (
+                <rect x="0" y={yCenter - ROW_HEIGHT/2} width={WIDTH} height={ROW_HEIGHT} fill="#F8FAFC" rx="4" />
+              )}
+              
+              {/* Nombre del entregable */}
+              <text x="10" y={yCenter + 4} fontSize="11" fill="#1E293B" fontWeight="600" className="cursor-default">
+                {row.titulo?.length > 25 ? row.titulo.substring(0, 25) + '...' : row.titulo || 'Sin título'}
+                <title>{row.titulo}</title>
+              </text>
+              
+              {/* Línea de conexión entre primer y último evento */}
+              <line x1={firstX} y1={yCenter} x2={lastX} y2={yCenter} stroke={row.colorLínea} strokeWidth="2" strokeOpacity="0.3" strokeDasharray="4 4" />
+              
+              {/* Eventos (puntos en la línea de tiempo) */}
+              {row.eventos.map((ev, evIdx) => {
+                const cx = getX(ev.fechaObj);
+                const isLast = evIdx === row.eventos.length - 1;
+                const isFirst = evIdx === 0;
+                
+                return (
+                  <g 
+                    key={ev.id} 
+                    className="cursor-pointer transition-transform hover:scale-110 origin-center"
+                    style={{ transformOrigin: `${cx}px ${yCenter}px`, cursor: 'pointer' }}
+                    onMouseEnter={(e) => {
+                      e.stopPropagation();
+                      handleMouseMove(e, row, ev, row.colorLínea);
+                    }}
+                    onMouseMove={(e) => {
+                      e.stopPropagation();
+                      handleMouseMove(e, row, ev, row.colorLínea);
+                    }}
+                  >
+                    {/* Círculo exterior (solo para el último evento) */}
+                    {isLast && (
+                      <circle cx={cx} cy={yCenter} r="8" fill={ev.colorEstado} fillOpacity="0.15" />
                     )}
+                    
+                    {/* Círculo interior principal */}
+                    <circle 
+                      cx={cx} 
+                      cy={yCenter} 
+                      r="5" 
+                      fill="#FFFFFF" 
+                      stroke={ev.colorEstado} 
+                      strokeWidth="2.5"
+                    />
+                    
+                    {/* Etiqueta de fecha para el primer evento */}
+                    {isFirst && (
+                      <text x={cx} y={yCenter - 12} fontSize="8" fill="#64748B" textAnchor="middle" fontWeight="500">
+                        {ev.fechaStr?.split(',')[0] || ''}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
+            </g>
+          );
+        })}
+      </svg>
 
-                    {/* Nombre del Entregable (Truncado) */}
-                    <text x="10" y={yCenter + 4} fontSize="11" fill="#475569" fontWeight="600" className="cursor-default">
-                       {row.titulo.length > 18 ? row.titulo.substring(0, 18) + '...' : row.titulo}
-                       <title>{row.titulo}</title>
-                    </text>
-
-                    {/* Línea horizontal guía (sutil) */}
-                    <line x1={LABEL_WIDTH} y1={yCenter} x2={WIDTH} y2={yCenter} stroke="#F1F5F9" strokeWidth="1" />
-
-                    {/* Línea de tiempo principal de este entregable */}
-                    <line x1={firstX} y1={yCenter} x2={lastX} y2={yCenter} stroke={row.colorLínea} strokeWidth="2" strokeOpacity="0.3" />
-
-                    {/* Nodos/Eventos */}
-                    {row.eventos.map((ev, evIdx) => {
-                       const cx = getX(ev.fechaObj);
-                       const isLast = evIdx === row.eventos.length - 1;
-                       
-                       return (
-                         <g key={ev.id} 
-                            className="cursor-pointer transition-transform hover:scale-110 origin-center drop-shadow-sm"
-                            style={{ transformOrigin: `${cx}px ${yCenter}px` }}
-                            onMouseEnter={(e) => handleMouseMove(e, row, ev, row.colorLínea)}
-                            onMouseMove={(e) => handleMouseMove(e, row, ev, row.colorLínea)}
-                         >
-                            {/* Punto exterior o aureola si es el último evento */}
-                            {isLast && (
-                               <circle cx={cx} cy={yCenter} r="7" fill={ev.colorEstado} fillOpacity="0.2" />
-                            )}
-                            
-                            <circle 
-                              cx={cx} 
-                              cy={yCenter} 
-                              r="4.5" 
-                              fill="#FFFFFF" 
-                              stroke={ev.colorEstado} 
-                              strokeWidth="2.5" 
-                            />
-                         </g>
-                       );
-                    })}
-                 </g>
-               );
-            })}
-        </svg>
-
-        {/* Leyenda en la parte inferior de la gráfica */}
-        <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t border-slate-100 justify-center">
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#64748B]"></span><span className="text-[11px] text-slate-500">Registrado</span></div>
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6]"></span><span className="text-[11px] text-slate-500">En Revisión / Corregido</span></div>
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#F97316]"></span><span className="text-[11px] text-slate-500">Observado</span></div>
-            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span><span className="text-[11px] text-slate-500">Aprobado</span></div>
+      {/* Leyenda */}
+      <div className="flex flex-wrap gap-4 mt-4 pt-3 border-t border-slate-100 justify-center">
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-[#64748B]"></span>
+          <span className="text-[10px] text-slate-500">Registrado</span>
         </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-[#3B82F6]"></span>
+          <span className="text-[10px] text-slate-500">Pendiente</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-[#F97316]"></span>
+          <span className="text-[10px] text-slate-500">Rechazado</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-[#10B981]"></span>
+          <span className="text-[10px] text-slate-500">Aprobado</span>
+        </div>
+      </div>
     </div>
   );
+}
+
+// Función auxiliar para colores de estado
+function getColorEstado(estado) {
+  switch(estado) {
+    case 'APROBADO': return '#10B981';
+    case 'RECHAZADO': return '#F97316';
+    case 'PENDIENTE': return '#3B82F6';
+    case 'REGISTRADO': return '#64748B';
+    default: return '#94A3B8';
+  }
 }
