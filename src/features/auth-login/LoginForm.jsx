@@ -2,6 +2,9 @@ import { useForm } from "react-hook-form";
 import { Button } from "@shared/ui/Button";
 import { Mail, Lock, AlertCircle } from "lucide-react";
 import { useLogin } from "./useLogin";
+import { motion, AnimatePresence } from "framer-motion";
+
+const ease = [0.25, 0.1, 0.25, 1];
 
 // =========================================================================
 // WRAPPER EXTERNO (Para evitar re-renders y bug de foco)

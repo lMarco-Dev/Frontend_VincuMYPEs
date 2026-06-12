@@ -14,6 +14,7 @@ import {
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { OfertaAceptadaBanner } from "@/features/postulaciones-list/OfertaAceptadaBanner";
+import { PreseleccionadoBanner } from "@/features/postulaciones-list/PreseleccionadoBanner";
 import { useMisPostulaciones } from "@features/postulaciones-list/useMisPostulaciones";
 
 /* ─── Variantes de animación ─── */
@@ -103,6 +104,9 @@ const MisPostulacionesPage = () => {
 
   // Ofertas pendientes (VALIDADO_MYPE) para mostrar banner
   const ofertasPendientes = postulacionesActivas.filter(p => p.estado === 'VALIDADO_MYPE');
+  
+  // Ofertas preseleccionadas por el Admin para notificar al estudiante
+  const ofertasPreseleccionadas = postulacionesActivas.filter(p => p.estado === 'PRESELECCIONADO');
 
   // Flag para saber si hay al menos una postulación (activa o historial)
   const hasAnyPostulacion = total > 0;
@@ -143,7 +147,16 @@ const MisPostulacionesPage = () => {
     <div style={styles.page}>
       <PostulacionesHero total={total} aceptadas={aceptadasTotales} enRevision={enRevision} rechazadas={rechazadas} />
 
-      {/* Banner de ofertas pendientes (solo para VALIDADO_MYPE) */}
+      {/* Banner de preselección por Admin (Informativo) */}
+      {ofertasPreseleccionadas.length > 0 && (
+        <motion.div {...fadeUp(0.10)} style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {ofertasPreseleccionadas.map((p) => (
+            <PreseleccionadoBanner key={p.id} postulacion={p} />
+          ))}
+        </motion.div>
+      )}
+
+      {/* Banner de ofertas pendientes (solo para VALIDADO_MYPE - Requiere acción) */}
       {ofertasPendientes.length > 0 && (
         <motion.div {...fadeUp(0.12)} style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
           {ofertasPendientes.map((p) => (

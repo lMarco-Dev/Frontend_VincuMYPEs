@@ -611,8 +611,8 @@ if (completitud > 100) completitud = 100;
         )}
       </motion.section>
 
-      {/* ── FILA INFERIOR: ACTIVIDAD RECIENTE ── */}
-      <motion.div {...fadeUp(0.24)} style={{ display:'grid', gridTemplateColumns:'1fr', gap:16 }}>
+      {/* FILA INFERIOR: ACTIVIDAD RECIENTE Y CALIFICACIONES */}
+      <motion.div {...fadeUp(0.24)} style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:16 }}>
 
         {/* Actividad reciente */}
         <div style={{ background:'#fff', border:'0.5px solid #e8e8e4', borderRadius:16, padding:22 }}>
@@ -717,6 +717,10 @@ if (completitud > 100) completitud = 100;
           )}
         </div>
 
+        {/* Calificaciones pendientes */}
+        <div>
+          <CalificacionesPendientesCard />
+        </div>
 
       </motion.div>
 

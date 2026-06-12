@@ -152,11 +152,11 @@ export function CrearProyectoForm() {
 
   const handleOptionClick = (opcion) => {
     if (opcion.resultado) {
-      const resultadoData = arbol.resultados[opcion.resultado];
+      const resultadoData = arbol.resultados[opcion.resultado] || LEAF_PROJECTS[opcion.resultado];
       const dur = resultadoData ? { min: resultadoData.diasMin, sugerido: resultadoData.diasSugerido } : DURACIONES.personalizado;
       setDuracionInfo(dur);
-      setSelectedResult(arbol.resultados[opcion.resultado] || LEAF_PROJECTS[opcion.resultado]);
-      setCuposSeleccionados(resultadoData?.cuposMin || 1);
+      setSelectedResult(resultadoData);
+      setCuposSeleccionados(resultadoData?.cupos || resultadoData?.cuposMin || 1);
       setDiasSeleccionados(resultadoData?.diasSugerido || 7);
       setErrorPublicar(null);
     } else if (opcion.siguiente) {
@@ -173,6 +173,8 @@ export function CrearProyectoForm() {
       titulo: inputLibre.trim(),
       areaSistemas: AREA.OTRO,
       cupos: 1,
+      cuposMin: 1,
+      cuposMax: 5,
       entregables: ["Cuerpo resolutivo por determinar luego de sesión kick-off técnica asignada"],
       esPersonalizado: true,
     });

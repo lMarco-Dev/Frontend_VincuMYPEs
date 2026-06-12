@@ -275,7 +275,7 @@ describe('Flujo de Chat Grupal (WebSockets)', function() {
         
         await driver.wait(until.urlContains('/dashboard/mype'), 5000);
         await driver.get('http://localhost:5173/dashboard/mype/postulantes');
-        await driver.sleep(2000);
+        await driver.sleep(5000);
         
         // Open the project accordion first
         const projectAccordion = await driver.wait(until.elementLocated(By.xpath("//span[contains(text(), 'PROGRESO CENTRAL')]")), 5000);
@@ -464,7 +464,7 @@ describe('Flujo de Chat Grupal (WebSockets)', function() {
         
         await driver.wait(until.urlContains('/dashboard/mype'), 5000);
         await driver.get('http://localhost:5173/dashboard/mype/postulantes');
-        await driver.sleep(2000);
+        await driver.sleep(5000);
         
         const projectAccordion = await driver.wait(until.elementLocated(By.xpath("//span[contains(text(), 'PROGRESO CENTRAL')]")), 5000);
         await projectAccordion.click(); 

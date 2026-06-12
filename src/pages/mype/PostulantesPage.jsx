@@ -212,9 +212,15 @@ function TalentExecutiveModule({ postulacion, proyectoId, verTodos, currentTab, 
 
   const confirmChoice = () => {
     if (modalAction === "validar") {
-      cambiarEstado({ proyectoId, postulacionId: postulacion.id, estado: "VALIDADO_MYPE" });
+      cambiarEstado(
+        { proyectoId, postulacionId: postulacion.id, estado: "VALIDADO_MYPE" },
+        { onSuccess: () => setModalAction(null) }
+      );
     } else if (modalAction === "rechazar") {
-      cambiarEstado({ proyectoId, postulacionId: postulacion.id, estado: "RECHAZADO" });
+      cambiarEstado(
+        { proyectoId, postulacionId: postulacion.id, estado: "RECHAZADO" },
+        { onSuccess: () => setModalAction(null) }
+      );
     }
   };
 
@@ -419,8 +425,15 @@ function TalentExecutiveModule({ postulacion, proyectoId, verTodos, currentTab, 
    WORKSPACE DE SUPERVISIÓN DEL PROYECTO
 ═══════════════════════════════════════════════ */
 function ProjectEcosystemSection({ proyecto, globalOpenStateFilter, expandedProjects, setExpandedProjects, onToggleExpand }) {
-  const [internalViewAll, setInternalViewAll] = useState(false);
+  // En Reclutamiento ('pendientes'), por defecto debemos ver todo (para poder ver a los PRESELECCIONADO)
+  const [internalViewAll, setInternalViewAll] = useState(globalOpenStateFilter === 'pendientes');
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (globalOpenStateFilter === 'pendientes') {
+      setInternalViewAll(true);
+    }
+  }, [globalOpenStateFilter]);
 
   const hookNormal = usePostulacionesAceptadas(proyecto.id);
   const hookCompleto = usePostulaciones(

@@ -578,7 +578,7 @@ export function EjecucionPage() {
   const { proyectos, isLoading } = useMisProyectos();
   
   // Extraemos toda la data sin perder consistencia del sistema actual.
-  const operacionesActivas = proyectos.filter((p) => p.estado === "EN_DESARROLLO");
+  const operacionesActivas = proyectos.filter((p) => p.estado === "EN_DESARROLLO" || p.estado === "EN_VOTACION_DELEGADO" || p.estado === "EN_REVISION");
   const conteoOperaciones = operacionesActivas.length;
 
   const hitosData = useQueries({
