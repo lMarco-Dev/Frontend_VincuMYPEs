@@ -1,3 +1,4 @@
+// src/pages/estudiante/EstudianteDashboardPage.jsx
 import React, { useRef } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { useMisPostulaciones } from '../../features/postulaciones-list/useMisPostulaciones';
@@ -7,10 +8,9 @@ import { useProyectos } from '../../features/proyectos-list/useProyectos';
 import { usePerfil } from '../../features/perfil/usePerfil';
 import CalificacionesPendientesCard from "@/features/calificaciones/CalificacionesPendientesCard";
 
-
 import {
   ArrowRight,
-  Award,
+  ArrowUpRight,
   Building2,
   Bell,
   Search,
@@ -22,12 +22,50 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { NotificacionesPanel } from '../../features/notificaciones/NotificacionesPanel';
 
+/* ─── Paleta corporativa (MYPE dashboard) ─── */
+const C = {
+  ink: "#0F1F3D",
+  navyDeep: "#0A1628",
+  navyMid: "#0F2A4A",
+  navySoft: "#1E3A5F",
+  blue: "#1B6FE8",
+  cyan: "#06B6D4",
+  amber: "#F59E0B",
+  amberText: "#D97706",
+  green: "#059669",
+  violet: "#7C3AED",
+  gray400: "#9CA3AF",
+  gray500: "#6B7280",
+  gray600: "#4B5563",
+  border: "#E5E7EB",
+  surface: "#FFFFFF",
+  canvas: "#F7F8FA",
+};
+
 /* ─── Variantes de animación ─── */
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] },
 });
+
+/* ─── Hook: Contador animado ─── */
+const useCountUp = (target, duration = 1100) => {
+  const [val, setVal] = React.useState(0);
+  React.useEffect(() => {
+    let raf;
+    const start = performance.now();
+    const tick = (now) => {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(target * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return val;
+};
 
 /* ─── Colores de área ─── */
 const AREA_STYLES = {
@@ -68,6 +106,28 @@ const Ring = ({ pct = 0, color = '#1B6FE8', icon: Icon }) => {
     </div>
   );
 };
+
+/* ═══════════════════════════════════════════════
+   SUB: Panel reutilizable
+═══════════════════════════════════════════════ */
+const Panel = ({ children, delay = 0, dark = false, style = {} }) => (
+  <motion.section
+    {...fadeUp(delay)}
+    style={{
+      background: dark ? `linear-gradient(145deg, ${C.navyDeep}, ${C.navySoft})` : C.surface,
+      border: dark ? "1px solid rgba(255,255,255,0.06)" : `1px solid ${C.border}`,
+      borderRadius: 22,
+      padding: 24,
+      color: dark ? "#fff" : C.ink,
+      boxShadow: dark ? "0 16px 32px -22px rgba(10,22,40,0.7)" : "0 8px 24px -18px rgba(15,31,61,0.14)",
+      position: "relative",
+      overflow: "hidden",
+      ...style,
+    }}
+  >
+    {children}
+  </motion.section>
+);
 
 /* ═══════════════════════════════════════════════
    SUB: Metric Card
@@ -116,7 +176,9 @@ const MetricCard = ({ label, value, sub, linkTo, linkLabel, color, accentColor, 
   </Link>
 );
 
-/* ─── SUB: Project Card (MODIFICADO PARA NAVEGAR CON ESTADO) ─── */
+/* ═══════════════════════════════════════════════
+   SUB: Project Card (estilo MYPE)
+═══════════════════════════════════════════════ */
 const ProjectCard = ({ proyecto }) => {
   const area = proyecto.areaSistemas?.replace('_', ' ') || 'SISTEMAS';
   const { bg, color } = getAreaStyle(area);
@@ -129,7 +191,6 @@ const ProjectCard = ({ proyecto }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    // Navegar a proyectos con el ID del proyecto seleccionado
     navigate(`/proyectos?selected=${proyecto.id}`);
   };
 
@@ -180,15 +241,15 @@ const ProjectCard = ({ proyecto }) => {
 };
 
 /* ═══════════════════════════════════════════════
-   SUB: Hero Banner Animado (Efecto Moderno - Fade + Slide + Scale)
+   SUB: Hero Banner (diseño MYPE)
 ═══════════════════════════════════════════════ */
-const HeroBanner = ({ proyectosTotal = 0, aceptados = 0 }) => {
+const HeroBanner = ({ totalPostulaciones = 0, aceptados = 0, certificados = 0 }) => {
   const canvasRef = useRef(null);
   const heroRef   = useRef(null);
   const [currentWordIndex, setCurrentWordIndex] = React.useState(0);
   const [displayWord, setDisplayWord] = React.useState('real');
   const [isAnimating, setIsAnimating] = React.useState(false);
-  const [counts, setCounts] = React.useState({ a: 0, b: 0 });
+  const [counts, setCounts] = React.useState({ a: 0, b: 0, c: 0 });
 
   const words = [
     { text: 'real', color: '#67d4f8' },
@@ -197,7 +258,6 @@ const HeroBanner = ({ proyectosTotal = 0, aceptados = 0 }) => {
     { text: 'exitoso', color: '#c084fc' }
   ];
 
-  /* Cambio de palabra con animación moderna */
   React.useEffect(() => {
     const interval = setInterval(() => {
       setIsAnimating(true);
@@ -207,11 +267,9 @@ const HeroBanner = ({ proyectosTotal = 0, aceptados = 0 }) => {
         setTimeout(() => setIsAnimating(false), 150);
       }, 200);
     }, 2800);
-
     return () => clearInterval(interval);
   }, [currentWordIndex, words.length]);
 
-  /* Inicializar primera palabra */
   React.useEffect(() => {
     setDisplayWord(words[0].text);
   }, []);
@@ -275,41 +333,35 @@ const HeroBanner = ({ proyectosTotal = 0, aceptados = 0 }) => {
 
   /* Counting */
   React.useEffect(() => {
-    const targets = { a: proyectosTotal || 0, b: aceptados || 0 };
-    if (targets.a === 0 && targets.b === 0) {
-      setCounts({ a: 0, b: 0 });
+    const targets = { a: totalPostulaciones || 0, b: aceptados || 0, c: certificados || 0 };
+    if (targets.a === 0 && targets.b === 0 && targets.c === 0) {
+      setCounts({ a: 0, b: 0, c: 0 });
       return;
     }
     const dur = 1400, start = performance.now();
     const step = now => {
       const p = Math.min((now - start) / dur, 1), e = 1 - Math.pow(1 - p, 3);
-      setCounts({ a: Math.round(e * targets.a), b: Math.round(e * targets.b) });
+      setCounts({ a: Math.round(e * targets.a), b: Math.round(e * targets.b), c: Math.round(e * targets.c) });
       if (p < 1) requestAnimationFrame(step);
     };
     const tid = setTimeout(() => requestAnimationFrame(step), 600);
     return () => clearTimeout(tid);
-  }, [proyectosTotal, aceptados]);
-
-  /* Avatares */
-  const teamAvatars = [
-    { bg: '#1B6FE8', l: 'C' },
-    { bg: '#059669', l: 'A' },
-    { bg: '#8B5CF6', l: 'M' },
-    { bg: '#d4580a', l: 'J' },
-  ];
+  }, [totalPostulaciones, aceptados, certificados]);
 
   return (
     <motion.div
       ref={heroRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
       style={{
-        position: 'relative', overflow: 'hidden', borderRadius: 20,
-        background: 'linear-gradient(135deg,#0d1b35 0%,#0f2a4a 60%,#0a2240 100%)',
-        padding: '36px 40px 68px', color: '#fff',
+        position: 'relative', overflow: 'hidden', borderRadius: 24,
+        background: `linear-gradient(135deg, ${C.navyDeep} 0%, ${C.navyMid} 55%, ${C.navySoft} 100%)`,
+        padding: '36px 40px', color: '#fff',
         marginBottom: 20, minHeight: 200,
         display: 'flex', alignItems: 'center',
+        boxShadow: '0 24px 48px -28px rgba(10,22,40,0.7)',
+        border: '1px solid rgba(255,255,255,0.06)',
       }}
     >
       <style>{`
@@ -337,7 +389,6 @@ const HeroBanner = ({ proyectosTotal = 0, aceptados = 0 }) => {
 
       {/* Contenido izquierdo */}
       <div style={{ position:'relative', zIndex:10, maxWidth:440 }}>
-
         {/* Heading con animación moderna */}
         <div style={{ fontSize:'clamp(22px,2.6vw,30px)', fontWeight:800, lineHeight:1.08, letterSpacing:'-0.035em', marginBottom:10 }}>
           <div style={{ overflow:'hidden' }}>
@@ -384,65 +435,37 @@ const HeroBanner = ({ proyectosTotal = 0, aceptados = 0 }) => {
           Proyectos reales con empresas de Cajamarca.<br />
           Construye tu portafolio mientras estudias.
         </motion.p>
-
-        {/* Botón CTA */}
-        <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.56, duration:0.6 }}>
-          <Link to="/proyectos" style={{ textDecoration:'none' }}>
-            <button
-              style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#fff', color:'#0f1f3d', padding:'10px 20px', borderRadius:8, fontSize:13, fontWeight:700, cursor:'pointer', border:'none', transition:'all 0.25s' }}
-              onMouseEnter={e => { e.currentTarget.style.background='#1B6FE8'; e.currentTarget.style.color='#fff'; e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 8px 24px rgba(27,111,232,0.3)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background='#fff'; e.currentTarget.style.color='#0f1f3d'; e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow='none'; }}
-            >
-              Ver proyectos recomendados <ArrowRight size={14} />
-            </button>
-          </Link>
-        </motion.div>
       </div>
 
-      {/* Stats */}
+      {/* Stats (estilo MYPE) */}
       <motion.div
         initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }}
         transition={{ delay:0.7, duration:0.7 }}
-        style={{ position:'absolute', right:40, top:'50%', transform:'translateY(-60%)', zIndex:10, display:'flex', flexDirection:'column', gap:12 }}
+        style={{ position:'absolute', right:40, top:'50%', transform:'translateY(-50%)', zIndex:10, display:'flex', alignItems:'center', gap:0 }}
       >
         {[
-          { val: counts.a, label:'Proyectos abiertos', bar:'linear-gradient(90deg,#1B6FE8,#06B6D4)', w:'80%' },
-          { val: counts.b, label:'Aceptados',          bar:'linear-gradient(90deg,#d4580a,#f59e0b)', w:'60%' },
+          { val: counts.a, label: 'POSTULACIONES', bar: '#1B6FE8', w: '70%' },
+          { val: counts.b, label: 'ACEPTADAS',     bar: '#4ade80', w: '40%' },
+          { val: counts.c, label: 'CERTIFICADOS',  bar: '#f59e0b', w: '55%' },
         ].map((s, i) => (
-          <div key={i} style={{ textAlign:'center', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, padding:'12px 20px', minWidth:130 }}>
-            <div style={{ fontSize:26, fontWeight:800, color:'#67d4f8', letterSpacing:'-0.04em', lineHeight:1 }}>{s.val}</div>
-            <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)', textTransform:'uppercase', letterSpacing:'0.1em', marginTop:4 }}>{s.label}</div>
-            <div style={{ height:2, background:'rgba(255,255,255,0.08)', borderRadius:1, marginTop:6, overflow:'hidden' }}>
-              <motion.div
-                initial={{ scaleX:0 }} animate={{ scaleX:1 }}
-                transition={{ delay: 0.9 + i * 0.2, duration:1.2, ease:[0.22,1,0.36,1] }}
-                style={{ height:'100%', width:s.w, background:s.bar, borderRadius:1, transformOrigin:'left' }}
-              />
+          <React.Fragment key={i}>
+            {i > 0 && (
+              <div style={{ width:1, height:40, background:'rgba(255,255,255,0.12)', margin:'0 4px' }} />
+            )}
+            <div style={{ textAlign:'center', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, padding:'12px 20px', minWidth:110 }}>
+              <div style={{ fontSize:26, fontWeight:800, color:'#67d4f8', letterSpacing:'-0.04em', lineHeight:1 }}>{s.val}</div>
+              <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)', textTransform:'uppercase', letterSpacing:'0.1em', marginTop:4 }}>{s.label}</div>
+              <div style={{ height:2, background:'rgba(255,255,255,0.08)', borderRadius:1, marginTop:6, overflow:'hidden' }}>
+                <motion.div
+                  initial={{ scaleX:0 }} animate={{ scaleX:1 }}
+                  transition={{ delay: 0.9 + i * 0.2, duration:1.2, ease:[0.22,1,0.36,1] }}
+                  style={{ height:'100%', width:s.w, background:s.bar, borderRadius:1, transformOrigin:'left' }}
+                />
+              </div>
             </div>
-          </div>
+          </React.Fragment>
         ))}
       </motion.div>
-
-      {/* Badge avatares */}
-      <motion.div
-        initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
-        transition={{ delay:0.88, duration:0.5 }}
-        style={{ position:'absolute', left:40, bottom:16, zIndex:10, display:'flex', alignItems:'center', gap:8, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:20, padding:'5px 14px' }}
-      >
-        <div style={{ display:'flex' }}>
-          {teamAvatars.map((av, i) => (
-            <div key={i} style={{ width:18, height:18, borderRadius:'50%', border:'1.5px solid rgba(255,255,255,0.15)', marginLeft: i === 0 ? 0 : -5, background:av.bg, fontSize:8, fontWeight:700, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-              {av.l}
-            </div>
-          ))}
-        </div>
-        <span style={{ fontSize:11, color:'rgba(255,255,255,0.55)' }}>
-          Cajamarca, Perú
-        </span>
-      </motion.div>
-
-      {/* Línea inferior */}
-      <div style={{ position:'absolute', bottom:0, left:0, right:0, height:1.5, background:'linear-gradient(90deg,transparent,rgba(27,111,232,0.5) 30%,rgba(6,182,212,0.5) 60%,transparent)' }} />
     </motion.div>
   );
 };
@@ -451,8 +474,8 @@ const HeroBanner = ({ proyectosTotal = 0, aceptados = 0 }) => {
    COMPONENTE PRINCIPAL
 ═══════════════════════════════════════════════ */
 const EstudianteDashboardPage = () => {
-  const { user: authUser } = useAuthStore(); // renombramos para no confundir
-  const { data: userProfile, isLoading: loadingPerfil } = usePerfil(); // ✅ AGREGAR ESTO
+  const { user: authUser } = useAuthStore();
+  const { data: userProfile, isLoading: loadingPerfil } = usePerfil();
   const navigate = useNavigate();
   const { mutate: leerNotificacion } = useLeerNotificacion();
   const [isNotifPanelOpen, setIsNotifPanelOpen] = React.useState(false);
@@ -462,10 +485,7 @@ const EstudianteDashboardPage = () => {
   const { data: notificaciones, isLoading: loadingNotificaciones } = useNotificaciones();
   const { data: proyectosData, isLoading: loadingProyectos } = useProyectos();
 
-  // ✅ Usar userProfile en lugar de authUser para el perfil
-  const user = userProfile || authUser; // fallback si perfil no carga
-
-  // ... resto del código
+  const user = userProfile || authUser;
 
   const totalPostulaciones    = postulaciones?.length || 0;
   const aceptados             = postulaciones?.filter(p => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado').length || 0;
@@ -474,18 +494,16 @@ const EstudianteDashboardPage = () => {
   const proyectosRecomendados = proyectosData?.content?.slice(0, 3) || [];
   const proyectosActivos      = postulaciones?.filter(p => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado') || [];
 
- // ✅ Misma lógica que en PerfilPage
-let completitud = 10;
-if (user?.bio) completitud += 15;
-if (user?.skills?.length > 0) completitud += 15;
-if (user?.telefono) completitud += 10;
-if (user?.linkedinUrl) completitud += 10;
-if (user?.portafolioUrl) completitud += 10;
-if (user?.ciudad) completitud += 10;
-if (user?.pais) completitud += 10;
-if (user?.cvUrl) completitud += 10;
-// Asegurar que no pase de 100
-if (completitud > 100) completitud = 100;
+  let completitud = 10;
+  if (user?.bio) completitud += 15;
+  if (user?.skills?.length > 0) completitud += 15;
+  if (user?.telefono) completitud += 10;
+  if (user?.linkedinUrl) completitud += 10;
+  if (user?.portafolioUrl) completitud += 10;
+  if (user?.ciudad) completitud += 10;
+  if (user?.pais) completitud += 10;
+  if (user?.cvUrl) completitud += 10;
+  if (completitud > 100) completitud = 100;
 
   const porcentajeExito = totalPostulaciones > 0
     ? Math.round((aceptados / totalPostulaciones) * 100) : 0;
@@ -500,6 +518,11 @@ if (completitud > 100) completitud = 100;
 
   return (
     <div style={{ fontFamily:"Inter, Arial, 'Helvetica Neue', sans-serif", background:'#f8fafc', minHeight:'100vh', padding:'32px 36px', maxWidth:1440, margin:'0 auto' }}>
+      <style>{`
+        @keyframes vping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
+        @keyframes vpulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+        @keyframes vshimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+      `}</style>
 
       {/* ── TOPBAR ── */}
       <motion.div {...fadeUp(0)} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
@@ -507,9 +530,9 @@ if (completitud > 100) completitud = 100;
           <h1 style={{ fontSize:22, fontWeight:800, letterSpacing:'-0.03em', color:'#0f1f3d' }}>
             ¡Hola, {firstName}!
           </h1>
-         <p style={{ fontSize: 13, color: '#6b6b7a', margin: '2px 0 0 0' }}>
-           Tu panel de control profesional
-         </p>
+          <p style={{ fontSize: 13, color: '#6b6b7a', margin: '2px 0 0 0' }}>
+            Tu panel de control profesional
+          </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           <Link to="/proyectos" style={{ textDecoration:'none' }}>
@@ -540,12 +563,11 @@ if (completitud > 100) completitud = 100;
         </div>
       </motion.div>
 
-      
-
-      {/* ── HERO BANNER ANIMADO ── */}
+      {/* ── HERO BANNER ── */}
       <HeroBanner
-        proyectosTotal={proyectosData?.totalElements}
+        totalPostulaciones={totalPostulaciones}
         aceptados={aceptados}
+        certificados={totalCertificados}
       />
 
       {/* ── MÉTRICAS ── */}
@@ -585,144 +607,157 @@ if (completitud > 100) completitud = 100;
         />
       </motion.div>
 
-      {/* ── PROYECTOS RECOMENDADOS ── */}
-      <motion.section {...fadeUp(0.20)} style={{ marginBottom:24 }}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-          <div style={S.sectionTitle}><span style={S.sectionBar} />Proyectos recomendados para ti</div>
-          <Link to="/proyectos" style={S.seeAll}>Explorar todos <ArrowRight size={12} /></Link>
-        </div>
-
-        {loadingProyectos ? (
-          <div style={{ background:'#fff', borderRadius:14, border:'0.5px solid #e8e8e4', padding:36, textAlign:'center', color:'#6b6b7a', fontSize:13 }}>
-            <svg style={{ animation:'spin 1s linear infinite', height:20, width:20, color:'#1B6FE8', display:'block', margin:'0 auto 8px' }} viewBox="0 0 24 24">
-              <circle style={{ opacity:0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-              <path style={{ opacity:0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            Buscando las mejores oportunidades…
-          </div>
-        ) : proyectosRecomendados.length === 0 ? (
-          <div style={{ background:'#fff', borderRadius:14, border:'0.5px dashed #e8e8e4', padding:36, textAlign:'center', color:'#6b6b7a', fontSize:13 }}>
-            No hay proyectos disponibles por el momento.
-          </div>
-        ) : (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
-            {proyectosRecomendados.map(p => <ProjectCard key={p.id} proyecto={p} />)}
-          </div>
-        )}
-      </motion.section>
-
-      {/* FILA INFERIOR: ACTIVIDAD RECIENTE Y CALIFICACIONES */}
-      <motion.div {...fadeUp(0.24)} style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:16 }}>
-
-        {/* Actividad reciente */}
-        <div style={{ background:'#fff', border:'0.5px solid #e8e8e4', borderRadius:16, padding:22 }}>
+      {/* ── FILA INFERIOR: PROYECTOS + SIDEBAR ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'start' }}>
+        {/* Proyectos recomendados */}
+        <Panel delay={0.20}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-            <div style={S.sectionTitle}><span style={S.sectionBar} />Actividad reciente</div>
-            <Link to="/mis-postulaciones" style={S.seeAll}>Ver todo <ArrowRight size={12} /></Link>
+            <div style={S.sectionTitle}><span style={S.sectionBar} />Proyectos recomendados</div>
+            <Link to="/proyectos" style={S.seeAll}>Explorar todos <ArrowRight size={12} /></Link>
           </div>
-
-          {loadingNotificaciones ? (
-            <div style={{ padding:16, textAlign:'center', color:'#6b6b7a', fontSize:13 }}>Cargando actividad…</div>
-          ) : activityItems.length === 0 ? (
-            <div style={{ padding:20, textAlign:'center', color:'#6b6b7a', fontSize:13, border:'0.5px dashed #e8e8e4', borderRadius:10 }}>
-              No hay actividad reciente.
+          {loadingProyectos ? (
+            <div style={{ padding:36, textAlign:'center', color:'#6b6b7a', fontSize:13 }}>
+              <svg style={{ animation:'spin 1s linear infinite', height:20, width:20, color:'#1B6FE8', display:'block', margin:'0 auto 8px' }} viewBox="0 0 24 24">
+                <circle style={{ opacity:0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path style={{ opacity:0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Buscando las mejores oportunidades…
+            </div>
+          ) : proyectosRecomendados.length === 0 ? (
+            <div style={{ padding:36, textAlign:'center', color:'#6b6b7a', fontSize:13, border:'0.5px dashed #e8e8e4', borderRadius:10 }}>
+              No hay proyectos disponibles por el momento.
             </div>
           ) : (
-            activityItems.map((item, index) => {
-    const dotColors = ['#1B6FE8', '#d4580a', '#059669'];
-    
-    const getRutaNotificacion = (notif) => {
-    // Si tiene urlReferencia válida
-    if (notif.urlReferencia && notif.urlReferencia.trim() !== '') {
-        return notif.urlReferencia.startsWith('/') 
-            ? notif.urlReferencia 
-            : `/${notif.urlReferencia}`;
-    }
-    
-    // Si no tiene, ir a mis-postulaciones
-    return '/mis-postulaciones';
-      };
-          
-          return (
-              <div
-                  key={item.id || index}
-                  onClick={() => {
-                      if (!item.leida) {
-                          leerNotificacion(item.id);
-                      }
-                      const ruta = getRutaNotificacion(item);
-                      navigate(ruta);
-                  }}
-                  style={{ 
-                      display:'flex', 
-                      alignItems:'flex-start', 
-                      gap:12, 
-                      padding:'12px 8px', 
-                      borderBottom: index < activityItems.length - 1 ? '0.5px solid #e8e8e4' : 'none', 
-                      cursor:'pointer', 
-                      borderRadius: 8,
-                      transition:'all 0.2s' 
-                  }}
-                  onMouseEnter={e => { 
-                      e.currentTarget.style.paddingLeft = '12px'; 
-                      e.currentTarget.style.background = '#f8fafc'; 
-                  }}
-                  onMouseLeave={e => { 
-                      e.currentTarget.style.paddingLeft = '8px'; 
-                      e.currentTarget.style.background = 'transparent'; 
-                  }}
-              >
-                  <div style={{ 
-                      width:8, 
-                      height:8, 
-                      borderRadius:'50%', 
-                      background: dotColors[index % dotColors.length], 
-                      flexShrink:0, 
-                      marginTop:5 
-                  }} />
-                  <div style={{ flex:1 }}>
-                      <div style={{ fontSize:13, color:'#0f1f3d', lineHeight:1.45 }}>
-                          <strong style={{ fontWeight:600 }}>{item.titulo}</strong>
-                          {item.mensaje && (
-                              <span style={{ fontWeight:400, color:'#6b6b7a', marginLeft: 4 }}>
-                                  {item.mensaje}
-                              </span>
-                          )}
-                      </div>
-                      <div style={{ fontSize:11, color:'#6b6b7a', marginTop:4 }}>
-                          {item.fechaCreacion 
-                              ? new Date(item.fechaCreacion).toLocaleDateString('es-PE', { 
-                                  day:'numeric', 
-                                  month:'short',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })
-                              : 'Fecha no disponible'}
-                      </div>
-                  </div>
-                  {!item.leida && (
-                      <div style={{ 
-                          width:8, 
-                          height:8, 
-                          borderRadius:'50%', 
-                          background:'#1B6FE8', 
-                          marginTop:5, 
-                          flexShrink:0,
-                          boxShadow: '0 0 0 3px rgba(27,111,232,0.15)'
-                      }} />
-                  )}
-              </div>
-          );
-      })
+            <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:14 }}>
+              {proyectosRecomendados.map(p => <ProjectCard key={p.id} proyecto={p} />)}
+            </div>
           )}
-        </div>
+        </Panel>
 
-        {/* Calificaciones pendientes */}
-        <div>
+        {/* ── SIDEBAR ── */}
+        <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+
+          {/* Actividad reciente — timeline estilo MYPE */}
+          <Panel delay={0.24}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+              <div style={S.sectionTitle}><span style={S.sectionBar} />Actividad reciente</div>
+              <Link to="/mis-postulaciones" style={S.seeAll}>Ver todo <ArrowRight size={12} /></Link>
+            </div>
+            {loadingNotificaciones ? (
+              <div style={{ padding:16, textAlign:'center', color:'#6b6b7a', fontSize:13 }}>Cargando actividad…</div>
+            ) : activityItems.length === 0 ? (
+              <div style={{ padding:20, textAlign:'center', color:'#6b6b7a', fontSize:13, border:'0.5px dashed #e8e8e4', borderRadius:10 }}>
+                No hay actividad reciente.
+              </div>
+            ) : (
+              <div style={{ position:'relative', paddingLeft:8 }}>
+                <div style={{ position:'absolute', left:19, top:8, bottom:8, width:1.5, background:'#E5E7EB' }} />
+                <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
+                  {activityItems.map((item, index) => {
+                    const getRutaNotificacion = (notif) => {
+                      if (notif.urlReferencia && notif.urlReferencia.trim() !== '') {
+                        return notif.urlReferencia.startsWith('/')
+                          ? notif.urlReferencia
+                          : `/${notif.urlReferencia}`;
+                      }
+                      return '/mis-postulaciones';
+                    };
+                    return (
+                      <div
+                        key={item.id || index}
+                        onClick={() => {
+                          if (!item.leida) leerNotificacion(item.id);
+                          navigate(getRutaNotificacion(item));
+                        }}
+                        style={{
+                          position:'relative', display:'flex', alignItems:'flex-start',
+                          gap:14, padding:'10px 14px', borderRadius:12,
+                          cursor:'pointer', transition:'background 0.15s ease', background:'transparent',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#F7F8FA'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <div style={{
+                          width:10, height:10, borderRadius:'50%',
+                          background: !item.leida ? '#1B6FE8' : '#9CA3AF',
+                          flexShrink:0, marginTop:4, zIndex:1,
+                          boxShadow: !item.leida ? '0 0 0 3px rgba(27,111,232,0.15)' : '0 0 0 3px rgba(156,163,175,0.1)',
+                        }} />
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:13, color:'#0f1f3d', fontWeight:600, lineHeight:1.35 }}>
+                            {item.titulo}
+                          </div>
+                          {item.mensaje && (
+                            <div style={{ fontSize:11.5, color:'#6b6b7a', marginTop:2, fontWeight:400 }}>
+                              {item.mensaje}
+                            </div>
+                          )}
+                          <div style={{ fontSize:11, color:'#9CA3AF', marginTop:4 }}>
+                            {item.fechaCreacion
+                              ? new Date(item.fechaCreacion).toLocaleDateString('es-PE', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })
+                              : 'Fecha no disponible'}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </Panel>
+
+          {/* Calificaciones pendientes */}
           <CalificacionesPendientesCard />
-        </div>
 
-      </motion.div>
+          {/* Accesos rápidos */}
+          <Panel delay={0.32}>
+            <div style={{ display:'flex', alignItems:'center', marginBottom:14 }}>
+              <div style={S.sectionTitle}><span style={S.sectionBar} />Accesos rápidos</div>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <Link to="/proyectos" style={{ textDecoration:'none' }}>
+                <div
+                  style={{
+                    padding:12, borderRadius:13,
+                    background:'#EFF6FF', border:'1px solid #BFDBFE',
+                    color:'#1B6FE8', display:'flex', alignItems:'center',
+                    gap:11, fontWeight:700, fontSize:13, cursor:'pointer',
+                    transition:'transform 0.2s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(3px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
+                >
+                  <div style={{ width:30, height:30, borderRadius:9, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <Search size={15} color="#1B6FE8" />
+                  </div>
+                  Buscar proyectos
+                  <ArrowUpRight size={15} style={{ marginLeft:'auto', opacity:0.55 }} />
+                </div>
+              </Link>
+              <Link to="/perfil" style={{ textDecoration:'none' }}>
+                <div
+                  style={{
+                    padding:12, borderRadius:13,
+                    background:'#F5F3FF', border:'1px solid #DDD6FE',
+                    color:'#7C3AED', display:'flex', alignItems:'center',
+                    gap:11, fontWeight:700, fontSize:13, cursor:'pointer',
+                    transition:'transform 0.2s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(3px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
+                >
+                  <div style={{ width:30, height:30, borderRadius:9, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <ScanFace size={15} color="#7C3AED" />
+                  </div>
+                  Completar perfil
+                  <ArrowUpRight size={15} style={{ marginLeft:'auto', opacity:0.55 }} />
+                </div>
+              </Link>
+            </div>
+          </Panel>
+
+        </div>{/* fin sidebar */}
+      </div>
 
       <NotificacionesPanel
         isOpen={isNotifPanelOpen}
