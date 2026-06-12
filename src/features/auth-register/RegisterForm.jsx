@@ -269,12 +269,12 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
     ? (esEstudiante
         ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
         : (formValues.rubro && formValues.telefono?.length === 9))
-    : (EMAIL_RE.test(formValues.email) && PASS_RE.test(formValues.password) &&
-       (formValues.confirmPassword === formValues.password && formValues.password.length > 0));
+    : (EMAIL_RE.test((formValues.email || "").trim()) && PASS_RE.test(formValues.password || "") &&
+       (formValues.confirmPassword === formValues.password && (formValues.password || "").length > 0));
 
   const isStep2Valid = EMAIL_VERIFICATION_ENABLED
-    ? (EMAIL_RE.test(formValues.email) && PASS_RE.test(formValues.password) &&
-       (formValues.confirmPassword === formValues.password && formValues.password.length > 0))
+    ? (EMAIL_RE.test((formValues.email || "").trim()) && PASS_RE.test(formValues.password || "") &&
+       (formValues.confirmPassword === formValues.password && (formValues.password || "").length > 0))
     : (esEstudiante
         ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
         : (formValues.rubro && formValues.telefono?.length === 9));
