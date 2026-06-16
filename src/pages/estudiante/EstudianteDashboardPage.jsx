@@ -199,9 +199,16 @@ const ProjectCard = ({ proyecto }) => {
     >
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: gradient }} />
       <div>
-        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 4, background: bg, color, display: 'inline-flex', alignItems: 'center', marginBottom: 10 }}>
-          {area}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 4, background: bg, color, display: 'inline-flex', alignItems: 'center' }}>
+            {area}
+          </span>
+          {proyecto.fechaCreacion && (Date.now() - new Date(proyecto.fechaCreacion).getTime()) < 172800000 && (
+            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 4, background: '#dcfce7', color: '#15803d' }}>
+              Nuevo
+            </span>
+          )}
+        </div>
         <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.01em', color: '#0f1f3d', lineHeight: 1.35, marginBottom: 6 }}>
           {proyecto.titulo}
         </div>
@@ -211,9 +218,14 @@ const ProjectCard = ({ proyecto }) => {
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: '0.5px solid #e8e8e4', marginTop: 'auto' }}>
-        <div style={{ fontSize: 10, color: '#6b6b7a' }}>
-          Límite: <span style={{ color: '#e24b4a', fontWeight: 600 }}>{proyecto.fechaLimite}</span>
-        </div>
+        {(() => {
+          const dur = renderDuracion(proyecto);
+          return (
+            <div style={{ fontSize: 10, color: '#6b6b7a' }}>
+              {dur.label}: <span style={{ fontWeight: 600, color: '#0f1f3d' }}>{dur.value}</span>
+            </div>
+          );
+        })()}
         <div style={{ fontSize: 11, fontWeight: 700, color: '#1B6FE8', display: 'flex', alignItems: 'center', gap: 3 }}>
           Postular <ArrowRight size={11} />
         </div>
