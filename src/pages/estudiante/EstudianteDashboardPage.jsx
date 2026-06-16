@@ -671,6 +671,7 @@ const EstudianteDashboardPage = () => {
   const navigate = useNavigate();
   const { mutate: leerNotificacion } = useLeerNotificacion();
   const [isNotifPanelOpen, setIsNotifPanelOpen] = React.useState(false);
+  const [expandido, setExpandido] = React.useState(null);
 
   const { data: postulaciones, isLoading: loadingPostulaciones } = useMisPostulaciones();
   const { data: certificados, isLoading: loadingCertificados } = useCertificados();
@@ -836,7 +837,12 @@ const EstudianteDashboardPage = () => {
           <Panel delay={0.24}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
               <div style={S.sectionTitle}><span style={S.sectionBar} />Actividad reciente</div>
-              <Link to="/mis-postulaciones" style={S.seeAll}>Ver todo <ArrowRight size={12} /></Link>
+              <button
+                onClick={() => setIsNotifPanelOpen(true)}
+                style={{ ...S.seeAll, background: 'none', border: 'none', padding: 0 }}
+              >
+                Ver todo <ArrowRight size={12} />
+              </button>
             </div>
             {loadingNotificaciones ? (
               <div style={{ padding:16, textAlign:'center', color:'#6b6b7a', fontSize:13 }}>Cargando actividad…</div>
@@ -845,58 +851,69 @@ const EstudianteDashboardPage = () => {
                 No hay actividad reciente.
               </div>
             ) : (
-              <div style={{ position:'relative', paddingLeft:8 }}>
-                <div style={{ position:'absolute', left:19, top:8, bottom:8, width:1.5, background:'#E5E7EB' }} />
-                <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
-                  {activityItems.map((item, index) => {
-                    const getRutaNotificacion = (notif) => {
-                      if (notif.urlReferencia && notif.urlReferencia.trim() !== '') {
-                        return notif.urlReferencia.startsWith('/')
-                          ? notif.urlReferencia
-                          : `/${notif.urlReferencia}`;
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {activityItems.map((item, index) => (
+                  <div
+                    key={item.id || index}
+                    onClick={() => {
+                      if (!item.leida) leerNotificacion(item.id);
+                      if (expandido === (item.id || index)) {
+                        const ruta = item.urlReferencia
+                          ? (item.urlReferencia.startsWith('/') ? item.urlReferencia : `/${item.urlReferencia}`)
+                          : null;
+                        if (ruta) navigate(ruta);
+                        setExpandido(null);
+                      } else {
+                        setExpandido(item.id || index);
                       }
-                      return '/mis-postulaciones';
-                    };
-                    return (
-                      <div
-                        key={item.id || index}
-                        onClick={() => {
-                          if (!item.leida) leerNotificacion(item.id);
-                          navigate(getRutaNotificacion(item));
-                        }}
-                        style={{
-                          position:'relative', display:'flex', alignItems:'flex-start',
-                          gap:14, padding:'10px 14px', borderRadius:12,
-                          cursor:'pointer', transition:'background 0.15s ease', background:'transparent',
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.background = '#F7F8FA'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-                      >
-                        <div style={{
-                          width:10, height:10, borderRadius:'50%',
-                          background: !item.leida ? '#1B6FE8' : '#9CA3AF',
-                          flexShrink:0, marginTop:4, zIndex:1,
-                          boxShadow: !item.leida ? '0 0 0 3px rgba(27,111,232,0.15)' : '0 0 0 3px rgba(156,163,175,0.1)',
-                        }} />
-                        <div style={{ flex:1 }}>
-                          <div style={{ fontSize:13, color:'#0f1f3d', fontWeight:600, lineHeight:1.35 }}>
-                            {item.titulo}
-                          </div>
-                          {item.mensaje && (
-                            <div style={{ fontSize:11.5, color:'#6b6b7a', marginTop:2, fontWeight:400 }}>
-                              {item.mensaje}
-                            </div>
-                          )}
-                          <div style={{ fontSize:11, color:'#9CA3AF', marginTop:4 }}>
-                            {item.fechaCreacion
-                              ? new Date(item.fechaCreacion).toLocaleDateString('es-PE', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })
-                              : 'Fecha no disponible'}
-                          </div>
-                        </div>
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#F7F8FA'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                    style={{
+                      borderLeft:   `3px solid ${colorNotif(item)}`,
+                      borderRadius: 8,
+                      padding:      '10px 14px',
+                      cursor:       'pointer',
+                      background:   'transparent',
+                      transition:   'background 0.15s',
+                      marginBottom: 6,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{
+                        fontSize: 13, fontWeight: 600, color: '#0f1f3d',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        flex: 1, marginRight: 8,
+                      }}>
+                        {item.titulo}
                       </div>
-                    );
-                  })}
-                </div>
+                      <ChevronRight
+                        size={14}
+                        color="#9CA3AF"
+                        style={{
+                          flexShrink: 0,
+                          transform: expandido === (item.id || index) ? 'rotate(90deg)' : 'none',
+                          transition: 'transform 0.2s',
+                        }}
+                      />
+                    </div>
+                    <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>
+                      {tiempoRelativo(item.fechaCreacion)}
+                    </div>
+                    {expandido === (item.id || index) && item.mensaje && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                        style={{ overflow: 'hidden' }}
+                      >
+                        <div style={{ fontSize: 12, color: '#6b6b7a', marginTop: 8, paddingTop: 8, borderTop: '1px solid #F3F4F6' }}>
+                          {item.mensaje}
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </Panel>
