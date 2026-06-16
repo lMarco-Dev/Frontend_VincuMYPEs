@@ -48,6 +48,9 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] },
 });
 
+/* ─── Timestamp de carga (para badge "Nuevo") ─── */
+const AHORA = Date.now();
+
 /* ─── Colores de área ─── */
 const AREA_STYLES = {
   WEB:             { bg: '#eff6ff', color: '#1B6FE8' },
@@ -158,7 +161,7 @@ const ProjectCard = ({ proyecto }) => {
           <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 4, background: bg, color, display: 'inline-flex', alignItems: 'center' }}>
             {area}
           </span>
-          {proyecto.fechaCreacion && (Date.now() - new Date(proyecto.fechaCreacion).getTime()) < 172800000 && (
+          {proyecto.fechaCreacion && (AHORA - new Date(proyecto.fechaCreacion).getTime()) < 172800000 && (
             <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 4, background: '#dcfce7', color: '#15803d' }}>
               Nuevo
             </span>
@@ -622,14 +625,14 @@ const HeroBanner = ({ totalPostulaciones = 0, aceptados = 0, certificados = 0 })
 ═══════════════════════════════════════════════ */
 const EstudianteDashboardPage = () => {
   const { user: authUser } = useAuthStore();
-  const { data: userProfile, isLoading: loadingPerfil } = usePerfil();
+  const { data: userProfile } = usePerfil();
   const navigate = useNavigate();
   const { mutate: leerNotificacion } = useLeerNotificacion();
   const [isNotifPanelOpen, setIsNotifPanelOpen] = React.useState(false);
   const [expandido, setExpandido] = React.useState(null);
 
-  const { data: postulaciones, isLoading: loadingPostulaciones } = useMisPostulaciones();
-  const { data: certificados, isLoading: loadingCertificados } = useCertificados();
+  const { data: postulaciones } = useMisPostulaciones();
+  const { data: certificados } = useCertificados();
   const { data: notificaciones, isLoading: loadingNotificaciones } = useNotificaciones();
   const { data: proyectosData, isLoading: loadingProyectos } = useProyectos();
 
