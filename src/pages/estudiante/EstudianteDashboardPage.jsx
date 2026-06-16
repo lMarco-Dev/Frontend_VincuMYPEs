@@ -21,6 +21,9 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { NotificacionesPanel } from '../../features/notificaciones/NotificacionesPanel';
 
+/* ─── Tipografía consistente con ProyectosPage / MisPostulaciones ─── */
+const FONT = "'Angro Std', 'Outfit', sans-serif";
+
 /* ─── Paleta corporativa (MYPE dashboard) ─── */
 const C = {
   ink: "#0F1F3D",
@@ -105,7 +108,8 @@ const Panel = ({ children, delay = 0, dark = false, style = {} }) => (
       borderRadius: 22,
       padding: 24,
       color: dark ? "#fff" : C.ink,
-      boxShadow: dark ? "0 16px 32px -22px rgba(10,22,40,0.7)" : "0 8px 24px -18px rgba(15,31,61,0.14)",
+      fontFamily: FONT,
+      boxShadow: dark ? "0 16px 32px -22px rgba(10,22,40,0.7)" : "0 4px 12px rgba(15,23,42,0.04)",
       position: "relative",
       overflow: "hidden",
       ...style,
@@ -138,53 +142,52 @@ const ProjectCard = ({ proyecto }) => {
     <div
       onClick={handleClick}
       style={{
-        background: '#fff', border: '0.5px solid #e8e8e4', borderRadius: 14,
+        background: '#FCFDFD', border: '1px solid #F1F5F9', borderRadius: 14,
         padding: 18, display: 'flex', flexDirection: 'column',
         justifyContent: 'space-between', minHeight: 160,
-        cursor: 'pointer', transition: 'all 0.25s',
+        cursor: 'pointer', transition: 'all 0.15s ease',
         position: 'relative', overflow: 'hidden',
+        boxShadow: '0 2px 4px rgba(15,23,42,0.01)',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.transform = 'translateY(-3px)';
-        e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.08)';
-        e.currentTarget.style.borderColor = 'rgba(27,111,232,0.3)';
+        e.currentTarget.style.borderColor = '#E2E8F0';
+        e.currentTarget.style.boxShadow = '0 4px 12px rgba(15,23,42,0.06)';
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.transform = 'none';
-        e.currentTarget.style.boxShadow = 'none';
-        e.currentTarget.style.borderColor = '#e8e8e4';
+        e.currentTarget.style.borderColor = '#F1F5F9';
+        e.currentTarget.style.boxShadow = '0 2px 4px rgba(15,23,42,0.01)';
       }}
     >
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: gradient }} />
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 4, background: bg, color, display: 'inline-flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+          <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 4, background: bg, color, display: 'inline-flex', alignItems: 'center' }}>
             {area}
           </span>
           {proyecto.fechaCreacion && (AHORA - new Date(proyecto.fechaCreacion).getTime()) < 172800000 && (
-            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 4, background: '#dcfce7', color: '#15803d' }}>
+            <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 4, background: '#dcfce7', color: '#15803d' }}>
               Nuevo
             </span>
           )}
         </div>
-        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.01em', color: '#0f1f3d', lineHeight: 1.35, marginBottom: 6 }}>
+        <div style={{ fontSize: 14, fontFamily: FONT, fontWeight: 600, color: '#0F1F3D', lineHeight: 1.35, marginBottom: 5 }}>
           {proyecto.titulo}
         </div>
-        <div style={{ fontSize: 11, color: '#6b6b7a', fontWeight: 400, display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div style={{ fontSize: 12, fontFamily: FONT, color: '#64748B', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
           <Building2 size={11} />
           {proyecto.mypeNombre || proyecto.nombre || 'MYPE'}
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: '0.5px solid #e8e8e4', marginTop: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: '1px solid #F1F5F9', marginTop: 'auto' }}>
         {(() => {
           const dur = renderDuracion(proyecto);
           return (
-            <div style={{ fontSize: 10, color: '#6b6b7a' }}>
-              {dur.label}: <span style={{ fontWeight: 600, color: '#0f1f3d' }}>{dur.value}</span>
+            <div style={{ fontSize: 10, fontFamily: FONT, color: '#94A3B8' }}>
+              {dur.label}: <span style={{ fontWeight: 600, color: '#64748B' }}>{dur.value}</span>
             </div>
           );
         })()}
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#1B6FE8', display: 'flex', alignItems: 'center', gap: 3 }}>
+        <div style={{ fontSize: 11, fontFamily: FONT, fontWeight: 600, color: '#1B6FE8', display: 'flex', alignItems: 'center', gap: 3 }}>
           Postular <ArrowRight size={11} />
         </div>
       </div>
@@ -217,19 +220,19 @@ const PerfilWidget = ({ completitud = 0, sugerencias = [] }) => {
           <div style={{
             position: 'absolute', top: '50%', left: '50%',
             transform: 'translate(-50%,-50%)',
-            fontSize: 18, fontWeight: 800, color: '#1B6FE8',
+            fontSize: 17, fontFamily: FONT, fontWeight: 600, color: '#1B6FE8',
           }}>
             {completitud}%
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 2 }}>
+          <div style={{ fontSize: 14, fontFamily: FONT, fontWeight: 600, color: '#0F1F3D', marginBottom: 2 }}>
             Mi perfil
           </div>
           {completitud === 100 ? (
-            <div style={{ fontSize: 12, color: '#059669', fontWeight: 600 }}>Perfil completo ✓</div>
+            <div style={{ fontSize: 12, fontFamily: FONT, color: '#059669', fontWeight: 600 }}>Perfil completo ✓</div>
           ) : (
-            <div style={{ fontSize: 11, color: '#6b6b7a' }}>{completitud}% completado</div>
+            <div style={{ fontSize: 11, fontFamily: FONT, color: '#64748B' }}>{completitud}% completado</div>
           )}
         </div>
       </div>
@@ -237,8 +240,8 @@ const PerfilWidget = ({ completitud = 0, sugerencias = [] }) => {
       {completitud < 100 && sugerencias.length > 0 && (
         <div style={{ marginBottom: 12 }}>
           {sugerencias.map((s, i) => (
-            <div key={i} style={{ fontSize: 12, color: '#6b6b7a', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#d1d5db', flexShrink: 0 }} />
+            <div key={i} style={{ fontSize: 12, fontFamily: FONT, color: '#64748B', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#CBD5E1', flexShrink: 0 }} />
               {s}
             </div>
           ))}
@@ -269,27 +272,28 @@ const ActiveProjectCard = ({ postulacion }) => {
   return (
     <div
       style={{
-        background:   '#fff',
-        border:       '1px solid #E5E7EB',
-        borderRadius: 12,
+        background:   '#FCFDFD',
+        border:       '1px solid #F1F5F9',
+        borderRadius: 14,
         padding:      16,
         position:     'relative',
         overflow:     'hidden',
         flex:         1,
         minWidth:     220,
+        boxShadow:    '0 2px 4px rgba(15,23,42,0.01)',
       }}
     >
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg,#1B6FE8,#06B6D4)' }} />
-      <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 6, lineHeight: 1.3 }}>
+      <div style={{ fontSize: 14, fontFamily: FONT, fontWeight: 600, color: '#0F1F3D', marginBottom: 5, lineHeight: 1.3 }}>
         {postulacion.proyectoTitulo || 'Proyecto activo'}
       </div>
-      <div style={{ fontSize: 11, color: '#6b6b7a', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 10 }}>
+      <div style={{ fontSize: 12, fontFamily: FONT, color: '#64748B', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4, marginBottom: 10 }}>
         <Building2 size={11} /> {postulacion.mypeNombre || 'MYPE'}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{
-          fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
-          textTransform: 'uppercase', padding: '3px 8px',
+          fontSize: 9, fontFamily: FONT, fontWeight: 600, letterSpacing: '0.06em',
+          textTransform: 'uppercase', padding: '2px 8px',
           borderRadius: 4, background: badgeBg, color: badgeColor,
         }}>
           {badgeText}
@@ -297,7 +301,7 @@ const ActiveProjectCard = ({ postulacion }) => {
         <button
           onClick={() => nav(`/workspace/${postulacion.proyectoId}`)}
           style={{
-            fontSize: 11, fontWeight: 700, color: '#1B6FE8',
+            fontSize: 11, fontFamily: FONT, fontWeight: 600, color: '#1B6FE8',
             background: 'none', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 3,
           }}
@@ -369,14 +373,15 @@ const SiguientePasoBanner = ({ postulaciones = [], completitud = 0, navigate }) 
       }}
     >
       <cfg.Icon size={16} color={cfg.color} style={{ flexShrink: 0 }} />
-      <div style={{ flex: 1, fontSize: 13, fontWeight: 500, color: C.ink }}>
+      <div style={{ flex: 1, fontSize: 13, fontFamily: FONT, fontWeight: 500, color: '#0F1F3D' }}>
         {cfg.texto}
       </div>
       <button
         onClick={() => navigate(cfg.ruta)}
         style={{
-          fontSize:    12,
-          fontWeight:  700,
+          fontSize:    11,
+          fontFamily:  FONT,
+          fontWeight:  600,
           color:       cfg.color,
           background:  'none',
           border:      'none',
@@ -385,6 +390,7 @@ const SiguientePasoBanner = ({ postulaciones = [], completitud = 0, navigate }) 
           alignItems:  'center',
           gap:         4,
           flexShrink:  0,
+          whiteSpace:  'nowrap',
         }}
       >
         {cfg.accion} <ArrowRight size={12} />
@@ -606,10 +612,10 @@ const HeroBanner = ({ totalPostulaciones = 0, aceptados = 0, certificados = 0 })
               <div style={{ width: 1, height: 50, background: 'rgba(255,255,255,0.12)', margin: '0 24px' }} />
             )}
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 34, fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>
+              <div style={{ fontSize: 34, fontWeight: 500, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1, fontFamily: FONT }}>
                 {stat.num}
               </div>
-              <div style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 4 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4, fontFamily: FONT }}>
                 {stat.label}
               </div>
             </div>
@@ -668,13 +674,13 @@ const EstudianteDashboardPage = () => {
   const firstName = user?.nombre?.split(' ')[0] || 'Estudiante';
 
   const S = {
-    sectionTitle: { fontSize:15, fontWeight:700, letterSpacing:'-0.02em', color:'#0f1f3d', display:'flex', alignItems:'center', gap:8 },
-    sectionBar:   { display:'block', width:3, height:16, background:'#1B6FE8', borderRadius:2, flexShrink:0 },
-    seeAll:       { fontSize:12, fontWeight:600, color:'#1B6FE8', cursor:'pointer', display:'flex', alignItems:'center', gap:4, textDecoration:'none' },
+    sectionTitle: { fontSize:14, fontFamily:FONT, fontWeight:600, letterSpacing:'-0.01em', color:'#0F1F3D', display:'flex', alignItems:'center', gap:8 },
+    sectionBar:   { display:'block', width:3, height:14, background:'#1B6FE8', borderRadius:2, flexShrink:0 },
+    seeAll:       { fontSize:11, fontFamily:FONT, fontWeight:600, color:'#1B6FE8', cursor:'pointer', display:'flex', alignItems:'center', gap:4, textDecoration:'none' },
   };
 
   return (
-    <div style={{ fontFamily:"Inter, Arial, 'Helvetica Neue', sans-serif", background:'#f8fafc', minHeight:'100vh', padding:'32px 36px', maxWidth:1440, margin:'0 auto' }}>
+    <div style={{ fontFamily: FONT, background:'#f8fafc', minHeight:'100vh', padding:'32px 36px', maxWidth:1440, margin:'0 auto' }}>
       <style>{`
         @keyframes vping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
         @keyframes vpulse { 0%,100%{opacity:1} 50%{opacity:.45} }
@@ -684,19 +690,19 @@ const EstudianteDashboardPage = () => {
       {/* ── TOPBAR ── */}
       <motion.div {...fadeUp(0)} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
         <div>
-          <h1 style={{ fontSize:22, fontWeight:800, letterSpacing:'-0.03em', color:'#0f1f3d' }}>
+          <h1 style={{ fontSize:22, fontWeight:600, letterSpacing:'-0.03em', color:'#0F1F3D', fontFamily: FONT }}>
             ¡Hola, {firstName}!
           </h1>
-          <p style={{ fontSize: 13, color: '#6b6b7a', margin: '2px 0 0 0' }}>
+          <p style={{ fontSize: 13, color: '#64748B', margin: '2px 0 0 0', fontFamily: FONT }}>
             Tu panel de control profesional
           </p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           <Link to="/proyectos" style={{ textDecoration:'none' }}>
             <div
-              style={{ display:'flex', alignItems:'center', gap:8, background:'#fff', border:'0.5px solid #e8e8e4', borderRadius:8, padding:'8px 14px', fontSize:13, color:'#6b6b7a', cursor:'pointer', transition:'all 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor='#1B6FE8'; e.currentTarget.style.color='#1B6FE8'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor='#e8e8e4'; e.currentTarget.style.color='#6b6b7a'; }}
+              style={{ display:'flex', alignItems:'center', gap:8, background:'#fff', border:'1px solid #F1F5F9', borderRadius:8, padding:'8px 14px', fontSize:12, fontFamily:FONT, color:'#64748B', cursor:'pointer', transition:'all 0.15s', boxShadow:'0 1px 3px rgba(15,23,42,0.04)' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor='#BFDBFE'; e.currentTarget.style.color='#1B6FE8'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor='#F1F5F9'; e.currentTarget.style.color='#64748B'; }}
             >
               <Search size={14} /> Buscar proyectos
             </div>
@@ -709,7 +715,7 @@ const EstudianteDashboardPage = () => {
               display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
             }}
           >
-            <Bell size={16} color="#6b6b7a" />
+            <Bell size={16} color="#64748B" />
             {activityItems.some(n => !n.leida) && (
               <div style={{
                 position: 'absolute', top: 7, right: 7, width: 7, height: 7,
@@ -762,7 +768,7 @@ const EstudianteDashboardPage = () => {
               <Link to="/proyectos" style={S.seeAll}>Explorar todos <ArrowRight size={12} /></Link>
             </div>
             {loadingProyectos ? (
-              <div style={{ padding:36, textAlign:'center', color:'#6b6b7a', fontSize:13 }}>
+              <div style={{ padding:36, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT }}>
                 <svg style={{ animation:'spin 1s linear infinite', height:20, width:20, color:'#1B6FE8', display:'block', margin:'0 auto 8px' }} viewBox="0 0 24 24">
                   <circle style={{ opacity:0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path style={{ opacity:0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -770,7 +776,7 @@ const EstudianteDashboardPage = () => {
                 Buscando las mejores oportunidades…
               </div>
             ) : proyectosRecomendados.length === 0 ? (
-              <div style={{ padding:36, textAlign:'center', color:'#6b6b7a', fontSize:13, border:'0.5px dashed #e8e8e4', borderRadius:10 }}>
+              <div style={{ padding:36, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT, border:'1px dashed #E2E8F0', borderRadius:10 }}>
                 No hay proyectos disponibles por el momento.
               </div>
             ) : (
@@ -800,9 +806,9 @@ const EstudianteDashboardPage = () => {
               </button>
             </div>
             {loadingNotificaciones ? (
-              <div style={{ padding:16, textAlign:'center', color:'#6b6b7a', fontSize:13 }}>Cargando actividad…</div>
+              <div style={{ padding:16, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT }}>Cargando actividad…</div>
             ) : activityItems.length === 0 ? (
-              <div style={{ padding:20, textAlign:'center', color:'#6b6b7a', fontSize:13, border:'0.5px dashed #e8e8e4', borderRadius:10 }}>
+              <div style={{ padding:20, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT, border:'1px dashed #E2E8F0', borderRadius:10 }}>
                 No hay actividad reciente.
               </div>
             ) : (
@@ -836,7 +842,7 @@ const EstudianteDashboardPage = () => {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{
-                        fontSize: 13, fontWeight: 600, color: '#0f1f3d',
+                        fontSize: 13, fontFamily: FONT, fontWeight: 600, color: '#0F1F3D',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         flex: 1, marginRight: 8,
                       }}>
@@ -852,7 +858,7 @@ const EstudianteDashboardPage = () => {
                         }}
                       />
                     </div>
-                    <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>
+                    <div style={{ fontSize: 11, fontFamily: FONT, color: '#94A3B8', marginTop: 2 }}>
                       {tiempoRelativo(item.fechaCreacion)}
                     </div>
                     {expandido === (item.id || index) && item.mensaje && (
@@ -862,7 +868,7 @@ const EstudianteDashboardPage = () => {
                         transition={{ duration: 0.2 }}
                         style={{ overflow: 'hidden' }}
                       >
-                        <div style={{ fontSize: 12, color: '#6b6b7a', marginTop: 8, paddingTop: 8, borderTop: '1px solid #F3F4F6' }}>
+                        <div style={{ fontSize: 12, fontFamily: FONT, color: '#64748B', marginTop: 8, paddingTop: 8, borderTop: '1px solid #F1F5F9' }}>
                           {item.mensaje}
                         </div>
                       </motion.div>
