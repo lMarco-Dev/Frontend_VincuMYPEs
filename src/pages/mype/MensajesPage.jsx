@@ -419,8 +419,8 @@ export function MensajesPage() {
               <>
                 <div style={{ padding: "20px 32px", borderBottom: "1px solid #E2E8F0", background: "#FFF", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexShrink: 0 }}>
                   <div>
-                    <span style={{ fontFamily: FONT, fontSize: 10, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700, display: "flex", gap: 4, alignItems: "center", marginBottom: 6 }}>
-                       ESPACIO DE DESARROLLO EMPRESARIAL
+                    <span style={{ fontFamily: FONT, fontSize: 10, color: "#64748B", letterSpacing: "0.05em", fontWeight: 600, display: "flex", gap: 4, alignItems: "center", marginBottom: 6 }}>
+                        Espacio de desarrollo empresarial
                     </span>
                     <h1 style={{ fontFamily: FONT, fontSize: 15, fontWeight: 800, color: "#0F1F3D", margin: 0, letterSpacing: "-0.01em" }}>
                       {chatSel.label || "Tablero sin Asignación"}

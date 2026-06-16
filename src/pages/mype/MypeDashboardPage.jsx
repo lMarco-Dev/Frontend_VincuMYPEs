@@ -108,7 +108,7 @@ export const EstadoBadge = ({ estado }) => {
         color: cfg.color,
         background: cfg.bg,
         border: `1px solid ${cfg.border}`,
-        padding: "3px 9px 3px 7px",
+       padding: "3px 9px 3px 7px", 
         borderRadius: 999,
         display: "inline-flex",
         alignItems: "center",
@@ -116,7 +116,7 @@ export const EstadoBadge = ({ estado }) => {
         whiteSpace: "nowrap",
       }}
     >
-      <span style={{ width: 6, height: 6, borderRadius: "50%", background: cfg.dot }} />
+      
       {cfg.label}
     </span>
   );
@@ -759,8 +759,8 @@ export function MypeDashboardPage() {
           </Link>
         </div>
       ) : (
-              <div style={{ position: "relative", paddingLeft: 8 }}>
-                <div style={{ position: "absolute", left: 19, top: 8, bottom: 8, width: 1.5, background: "#E5E7EB" }} />
+              <div style={{ position: "relative", paddingLeft: 0 }}>  {/* ← paddingLeft cambiado a 0 */}
+                {/* ELIMINADO: <div style={{ position: "absolute", left: 19, top: 8, bottom: 8, width: 1.5, background: "#E5E7EB" }} /> */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   {recientes.map((p, idx) => (
                     <motion.div
@@ -785,20 +785,7 @@ export function MypeDashboardPage() {
                         e.currentTarget.style.background = "transparent";
                       }}
                     >
-                      {/* Punto indicador */}
-                      <div
-                        style={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: "50%",
-                          background: idx === 0 ? C.cyan : C.blue,
-                          flexShrink: 0,
-                          zIndex: 1,
-                          boxShadow: idx === 0
-                            ? "0 0 0 3px rgba(6,182,212,0.15)"
-                            : "0 0 0 3px rgba(27,111,232,0.1)",
-                        }}
-                      />
+                     
 
                       {/* Contenido */}
                       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>

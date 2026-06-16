@@ -297,9 +297,6 @@ function TableroOperativoProyecto({ proyecto, delay }) {
       >
         <div style={{ flex: "1 1 min-content" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#F8FAFC", border: "1px solid #E2E8F0", color: "#475569", padding: "4px 10px", borderRadius: "6px", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: FONT }}>
-              Ejecución Corporativa
-            </span>
             {pendientesAuditoria > 0 && (
               <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#D97706", fontSize: 11, fontWeight: 600, fontFamily: FONT }}>
                  <span style={{ width: 6, height: 6, background: "#D97706", borderRadius: "50%", animation: "pulse 2s infinite" }} /> Auditoría Pendiente
@@ -627,29 +624,29 @@ export function EjecucionPage() {
                 <div key={i} style={{ height: 160, borderRadius: "20px", background: "#F8FAFC", border: "1px solid #E2E8F0", animation: "pulse 1.5s ease-in-out infinite", opacity: 0.6 }} />
               ))}
             </div>
-          ) : operacionesActivas.length === 0 ? (
-            <motion.div {...fadeIn(0.1)}
-              style={{
-                textAlign: "center", padding: "100px 24px",
-                border: "1px dashed #CBD5E1", borderRadius: "24px", background: "#F8FAFC",
-                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
-              }}
-            >
-              <div style={{
-                  width: 80, height: 80, borderRadius: "20px", background: "#FFFFFF",
-                  border: "1px solid #E2E8F0", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.03)",
-                  display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 28
-                }}>
-                <Activity size={36} color="#94A3B8" />
-              </div>
-              <h2 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 700, color: "#1E293B", marginBottom: 12 }}>
-                Línea Operativa sin registros actuales
-              </h2>
-              <p style={{ fontFamily: FONT, fontSize: 16, color: "#64748B", maxWidth: 600, lineHeight: 1.6 }}>
-                Las identidades corporativas de despliegue sincronizarán sus indicadores en este portal en tiempo real cuando consoliden asignación efectiva de personal consultor.
-              </p>
-            </motion.div>
-          ) : (
+         ) : operacionesActivas.length === 0 ? (
+          <motion.div 
+            {...fadeIn(0.1)} 
+            style={{ 
+              textAlign: "center", 
+              padding: "100px 40px", 
+              border: "1px dashed #CBD5E1", 
+              borderRadius: "20px", 
+              background: "#FFFFFF", 
+              display: "flex", 
+              flexDirection: "column", 
+              alignItems: "center" 
+            }}
+          >
+            <Activity size={48} color="#CBD5E1" strokeWidth={1} style={{ marginBottom: 20 }} />
+            <h3 style={{ margin: "0 0 8px 0", fontFamily: FONT, fontSize: 18, fontWeight: 500, color: "#0F1F3D" }}>
+              Sin proyectos en ejecución
+            </h3>
+            <p style={{ margin: 0, fontFamily: FONT, fontSize: 14, color: "#64748B", maxWidth: 450, lineHeight: 1.6 }}>
+              Cuando un proyecto pase a la fase "En Desarrollo", aparecerá aquí para su seguimiento.
+            </p>
+          </motion.div>
+        ) : (
             <div style={{ position: "relative" }}>
                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, paddingBottom: 16, borderBottom: "1px solid #E2E8F0" }}>
                   <h3 style={{ margin: 0, fontFamily: FONT, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
