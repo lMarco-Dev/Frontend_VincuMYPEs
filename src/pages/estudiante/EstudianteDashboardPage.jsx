@@ -235,6 +235,70 @@ const ProjectCard = ({ proyecto }) => {
 };
 
 /* ═══════════════════════════════════════════════
+   SUB: PerfilWidget (sidebar)
+═══════════════════════════════════════════════ */
+const PerfilWidget = ({ completitud = 0, sugerencias = [] }) => {
+  const R    = 34;
+  const circ = 2 * Math.PI * R;
+  const offset = circ - (circ * Math.min(completitud, 100)) / 100;
+
+  return (
+    <Panel delay={0.20}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: sugerencias.length > 0 && completitud < 100 ? 14 : 0 }}>
+        <div style={{ position: 'relative', width: 80, height: 80, flexShrink: 0 }}>
+          <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: 'rotate(-90deg)' }}>
+            <circle cx="40" cy="40" r={R} stroke="#f1f5f9" strokeWidth="6" fill="none" />
+            <circle
+              cx="40" cy="40" r={R}
+              stroke="#1B6FE8" strokeWidth="6" fill="none"
+              strokeDasharray={circ} strokeDashoffset={offset}
+              strokeLinecap="round"
+              style={{ transition: 'stroke-dashoffset 1s ease' }}
+            />
+          </svg>
+          <div style={{
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%,-50%)',
+            fontSize: 18, fontWeight: 800, color: '#1B6FE8',
+          }}>
+            {completitud}%
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 2 }}>
+            Mi perfil
+          </div>
+          {completitud === 100 ? (
+            <div style={{ fontSize: 12, color: '#059669', fontWeight: 600 }}>Perfil completo ✓</div>
+          ) : (
+            <div style={{ fontSize: 11, color: '#6b6b7a' }}>{completitud}% completado</div>
+          )}
+        </div>
+      </div>
+
+      {completitud < 100 && sugerencias.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          {sugerencias.map((s, i) => (
+            <div key={i} style={{ fontSize: 12, color: '#6b6b7a', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#d1d5db', flexShrink: 0 }} />
+              {s}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {completitud < 100 && (
+        <Link to="/perfil" style={{ textDecoration: 'none' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#1B6FE8', display: 'flex', alignItems: 'center', gap: 4 }}>
+            Completar perfil <ArrowRight size={12} />
+          </div>
+        </Link>
+      )}
+    </Panel>
+  );
+};
+
+/* ═══════════════════════════════════════════════
    SUB: ActiveProjectCard
 ═══════════════════════════════════════════════ */
 const ActiveProjectCard = ({ postulacion }) => {
@@ -635,6 +699,13 @@ const EstudianteDashboardPage = () => {
   if (user?.cvUrl) completitud += 10;
   if (completitud > 100) completitud = 100;
 
+  const sugerencias = [
+    !user?.cvUrl        && 'Agrega tu CV',
+    !user?.linkedinUrl  && 'Conecta tu LinkedIn',
+    !user?.bio          && 'Completa tu biografía',
+    !user?.telefono     && 'Agrega tu teléfono',
+  ].filter(Boolean).slice(0, 3);
+
   const porcentajeExito = totalPostulaciones > 0
     ? Math.round((aceptados / totalPostulaciones) * 100) : 0;
 
@@ -758,7 +829,10 @@ const EstudianteDashboardPage = () => {
         {/* ── SIDEBAR ── */}
         <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
 
-          {/* Actividad reciente — timeline estilo MYPE */}
+          {/* Perfil */}
+          <PerfilWidget completitud={completitud} sugerencias={sugerencias} />
+
+          {/* Actividad reciente */}
           <Panel delay={0.24}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
               <div style={S.sectionTitle}><span style={S.sectionBar} />Actividad reciente</div>
