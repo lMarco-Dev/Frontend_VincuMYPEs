@@ -48,24 +48,6 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] },
 });
 
-/* ─── Hook: Contador animado ─── */
-const useCountUp = (target, duration = 1100) => {
-  const [val, setVal] = React.useState(0);
-  React.useEffect(() => {
-    let raf;
-    const start = performance.now();
-    const tick = (now) => {
-      const p = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setVal(Math.round(target * eased));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]);
-  return val;
-};
-
 /* ─── Colores de área ─── */
 const AREA_STYLES = {
   WEB:             { bg: '#eff6ff', color: '#1B6FE8' },
@@ -106,33 +88,6 @@ const tiempoRelativo = (fecha) => {
 const colorNotif = (item) => {
   if (!item.leida) return '#1B6FE8';
   return '#d1d5db';
-};
-
-/* ═══════════════════════════════════════════════
-   SUB: Ring SVG
-═══════════════════════════════════════════════ */
-const Ring = ({ pct = 0, color = '#1B6FE8', icon: Icon }) => {
-  const R = 22;
-  const circ = 2 * Math.PI * R;
-  const safePct = pct || 0;
-  const offset = circ - (circ * Math.min(safePct, 100)) / 100;
-  return (
-    <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
-      <svg width="56" height="56" viewBox="0 0 56 56" style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx="28" cy="28" r={R} stroke="#f1f5f9" strokeWidth="5" fill="none" />
-        <circle
-          cx="28" cy="28" r={R}
-          stroke={color} strokeWidth="5" fill="none"
-          strokeDasharray={circ} strokeDashoffset={offset}
-          strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 1s ease' }}
-        />
-      </svg>
-      {Icon && (
-        <Icon size={16} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color }} />
-      )}
-    </div>
-  );
 };
 
 /* ═══════════════════════════════════════════════
@@ -706,9 +661,6 @@ const EstudianteDashboardPage = () => {
     !user?.bio          && 'Completa tu biografía',
     !user?.telefono     && 'Agrega tu teléfono',
   ].filter(Boolean).slice(0, 3);
-
-  const porcentajeExito = totalPostulaciones > 0
-    ? Math.round((aceptados / totalPostulaciones) * 100) : 0;
 
   const firstName = user?.nombre?.split(' ')[0] || 'Estudiante';
 
