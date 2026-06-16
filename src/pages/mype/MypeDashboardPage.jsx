@@ -304,11 +304,7 @@ const CommandHeader = ({ healthScore, totalProyectos, activos, completados }) =>
               backdropFilter: "blur(8px)",
             }}
           >
-            <span style={{ position: "relative", display: "inline-flex", width: 8, height: 8 }}>
-              <span style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#4ade80", animation: "vping 1.8s cubic-bezier(0,0,.2,1) infinite" }} />
-              <span style={{ position: "relative", width: 8, height: 8, borderRadius: "50%", background: "#4ade80" }} />
-            </span>
-            Sistema activo
+
           </div>
 
         <motion.h1
@@ -716,38 +712,53 @@ export function MypeDashboardPage() {
               Actividad Reciente
             </PanelTitle>
 
-            {isLoading ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {[1, 2, 3].map((i) => (
-                  <div key={i} style={{ height: 62, background: "#F3F4F6", borderRadius: 14, animation: "vpulse 1.5s infinite" }} />
-                ))}
-              </div>
-            ) : recientes.length === 0 ? (
-              <div style={{ padding: "44px 20px", textAlign: "center", border: "1px dashed #D1D5DB", borderRadius: 18, background: C.canvas }}>
-                <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#fff", border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
-                  <Search size={26} color={C.gray400} />
-                </div>
-                <p style={{ fontSize: 15, fontWeight: 700, color: C.gray600, margin: "0 0 4px" }}>Aún no tienes proyectos creados</p>
-                <p style={{ fontSize: 13, color: C.gray400, margin: "0 0 18px" }}>Publica tu primer requerimiento y empieza a recibir postulantes.</p>
-                <Link to="/dashboard/mype/crear">
-                  <button
-                    style={{
-                      padding: "11px 26px",
-                      borderRadius: 12,
-                      background: `linear-gradient(135deg, ${C.blue}, ${C.cyan})`,
-                      color: "#fff",
-                      border: "none",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      boxShadow: "0 10px 22px -10px rgba(27,111,232,0.6)",
-                    }}
-                  >
-                    Publicar mi primer proyecto
-                  </button>
-                </Link>
-              </div>
-            ) : (
+           {isLoading ? (
+  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    {[1, 2, 3].map((i) => (
+      <div key={i} style={{ height: 62, background: "#F3F4F6", borderRadius: 14, animation: "vpulse 1.5s infinite" }} />
+    ))}
+  </div>
+      ) : recientes.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "48px 32px", border: "1px dashed #CBD5E1", borderRadius: "16px", background: "#FFFFFF", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <Search size={40} color="#CBD5E1" strokeWidth={1} style={{ marginBottom: 16 }} />
+          <h3 style={{ margin: "0 0 6px 0", fontFamily: FONT, fontSize: 16, fontWeight: 500, color: "#0F1F3D" }}>
+            Sin proyectos creados
+          </h3>
+          <p style={{ margin: "0 0 20px 0", fontFamily: FONT, fontSize: 13, color: "#64748B", maxWidth: 380, lineHeight: 1.5 }}>
+            Publica tu primer proyecto para comenzar a recibir postulantes.
+          </p>
+          <Link to="/dashboard/mype/crear">
+            <button
+              style={{
+                fontFamily: FONT,
+                background: "#1B6FE8",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: "8px",
+                padding: "10px 22px",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#0F172A";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "#1B6FE8";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              Publicar mi primer proyecto
+              <ArrowRight size={12} />
+            </button>
+          </Link>
+        </div>
+      ) : (
               <div style={{ position: "relative", paddingLeft: 8 }}>
                 <div style={{ position: "absolute", left: 19, top: 8, bottom: 8, width: 1.5, background: "#E5E7EB" }} />
                 <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -828,12 +839,83 @@ export function MypeDashboardPage() {
               </div>
             </Panel>
 
-            {/* Accesos rápidos (única ubicación de acciones) */}
+           {/* Accesos rápidos (única ubicación de acciones) */}
             <Panel delay={0.35}>
               <PanelTitle>Accesos Rápidos</PanelTitle>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <QuickAction to="/dashboard/mype/crear" icon={Play} label="Publicar Nuevo Proyecto" bg="#EFF6FF" border="#BFDBFE" color={C.blue} />
-                <QuickAction to="/dashboard/mype/postulantes" icon={Users} label="Evaluar Postulantes" bg="#FFFBEB" border="#FDE68A" color={C.amberText} />
+                
+                {/* Botón Blanco - hover se oscurece a gris plomo */}
+                <Link to="/dashboard/mype/crear" style={{ textDecoration: "none" }}>
+                  <motion.div
+                    whileHover={{ x: 3 }}
+                    style={{
+                      padding: 12,
+                      borderRadius: 13,
+                      background: "#FFFFFF",
+                      border: "1px solid #D1D5DB",
+                      color: "#0F1F3D",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 11,
+                      fontWeight: 700,
+                      fontSize: 13,
+                      transition: "all 0.2s ease",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#F3F4F6";
+                      e.currentTarget.style.borderColor = "#9CA3AF";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#FFFFFF";
+                      e.currentTarget.style.borderColor = "#D1D5DB";
+                    }}
+                  >
+                    <div style={{ width: 30, height: 30, borderRadius: 9, background: "#E5E7EB", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Play size={15} color="#0F1F3D" />
+                    </div>
+                    Publicar Nuevo Proyecto
+                    <ArrowUpRight size={15} style={{ marginLeft: "auto", opacity: 0.55 }} />
+                  </motion.div>
+                </Link>
+
+                {/* Botón Gris Plomo más intenso */}
+                <Link to="/dashboard/mype/postulantes" style={{ textDecoration: "none" }}>
+                  <motion.div
+                    whileHover={{ x: 3 }}
+                    style={{
+                      padding: 12,
+                      borderRadius: 13,
+                      background: "#F3F4F6",
+                      border: "1px solid #D1D5DB",
+                      color: "#374151",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 11,
+                      fontWeight: 700,
+                      fontSize: 13,
+                      transition: "all 0.2s ease",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#E5E7EB";
+                      e.currentTarget.style.borderColor = "#9CA3AF";
+                      e.currentTarget.style.color = "#0F1F3D";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "#F3F4F6";
+                      e.currentTarget.style.borderColor = "#D1D5DB";
+                      e.currentTarget.style.color = "#374151";
+                    }}
+                  >
+                    <div style={{ width: 30, height: 30, borderRadius: 9, background: "#E5E7EB", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Users size={15} color="#374151" />
+                    </div>
+                    Evaluar Postulantes
+                    <ArrowUpRight size={15} style={{ marginLeft: "auto", opacity: 0.55 }} />
+                  </motion.div>
+                </Link>
+
               </div>
             </Panel>
 

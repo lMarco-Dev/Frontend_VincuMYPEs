@@ -168,9 +168,6 @@ function CentroCertificacionHero({ certificadosEmitidos, estudiantesReconocidos,
       />
 
       <div style={{ position: "relative", zIndex: 10, flex: "1 1 45%", minWidth: 320 }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)", borderRadius: "6px", padding: "6px 14px", fontSize: 10, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#38BDF8", marginBottom: 20 }}>
-          Emisión Documentaria
-        </div>
         <h1 style={{ fontFamily: FONT, fontSize: "clamp(26px, 3.5vw, 32px)", fontWeight: 500, color: "#FFFFFF", margin: "0 0 14px", letterSpacing: "-0.02em" }}>
           Centro de Certificación y Conformidad
         </h1>
@@ -1031,7 +1028,7 @@ export function CertificadosPage() {
         )}
       </AnimatePresence>
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", paddingBottom: 60 }}>
+    <div style={{ maxWidth: 1320, margin: "0 auto", paddingBottom: 60 }}>
         
         <CentroCertificacionHero 
            certificadosEmitidos={totalEmitidos}
@@ -1047,73 +1044,66 @@ export function CertificadosPage() {
               fontFamily: FONT,
               display: "inline-flex",
               alignItems: "center",
-              gap: 12,
-              padding: "10px 24px 10px 20px",
-              borderRadius: "10px",
+              gap: 10,
+              padding: "8px 0 8px 4px",
+              background: "transparent",
               border: "none",
-              background: "#0F172A",
-              color: "#FFFFFF",
+              borderBottom: "2px solid #0F172A",
+              color: "#0F172A",
               fontSize: 13,
               fontWeight: 500,
               cursor: proyectosCompletados.length === 0 ? "not-allowed" : "pointer",
               opacity: proyectosCompletados.length === 0 ? 0.5 : 1,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
               transition: "all 0.2s ease"
             }}
             onMouseEnter={(e) => {
               if (proyectosCompletados.length > 0) {
-                e.currentTarget.style.background = "#1E293B";
-                e.currentTarget.style.transform = "scale(1.02)";
+                e.currentTarget.style.borderBottomColor = "#F59E0B";
+                e.currentTarget.style.gap = "14px";
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#0F172A";
-              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.borderBottomColor = "#0F172A";
+              e.currentTarget.style.gap = "10px";
             }}
           >
-            <div style={{
-              width: 24,
-              height: 24,
-              borderRadius: "50%",
-              background: "#FFFFFF",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#0F172A"
-            }}>
-              <Plus size={14} strokeWidth={3} />
-            </div>
-            Crear Nuevo Certificado
+            <Plus size={14} strokeWidth={2.5} />
+            Crear Nuevo certificado
           </button>
 
           
           {proyectosCompletados.length === 0 && (
-            <p style={{ fontFamily: FONT, fontSize: 11, color: "#F59E0B", marginTop: 8, marginLeft: 2, display: "flex", alignItems: "center", gap: 5 }}>
-              <ShieldAlert size={12}/> Imprescindible contar con flujos técnicos validados como FINALIZADOS previos a certificar.
+            <p style={{ fontFamily: FONT, fontSize: 11, color: "#000000", marginTop: 8, marginLeft: 2, display: "flex", alignItems: "center", gap: 5 }}>
+              <ShieldAlert size={12}/> No hay proyectos Finalizados para  certificar.
             </p>
           )}
         </motion.div>
 
         {isLoading ? (
-           <div style={{ background: "#FFFFFF", padding: 40, borderRadius: 16, border: "1px solid #E2E8F0" }}>
-              <div style={{ width: "100%", height: 300, background: "#F1F5F9", borderRadius: 8, animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }} />
-           </div>
-        ) : totalEmitidos === 0 ? (
-          <motion.div
-            {...fadeUp(0.2)}
-            style={{
-              textAlign: "center", padding: "80px 40px", border: "1px solid #E2E8F0", borderRadius: 16, background: "#FFFFFF"
-            }}
-          >
-            <div style={{ width: 64, height: 64, borderRadius: "12px", background: "#F8FAFC", border: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
-              <BriefcaseBusiness size={28} color="#64748B" />
-            </div>
-            <h3 style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, color: "#0F172A", marginBottom: 12, letterSpacing: "-0.01em" }}>
-              Carencia Registral Operativa
-            </h3>
-            <p style={{ fontFamily: FONT, fontSize: 13, color: "#64748B", maxWidth: 500, margin: "0 auto", lineHeight: 1.6 }}>
-              En la eventualidad del cumplimiento sustancial de una meta u hito institucional, facúltese aquí para certificar digital y protocolarmente las acreditaciones resolutivas exigidas por contrato.
-            </p>
+  <div style={{ background: "#FFFFFF", padding: 40, borderRadius: 16, border: "1px solid #E2E8F0" }}>
+    <div style={{ width: "100%", height: 300, background: "#F1F5F9", borderRadius: 8, animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }} />
+  </div>
+) : totalEmitidos === 0 ? (
+  <motion.div
+    {...fadeUp(0.2)}
+    style={{
+      textAlign: "center",
+      padding: "100px 40px",
+      border: "1px dashed #CBD5E1",
+      borderRadius: "20px",
+      background: "#FFFFFF",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center"
+    }}
+  >
+    <BriefcaseBusiness size={48} color="#CBD5E1" strokeWidth={1} style={{ marginBottom: 20 }} />
+        <h3 style={{ margin: "0 0 8px 0", fontFamily: FONT, fontSize: 18, fontWeight: 500, color: "#0F1F3D" }}>
+          No hay certificados emitidos
+        </h3>
+        <p style={{ margin: 0, fontFamily: FONT, fontSize: 14, color: "#64748B", maxWidth: 500, lineHeight: 1.6 }}>
+          Comienza creando el primer certificado para tus proyectos finalizados.
+        </p>
           </motion.div>
         ) : (
           <HistorialCertificaciones 

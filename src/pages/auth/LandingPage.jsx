@@ -576,12 +576,7 @@ export function LandingPage() {
                   marginLeft: "clamp(0px, 5%, 80px)" 
                 }}
               >
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
-                  <span style={{ fontFamily: F, fontSize: 11, fontWeight: 400, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,.4)" }}>
-                    BETA
-                  </span>
-                </div>
+
               </motion.div>
 
               <div className="grid-hero" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 0, alignItems: "center" }}>

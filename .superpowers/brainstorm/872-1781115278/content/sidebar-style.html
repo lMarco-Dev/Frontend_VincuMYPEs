@@ -1,0 +1,173 @@
+<h2>¿Qué estilo visual querés para el sidebar del estudiante?</h2>
+<p class="subtitle">El sidebar actual usa azul plano (#1e3a5f). Elegí la dirección visual para el rediseño.</p>
+
+<div class="cards">
+
+  <!-- Opción A: Dark gradient premium (como MypeSidebar actual) -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:8px 8px 0 0;">
+      <div style="display:flex;height:260px;background:#111;">
+        <!-- Sidebar mockup A -->
+        <div style="width:180px;background:linear-gradient(170deg,#081828 0%,#0F2A4A 60%,#0C3260 100%);display:flex;flex-direction:column;padding:0;position:relative;overflow:hidden;">
+          <!-- dot grid overlay -->
+          <div style="position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,0.05) 1px,transparent 0);background-size:22px 22px;pointer-events:none;"></div>
+          <!-- glow orb -->
+          <div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,#06B6D4,transparent 70%);opacity:0.15;filter:blur(30px);"></div>
+          <!-- Logo -->
+          <div style="padding:12px 14px;border-bottom:0.5px solid rgba(255,255,255,0.08);position:relative;z-index:1;">
+            <div style="font-size:13px;font-weight:700;color:#fff;letter-spacing:0.5px;">VincuMYPEs</div>
+          </div>
+          <!-- User info -->
+          <div style="padding:10px 14px;border-bottom:0.5px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:8px;position:relative;z-index:1;">
+            <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1B6FE8,#06B6D4);border:1.5px solid rgba(6,182,212,0.35);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;">EA</div>
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.85);font-weight:500;">Enzo Alarcon</div>
+              <div style="font-size:9px;color:rgba(255,255,255,0.3);">Estudiante</div>
+            </div>
+          </div>
+          <!-- Nav -->
+          <nav style="padding:8px;position:relative;z-index:1;">
+            <div style="font-size:8px;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:1px;padding:0 6px;margin-bottom:3px;">Principal</div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;background:rgba(27,111,232,0.18);border:1px solid rgba(27,111,232,0.3);margin-bottom:2px;">
+              <div style="width:12px;height:12px;background:rgba(6,182,212,0.7);border-radius:3px;"></div>
+              <span style="font-size:11px;color:#fff;font-weight:600;">Mi Panel</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;margin-bottom:2px;">
+              <div style="width:12px;height:12px;background:rgba(255,255,255,0.2);border-radius:3px;"></div>
+              <span style="font-size:11px;color:rgba(255,255,255,0.45);">Explorar Proyectos</span>
+              <!-- dot badge -->
+              <span style="margin-left:auto;width:6px;height:6px;border-radius:50%;background:#F59E0B;box-shadow:0 0 5px rgba(245,158,11,0.6);"></span>
+            </div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:1px;padding:0 6px;margin:6px 0 3px;">Gestión</div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;margin-bottom:2px;">
+              <div style="width:12px;height:12px;background:rgba(255,255,255,0.2);border-radius:3px;"></div>
+              <span style="font-size:11px;color:rgba(255,255,255,0.45);">Mis Postulaciones</span>
+              <span style="margin-left:auto;width:6px;height:6px;border-radius:50%;background:#10B981;box-shadow:0 0 5px rgba(16,185,129,0.6);"></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;margin-bottom:2px;">
+              <div style="width:12px;height:12px;background:rgba(255,255,255,0.2);border-radius:3px;"></div>
+              <span style="font-size:11px;color:rgba(255,255,255,0.45);">Mi Workspace</span>
+            </div>
+          </nav>
+        </div>
+        <!-- Main content area -->
+        <div style="flex:1;background:#F0F4F8;display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:10px;color:#94a3b8;">Contenido principal</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Dark Gradient Premium</h3>
+      <p>Mismo estilo que el MypeSidebar actual. Gradiente oscuro con dot-grid decorativo, glow orbs y acento cyan. Más visual y moderno.</p>
+    </div>
+  </div>
+
+  <!-- Opción B: Flat blue mejorado (evolución del actual) -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:8px 8px 0 0;">
+      <div style="display:flex;height:260px;background:#111;">
+        <!-- Sidebar mockup B -->
+        <div style="width:180px;background:#1e3a5f;display:flex;flex-direction:column;padding:0;">
+          <!-- Logo -->
+          <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.1);">
+            <div style="font-size:13px;font-weight:700;color:#fff;letter-spacing:0.5px;">VincuMYPEs</div>
+          </div>
+          <!-- User info -->
+          <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:8px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:#2563EB;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;">EA</div>
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.9);font-weight:500;">Enzo Alarcon</div>
+              <div style="font-size:9px;color:rgba(255,255,255,0.4);">Estudiante</div>
+            </div>
+          </div>
+          <!-- Nav -->
+          <nav style="padding:8px;">
+            <div style="font-size:8px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;padding:0 6px;margin-bottom:3px;">Principal</div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;background:rgba(255,255,255,0.12);margin-bottom:2px;">
+              <div style="width:12px;height:12px;background:rgba(255,255,255,0.7);border-radius:3px;"></div>
+              <span style="font-size:11px;color:#fff;font-weight:600;">Mi Panel</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;margin-bottom:2px;">
+              <div style="width:12px;height:12px;background:rgba(255,255,255,0.2);border-radius:3px;"></div>
+              <span style="font-size:11px;color:rgba(255,255,255,0.55);">Explorar Proyectos</span>
+              <span style="margin-left:auto;width:6px;height:6px;border-radius:50%;background:#F59E0B;"></span>
+            </div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;padding:0 6px;margin:6px 0 3px;">Gestión</div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;margin-bottom:2px;">
+              <div style="width:12px;height:12px;background:rgba(255,255,255,0.2);border-radius:3px;"></div>
+              <span style="font-size:11px;color:rgba(255,255,255,0.55);">Mis Postulaciones</span>
+              <span style="margin-left:auto;width:6px;height:6px;border-radius:50%;background:#10B981;"></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;margin-bottom:2px;">
+              <div style="width:12px;height:12px;background:rgba(255,255,255,0.2);border-radius:3px;"></div>
+              <span style="font-size:11px;color:rgba(255,255,255,0.55);">Mi Workspace</span>
+            </div>
+          </nav>
+        </div>
+        <!-- Main content area -->
+        <div style="flex:1;background:#F0F4F8;display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:10px;color:#94a3b8;">Contenido principal</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Flat Blue Mejorado</h3>
+      <p>Evolución del estilo actual (#1e3a5f). Mantiene el azul corporativo pero con mejor espaciado, tipografía más limpia y badges de notificación bien definidos.</p>
+    </div>
+  </div>
+
+  <!-- Opción C: Light/White sidebar con acento azul -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:8px 8px 0 0;">
+      <div style="display:flex;height:260px;background:#111;">
+        <!-- Sidebar mockup C -->
+        <div style="width:180px;background:#fff;display:flex;flex-direction:column;padding:0;border-right:1px solid #E5E7EB;">
+          <!-- Logo -->
+          <div style="padding:12px 14px;border-bottom:1px solid #F1F5F9;">
+            <div style="font-size:13px;font-weight:700;color:#0f1f3d;letter-spacing:0.5px;">VincuMYPEs</div>
+          </div>
+          <!-- User info -->
+          <div style="padding:10px 14px;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;gap:8px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:#1B6FE8;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;">EA</div>
+            <div>
+              <div style="font-size:11px;color:#111827;font-weight:500;">Enzo Alarcon</div>
+              <div style="font-size:9px;color:#94a3b8;">Estudiante</div>
+            </div>
+          </div>
+          <!-- Nav -->
+          <nav style="padding:8px;">
+            <div style="font-size:8px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;padding:0 6px;margin-bottom:3px;">Principal</div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;background:#EFF6FF;margin-bottom:2px;">
+              <div style="width:12px;height:12px;background:#1B6FE8;border-radius:3px;"></div>
+              <span style="font-size:11px;color:#1B6FE8;font-weight:600;">Mi Panel</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;margin-bottom:2px;">
+              <div style="width:12px;height:12px;background:#E2E8F0;border-radius:3px;"></div>
+              <span style="font-size:11px;color:#475569;">Explorar Proyectos</span>
+              <span style="margin-left:auto;width:6px;height:6px;border-radius:50%;background:#F59E0B;"></span>
+            </div>
+            <div style="font-size:8px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;padding:0 6px;margin:6px 0 3px;">Gestión</div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;margin-bottom:2px;">
+              <div style="width:12px;height:12px;background:#E2E8F0;border-radius:3px;"></div>
+              <span style="font-size:11px;color:#475569;">Mis Postulaciones</span>
+              <span style="margin-left:auto;width:6px;height:6px;border-radius:50%;background:#10B981;"></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;margin-bottom:2px;">
+              <div style="width:12px;height:12px;background:#E2E8F0;border-radius:3px;"></div>
+              <span style="font-size:11px;color:#475569;">Mi Workspace</span>
+            </div>
+          </nav>
+        </div>
+        <!-- Main content area -->
+        <div style="flex:1;background:#F0F4F8;display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:10px;color:#94a3b8;">Contenido principal</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Light / White Sidebar</h3>
+      <p>Sidebar claro con fondo blanco y acento azul corporativo. Más parecido a dashboards modernos tipo Notion/Linear. Contrasta con el fondo gris del contenido.</p>
+    </div>
+  </div>
+
+</div>

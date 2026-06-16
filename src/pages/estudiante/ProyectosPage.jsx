@@ -5,14 +5,11 @@ import { usePerfil } from "../../features/perfil/usePerfil";
 import { httpClient } from "../../shared/api/httpClient";
 import RatingDisplay from "../../features/calificaciones/RatingDisplay";
 import {
-  ArrowRight,
   Search,
-  Building2,
   X,
   MapPin,
   Users,
   CheckCircle2,
-  Clock,
   Calendar,
   ChevronLeft,
   ChevronRight,
@@ -21,45 +18,25 @@ import {
   Server,
   Wifi,
   Monitor,
-  Send,
   SlidersHorizontal,
-  Filter,
   UserPlus,
   UserCheck,
   AlertCircle,
-  TrendingUp,
   Zap,
-  Eye,
-  Star,
-  Hash,
-  Target,
-  GraduationCap,
-  Award,
-  Bell,
+  TrendingUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import PostularButton from "../../features/proyecto-postular/PostularButton";
 
+const FONT = "'Angro Std', 'Outfit', sans-serif";
+
 // ═══════════════════════════════════════════════
 // CONSTANTES DE ESTADOS
 // ═══════════════════════════════════════════════
-
-// Estados de POSTULACIÓN que cuentan como "activa"
 const ESTADOS_POSTULACION_ACTIVA = ['CONFIRMADO', 'ACEPTADO', 'Aceptado'];
-
-// Estados de PROYECTO que cuentan como "activo" (igual que el backend)
 const ESTADOS_PROYECTO_ACTIVOS = ['PENDIENTE', 'EN_DESARROLLO', 'EN_REVISION'];
-
-// Estados de PROYECTO que NO cuentan como activo
 const ESTADOS_PROYECTO_INACTIVOS = ['COMPLETADO', 'FINALIZADO', 'CANCELADO', 'ARCHIVADO'];
-
-/* ─── Variantes de animación ─── */
-const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
-});
 
 /* ─── Colores de área ─── */
 const AREA_STYLES = {
@@ -67,7 +44,7 @@ const AREA_STYLES = {
   DATA: { bg: "#f0fdf4", color: "#059669" },
   UX: { bg: "#f5f3ff", color: "#8B5CF6" },
   INFRAESTRUCTURA: { bg: "#fef3c7", color: "#d97706" },
-  SOPORTE_TI: { bg: "#fff1f2", color: "#e11d48" },
+  SOPORTE_TI: { bg: "#eff6ff", color: "#1B6FE8" },
   REDES: { bg: "#f0f9ff", color: "#0284c7" },
   DEFAULT: { bg: "#eff6ff", color: "#1B6FE8" },
 };
@@ -84,7 +61,7 @@ const getGradient = (area = "") => {
     DATA: "linear-gradient(135deg, #059669, #10b981)",
     UX: "linear-gradient(135deg, #7c3aed, #8b5cf6)",
     INFRAESTRUCTURA: "linear-gradient(135deg, #d97706, #f59e0b)",
-    SOPORTE_TI: "linear-gradient(135deg, #e11d48, #f43f5e)",
+    SOPORTE_TI: "linear-gradient(135deg, #1B6FE8, #3b82f6)",
     REDES: "linear-gradient(135deg, #0284c7, #38bdf8)",
   };
   return gradients[key] || gradients.WEB;
@@ -102,456 +79,244 @@ const getAreaIcon = (area = "") => {
 };
 
 const renderDuracion = (proyecto) => {
-  if (proyecto.fechaLimiteCalculada) {
-    return {
-      label: "Fecha límite",
-      value: new Date(proyecto.fechaLimiteCalculada).toLocaleDateString("es-PE"),
-    };
-  }
-  if (proyecto.diasEstimados) {
-    return {
-      label: "Días de duración",
-      value: `${proyecto.diasEstimados} días`,
-    };
-  }
-  return {
-    label: "Duración",
-    value: "Por definir",
-  };
+  if (proyecto.fechaLimiteCalculada) return { label: "Fecha límite", value: new Date(proyecto.fechaLimiteCalculada).toLocaleDateString("es-PE") };
+  if (proyecto.diasEstimados) return { label: "Días de duración", value: `${proyecto.diasEstimados} días` };
+  return { label: "Duración", value: "Por definir" };
 };
 
-
-/* ─── Función para calcular estado de vacantes ─── */
 const getVacancyStatus = (proyecto, postulacionesCount = 0) => {
   const totalVacantes = proyecto.cupos || 1;
   const vacantesDisponibles = totalVacantes - postulacionesCount;
-  
-  if (vacantesDisponibles <= 0) {
-    return {
-      status: "complete",
-      message: "¡Equipo completo! Todas las vacantes han sido cubiertas",
-      icon: <UserCheck size={14} />,
-      color: "#059669",
-      bg: "#ecfdf5",
-      border: "#a7f3d0",
-      remaining: 0
-    };
-  }
-  
-  if (vacantesDisponibles === 1) {
-    return {
-      status: "urgent",
-      message: "¡Última oportunidad! Solo queda 1 vacante disponible",
-      icon: <Zap size={14} />,
-      color: "#dc2626",
-      bg: "#fef2f2",
-      border: "#fecaca",
-      remaining: 1
-    };
-  }
-  
-  if (vacantesDisponibles <= 3) {
-    return {
-      status: "limited",
-      message: `¡Apresúrate! Solo quedan ${vacantesDisponibles} vacantes`,
-      icon: <AlertCircle size={14} />,
-      color: "#f59e0b",
-      bg: "#fffbeb",
-      border: "#fde68a",
-      remaining: vacantesDisponibles
-    };
-  }
-  
-  return {
-    status: "available",
-    message: `${vacantesDisponibles} vacantes disponibles`,
-    icon: <UserPlus size={14} />,
-    color: "#1B6FE8",
-    bg: "#eff6ff",
-    border: "#bfdbfe",
-    remaining: vacantesDisponibles
-  };
+  if (vacantesDisponibles <= 0) return { status: "complete", message: "Equipo completo", icon: <UserCheck size={14} />, color: "#059669", bg: "#ecfdf5", border: "#a7f3d0", remaining: 0 };
+  if (vacantesDisponibles === 1) return { status: "urgent", message: "Solo 1 vacante", icon: <Zap size={14} />, color: "#dc2626", bg: "#fef2f2", border: "#fecaca", remaining: 1 };
+  if (vacantesDisponibles <= 3) return { status: "limited", message: `${vacantesDisponibles} vacantes`, icon: <AlertCircle size={14} />, color: "#f59e0b", bg: "#fffbeb", border: "#fde68a", remaining: vacantesDisponibles };
+  return { status: "available", message: `${vacantesDisponibles} vacantes`, icon: <UserPlus size={14} />, color: "#1B6FE8", bg: "#eff6ff", border: "#bfdbfe", remaining: vacantesDisponibles };
 };
 
+
 /* ═══════════════════════════════════════════════
-   HERO BANNER - COMPACTO Y ELEGANTE
+   COMMAND CENTER (banner navy idéntico al de MYPE)
 ═══════════════════════════════════════════════ */
-const ExploreHero = () => {
+const ProyectosCommandCenter = ({ totalDisponibles, totalPostulaciones }) => {
   const canvasRef = useRef(null);
-  const heroRef = useRef(null);
-  const [badgeText, setBadgeText] = useState("+28 proyectos activos");
-  const [badgeColor, setBadgeColor] = useState("#67d4f8");
-
-  const messages = [
-    { text: "Proyectos con empresas locales", color: "#67d4f8" },
-    { text: "Vacantes disponibles ahora", color: "#4ade80" },
-    { text: "Nuevas oportunidades cada semana", color: "#8b5cf6" },
-  ];
-
-  useEffect(() => {
-    let index = 0;
-    const interval = setInterval(() => {
-      index = (index + 1) % messages.length;
-      setBadgeText(messages[index].text);
-      setBadgeColor(messages[index].color);
-    }, 3500);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const hero = heroRef.current;
-    if (!canvas || !hero) return;
-
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    let W, H, animId;
-    const mouse = { x: -999, y: -999 };
+    let w = canvas.offsetWidth;
+    let h = canvas.offsetHeight;
+    canvas.width = w;
+    canvas.height = h;
 
-    const resize = () => {
-      W = canvas.width = hero.offsetWidth;
-      H = canvas.height = hero.offsetHeight;
-    };
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(hero);
-
-    const onMove = (e) => {
-      const r = canvas.getBoundingClientRect();
-      mouse.x = e.clientX - r.left;
-      mouse.y = e.clientY - r.top;
-    };
-    const onLeave = () => {
-      mouse.x = -999;
-      mouse.y = -999;
-    };
-
-    hero.addEventListener("mousemove", onMove);
-    hero.addEventListener("mouseleave", onLeave);
-
-    class WaveParticle {
-      constructor() {
-        this.reset();
-      }
-      reset() {
-        this.x = Math.random() * W;
-        this.y = Math.random() * H * 0.6;
-        this.size = Math.random() * 2 + 0.8;
-        this.speed = Math.random() * 0.5 + 0.2;
-        this.opacity = Math.random() * 0.3 + 0.15;
-        this.hue = Math.random() > 0.5 ? 210 : 195;
-      }
-      update() {
-        this.y -= this.speed;
-        this.opacity -= 0.002;
-        if (this.y < 0 || this.opacity <= 0) this.reset();
-      }
-      draw() {
-        ctx.save();
-        ctx.globalAlpha = this.opacity;
-        ctx.fillStyle = `hsl(${this.hue}, 90%, 65%)`;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
+    const particles = [];
+    for (let i = 0; i < 40; i++) {
+      particles.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2, size: Math.random() * 1.5 + 0.5 });
     }
 
-    const particles = Array.from({ length: 70 }, () => new WaveParticle());
-
-    const animate = () => {
-      ctx.fillStyle = "rgba(13, 27, 53, 0.1)";
-      ctx.fillRect(0, 0, W, H);
-
-      particles.forEach((p) => {
-        p.update();
-        p.draw();
-      });
-
-      ctx.strokeStyle = "rgba(103, 212, 248, 0.06)";
-      ctx.lineWidth = 0.6;
-      for (let i = 0; i < particles.length; i += 4) {
-        for (let j = i + 1; j < particles.length; j += 5) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const d = Math.sqrt(dx * dx + dy * dy);
-          if (d < 100) {
+    let animId;
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+      particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+        ctx.fillStyle = "rgba(56,189,248,0.4)";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[j].x - p.x, dy = particles[j].y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 80) {
+            ctx.strokeStyle = `rgba(56,189,248,${0.1 * (1 - dist / 80)})`;
+            ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.moveTo(p.x, p.y);
             ctx.lineTo(particles[j].x, particles[j].y);
             ctx.stroke();
           }
         }
-      }
-
-      animId = requestAnimationFrame(animate);
+      });
+      animId = requestAnimationFrame(draw);
     };
-
-    animate();
-
-    return () => {
-      cancelAnimationFrame(animId);
-      ro.disconnect();
-      hero.removeEventListener("mousemove", onMove);
-      hero.removeEventListener("mouseleave", onLeave);
-    };
+    draw();
+    return () => cancelAnimationFrame(animId);
   }, []);
 
   return (
     <motion.div
-      ref={heroRef}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       style={{
         position: "relative",
+        background: "linear-gradient(135deg, #0A1628 0%, #0F2A4A 55%, #1E3A5F 100%)",
+        borderRadius: "20px",
+        padding: "40px 48px",
         overflow: "hidden",
-        borderRadius: 16,
-        background:
-          "linear-gradient(135deg, #0d1b35 0%, #1e3a5f 50%, #1B6FE8 100%)",
-        padding: "32px 36px",
-        color: "#fff",
-        marginBottom: 20,
-        minHeight: 140,
+        boxShadow: "0 24px 48px -12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
+        marginBottom: 28,
+        border: "1px solid rgba(255,255,255,0.08)",
+        display: "flex",
+        alignItems: "stretch",
+        gap: 40,
       }}
     >
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          opacity: 0.7,
-          pointerEvents: "none",
-        }}
-      />
+      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: -100, right: -50, width: 300, height: 300, background: "radial-gradient(circle, rgba(14,165,233,0.1) 0%, transparent 70%)", filter: "blur(40px)" }} />
 
-      <div
-        style={{
-          position: "relative",
-          zIndex: 10,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontSize: "clamp(22px, 2.5vw, 28px)",
-              fontWeight: 700,
-              lineHeight: 1.15,
-              letterSpacing: "-0.02em",
-              marginBottom: 6,
-            }}
-          >
-            Descubre tu próximo reto profesional
-          </h1>
+      {/* Titular */}
+      <div style={{ position: "relative", zIndex: 10, flex: "1 1 50%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
 
-          <p
-            style={{
-              fontSize: 13,
-              opacity: 0.8,
-              lineHeight: 1.5,
-              fontWeight: 400,
-              maxWidth: 400,
-            }}
-          >
-            Proyectos reales con empresas locales. Construye experiencia
-            mientras estudias.
-          </p>
+        <h1 style={{ fontFamily: FONT, fontSize: "2.2rem", fontWeight: 500, color: "#FFFFFF", margin: "0 0 10px", letterSpacing: "-0.03em" }}>
+          Explora proyectos
+        </h1>
+        <p style={{ fontFamily: FONT, fontSize: 14, color: "#94A3B8", margin: 0, lineHeight: 1.6, fontWeight: 400, maxWidth: "88%" }}>
+          Conecta con empresas de Cajamarca. Postula a proyectos reales y construye tu experiencia.
+        </p>
+      </div>
+
+      {/* KPIs */}
+      <div style={{ position: "relative", zIndex: 10, flex: "1 1 50%", display: "flex", gap: 16, flexDirection: "column", justifyContent: "center" }}>
+        <div style={{ display: "flex", gap: 16 }}>
+          <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "20px", backdropFilter: "blur(10px)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#94A3B8", marginBottom: 10 }}>
+              <TrendingUp size={15} />
+              <span style={{ fontSize: 10, fontWeight: 600, fontFamily: FONT, textTransform: "uppercase", letterSpacing: "0.05em" }}>Disponibles</span>
+            </div>
+            <div style={{ fontSize: 32, fontWeight: 400, color: "#FFFFFF", fontFamily: FONT, lineHeight: 1 }}>{totalDisponibles}</div>
+
+          </div>
+          <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "20px", backdropFilter: "blur(10px)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#94A3B8", marginBottom: 10 }}>
+              <CheckCircle2 size={15} />
+              <span style={{ fontSize: 10, fontWeight: 600, fontFamily: FONT, textTransform: "uppercase", letterSpacing: "0.05em" }}>Postuladas</span>
+            </div>
+            <div style={{ fontSize: 32, fontWeight: 400, color: "#FFFFFF", fontFamily: FONT, lineHeight: 1 }}>{totalPostulaciones}</div>
+          </div>
         </div>
-
-        <motion.div
-          animate={{ y: [0, -4, 0] }}
-          transition={{ duration: 3.5, repeat: Infinity }}
-          style={{
-            background: "rgba(255,255,255,0.08)",
-            backdropFilter: "blur(12px)",
-            padding: "8px 18px",
-            borderRadius: 40,
-            fontSize: 12,
-            fontWeight: 600,
-            border: `1px solid ${badgeColor}40`,
-            color: badgeColor,
-            flexShrink: 0,
-          }}
-        >
-          {badgeText}
-        </motion.div>
+        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 12, padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ fontSize: 11, color: "#FFFFFF", fontWeight: 600, fontFamily: FONT, marginBottom: 3 }}>Cajamarca, Perú</div>
+          </div>
+          <div style={{ width: 100, height: 5, background: "#1E293B", borderRadius: 4, overflow: "hidden" }}>
+            <div style={{ width: `${totalDisponibles ? Math.min((totalPostulaciones / totalDisponibles) * 100, 100) : 0}%`, height: "100%", background: "linear-gradient(90deg, #1B6FE8, #38BDF8)" }} />
+          </div>
+        </div>
       </div>
     </motion.div>
   );
 };
 
-/* ═══════════════════════════════════════════════
-   PROJECT CARD - COMPACTA ESTILO LINKEDIN
-═══════════════════════════════════════════════ */
-const ProjectCardLinkedIn = ({ proyecto, onClick, yaPostulo, isSelected, postulacionesCount }) => {
-  const area = proyecto.areaSistemas?.replace(/_/g, " ") || "SISTEMAS";
-  const { bg, color } = getAreaStyle(area);
-  const vacancyStatus = getVacancyStatus(proyecto, postulacionesCount);
 
-  const isSoporteTI = area === "SOPORTE TI";
-  const displayColor = isSoporteTI ? "#1B6FE8" : color;
-  const displayBg = isSoporteTI ? "#eff6ff" : bg;
+/* ═══════════════════════════════════════════════
+   PROJECT ROW — estilo MYPE compacto (izquierda)
+═══════════════════════════════════════════════ */
+const ProyectoRow = ({ proyecto, onClick, yaPostulo, isSelected, postulacionesCount }) => {
+  const area = proyecto.areaSistemas?.replace(/_/g, " ") || "SISTEMAS";
+  const vacancyStatus = getVacancyStatus(proyecto, postulacionesCount);
+  const duracion = renderDuracion(proyecto);
 
   return (
     <motion.div
-      whileHover={{ backgroundColor: "#f8fafc" }}
       onClick={onClick}
       style={{
-        background: isSelected ? "#f0f7ff" : "#fff",
-        border: isSelected ? "1px solid #bfdbfe" : "1px solid transparent",
-        borderBottom: "1px solid #f1f5f9",
-        borderLeft: isSelected
-          ? `3px solid ${displayColor}`
-          : "3px solid transparent",
-        padding: "12px 16px",
+        background: isSelected ? "#F0F7FF" : "#FCFDFD",
+        border: "1px solid",
+        borderColor: isSelected ? "#BFDBFE" : "#F1F5F9",
+        borderLeft: isSelected ? "3px solid #1B6FE8" : "1px solid #F1F5F9",
+        borderRadius: "14px",
+        overflow: "hidden",
+        boxShadow: isSelected ? "0 4px 12px rgba(27,111,232,0.08)" : "0 2px 4px rgba(15,23,42,0.01)",
+        transition: "all 0.15s ease",
+        marginBottom: 10,
         cursor: "pointer",
-        transition: "all 0.12s ease",
-        position: "relative",
+        padding: "14px 16px",
       }}
+      whileHover={!isSelected ? { borderColor: "#E2E8F0", boxShadow: "0 4px 8px rgba(15,23,42,0.04)" } : {}}
     >
-      <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              marginBottom: 2,
-            }}
-          >
-            <h3
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#0f172a",
-                margin: 0,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                paddingRight: 6,
-              }}
-            >
-              {proyecto.titulo}
-            </h3>
-            <div style={{ display: "flex", gap: 4, alignItems: "center", flexShrink: 0 }}>
-              {yaPostulo && (
-                <span
-                  style={{
-                    background: "#f0fdf4",
-                    color: "#059669",
-                    padding: "1px 7px",
-                    borderRadius: 10,
-                    fontSize: 9,
-                    fontWeight: 600,
-                    whiteSpace: "nowrap",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                  }}
-                >
-                  <CheckCircle2 size={9} />
-                  Postulado
-                </span>
-              )}
-              {/* Badge de vacantes */}
-              <span
-                style={{
-                  background: vacancyStatus.bg,
-                  color: vacancyStatus.color,
-                  padding: "1px 7px",
-                  borderRadius: 10,
-                  fontSize: 9,
-                  fontWeight: 600,
-                  whiteSpace: "nowrap",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  border: `1px solid ${vacancyStatus.border}`,
-                }}
-              >
-                {vacancyStatus.icon}
-                {vacancyStatus.remaining > 0 ? `${vacancyStatus.remaining} vacante${vacancyStatus.remaining !== 1 ? 's' : ''}` : 'Completo'}
-              </span>
-            </div>
-          </div>
+      {/* ID + área + postulado */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
+        <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          {`PROJ-${String(proyecto.id).padStart(4, "0")}`}
+        </span>
+        <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: 600, color: "#1B6FE8", background: "#EFF6FF", padding: "1px 6px", borderRadius: "4px" }}>
+          {area}
+        </span>
+        {yaPostulo && (
+          <span style={{ marginLeft: "auto", fontSize: 9, fontFamily: FONT, fontWeight: 600, color: "#059669", background: "#F0FDF4", padding: "1px 6px", borderRadius: "4px", display: "flex", alignItems: "center", gap: 3 }}>
+            <CheckCircle2 size={8} /> Postulado
+          </span>
+        )}
+      </div>
 
-          <p
-            style={{
-              fontSize: 12,
-              color: "#64748b",
-              margin: "0 0 4px 0",
-              fontWeight: 500,
-            }}
-          >
-            {proyecto.mypeNombre || "Empresa"}
-          </p>
+      {/* Título */}
+      <h3 style={{ margin: "0 0 3px", fontFamily: FONT, fontSize: 14, fontWeight: 600, color: "#0F1F3D", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {proyecto.titulo}
+      </h3>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              flexWrap: "wrap",
-            }}
-          >
-            <span
-              style={{
-                fontSize: 11,
-                color: "#94a3b8",
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-              }}
-            >
-              <MapPin size={10} /> {proyecto.ubicacion || "Cajamarca"}
-            </span>
-            <span
-              style={{
-                background: displayBg,
-                color: displayColor,
-                padding: "1px 8px",
-                borderRadius: 10,
-                fontSize: 10,
-                fontWeight: 600,
-              }}
-            >
-              {area}
-            </span>
-            {(() => {
-              const dur = renderDuracion(proyecto);
-              return (
-                <span style={{ fontSize: 11, color: "#94a3b8", display: "flex", alignItems: "center", gap: 2 }}>
-                  <Calendar size={10} /> {dur.value}
-                </span>
-              );
-            })()}
-          </div>
+      {/* MYPE */}
+      <div style={{ fontSize: 12, fontFamily: FONT, color: "#64748B", marginBottom: 8, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {proyecto.mypeNombre || "Empresa"}
+      </div>
 
-          <p
-            style={{
-              fontSize: 11,
-              color: "#94a3b8",
-              margin: "6px 0 0 0",
-              lineHeight: 1.4,
-              display: "-webkit-box",
-              WebkitLineClamp: 1,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {proyecto.descripcion}
-          </p>
+      {/* Footer: ubicación + duración + vacantes */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 4 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 10, color: "#94A3B8", display: "flex", alignItems: "center", gap: 3, fontFamily: FONT }}>
+            <MapPin size={9} /> {proyecto.mypeDireccion || "Cajamarca"}
+          </span>
+          <span style={{ fontSize: 10, color: "#94A3B8", display: "flex", alignItems: "center", gap: 3, fontFamily: FONT }}>
+            <Calendar size={9} /> {duracion.value}
+          </span>
         </div>
+        {vacancyStatus.status === "complete" ? (
+          <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: 500, color: "#9CA3AF" }}>Completo</span>
+        ) : (
+          <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: vacancyStatus.status === "urgent" ? 700 : 500, color: vacancyStatus.status === "available" ? "#6B7280" : "#1B6FE8" }}>
+            {vacancyStatus.remaining} vacante{vacancyStatus.remaining !== 1 ? "s" : ""}
+          </span>
+        )}
       </div>
     </motion.div>
   );
 };
 
+
 /* ═══════════════════════════════════════════════
-   PANEL DE DETALLE - MEJORADO
+   PAGINACIÓN — círculos estilo MYPE
+═══════════════════════════════════════════════ */
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  if (totalPages <= 1) return null;
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderTop: "1px solid #F1F5F9", marginTop: 4 }}>
+      <span style={{ fontSize: 11, fontFamily: FONT, color: "#64748B", fontWeight: 500 }}>
+        Página <span style={{ color: "#0F1F3D", fontWeight: 700 }}>{currentPage}</span> de <span style={{ color: "#0F1F3D", fontWeight: 700 }}>{totalPages}</span>
+      </span>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button
+          disabled={currentPage === 1}
+          onClick={() => onPageChange(currentPage - 1)}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "50%", background: currentPage === 1 ? "#F1F5F9" : "#FFFFFF", border: "1px solid", borderColor: currentPage === 1 ? "transparent" : "#E2E8F0", color: currentPage === 1 ? "#94A3B8" : "#0F1F3D", cursor: currentPage === 1 ? "not-allowed" : "pointer" }}
+        >
+          <ChevronLeft size={14} />
+        </button>
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => onPageChange(currentPage + 1)}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "50%", background: currentPage === totalPages ? "#F1F5F9" : "#FFFFFF", border: "1px solid", borderColor: currentPage === totalPages ? "transparent" : "#E2E8F0", color: currentPage === totalPages ? "#94A3B8" : "#0F1F3D", cursor: currentPage === totalPages ? "not-allowed" : "pointer" }}
+        >
+          <ChevronRight size={14} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+
+/* ═══════════════════════════════════════════════
+   PANEL DE DETALLE
 ═══════════════════════════════════════════════ */
 const DESC_PREVIEW = 300;
 
@@ -567,86 +332,32 @@ const ProjectDetailPanel = ({
   postulacionesCount = 0,
 }) => {
   const [verMasDesc, setVerMasDesc] = React.useState(false);
-  // 1. Spinner mientras se carga el detalle
+
   if (cargando) {
     return (
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 12,
-          border: "1px solid #e5e7eb",
-          padding: 60,
-          textAlign: "center",
-          color: "#9ca3af",
-        }}
-      >
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            border: "3px solid #e2e8f0",
-            borderTopColor: "#1B6FE8",
-            borderRadius: "50%",
-            animation: "spin 0.8s linear infinite",
-            margin: "0 auto 14px",
-          }}
-        />
-        <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>
-          Cargando detalle del proyecto...
-        </p>
+      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E2E8F0", padding: 60, textAlign: "center" }}>
+        <div style={{ width: 32, height: 32, border: "3px solid #E2E8F0", borderTopColor: "#1B6FE8", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 14px" }} />
+        <p style={{ fontSize: 13, fontFamily: FONT, color: "#64748B", margin: 0 }}>Cargando detalle del proyecto...</p>
       </div>
     );
   }
 
-  // 2. Mensaje de error si la petición falló
   if (error) {
     return (
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 12,
-          border: "1px solid #fecaca",
-          padding: 40,
-          textAlign: "center",
-          color: "#9ca3af",
-        }}
-      >
-        <AlertCircle size={36} style={{ margin: "0 auto 12px", color: "#ef4444" }} />
-        <p style={{ fontSize: 13, color: "#ef4444", fontWeight: 600, marginBottom: 4 }}>
-          Error al cargar el detalle
-        </p>
-        <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>{error}</p>
+      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #FECACA", padding: 40, textAlign: "center" }}>
+        <AlertCircle size={36} style={{ margin: "0 auto 12px", color: "#EF4444" }} />
+        <p style={{ fontSize: 13, fontFamily: FONT, color: "#EF4444", fontWeight: 600, marginBottom: 4 }}>Error al cargar el detalle</p>
+        <p style={{ fontSize: 12, fontFamily: FONT, color: "#94A3B8", margin: 0 }}>{error}</p>
       </div>
     );
   }
 
-  // 3. Placeholder cuando no hay nada seleccionado (o el detalle aún no llegó)
   if (!proyecto) {
     return (
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 12,
-          border: "1px solid #e5e7eb",
-          padding: 40,
-          textAlign: "center",
-          color: "#9ca3af",
-        }}
-      >
-        <Briefcase size={40} style={{ margin: "0 auto 14px", opacity: 0.25 }} />
-        <h3
-          style={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: "#6b7280",
-            marginBottom: 6,
-          }}
-        >
-          Selecciona un proyecto
-        </h3>
-        <p style={{ fontSize: 12, color: "#9ca3af" }}>
-          Haz clic en un proyecto para ver sus detalles y postularte
-        </p>
+      <div style={{ background: "#F8FAFC", borderRadius: 16, border: "1px solid #E2E8F0", minHeight: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: 40 }}>
+        <Briefcase size={38} style={{ margin: "0 auto 14px", opacity: 0.15, color: "#1B6FE8" }} />
+        <h3 style={{ fontSize: 14, fontFamily: FONT, fontWeight: 600, color: "#6B7280", marginBottom: 6 }}>Selecciona un proyecto para ver los detalles</h3>
+        <p style={{ fontSize: 12, fontFamily: FONT, color: "#9CA3AF", margin: 0 }}>Haz clic en cualquier proyecto de la lista</p>
       </div>
     );
   }
@@ -657,190 +368,75 @@ const ProjectDetailPanel = ({
   const totalVacantes = proyecto.cupos || 1;
   const esProyectoCompleto = vacancyStatus.status === "complete";
 
-  // Helper local por si no está definido globalmente
   const renderDuracionLocal = (proj) => {
-    if (proj.fechaLimiteCalculada) {
-      return {
-        label: "Fecha límite",
-        value: new Date(proj.fechaLimiteCalculada).toLocaleDateString("es-PE"),
-      };
-    }
-    if (proj.diasEstimados) {
-      return {
-        label: "Días de duración",
-        value: `${proj.diasEstimados} días`,
-      };
-    }
-    return {
-      label: "Duración",
-      value: "Por definir",
-    };
+    if (proj.fechaLimiteCalculada) return { label: "Fecha límite", value: new Date(proj.fechaLimiteCalculada).toLocaleDateString("es-PE") };
+    if (proj.diasEstimados) return { label: "Días de duración", value: `${proj.diasEstimados} días` };
+    return { label: "Duración", value: "Por definir" };
   };
 
   const duracion = renderDuracionLocal(proyecto);
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: 12,
-        border: "1px solid #e5e7eb",
-        overflow: "hidden",
-        position: "sticky",
-        top: 20,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-      }}
-    >
-      <div
-        style={{
-          height: 4,
-          background: "linear-gradient(90deg, #1B6FE8, #3b82f6, #60a5fa)",
-          width: "100%",
-        }}
-      />
+    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E2E8F0", overflow: "hidden", position: "sticky", top: 20, boxShadow: "0 2px 8px rgba(15,23,42,0.04)" }}>
 
-      <div
-        style={{
-          padding: "24px 20px 20px",
-          position: "relative",
-          borderBottom: "1px solid #f1f5f9",
-        }}
-      >
+      <div style={{ padding: "20px 20px 0", position: "relative" }}>
+        {/* Botón cerrar */}
         <button
           onClick={onClose}
-          style={{
-            position: "absolute",
-            top: 12,
-            right: 12,
-            background: "#f1f5f9",
-            border: "none",
-            borderRadius: "50%",
-            width: 28,
-            height: 28,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            color: "#64748b",
-            transition: "all 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#e2e8f0";
-            e.currentTarget.style.color = "#0f172a";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "#f1f5f9";
-            e.currentTarget.style.color = "#64748b";
-          }}
+          style={{ position: "absolute", top: 12, right: 12, background: "#F1F5F9", border: "none", borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#64748B", transition: "all 0.2s" }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "#E2E8F0"; e.currentTarget.style.color = "#0F1F3D"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "#F1F5F9"; e.currentTarget.style.color = "#64748B"; }}
         >
           <X size={14} />
         </button>
 
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            background: area === "SOPORTE TI" ? "#eff6ff" : bg,
-            color: area === "SOPORTE TI" ? "#1B6FE8" : color,
-            padding: "4px 12px",
-            borderRadius: 16,
-            fontSize: 11,
-            fontWeight: 700,
-            marginBottom: 14,
-            letterSpacing: "0.02em",
-          }}
-        >
+        {/* Área badge */}
+        <div style={{ display: "inline-flex", alignItems: "center", background: bg, color, padding: "3px 10px", borderRadius: 16, fontSize: 9, fontWeight: 700, fontFamily: FONT, marginBottom: 10, letterSpacing: "0.05em", textTransform: "uppercase" }}>
           {area}
         </div>
 
-        <h2
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-            color: "#0f172a",
-            lineHeight: 1.3,
-            marginBottom: 6,
-          }}
-        >
+        {/* Título */}
+        <h2 style={{ fontFamily: FONT, fontSize: 18, fontWeight: 600, color: "#0F1F3D", lineHeight: 1.3, marginBottom: 10, paddingRight: 32 }}>
           {proyecto.titulo}
         </h2>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: 13,
-            color: "#64748b",
-          }}
-        >
-          <span style={{ fontWeight: 500 }}>
-            {proyecto.mypeNombre || "Empresa"}
-          </span>
+        {/* Fila MYPE: nombre + rating */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", paddingBottom: 16, borderBottom: "1px solid #F1F5F9" }}>
+          {proyecto.mypeId ? (
+            <Link
+              to={`/mypes/${proyecto.mypeId}`}
+              style={{ textDecoration: "none", color: "#0F1F3D", fontWeight: 600, fontSize: 13, fontFamily: FONT, transition: "color 0.2s" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#1B6FE8")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#0F1F3D")}
+            >
+              {proyecto.mypeNombre || "Empresa"}
+            </Link>
+          ) : (
+            <span style={{ fontWeight: 600, fontSize: 13, fontFamily: FONT, color: "#0F1F3D" }}>{proyecto.mypeNombre || "Empresa"}</span>
+          )}
+          {proyecto.mypeUsuarioId && (
+            <>
+              <span style={{ color: "#E5E7EB", fontSize: 13 }}>·</span>
+              <RatingDisplay usuarioId={proyecto.mypeUsuarioId} size="sm" />
+            </>
+          )}
         </div>
       </div>
 
-      <div style={{ padding: 20 }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 8,
-            marginBottom: 20,
-          }}
-        >
+      <div style={{ padding: "16px 20px 20px" }}>
+        {/* Métricas */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 20 }}>
           {[
-            {
-              label: duracion.label,
-              value: duracion.value,
-              icon: <Calendar size={13} />,
-            },
-            {
-              label: "Cupos totales",
-              value: totalVacantes,
-              icon: <Users size={13} />,
-            },
-            {
-              label: "Ubicación",
-              value: proyecto.mypeDireccion || "Cajamarca",
-              icon: <MapPin size={13} />,
-            },
+            { label: duracion.label, value: duracion.value, icon: <Calendar size={13} /> },
+            { label: "Cupos totales", value: totalVacantes, icon: <Users size={13} /> },
+            { label: "Ubicación", value: proyecto.mypeDireccion || "Cajamarca", icon: <MapPin size={13} /> },
           ].map((metric, idx) => (
-            <div
-              key={idx}
-              style={{
-                background: "#f8fafc",
-                padding: "10px 8px",
-                borderRadius: 8,
-                border: "1px solid #dbeafe",
-                textAlign: "center",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 9,
-                  color: "#020f21",
-                  fontWeight: 500,
-                  marginBottom: 4,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                }}
-              >
+            <div key={idx} style={{ background: "#F8FAFC", padding: "10px 8px", borderRadius: 8, border: "1px solid #E2E8F0", textAlign: "center" }}>
+              <div style={{ fontSize: 9, fontFamily: FONT, color: "#64748B", fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 {metric.label}
               </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "#1e40af",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 4,
-                }}
-              >
-                {metric.icon}
-                {metric.value}
+              <div style={{ fontSize: 12, fontWeight: 600, fontFamily: FONT, color: "#0F1F3D", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                {metric.icon} {metric.value}
               </div>
             </div>
           ))}
@@ -849,58 +445,31 @@ const ProjectDetailPanel = ({
         {/* Barra de progreso de vacantes */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#374151" }}>
-              Progreso de vacantes
-            </span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: vacancyStatus.color }}>
-              {postulacionesCount}/{totalVacantes} ocupadas
-            </span>
+            <span style={{ fontSize: 11, fontFamily: FONT, fontWeight: 600, color: "#374151" }}>Progreso de vacantes</span>
+            <span style={{ fontSize: 11, fontFamily: FONT, fontWeight: 600, color: "#64748B" }}>{postulacionesCount}/{totalVacantes} ocupadas</span>
           </div>
-          <div style={{ height: 6, background: "#f1f5f9", borderRadius: 3, overflow: "hidden" }}>
+          <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3, overflow: "hidden" }}>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${(postulacionesCount / totalVacantes) * 100}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              style={{
-                height: "100%",
-                background: esProyectoCompleto
-                  ? "linear-gradient(90deg, #059669, #10b981)"
-                  : postulacionesCount / totalVacantes > 0.7
-                  ? "linear-gradient(90deg, #f59e0b, #d97706)"
-                  : "linear-gradient(90deg, #1B6FE8, #3b82f6)",
-                borderRadius: 3,
-              }}
+              style={{ height: "100%", background: esProyectoCompleto ? "linear-gradient(90deg, #10B981, #34D399)" : postulacionesCount / totalVacantes > 0.7 ? "linear-gradient(90deg, #F59E0B, #D97706)" : "linear-gradient(90deg, #1B6FE8, #38BDF8)", borderRadius: 3 }}
             />
           </div>
         </div>
 
+        {/* Descripción */}
         <div style={{ marginBottom: 20 }}>
-          <h4
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: "#000000",
-              marginBottom: 8,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          >
-            Descripción
-          </h4>
+          <h4 style={{ fontSize: 10, fontFamily: FONT, fontWeight: 700, color: "#64748B", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Descripción</h4>
           {(() => {
             const desc = proyecto.descripcion || "";
             const larga = desc.length > DESC_PREVIEW;
             const texto = larga && !verMasDesc ? desc.slice(0, DESC_PREVIEW) + "…" : desc;
             return (
               <>
-                <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.6, margin: 0 }}>
-                  {texto}
-                </p>
+                <p style={{ fontSize: 13, fontFamily: FONT, color: "#475569", lineHeight: 1.6, margin: 0 }}>{texto}</p>
                 {larga && (
-                  <button
-                    onClick={() => setVerMasDesc((v) => !v)}
-                    style={{ marginTop: 6, fontSize: 11, fontWeight: 600, color: "#1B6FE8", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-                  >
+                  <button onClick={() => setVerMasDesc((v) => !v)} style={{ marginTop: 6, fontSize: 11, fontWeight: 600, fontFamily: FONT, color: "#1B6FE8", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                     {verMasDesc ? "Ver menos ▲" : "Ver más ▼"}
                   </button>
                 )}
@@ -909,162 +478,46 @@ const ProjectDetailPanel = ({
           })()}
         </div>
 
+        {/* Objetivo */}
         {proyecto.objetivo && (
           <div style={{ marginBottom: 20 }}>
-            <h4
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                color: "#000000",
-                marginBottom: 8,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Objetivo
-            </h4>
-            <p
-              style={{
-                fontSize: 13,
-                color: "#475569",
-                lineHeight: 1.6,
-                margin: 0,
-              }}
-            >
-              {proyecto.objetivo}
-            </p>
+            <h4 style={{ fontSize: 10, fontFamily: FONT, fontWeight: 700, color: "#64748B", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Objetivo</h4>
+            <p style={{ fontSize: 13, fontFamily: FONT, color: "#475569", lineHeight: 1.6, margin: 0 }}>{proyecto.objetivo}</p>
           </div>
         )}
 
-        <div
-          style={{
-            marginBottom: 20,
-            background: "#f8fafc",
-            borderRadius: 10,
-            border: "1px solid #dbeafe",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              padding: "12px 14px",
-              borderBottom: "1px solid #dbeafe",
-              background: "#eff6ff",
-            }}
-          >
-            <h4
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                color: "#000000",
-                margin: 0,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Sobre la empresa
-            </h4>
-          </div>
-          <div style={{ padding: "14px" }}>
-            <div style={{ marginBottom: 8 }}>
-              <div
-                style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#1e293b",
-                  marginBottom: 4,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  flexWrap: "wrap",
-                }}
-              >
-                {proyecto.mypeId ? (
-                  <Link
-                    to={`/mypes/${proyecto.mypeId}`}
-                    style={{
-                      textDecoration: "none",
-                      color: "#1e293b",
-                      transition: "color 0.2s",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#1B6FE8")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#1e293b")}
-                  >
-                    {proyecto.mypeNombre || "Empresa"}
-                  </Link>
-                ) : (
-                  <span>{proyecto.mypeNombre || "Empresa"}</span>
-                )}
-                {proyecto.mypeUsuarioId && (
-                  <RatingDisplay usuarioId={proyecto.mypeUsuarioId} size="sm" />
-                )}
-              </div>
-              {(proyecto.mypeDireccion) && (
-                <div style={{ fontSize: 11, color: "#64748b", display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
-                  <MapPin size={10} style={{ color: "#3b82f6" }} />
-                  {proyecto.mypeDireccion}
-                </div>
-              )}
+        {/* Empresa (rubro + descripción, sin nombre que ya aparece arriba) */}
+        {(proyecto.mypeRubro || proyecto.mypeDescripcion) && (
+          <div style={{ marginBottom: 20, padding: "12px 14px", background: "#F8FAFC", borderRadius: 10, border: "1px solid #E2E8F0" }}>
+            <div style={{ fontSize: 9, fontFamily: FONT, fontWeight: 700, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
+              Empresa
             </div>
+            {proyecto.mypeRubro && (
+              <span style={{ display: "inline-block", fontSize: 11, fontFamily: FONT, fontWeight: 500, color: "#4B5563", background: "#E5E7EB", padding: "2px 8px", borderRadius: 6, marginBottom: proyecto.mypeDescripcion ? 8 : 0 }}>
+                {proyecto.mypeRubro}
+              </span>
+            )}
             {proyecto.mypeDescripcion && (
-              <p
-                style={{
-                  fontSize: 12,
-                  color: "#64748b",
-                  lineHeight: 1.5,
-                  margin: 0,
-                }}
-              >
-                {proyecto.mypeDescripcion}
-              </p>
+              <p style={{ fontSize: 12, fontFamily: FONT, color: "#6B7280", lineHeight: 1.5, margin: 0 }}>{proyecto.mypeDescripcion}</p>
             )}
           </div>
-        </div>
+        )}
 
-        <div style={{ marginTop: 4 }}>
+        {/* Postulación */}
+        <div style={{ marginTop: 4, paddingTop: 16, borderTop: "1px solid #F1F5F9" }}>
           {esProyectoCompleto ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              style={{
-                background: "#ecfdf5",
-                border: "2px solid #a7f3d0",
-                borderRadius: 10,
-                padding: "16px",
-                textAlign: "center",
-              }}
-            >
-              <UserCheck size={24} style={{ color: "#059669", marginBottom: 8 }} />
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#059669", marginBottom: 4 }}>
-                ¡Proyecto completado!
-              </div>
-              <div style={{ fontSize: 12, color: "#64748b" }}>
-                Todas las vacantes han sido cubiertas. ¡Sigue explorando otras oportunidades!
-              </div>
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+              style={{ background: "#F8FAFC", border: "1px solid #E5E7EB", borderRadius: 10, padding: "16px", textAlign: "center" }}>
+              <UserCheck size={22} style={{ color: "#6B7280", marginBottom: 8 }} />
+              <div style={{ fontSize: 13, fontFamily: FONT, fontWeight: 700, color: "#374151", marginBottom: 4 }}>Vacantes cubiertas</div>
+              <div style={{ fontSize: 12, fontFamily: FONT, color: "#9CA3AF" }}>Este proyecto ya no tiene plazas disponibles.</div>
             </motion.div>
           ) : (
             <>
-              <PostularButton
-                proyectoId={proyecto.id}
-                yaPostulo={yaPostulo}
-                disabled={haSuperadoLimite && !yaPostulo}
-              />
-
+              <PostularButton proyectoId={proyecto.id} yaPostulo={yaPostulo} disabled={haSuperadoLimite && !yaPostulo} />
               {haSuperadoLimite && !yaPostulo && (
-                <motion.p
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  style={{
-                    fontSize: 10,
-                    color: "#64748b",
-                    marginTop: 6,
-                    textAlign: "center",
-                    background: "#eff6ff",
-                    padding: "6px 10px",
-                    borderRadius: 8,
-                    border: "1px solid #dbeafe",
-                  }}
-                >
+                <motion.p initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
+                  style={{ fontSize: 10, fontFamily: FONT, color: "#64748B", marginTop: 6, textAlign: "center", background: "#EFF6FF", padding: "6px 10px", borderRadius: 8, border: "1px solid #DBEAFE" }}>
                   Has alcanzado el límite de {limiteProyectos} proyecto{limiteProyectos !== 1 ? 's' : ''} activo{limiteProyectos !== 1 ? 's' : ''}
                 </motion.p>
               )}
@@ -1072,128 +525,6 @@ const ProjectDetailPanel = ({
           )}
         </div>
       </div>
-    </div>
-  );
-};
-
-/* ═══════════════════════════════════════════════
-   PAGINACIÓN
-═══════════════════════════════════════════════ */
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-  if (totalPages <= 1) return null;
-
-  const getVisiblePages = () => {
-    const pages = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) pages.push(i);
-        pages.push("...");
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push("...");
-        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
-      } else {
-        pages.push(1);
-        pages.push("...");
-        pages.push(currentPage - 1);
-        pages.push(currentPage);
-        pages.push(currentPage + 1);
-        pages.push("...");
-        pages.push(totalPages);
-      }
-    }
-    return pages;
-  };
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 4,
-        padding: "12px 0",
-        borderTop: "1px solid #f1f5f9",
-      }}
-    >
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        style={{
-          padding: "5px 10px",
-          borderRadius: 6,
-          border: "1px solid #e5e7eb",
-          background: "#fff",
-          cursor: currentPage === 1 ? "not-allowed" : "pointer",
-          opacity: currentPage === 1 ? 0.4 : 1,
-          display: "flex",
-          alignItems: "center",
-          gap: 3,
-          fontSize: 12,
-          fontWeight: 500,
-          color: "#374151",
-        }}
-      >
-        <ChevronLeft size={13} /> Ant
-      </button>
-
-      {getVisiblePages().map((page, index) =>
-        page === "..." ? (
-          <span
-            key={`dots-${index}`}
-            style={{ padding: "5px 6px", color: "#9ca3af", fontSize: 12 }}
-          >
-            ...
-          </span>
-        ) : (
-          <button
-            key={page}
-            onClick={() => onPageChange(page)}
-            style={{
-              padding: "5px 10px",
-              borderRadius: 6,
-              border:
-                currentPage === page
-                  ? "1px solid #1B6FE8"
-                  : "1px solid transparent",
-              background: currentPage === page ? "#eff6ff" : "transparent",
-              cursor: "pointer",
-              fontSize: 12,
-              fontWeight: currentPage === page ? 700 : 500,
-              color: currentPage === page ? "#1B6FE8" : "#374151",
-              minWidth: 32,
-            }}
-          >
-            {page}
-          </button>
-        ),
-      )}
-
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        style={{
-          padding: "5px 10px",
-          borderRadius: 6,
-          border: "1px solid #e5e7eb",
-          background: "#fff",
-          cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-          opacity: currentPage === totalPages ? 0.4 : 1,
-          display: "flex",
-          alignItems: "center",
-          gap: 3,
-          fontSize: 12,
-          fontWeight: 500,
-          color: "#374151",
-        }}
-      >
-        Sig <ChevronRight size={13} />
-      </button>
     </div>
   );
 };
@@ -1224,76 +555,39 @@ const ProyectosPage = () => {
 
   const proyectos = proyectosData?.content || [];
 
-    
-
-  // Carga el detalle completo (con mypeUsuarioId) cada vez que se selecciona un proyecto.
-  // Cubre los 3 caminos de selección: click, URL y auto-selección.
   useEffect(() => {
     const id = selectedProyecto?.id;
-    if (!id) {
-      setProyectoDetalle(null);
-      setCargandoDetalle(false);
-      setErrorDetalle(null);
-      return;
-    }
-
+    if (!id) { setProyectoDetalle(null); setCargandoDetalle(false); setErrorDetalle(null); return; }
     const controller = new AbortController();
     setCargandoDetalle(true);
     setErrorDetalle(null);
-
-    httpClient
-      .get(`/proyectos/${id}`, { signal: controller.signal })
-      .then((res) => {
-        setProyectoDetalle(res.data);
-        setCargandoDetalle(false);
-      })
+    httpClient.get(`/proyectos/${id}`, { signal: controller.signal })
+      .then((res) => { setProyectoDetalle(res.data); setCargandoDetalle(false); })
       .catch((err) => {
-        // Ignorar cancelaciones (cambio de proyecto antes de que termine)
         if (err.code === "ERR_CANCELED" || err.name === "CanceledError") return;
-        console.error("Error al cargar detalle del proyecto:", err);
         setErrorDetalle("No se pudo cargar el detalle del proyecto.");
         setCargandoDetalle(false);
       });
-
-    // Cancela la petición si se cambia de proyecto antes de que termine
     return () => controller.abort();
   }, [selectedProyecto?.id]);
 
-  // Auto-refresh cada 30 segundos
   useEffect(() => {
     if (!autoRefresh) return;
-    
-    const interval = setInterval(() => {
-      refetch();
-      setLastRefresh(new Date());
-    }, 30000);
-
+    const interval = setInterval(() => { refetch(); setLastRefresh(new Date()); }, 30000);
     return () => clearInterval(interval);
   }, [autoRefresh, refetch]);
 
   const yaPostuloMap = useMemo(() => {
     const map = {};
-    postulaciones?.forEach((p) => {
-      map[p.proyectoId] = true;
-    });
+    postulaciones?.forEach((p) => { map[p.proyectoId] = true; });
     return map;
   }, [postulaciones]);
 
-    const proyectosActivos = useMemo(() => {
+  const proyectosActivos = useMemo(() => {
     return postulaciones?.filter(p => {
-      // 1. Verificar que la postulación esté en estado activo
       const postulacionActiva = ESTADOS_POSTULACION_ACTIVA.includes(p.estado);
-      
-      // 2. Verificar que el proyecto esté en estado activo
-      const proyectoActivo = p.proyectoEstado && 
-                            ESTADOS_PROYECTO_ACTIVOS.includes(p.proyectoEstado);
-      
-      // 3. Si proyectoEstado está vacío (datos viejos), contar como activo
+      const proyectoActivo = p.proyectoEstado && ESTADOS_PROYECTO_ACTIVOS.includes(p.proyectoEstado);
       const proyectoEstadoVacio = !p.proyectoEstado;
-      
-      // Solo contar como activo si:
-      // - Postulación está activa Y
-      // - Proyecto está en estado activo O no tiene estado definido
       return postulacionActiva && (proyectoActivo || proyectoEstadoVacio);
     }) || [];
   }, [postulaciones]);
@@ -1313,64 +607,38 @@ const ProyectosPage = () => {
 
   const filteredProyectos = useMemo(() => {
     return proyectos.filter((proyecto) => {
-      const matchesSearch =
-        !searchTerm ||
+      const matchesSearch = !searchTerm ||
         proyecto.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        proyecto.descripcion
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
+        proyecto.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         proyecto.mypeNombre?.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesArea =
-        !selectedArea ||
-        proyecto.areaSistemas?.toUpperCase().includes(selectedArea);
+      const matchesArea = !selectedArea || proyecto.areaSistemas?.toUpperCase().includes(selectedArea);
       return matchesSearch && matchesArea;
     });
   }, [proyectos, searchTerm, selectedArea]);
-    // ✅ Detectar proyecto desde URL y seleccionarlo automáticamente
+
   const searchParams = new URLSearchParams(window.location.search);
   const selectedIdFromUrl = searchParams.get('selected');
 
-    useEffect(() => {
+  useEffect(() => {
     if (!isLoading && selectedIdFromUrl && proyectos.length > 0) {
       const proyectoFromUrl = proyectos.find(p => p.id === Number(selectedIdFromUrl));
       if (proyectoFromUrl) {
-        // Limpiar filtros para asegurar que el proyecto sea visible
         setSearchTerm('');
         setSelectedArea('');
-        
-        // Seleccionar el proyecto
         setSelectedProyecto(proyectoFromUrl);
-        
-        // Buscar en qué página está dentro de TODOS los proyectos (sin filtrar)
-        const allProyectos = proyectos;
-        const index = allProyectos.findIndex(p => p.id === Number(selectedIdFromUrl));
-        if (index >= 0) {
-          const page = Math.floor(index / ITEMS_PER_PAGE) + 1;
-          setCurrentPage(page);
-        }
-        
-        // Scroll después de que se renderice
-        setTimeout(() => {
-          window.scrollTo({ top: 400, behavior: 'smooth' });
-        }, 800);
+        const index = proyectos.findIndex(p => p.id === Number(selectedIdFromUrl));
+        if (index >= 0) setCurrentPage(Math.floor(index / ITEMS_PER_PAGE) + 1);
+        setTimeout(() => { window.scrollTo({ top: 400, behavior: 'smooth' }); }, 800);
       }
     }
   }, [isLoading, selectedIdFromUrl, proyectos.length]);
 
   const totalPages = Math.ceil(filteredProyectos.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedProyectos = filteredProyectos.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE,
-  );
+  const paginatedProyectos = filteredProyectos.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  // Resetear página cuando cambian filtros
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedArea]);
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, selectedArea]);
 
-    // Seleccionar primer proyecto cuando carga por primera vez (solo si el usuario no cerró el panel)
   useEffect(() => {
     if (paginatedProyectos.length > 0 && !selectedProyecto && !selectedIdFromUrl && !panelCerrado) {
       setSelectedProyecto(paginatedProyectos[0]);
@@ -1379,145 +647,39 @@ const ProyectosPage = () => {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    const currentStillExists = paginatedProyectos.find(
-      (p) => p.id === selectedProyecto?.id,
-    );
-    if (!currentStillExists && paginatedProyectos.length > 0) {
-      setSelectedProyecto(paginatedProyectos[0]);
-    }
+    const currentStillExists = paginatedProyectos.find((p) => p.id === selectedProyecto?.id);
+    if (!currentStillExists && paginatedProyectos.length > 0) setSelectedProyecto(paginatedProyectos[0]);
   };
 
   return (
-    <div
-      style={{
-        fontFamily:
-          "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-        background: '#f8fafc',
-        minHeight: "100vh",
-        padding: "20px",
-        maxWidth: 1200,
-        margin: "0 auto",
-      }}
-    >
-      {/* Top Bar */} 
-      <motion.div
-        {...fadeUp(0)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontSize: 20,
-              fontWeight: 700,
-              color: "#0f172a",
-              margin: 0,
-            }}
-          >
-            Proyectos disponibles
-          </h1>
-          <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0 0 0" }}>
-            {filteredProyectos.length} proyecto
-            {filteredProyectos.length !== 1 ? "s" : ""} encontrado
-            {filteredProyectos.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-       
-      </motion.div>
+    <div style={{ fontFamily: FONT, background: "#F8FAFC", minHeight: "100vh", padding: "20px", maxWidth: 1200, margin: "0 auto" }}>
 
-      {/* Hero Banner */}
-      <ExploreHero />
-
-      
+      {/* Hero Command Center */}
+      <ProyectosCommandCenter totalDisponibles={proyectos.length} totalPostulaciones={postulaciones?.length || 0} />
 
       {/* Barra de búsqueda */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 10,
-          border: "1px solid #e2e8f0",
-          padding: "10px 14px",
-          marginBottom: 14,
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-        }}
-      >
-        <Search size={16} style={{ color: "#94a3b8", flexShrink: 0 }} />
+      <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E2E8F0", padding: "10px 14px", marginBottom: 14, display: "flex", alignItems: "center", gap: 10, boxShadow: "0 1px 3px rgba(15,23,42,0.03)" }}>
+        <Search size={15} style={{ color: "#94A3B8", flexShrink: 0 }} />
         <input
           type="text"
           placeholder="Buscar por título, empresa o palabra clave..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            flex: 1,
-            padding: "8px 0",
-            border: "none",
-            background: "transparent",
-            fontSize: 13,
-            fontWeight: 400,
-            outline: "none",
-            color: "#1e293b",
-          }}
+          style={{ flex: 1, padding: "7px 0", border: "none", background: "transparent", fontSize: 13, fontFamily: FONT, fontWeight: 400, outline: "none", color: "#1E293B" }}
         />
         {searchTerm && (
-          <button
-            onClick={() => setSearchTerm("")}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "#94a3b8",
-              padding: 3,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <X size={14} />
+          <button onClick={() => setSearchTerm("")} style={{ background: "none", border: "none", cursor: "pointer", color: "#94A3B8", padding: 3, borderRadius: "50%", display: "flex", alignItems: "center" }}>
+            <X size={13} />
           </button>
         )}
         <button
           onClick={() => setShowFilters(!showFilters)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 5,
-            padding: "7px 14px",
-            borderRadius: 20,
-            border: `1px solid ${showFilters || selectedArea ? "#1B6FE8" : "#e2e8f0"}`,
-            background: showFilters || selectedArea ? "#eff6ff" : "#fff",
-            cursor: "pointer",
-            fontSize: 12,
-            fontWeight: 500,
-            color: showFilters || selectedArea ? "#1B6FE8" : "#475569",
-            whiteSpace: "nowrap",
-            transition: "all 0.15s",
-          }}
+          style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 20, border: `1px solid ${showFilters || selectedArea ? "#1B6FE8" : "#E2E8F0"}`, background: showFilters || selectedArea ? "#EFF6FF" : "#fff", cursor: "pointer", fontSize: 12, fontFamily: FONT, fontWeight: 500, color: showFilters || selectedArea ? "#1B6FE8" : "#475569", whiteSpace: "nowrap", transition: "all 0.15s" }}
         >
           <SlidersHorizontal size={13} />
           Filtros
           {selectedArea && (
-            <span
-              style={{
-                background: "#1B6FE8",
-                color: "#fff",
-                borderRadius: "50%",
-                width: 16,
-                height: 16,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 9,
-                fontWeight: 700,
-              }}
-            >
-              1
-            </span>
+            <span style={{ background: "#1B6FE8", color: "#fff", borderRadius: "50%", width: 16, height: 16, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700 }}>1</span>
           )}
         </button>
       </div>
@@ -1525,69 +687,19 @@ const ProyectosPage = () => {
       {/* Panel de filtros */}
       <AnimatePresence>
         {showFilters && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            style={{ overflow: "hidden", marginBottom: 14 }}
-          >
-            <div
-              style={{
-                background: "#fff",
-                borderRadius: 10,
-                border: "1px solid #e2e8f0",
-                padding: 14,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "#374151",
-                  marginBottom: 10,
-                }}
-              >
-                Filtrar por área
-              </div>
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: "hidden", marginBottom: 14 }}>
+            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #E2E8F0", padding: 14 }}>
+              <div style={{ fontSize: 11, fontFamily: FONT, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>Filtrar por área</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {areasFiltro.map((area) => (
-                  <button
-                    key={area.value}
-                    onClick={() => setSelectedArea(area.value)}
-                    style={{
-                      padding: "6px 14px",
-                      borderRadius: 20,
-                      fontSize: 12,
-                      fontWeight: 500,
-                      border:
-                        selectedArea === area.value
-                          ? "2px solid #1B6FE8"
-                          : "1px solid #e2e8f0",
-                      background:
-                        selectedArea === area.value ? "#eff6ff" : "#fff",
-                      color:
-                        selectedArea === area.value ? "#1B6FE8" : "#475569",
-                      cursor: "pointer",
-                      transition: "all 0.12s",
-                    }}
-                  >
+                  <button key={area.value} onClick={() => setSelectedArea(area.value)}
+                    style={{ padding: "6px 14px", borderRadius: 20, fontSize: 12, fontFamily: FONT, fontWeight: 500, border: selectedArea === area.value ? "2px solid #1B6FE8" : "1px solid #E2E8F0", background: selectedArea === area.value ? "#EFF6FF" : "#fff", color: selectedArea === area.value ? "#1B6FE8" : "#475569", cursor: "pointer", transition: "all 0.12s" }}>
                     {area.label}
                   </button>
                 ))}
               </div>
               {selectedArea && (
-                <button
-                  onClick={() => setSelectedArea("")}
-                  style={{
-                    marginTop: 10,
-                    fontSize: 11,
-                    color: "#dc2626",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontWeight: 500,
-                  }}
-                >
+                <button onClick={() => setSelectedArea("")} style={{ marginTop: 10, fontSize: 11, fontFamily: FONT, color: "#DC2626", background: "none", border: "none", cursor: "pointer", fontWeight: 500 }}>
                   Limpiar filtro
                 </button>
               )}
@@ -1597,103 +709,48 @@ const ProyectosPage = () => {
       </AnimatePresence>
 
       {/* Layout dos columnas */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "490px 1fr",
-          gap: 14,
-          alignItems: "start",
-        }}
-      >
+      <div style={{ display: "grid", gridTemplateColumns: "460px 1fr", gap: 20, alignItems: "start" }}>
+
         {/* Lista de proyectos */}
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 10,
-            border: "1px solid #e2e8f0",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              padding: "10px 16px",
-              borderBottom: "1px solid #f1f5f9",
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#475569",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <span>
-              {filteredProyectos.length} resultado
-              {filteredProyectos.length !== 1 ? "s" : ""}
-            </span>
-            {totalPages > 1 && (
-              <span style={{ fontSize: 10, color: "#94a3b8", fontWeight: 400 }}>
-                Pág. {currentPage}/{totalPages}
-              </span>
-            )}
+        <div>
+          {/* Section header estilo MYPE */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16, borderBottom: "1px solid #E2E8F0", paddingBottom: 12 }}>
+            <div>
+              <h2 style={{ fontFamily: FONT, margin: 0, fontSize: 16, color: "#0F1F3D", fontWeight: 600 }}>Proyectos disponibles</h2>
+              <p style={{ fontFamily: FONT, margin: "4px 0 0", fontSize: 12, color: "#64748B" }}>
+                {filteredProyectos.length} resultado{filteredProyectos.length !== 1 ? "s" : ""}
+                {totalPages > 1 && ` · Pág. ${currentPage}/${totalPages}`}
+              </p>
+            </div>
           </div>
 
           {isLoading ? (
-            <div style={{ textAlign: "center", padding: 50 }}>
-              <div
-                style={{
-                  width: 28,
-                  height: 28,
-                  border: "3px solid #e2e8f0",
-                  borderTopColor: "#1B6FE8",
-                  borderRadius: "50%",
-                  animation: "spin 0.8s linear infinite",
-                  margin: "0 auto 14px",
-                }}
-              />
-              <p style={{ color: "#64748b", fontSize: 13 }}>
-                Cargando proyectos...
-              </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[1, 2, 3].map(i => <div key={i} style={{ height: 90, background: "#F1F5F9", borderRadius: 14, animation: "pulse 2s infinite ease-in-out" }} />)}
             </div>
           ) : paginatedProyectos.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 50 }}>
-              <Search
-                size={32}
-                style={{ margin: "0 auto 12px", color: "#cbd5e1" }}
-              />
-              <h3
-                style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#475569",
-                  marginBottom: 4,
-                }}
-              >
-                Sin resultados
-              </h3>
-              <p style={{ fontSize: 12, color: "#94a3b8" }}>
-                Intenta ajustar los filtros
-              </p>
+            <div style={{ textAlign: "center", padding: "60px 40px", border: "1px dashed #CBD5E1", borderRadius: 16, background: "#FAFAFA" }}>
+              <Search size={32} style={{ margin: "0 auto 12px", color: "#CBD5E1" }} />
+              <h3 style={{ fontFamily: FONT, fontSize: 14, fontWeight: 600, color: "#475569", marginBottom: 4 }}>Sin resultados</h3>
+              <p style={{ fontFamily: FONT, fontSize: 12, color: "#94A3B8" }}>Intenta ajustar los filtros</p>
             </div>
           ) : (
-            <div>
-              {paginatedProyectos.map((proyecto) => (
-                <ProjectCardLinkedIn
-                  key={proyecto.id}
-                  proyecto={proyecto}
-                  onClick={() => setSelectedProyecto(proyecto)}
-                  yaPostulo={!!yaPostuloMap[proyecto.id]}
-                  isSelected={selectedProyecto?.id === proyecto.id}
-                  postulacionesCount={proyecto.cuposOcupados ?? 0}
-                />
-              ))}
-            </div>
+            <>
+              <AnimatePresence mode="popLayout">
+                {paginatedProyectos.map((proyecto) => (
+                  <ProyectoRow
+                    key={proyecto.id}
+                    proyecto={proyecto}
+                    onClick={() => setSelectedProyecto(proyecto)}
+                    yaPostulo={!!yaPostuloMap[proyecto.id]}
+                    isSelected={selectedProyecto?.id === proyecto.id}
+                    postulacionesCount={proyecto.cuposOcupados ?? 0}
+                  />
+                ))}
+              </AnimatePresence>
+              <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+            </>
           )}
-
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
         </div>
 
         {/* Panel de detalle */}
@@ -1713,10 +770,9 @@ const ProyectosPage = () => {
       </div>
 
       <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes vping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
+        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
       `}</style>
     </div>
   );

@@ -12,7 +12,7 @@ import {
   Eye, EyeOff, FileText, UserCheck, UserX, UserPlus,
   Briefcase, Calendar, Star, Award, Crown, User, 
   TrendingUp, CheckCircle2, ArrowRight, LayoutDashboard,
-  Shield, Building2, CheckSquare
+  Shield, Building2, CheckSquare, FolderOpen
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { ConfirmModal } from "../../shared/components/ConfirmModal";
@@ -119,9 +119,6 @@ const ExecutiveCommandCenter = ({ totalProyectos, metrics }) => {
 
       <div style={{ position: "relative", zIndex: 10, flex: "1 1 50%", minWidth: "300px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
         <div>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)", borderRadius: "8px", padding: "6px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#38BDF8", marginBottom: 16 }}>
-              Gestión Estratégica de Talento
-          </div>
           <h1 style={{ fontFamily: FONT, fontSize: "clamp(2rem, 3vw, 2.4rem)", fontWeight: 600, color: "#FFFFFF", margin: "0 0 12px", letterSpacing: "-0.03em" }}>
             Módulo Integrado de Proyectos
           </h1>
@@ -212,15 +209,9 @@ function TalentExecutiveModule({ postulacion, proyectoId, verTodos, currentTab, 
 
   const confirmChoice = () => {
     if (modalAction === "validar") {
-      cambiarEstado(
-        { proyectoId, postulacionId: postulacion.id, estado: "VALIDADO_MYPE" },
-        { onSuccess: () => setModalAction(null) }
-      );
+      cambiarEstado({ proyectoId, postulacionId: postulacion.id, estado: "VALIDADO_MYPE" });
     } else if (modalAction === "rechazar") {
-      cambiarEstado(
-        { proyectoId, postulacionId: postulacion.id, estado: "RECHAZADO" },
-        { onSuccess: () => setModalAction(null) }
-      );
+      cambiarEstado({ proyectoId, postulacionId: postulacion.id, estado: "RECHAZADO" });
     }
   };
 
@@ -425,15 +416,8 @@ function TalentExecutiveModule({ postulacion, proyectoId, verTodos, currentTab, 
    WORKSPACE DE SUPERVISIÓN DEL PROYECTO
 ═══════════════════════════════════════════════ */
 function ProjectEcosystemSection({ proyecto, globalOpenStateFilter, expandedProjects, setExpandedProjects, onToggleExpand }) {
-  // En Reclutamiento ('pendientes'), por defecto debemos ver todo (para poder ver a los PRESELECCIONADO)
-  const [internalViewAll, setInternalViewAll] = useState(globalOpenStateFilter === 'pendientes');
+  const [internalViewAll, setInternalViewAll] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-
-  useEffect(() => {
-    if (globalOpenStateFilter === 'pendientes') {
-      setInternalViewAll(true);
-    }
-  }, [globalOpenStateFilter]);
 
   const hookNormal = usePostulacionesAceptadas(proyecto.id);
   const hookCompleto = usePostulaciones(
@@ -731,7 +715,7 @@ export function PostulantesPage() {
         @keyframes core-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
       
-      <div style={{ maxWidth: 1240, margin: "0 auto", paddingBottom: "80px" }}>
+      <div style={{ maxWidth: 1320, margin: "0 auto", paddingBottom: "80px" }}>
         
         <ExecutiveCommandCenter totalProyectos={listToIterate.length} metrics={metricsObject} />
 
@@ -743,21 +727,25 @@ export function PostulantesPage() {
             </div>
         </motion.div>
 
-        {isLoading ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {[1, 2, 3].map((i) => (
-              <div key={i} style={{ height: 110, borderRadius: "16px", border: "1px solid #E2E8F0", background: "linear-gradient(90deg, #F8FAFC 0%, #F1F5F9 50%, #F8FAFC 100%)", backgroundSize: "200% 100%", animation: "loadingShift 1.8s infinite" }}/>
-            ))}
-          </div>
-        ) : listToIterate.length === 0 ? (
-          <motion.div {...fadeUp(0.15)} style={{ textAlign: "center", padding: "100px 40px", border: "1px dashed #CBD5E1", borderRadius: "20px", background: "#FFFFFF" }}>
-            <div style={{ width: 88, height: 88, borderRadius: "24px", background: "#F8FAFC", border: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.02)" }}>
-              <UserPlus size={40} color="#64748B" />
-            </div>
-            <h3 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 700, color: "#1E293B", marginBottom: 12, letterSpacing: "-0.01em" }}>Centro de Operaciones Limpio</h3>
-            <p style={{ fontFamily: FONT, fontSize: 14, color: "#64748B", maxWidth: 450, margin: "0 auto", lineHeight: 1.6 }}>Publica tu primera oportunidad de vinculación en el apartado de proyectos para empezar a construir aquí tu red de perfiles tecnológicos evaluables.</p>
-          </motion.div>
-        ) : (
+            {isLoading ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} style={{ height: 110, borderRadius: "16px", border: "1px solid #E2E8F0", background: "linear-gradient(90deg, #F8FAFC 0%, #F1F5F9 50%, #F8FAFC 100%)", backgroundSize: "200% 100%", animation: "loadingShift 1.8s infinite" }}/>
+                ))}
+              </div>
+            ) : listToIterate.length === 0 ? (
+              <motion.div {...fadeUp(0.15)} style={{ textAlign: "center", padding: "100px 40px", border: "1px dashed #CBD5E1", borderRadius: "20px", background: "#FFFFFF", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <Users size={48} color="#CBD5E1" strokeWidth={1} style={{ marginBottom: 20 }} />
+                <h3 style={{ margin: "0 0 8px 0", fontFamily: FONT, fontSize: 18, fontWeight: 500, color: "#0F1F3D" }}>
+                  Sin postulaciones aún
+                </h3>
+                <p style={{ margin: 0, fontFamily: FONT, fontSize: 14, color: "#64748B", maxWidth: 450, lineHeight: 1.6 }}>
+                  Cuando los estudiantes se postulen a tus proyectos, aparecerán aquí.
+                </p>
+              </motion.div>
+            ) : (
+
+
           <div style={{ display: "flex", flexDirection: "column" }}>
             {currentViewList.map((proyecto) => (
                 <ProjectEcosystemSection 
@@ -785,7 +773,7 @@ export function PostulantesPage() {
             {currentViewList.length > 0 && currentViewList.filter(p => tabFocus === 'operativos' ? p.estado === 'EN_DESARROLLO' : tabFocus === 'pendientes' ? p.estado === 'PENDIENTE' : true).length === 0 && (
                 <div style={{ textAlign: "center", padding: "60px", background: "transparent" }}>
                    <p style={{ margin: 0, fontFamily: FONT, fontSize: 14, color: "#64748B" }}>
-                       Ninguno de tus procesos visibles en esta sección corresponde a tu segmentación solicitada. Selecciona "Visión General" para tener perspectiva absoluta.
+                    El estudiante debe aceptar tu invitación para que el proyecto inicie.
                    </p>
                 </div>
             )}

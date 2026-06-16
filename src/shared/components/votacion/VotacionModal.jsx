@@ -74,38 +74,34 @@ export function VotacionModal({ proyectoId, onClose }) {
     (a, b) => (b.votosRecibidos || 0) - (a.votosRecibidos || 0)
   );
 
-    const getPosicion = (idx) => {
-    // 🥇 1° lugar: Dorado destacado
-    if (idx === 0) return { 
-      color: "#f59e0b", 
-      bg: "#fffbeb", 
-      border: "#fbbf24",
-      textColor: "#92400e",
-      barra: "linear-gradient(90deg, #fbbf24, #f59e0b)",
+  const getPosicion = (idx) => {
+    if (idx === 0) return {
+      color: "#1B6FE8",
+      bg: "#EFF6FF",
+      border: "#BFDBFE",
+      textColor: "#1d4ed8",
+      barra: "linear-gradient(90deg, #1B6FE8, #3B82F6)",
     };
-    // 🥈 2° lugar: Naranja cálido
-    if (idx === 1) return { 
-      color: "#f97316", 
-      bg: "#fff7ed", 
-      border: "#fdba74",
-      textColor: "#9a3412",
-      barra: "linear-gradient(90deg, #fb923c, #f97316)",
+    if (idx === 1) return {
+      color: "#0284C7",
+      bg: "#F0F9FF",
+      border: "#BAE6FD",
+      textColor: "#075985",
+      barra: "linear-gradient(90deg, #0284C7, #38BDF8)",
     };
-    // 🥉 3° lugar: Ámbar suave
-    if (idx === 2) return { 
-      color: "#d97706", 
-      bg: "#fffbeb", 
-      border: "#fcd34d",
-      textColor: "#92400e",
-      barra: "linear-gradient(90deg, #fbbf24, #d97706)",
+    if (idx === 2) return {
+      color: "#64748B",
+      bg: "#F8FAFC",
+      border: "#E2E8F0",
+      textColor: "#475569",
+      barra: "linear-gradient(90deg, #64748B, #94A3B8)",
     };
-    // 4° en adelante: Piedra/gris cálido
-    return { 
-      color: "#78716c", 
-      bg: "#fafaf9", 
-      border: "#e7e5e4",
-      textColor: "#57534e",
-      barra: "linear-gradient(90deg, #a8a29e, #78716c)",
+    return {
+      color: "#94A3B8",
+      bg: "#FFFFFF",
+      border: "#E2E8F0",
+      textColor: "#64748B",
+      barra: "linear-gradient(90deg, #CBD5E1, #94A3B8)",
     };
   };
 
@@ -132,11 +128,11 @@ export function VotacionModal({ proyectoId, onClose }) {
             <div style={{
               width: 48, height: 48, borderRadius: 14,
               background: completada
-                ? "linear-gradient(135deg, #fef3c7, #fde68a)"
+                ? "linear-gradient(135deg, #0F1F3D, #1B6FE8)"
                 : "linear-gradient(135deg, #0d1b35, #1a1a2e)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              {completada ? <Trophy size={22} color="#f59e0b" /> : <Vote size={22} color="#fff" />}
+              {completada ? <Trophy size={22} color="#fff" /> : <Vote size={22} color="#fff" />}
             </div>
             <div>
               <h2 style={{ fontSize: 18, fontWeight: 700, color: "#0f1f3d", margin: 0 }}>
@@ -152,8 +148,8 @@ export function VotacionModal({ proyectoId, onClose }) {
               <div style={{
                 display: "flex", alignItems: "center", gap: 6,
                 padding: "6px 14px", borderRadius: 10,
-                background: "#fffbeb", border: "1px solid #fde68a",
-                fontSize: 12, fontWeight: 600, color: "#92400e",
+                background: "#F8FAFC", border: "1px solid #E2E8F0",
+                fontSize: 12, fontWeight: 600, color: "#475569",
               }}>
                 <Clock size={14} />
                 Cierra {tiempoRestante}
@@ -188,22 +184,22 @@ export function VotacionModal({ proyectoId, onClose }) {
             <div style={{ display: "flex", gap: 24 }}>
               {/* Ganador - Panel izquierdo */}
               <div style={{
-                flex: "0 0 260px", background: "linear-gradient(135deg, #fffbeb, #fef3c7)",
-                border: "1px solid #fbbf24", borderRadius: 16,
+                flex: "0 0 260px", background: "linear-gradient(135deg, #0F1F3D, #1a3260)",
+                border: "1px solid #1B3A6B", borderRadius: 16,
                 padding: "28px 24px", textAlign: "center",
               }}>
                 <div style={{
                   width: 64, height: 64, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+                  background: "linear-gradient(135deg, #1B6FE8, #38BDF8)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  margin: "0 auto 14px", boxShadow: "0 6px 20px rgba(245,158,11,0.25)",
+                  margin: "0 auto 14px", boxShadow: "0 6px 20px rgba(27,111,232,0.3)",
                 }}>
                   <Trophy size={28} color="#fff" />
                 </div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#0f1f3d", margin: "0 0 6px" }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#FFFFFF", margin: "0 0 6px" }}>
                   {ganador.estudianteNombre}
                 </h3>
-                <p style={{ fontSize: 12, color: "#92400e", margin: "0 0 14px", lineHeight: 1.5 }}>
+                <p style={{ fontSize: 12, color: "#94A3B8", margin: "0 0 14px", lineHeight: 1.5 }}>
                   {ganador.votosRecibidos} voto{ganador.votosRecibidos !== 1 ? "s" : ""} ·{" "}
                   {totalVotos > 0 ? Math.round((ganador.votosRecibidos / totalVotos) * 100) : 0}%
                 </p>
@@ -257,17 +253,18 @@ export function VotacionModal({ proyectoId, onClose }) {
                             )}
                             {c.esGanador && (
                               <span style={{
-                                fontSize: 10, fontWeight: 600, color: "#92400e",
-                                background: "#fef3c7", padding: "1px 7px", borderRadius: 5,
-                              }}>Ganador</span>
+                                fontSize: 10, fontWeight: 600, color: "#1d4ed8",
+                                background: "#EFF6FF", padding: "1px 7px", borderRadius: 5,
+                                border: "0.5px solid #BFDBFE",
+                              }}>Delegado</span>
                             )}
                           </div>
-                          <div style={{ height: 5, borderRadius: 3, background: "#e5e7eb", overflow: "hidden" }}>
+                          <div style={{ height: 5, borderRadius: 3, background: "#E2E8F0", overflow: "hidden" }}>
                             <div style={{
                               height: "100%", borderRadius: 3, width: `${pct}%`,
                               background: c.esGanador
-                                ? "linear-gradient(90deg, #fbbf24, #f59e0b)"
-                                : "linear-gradient(90deg, #1B6FE8, #06B6D4)",
+                                ? "linear-gradient(90deg, #1B6FE8, #3B82F6)"
+                                : pos.barra,
                               transition: "width 0.8s ease",
                             }} />
                           </div>
@@ -387,27 +384,27 @@ export function VotacionModal({ proyectoId, onClose }) {
               <div style={{ flex: "0 0 280px", display: "flex", flexDirection: "column", gap: 14 }}>
                 {/* Info: Todos son candidatos */}
                 <div style={{
-                  padding: "16px 18px", background: "#f0fdf4",
-                  borderRadius: 14, border: "1px solid #bbf7d0",
+                  padding: "16px 18px", background: "#F8FAFC",
+                  borderRadius: 14, border: "1px solid #E2E8F0",
                 }}>
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: 8,
-                      background: "#dcfce7", display: "flex",
+                      background: "#EFF6FF", display: "flex",
                       alignItems: "center", justifyContent: "center",
                       flexShrink: 0, marginTop: 2,
                     }}>
-                      <Users size={16} color="#16a34a" />
+                      <Users size={16} color="#1B6FE8" />
                     </div>
                     <div>
                       <span style={{
-                        fontSize: 13, fontWeight: 700, color: "#166534",
+                        fontSize: 13, fontWeight: 700, color: "#0F1F3D",
                         display: "block", marginBottom: 4,
                       }}>
                         Todos son candidatos
                       </span>
                       <span style={{
-                        fontSize: 11, color: "#15803d",
+                        fontSize: 11, color: "#475569",
                         display: "block", lineHeight: 1.5,
                       }}>
                         Todos los miembros confirmados del equipo participan automáticamente. Vota por quien consideres más preparado.

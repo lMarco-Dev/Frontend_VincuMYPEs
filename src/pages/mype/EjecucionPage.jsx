@@ -162,9 +162,6 @@ function CentroOperativoHero({ activas, talentoAsignado, hitosPendientes }) {
       />
 
       <div style={{ position: "relative", zIndex: 10, flex: "1 1 45%", minWidth: 320 }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)", borderRadius: "8px", padding: "6px 14px", fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#38BDF8", marginBottom: 20 }}>
-          Operaciones Activas
-        </div>
         <h1 style={{ fontFamily: FONT, fontSize: "clamp(28px, 4vw, 36px)", fontWeight: 600, color: "#FFFFFF", margin: "0 0 16px", letterSpacing: "-0.03em" }}>
           Monitoreo de Avance
         </h1>

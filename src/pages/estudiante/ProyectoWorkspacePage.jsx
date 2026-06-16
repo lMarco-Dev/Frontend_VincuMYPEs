@@ -115,6 +115,131 @@ const HeroRing = ({ value = 0, max = 1, size = 88 }) => { /* ... igual que antes
 
 const EstadoBadge = ({ estado }) => { /* ... igual que antes ... */ };
 
+/* ═══════════════════════════════════════════════
+   HERO BANNER NAVY (canvas + partículas)
+═══════════════════════════════════════════════ */
+function WorkspaceHero({ proyecto, mypeNombre, completados, total }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let w = (canvas.width = canvas.offsetWidth);
+    let h = (canvas.height = canvas.offsetHeight);
+
+    const particles = [];
+    for (let i = 0; i < 50; i++) {
+      particles.push({
+        x: Math.random() * w, y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2,
+        size: Math.random() * 1.5 + 0.5,
+      });
+    }
+
+    let animId;
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+      particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+        ctx.fillStyle = "rgba(56,189,248,0.35)";
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[j].x - p.x, dy = particles[j].y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 90) {
+            ctx.strokeStyle = `rgba(56,189,248,${0.08 * (1 - dist / 90)})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+          }
+        }
+      });
+      animId = requestAnimationFrame(draw);
+    };
+    draw();
+
+    const ro = new ResizeObserver(() => {
+      if (!canvas) return;
+      w = canvas.width = canvas.offsetWidth;
+      h = canvas.height = canvas.offsetHeight;
+    });
+    ro.observe(canvas);
+    return () => { cancelAnimationFrame(animId); ro.disconnect(); };
+  }, []);
+
+  const porcentaje = total > 0 ? Math.round((completados / total) * 100) : 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      style={{
+        position: "relative",
+        background: "linear-gradient(135deg, #0A1628 0%, #0F2A4A 55%, #1E3A5F 100%)",
+        borderRadius: 20,
+        padding: "36px 44px",
+        overflow: "hidden",
+        boxShadow: "0 20px 40px -12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)",
+        marginBottom: 20,
+        border: "1px solid rgba(255,255,255,0.08)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 32,
+        flexWrap: "wrap",
+      }}
+    >
+      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: -80, right: -40, width: 320, height: 320, background: "radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%)", filter: "blur(40px)" }} />
+
+      {/* Info principal */}
+      <div style={{ position: "relative", zIndex: 10, flex: "1 1 auto", minWidth: 0 }}>
+
+        <h1 style={{ fontFamily: FONT, fontSize: "clamp(18px, 3vw, 26px)", fontWeight: 600, color: "#FFFFFF", margin: "0 0 12px", letterSpacing: "-0.02em", lineHeight: 1.3 }}>
+          {proyecto.titulo}
+        </h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <span style={{ fontFamily: FONT, fontSize: 13, color: "#94A3B8", display: "flex", alignItems: "center", gap: 6 }}>
+            <User size={13} color="#64748B" /> {mypeNombre}
+          </span>
+          {proyecto.fechaLimite && (
+            <span style={{ fontFamily: FONT, fontSize: 13, color: "#94A3B8", display: "flex", alignItems: "center", gap: 6 }}>
+              <Calendar size={13} color="#64748B" />
+              Límite:{" "}
+              <span style={{ color: "#FCA5A5", fontWeight: 600 }}>
+                {format(new Date(proyecto.fechaLimite), "d 'de' MMMM, yyyy", { locale: es })}
+              </span>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Progreso */}
+      {total > 0 && (
+        <div style={{ position: "relative", zIndex: 10, flexShrink: 0, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "20px 28px", textAlign: "center", minWidth: 120 }}>
+          <div style={{ fontSize: 38, fontWeight: 400, color: "#FFFFFF", fontFamily: FONT, lineHeight: 1, letterSpacing: "-0.03em" }}>
+            {porcentaje}<span style={{ fontSize: 18, color: "#64748B" }}>%</span>
+          </div>
+          <div style={{ marginTop: 10, height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 4, overflow: "hidden" }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${porcentaje}%` }}
+              transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+              style={{ height: "100%", background: "linear-gradient(90deg, #1B6FE8, #38BDF8)", borderRadius: 4 }}
+            />
+          </div>
+          <div style={{ marginTop: 8, fontSize: 11, color: "#64748B", fontFamily: FONT }}>
+            {completados}/{total} entregables
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 const EntregableCard = ({ titulo, entregable, onUpload, onDownload, onDelete, index, esDelegado, esProyectoIndividual }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -123,10 +248,12 @@ const EntregableCard = ({ titulo, entregable, onUpload, onDownload, onDelete, in
   const estado = entregable?.estado || "PENDIENTE";
   const tieneFeedback = !!entregable?.observaciones;
   const entregaId = entregable?.id;
-  const barColor = estado === "APROBADO" ? "#10b981" : estado === "EN_REVISION" || estado === "PENDIENTE_REVISION" ? "#eab308" : estado === "RECHAZADO" ? "#ef4444" : "#9ca3af";
-
-  // ✅ Cualquier miembro confirmado puede subir (el bloqueo se maneja en backend)
   const puedeSubir = true;
+
+  const statusLabel = estado === "APROBADO" ? "Aprobado"
+    : estado === "EN_REVISION" || estado === "PENDIENTE_REVISION" ? "En revisión"
+    : estado === "RECHAZADO" ? "Requiere cambios"
+    : "Pendiente";
 
   const handleViewFile = () => {
     const fileUrl = entregable?.archivoUrl || entregable?.archivo;
@@ -142,98 +269,93 @@ const EntregableCard = ({ titulo, entregable, onUpload, onDownload, onDelete, in
 
   const getFileIcon = () => {
     const ext = (entregable?.archivoNombre || "").split(".").pop()?.toLowerCase();
-    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return <FileImage size={18} color={C.primary} />;
-    if (ext === "pdf") return <FileText size={18} color="#dc2626" />;
-    return <FileArchive size={18} color={C.textMuted} />;
-  };
-
-  const handleUploadClick = () => {
-    onUpload(titulo, entregable);
+    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return <FileImage size={16} color={C.primary} />;
+    if (ext === "pdf") return <FileText size={16} color="#dc2626" />;
+    return <FileArchive size={16} color={C.textMuted} />;
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.08 }} whileHover={{ y: -4 }} onHoverStart={() => setHovered(true)} onHoverEnd={() => setHovered(false)} style={{ height: "100%", position: "relative" }}>
-      <div style={{ background: C.card, borderRadius: 16, border: `1px solid ${hovered ? `${C.primary}30` : C.border}`, overflow: "hidden", transition: "all 0.3s", height: "100%", display: "flex", flexDirection: "column", position: "relative" }}>
-        {/* ... resto del card exactamente igual que antes, solo cambié puedeSubir y handleUploadClick ... */}
-        {showDeleteConfirm && (
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)", zIndex: 10, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} style={{ background: "#fff", borderRadius: 12, padding: 16, width: "80%", maxWidth: 260, textAlign: "center", boxShadow: "0 10px 25px rgba(0,0,0,0.2)", border: `1px solid ${C.border}` }} onClick={(e) => e.stopPropagation()}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: C.textPrimary, marginBottom: 16 }}>¿Eliminar "{titulo.length > 40 ? titulo.slice(0, 40) + "…" : titulo}"?</p>
-              <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-                <button onClick={() => setShowDeleteConfirm(false)} style={{ padding: "6px 12px", borderRadius: 8, border: `0.5px solid ${C.border}`, background: "#fff", fontSize: 11, cursor: "pointer", fontWeight: 500 }}>Cancelar</button>
-                <button onClick={confirmDelete} style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: "#dc2626", color: "#fff", fontSize: 11, cursor: "pointer", fontWeight: 500 }}>Eliminar</button>
-              </div>
-            </motion.div>
-          </div>
-        )}
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.07 }}
+      onHoverStart={() => setHovered(true)} onHoverEnd={() => setHovered(false)}
+      style={{ height: "100%", position: "relative" }}>
 
-        <div style={{ height: 90, background: tieneArchivo ? `linear-gradient(135deg, ${barColor}12, ${barColor}06)` : "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center", borderBottom: `3px solid ${barColor}`, position: "relative" }}>
-          {tieneArchivo ? (
-            <div style={{ textAlign: "center" }}>
-              <div style={{ width: 36, height: 46, background: "#fff", borderRadius: 6, border: `0.5px solid ${C.border}`, borderTop: `3px solid ${barColor}`, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>{getFileIcon()}</div>
-              <span style={{ fontSize: 7, fontWeight: 600, color: barColor, marginTop: 5, display: "block" }}>{(entregable?.archivoNombre || "").split(".").pop()?.toUpperCase()}</span>
+      {showDeleteConfirm && (
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)", zIndex: 10, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} style={{ background: "#fff", borderRadius: 12, padding: 16, width: "80%", maxWidth: 260, textAlign: "center", boxShadow: "0 10px 25px rgba(0,0,0,0.15)", border: "1px solid #E2E8F0" }} onClick={(e) => e.stopPropagation()}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: C.textPrimary, marginBottom: 16, fontFamily: FONT }}>¿Eliminar "{titulo.length > 40 ? titulo.slice(0, 40) + "…" : titulo}"?</p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+              <button onClick={() => setShowDeleteConfirm(false)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff", fontSize: 11, cursor: "pointer", fontWeight: 500 }}>Cancelar</button>
+              <button onClick={confirmDelete} style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: "#dc2626", color: "#fff", fontSize: 11, cursor: "pointer", fontWeight: 500 }}>Eliminar</button>
             </div>
-          ) : (
-            <div style={{ textAlign: "center" }}>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", border: `2px dashed ${hovered ? C.primary : "#d1d5db"}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}><Upload size={16} color={hovered ? C.primary : "#d1d5db"} /></div>
-              <span style={{ fontSize: 9, color: "#9ca3af", fontWeight: 500, marginTop: 5, display: "block" }}>Sin archivo</span>
-            </div>
+          </motion.div>
+        </div>
+      )}
+
+      <div style={{ background: "#FFFFFF", borderRadius: 14, border: `1px solid ${hovered ? "#C7D7F0" : "#E2E8F0"}`, overflow: "hidden", transition: "border-color 0.2s", height: "100%", display: "flex", flexDirection: "column" }}>
+
+        {/* Header: index + status label */}
+        <div style={{ padding: "14px 16px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, color: C.textMuted, background: "#F1F5F9", padding: "2px 7px", borderRadius: 6, fontFamily: FONT }}>#{index + 1}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "#475569", fontFamily: FONT }}>{statusLabel}</span>
+          </div>
+          {tieneArchivo && puedeSubir && (
+            <button onClick={() => setShowDeleteConfirm(true)} style={{ background: "transparent", border: "none", color: "#9ca3af", cursor: "pointer", padding: 4, borderRadius: 4 }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#dc2626")} onMouseLeave={(e) => (e.currentTarget.style.color = "#9ca3af")}><Trash2 size={12} /></button>
           )}
         </div>
 
-        <div style={{ padding: "14px 16px", flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 8, fontWeight: 700, color: C.textMuted, background: "#f1f5f9", padding: "2px 6px", borderRadius: 8 }}>#{index + 1}</span>
-              <EstadoBadge estado={estado} />
-            </div>
-            {tieneArchivo && puedeSubir && (
-              <button onClick={() => setShowDeleteConfirm(true)} style={{ background: "transparent", border: "none", color: "#9ca3af", cursor: "pointer", padding: 4, borderRadius: 4 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#dc2626")} onMouseLeave={(e) => (e.currentTarget.style.color = "#9ca3af")}><Trash2 size={12} /></button>
+        <div style={{ padding: "10px 16px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
+          {/* File preview */}
+          <div style={{ height: 72, background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+            {tieneArchivo ? (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ width: 30, height: 38, background: "#fff", borderRadius: 5, border: "0.5px solid #E2E8F0", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>{getFileIcon()}</div>
+                <span style={{ fontSize: 7, fontWeight: 700, color: "#64748B", marginTop: 4, display: "block" }}>{(entregable?.archivoNombre || "").split(".").pop()?.toUpperCase()}</span>
+              </div>
+            ) : (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", border: `1.5px dashed ${hovered ? C.primary : "#CBD5E1"}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}><Upload size={14} color={hovered ? C.primary : "#CBD5E1"} /></div>
+                <span style={{ fontSize: 9, color: "#94A3B8", fontWeight: 500, marginTop: 4, display: "block", fontFamily: FONT }}>Sin archivo</span>
+              </div>
             )}
           </div>
 
-          <h4 style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, margin: 0, lineHeight: 1.4 }}>{titulo}</h4>
+          <h4 style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, margin: "0 0 auto", lineHeight: 1.4, fontFamily: FONT }}>{titulo}</h4>
 
           {tieneArchivo && (
-            <div style={{ background: "#f8fafc", borderRadius: 8, padding: 8, marginTop: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 5, background: "#fff", border: `0.5px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>{getFileIcon()}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: C.textPrimary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entregable.archivoNombre || "Archivo"}</span>
-                    {entregable.subidoPorNombre && <span style={{ fontSize: 8, fontWeight: 600, background: "#fef3c7", color: "#92400e", padding: "1px 6px", borderRadius: 6, border: "0.5px solid #fbbf24", whiteSpace: "nowrap" }}>📎 {entregable.subidoPorNombre}</span>}
-                  </div>
-                  {entregable.fechaSubida && <p style={{ fontSize: 8, color: C.textMuted, margin: "2px 0 0" }}>{formatDistanceToNow(new Date(entregable.fechaSubida), { addSuffix: true, locale: es })}</p>}
-                </div>
+            <div style={{ marginTop: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "#475569", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, fontFamily: FONT }}>{entregable.archivoNombre || "Archivo"}</span>
+                {entregable.subidoPorNombre && <span style={{ fontSize: 8, fontWeight: 600, background: "#F1F5F9", color: "#475569", padding: "1px 6px", borderRadius: 5, flexShrink: 0, fontFamily: FONT }}>{entregable.subidoPorNombre}</span>}
               </div>
+              {entregable.fechaSubida && <p style={{ fontSize: 9, color: C.textMuted, margin: "2px 0 0", fontFamily: FONT }}>{formatDistanceToNow(new Date(entregable.fechaSubida), { addSuffix: true, locale: es })}</p>}
             </div>
           )}
 
-          {/* Botones de acción */}
           <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
             {tieneArchivo ? (
               <>
-                <button onClick={handleViewFile} style={{ flex: 1, padding: "7px", borderRadius: 8, border: `0.5px solid ${C.border}`, background: "#fff", color: C.primary, fontSize: 10, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}><Eye size={12} /> Ver</button>
-                <button onClick={() => onDownload(entregable.archivoUrl || entregable.archivo, entregable.archivoNombre)} style={{ flex: 1, padding: "7px", borderRadius: 8, border: `0.5px solid ${C.border}`, background: "#fff", color: C.textSecondary, fontSize: 10, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}><Download size={12} /> Descargar</button>
-                <button onClick={() => onUpload(titulo, entregable)} style={{ padding: "7px 10px", borderRadius: 8, border: `0.5px solid ${C.border}`, background: "#f8fafc", cursor: "pointer" }} title="Actualizar archivo"><RefreshCw size={12} color={C.textMuted} /></button>
+                <button onClick={handleViewFile} style={{ flex: 1, padding: "7px", borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff", color: C.primary, fontSize: 10, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontFamily: FONT }}><Eye size={12} /> Ver</button>
+                <button onClick={() => onDownload(entregable.archivoUrl || entregable.archivo, entregable.archivoNombre)} style={{ flex: 1, padding: "7px", borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff", color: "#475569", fontSize: 10, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontFamily: FONT }}><Download size={12} /> Bajar</button>
+                <button onClick={() => onUpload(titulo, entregable)} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #E2E8F0", background: "#F8FAFC", cursor: "pointer" }} title="Actualizar"><RefreshCw size={12} color={C.textMuted} /></button>
               </>
             ) : (
-              <button onClick={handleUploadClick} style={{ width: "100%", padding: "9px", borderRadius: 8, border: "none", background: C.primary, color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Upload size={14} /> Subir entregable</button>
+              <button onClick={() => onUpload(titulo, entregable)} style={{ width: "100%", padding: "9px", borderRadius: 8, border: "none", background: C.primary, color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: FONT }}><Upload size={14} /> Subir entregable</button>
             )}
           </div>
 
           {tieneFeedback && (
-            <div style={{ marginTop: 12 }}>
-              <button onClick={() => setExpanded(!expanded)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", borderRadius: 8, border: `0.5px solid #fde68a`, background: "#fffbeb", cursor: "pointer" }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: C.warning }}>📝 Recomendaciones</span>
-                <ChevronDown size={12} color={C.warning} style={{ transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+            <div style={{ marginTop: 10 }}>
+              <button onClick={() => setExpanded(!expanded)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 10px", borderRadius: 8, border: "0.5px solid #E2E8F0", background: "#F8FAFC", cursor: "pointer" }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", fontFamily: FONT }}>Recomendaciones</span>
+                <ChevronDown size={12} color="#475569" style={{ transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
               </button>
               <AnimatePresence>
                 {expanded && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: "hidden" }}>
-                    <div style={{ marginTop: 6, padding: 10, borderRadius: 8, background: "#fffbeb", border: `0.5px solid #fde68a` }}>
-                      <p style={{ fontSize: 11, color: C.textPrimary, margin: 0, lineHeight: 1.5 }}>{entregable.observaciones}</p>
+                    <div style={{ marginTop: 6, padding: 10, borderRadius: 8, background: "#F8FAFC", border: "0.5px solid #E2E8F0" }}>
+                      <p style={{ fontSize: 11, color: C.textPrimary, margin: 0, lineHeight: 1.5, fontFamily: FONT }}>{entregable.observaciones}</p>
                     </div>
                   </motion.div>
                 )}
@@ -431,7 +553,10 @@ export function ProyectoWorkspacePage() {
 
   return (
     <div style={{ fontFamily: "Inter, Arial, 'Helvetica Neue', sans-serif", background: C.bg, minHeight: "100vh", padding: "28px 32px", maxWidth: 1400, margin: "0 auto" }}>
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes vping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
+      `}</style>
 
       {/* Modal proyecto completado (estudiante) */}
       {showCompletadoModal && (
@@ -456,50 +581,36 @@ export function ProyectoWorkspacePage() {
       )}
 
       {/* Hero Banner */}
-      <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ background: "#fff", borderRadius: 20, border: `0.5px solid ${C.border}`, padding: "24px 28px", marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <div style={{ width: 4, height: 20, borderRadius: 2, background: C.primary, flexShrink: 0 }} />
-            <h1 style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.02em", color: "#0f1f3d", margin: 0, lineHeight: 1.25 }}>{proyecto.titulo}</h1>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, fontWeight: 500, color: "#6b6b7a", flexWrap: "wrap", marginLeft: 14 }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 5 }}><motion.span animate={{ boxShadow: ["0 0 0 0 rgba(16,185,129,0.5)", "0 0 0 6px rgba(16,185,129,0)", "0 0 0 0 rgba(16,185,129,0)"] }} transition={{ duration: 2, repeat: Infinity }} style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", display: "inline-block" }} /> Proyecto activo</span>
-            <span style={{ width: 3, height: 3, borderRadius: "50%", background: "#cbd5e1", display: "inline-block" }} />
-            <span style={{ display: "flex", alignItems: "center", gap: 5 }}><User size={12} /> {mypeNombre}</span>
-            {proyecto.fechaLimite && (
-              <>
-                <span style={{ width: 3, height: 3, borderRadius: "50%", background: "#cbd5e1", display: "inline-block" }} />
-                <span style={{ display: "flex", alignItems: "center", gap: 5 }}><Calendar size={12} /> Límite: <span style={{ color: "#dc2626", fontWeight: 600 }}>{format(new Date(proyecto.fechaLimite), "d 'de' MMMM, yyyy", { locale: es })}</span></span>
-              </>
-            )}
-          </div>
-        </div>
-        <div style={{ flexShrink: 0 }}><HeroRing value={currentStats.completados} max={currentStats.total} size={88} /></div>
-      </motion.div>
+      <WorkspaceHero
+        proyecto={proyecto}
+        mypeNombre={mypeNombre}
+        completados={currentStats.completados}
+        total={currentStats.total}
+      />
 
       <LinearStatsChart completados={currentStats.completados} enRevision={currentStats.enRevision} pendientes={currentStats.pendientes} rechazados={currentStats.rechazados} total={currentStats.total} />
 
       {/* Banners informativos */}
       {!esProyectoIndividual && votacionActiva && (
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }} style={{ background: "linear-gradient(135deg, #fef3c7, #fffbeb)", border: "1px solid #fbbf24", borderRadius: 14, padding: "14px 20px", marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }} style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 14, padding: "14px 20px", marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ width: 42, height: 42, borderRadius: "50%", background: "linear-gradient(135deg, #fbbf24, #f59e0b)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 12px rgba(245,158,11,0.3)" }}><Vote size={20} color="#fff" /></motion.div>
+            <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity }} style={{ width: 42, height: 42, borderRadius: "50%", background: "linear-gradient(135deg, #1B6FE8, #0F1F3D)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 12px rgba(27,111,232,0.25)" }}><Vote size={20} color="#fff" /></motion.div>
             <div>
-              <h4 style={{ fontSize: 14, fontWeight: 700, color: "#92400e", margin: "0 0 3px" }}> ¡Elige al delegado del equipo!</h4>
-              <p style={{ fontSize: 12, color: "#a16207", margin: 0, lineHeight: 1.5 }}>El delegado será el representante, pero <strong>todos los miembros pueden subir entregables</strong>. El sistema evita conflictos automáticamente.</p>
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: "#0F1F3D", margin: "0 0 3px", fontFamily: FONT }}>Elige al delegado del equipo</h4>
+              <p style={{ fontSize: 12, color: "#475569", margin: 0, lineHeight: 1.5, fontFamily: FONT }}>El delegado será el representante, pero <strong>todos los miembros pueden subir entregables</strong>. El sistema evita conflictos automáticamente.</p>
             </div>
           </div>
-          <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={() => setActiveTab("votacion")} style={{ padding: "10px 20px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #fbbf24, #f59e0b)", color: "#7c2d12", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 7, boxShadow: "0 3px 10px rgba(245,158,11,0.25)", flexShrink: 0 }}><Vote size={15} /> Ir a votar</motion.button>
+          <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={() => setActiveTab("votacion")} style={{ padding: "10px 20px", borderRadius: 10, border: "none", background: "#1B6FE8", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 7, boxShadow: "0 3px 10px rgba(27,111,232,0.2)", flexShrink: 0, fontFamily: FONT }}><Vote size={15} /> Ir a votar</motion.button>
         </motion.div>
       )}
 
       {proyecto?.estado === "PENDIENTE_ADMIN" && (
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }} style={{ background: "linear-gradient(135deg, #fff7ed, #fffbeb)", border: "1px solid #fdba74", borderRadius: 14, padding: "14px 20px", marginBottom: 18, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4 }} style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 14, padding: "14px 20px", marginBottom: 18, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
-            <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 1.5, repeat: Infinity }} style={{ width: 42, height: 42, borderRadius: "50%", background: "linear-gradient(135deg, #f97316, #ea580c)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(234,88,12,0.3)" }}><AlertCircle size={20} color="#fff" /></motion.div>
+            <div style={{ width: 42, height: 42, borderRadius: "50%", background: "linear-gradient(135deg, #475569, #334155)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><AlertCircle size={20} color="#fff" /></div>
             <div>
-              <h4 style={{ fontSize: 14, fontWeight: 700, color: "#9a3412", margin: "0 0 3px" }}>Proyecto en revisión</h4>
-              <p style={{ fontSize: 12, color: "#c2410c", margin: 0, lineHeight: 1.5 }}>El administrador está revisando tu proyecto debido a inactividad en la votación. Recibirás una notificación cuando se tome una decisión.</p>
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: "#0F1F3D", margin: "0 0 3px", fontFamily: FONT }}>Proyecto en revisión</h4>
+              <p style={{ fontSize: 12, color: "#475569", margin: 0, lineHeight: 1.5, fontFamily: FONT }}>El administrador está revisando tu proyecto debido a inactividad en la votación. Recibirás una notificación cuando se tome una decisión.</p>
             </div>
           </div>
         </motion.div>
@@ -539,8 +650,8 @@ export function ProyectoWorkspacePage() {
             {activeTab === "entregables" && (
               <motion.div key="entregables" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
                 {votacionCompletada && ganador && !esProyectoIndividual && (
-                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ background: esDelegado ? "linear-gradient(135deg, #ecfdf5, #d1fae5)" : "linear-gradient(135deg, #eff6ff, #dbeafe)", border: esDelegado ? "1px solid #6ee7b7" : "1px solid #bfdbfe", borderRadius: 12, padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: esDelegado ? "linear-gradient(135deg, #10b981, #059669)" : "linear-gradient(135deg, #1B6FE8, #06B6D4)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{esDelegado ? <Crown size={20} color="#fff" /> : <Shield size={20} color="#fff" />}</div>
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 12, padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: esDelegado ? "linear-gradient(135deg, #0F1F3D, #1B6FE8)" : "linear-gradient(135deg, #1B6FE8, #06B6D4)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{esDelegado ? <Crown size={20} color="#fff" /> : <Shield size={20} color="#fff" />}</div>
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 700, color: "#0f1f3d", margin: 0 }}>{esDelegado ? "¡Eres el delegado del equipo!" : `Delegado: ${ganador.estudianteNombre}`}</p>
                       <p style={{ fontSize: 11, color: "#6b7280", margin: "2px 0 0" }}>Todos los miembros pueden subir entregables. El sistema evita ediciones simultáneas automáticamente.</p>
@@ -1240,7 +1351,7 @@ export function ProyectoWorkspacePage() {
                   <div style={{ textAlign: "center", padding: "20px 0" }}>
                     {/* Si son 2: ícono Shuffle. Si son más: corona */}
                     {votacion.candidatos?.length === 2 ? (
-                      <div style={{ width: 80, height: 80, margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", background: "#eff6ff", borderRadius: 16, border: "2px solid #bfdbfe" }}>
+                      <div style={{ width: 80, height: 80, margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", background: "#EFF6FF", borderRadius: 16, border: "1px solid #BFDBFE" }}>
                         <Shuffle size={40} color="#1B6FE8" />
                       </div>
                     ) : (
@@ -1252,7 +1363,7 @@ export function ProyectoWorkspacePage() {
                           width: 80,
                           height: 80,
                           borderRadius: "50%",
-                          background: "linear-gradient(135deg, #fbbf24, #f59e0b)",
+                          background: "linear-gradient(135deg, #0F1F3D, #1B6FE8)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -1315,8 +1426,8 @@ export function ProyectoWorkspacePage() {
                           display: "flex", alignItems: "center", gap: 8,
                           marginBottom: 14,
                         }}>
-                          <div style={{ width: 4, height: 16, borderRadius: 2, background: "#059669" }} />
-                          <span style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                          <div style={{ width: 4, height: 16, borderRadius: 2, background: C.primary }} />
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: FONT }}>
                             Clasificación
                           </span>
                         </div>
@@ -1326,14 +1437,13 @@ export function ProyectoWorkspacePage() {
                             const pct = votacion.totalVotos > 0
                               ? Math.round((c.votosRecibidos / votacion.totalVotos) * 100)
                               : 0;
-                            // Escala de verdes para los 3 primeros, plomo para el resto
                             const pos = idx === 0
-                              ? { bg: "#ecfdf5", border: "#a7f3d0", badge: "#059669", barra: "#059669", textBadge: "#fff", label: "1°" }
+                              ? { bg: "#EFF6FF", border: "#BFDBFE", badge: "#1B6FE8", barra: "linear-gradient(90deg, #1B6FE8, #3B82F6)", textBadge: "#fff" }
                               : idx === 1
-                              ? { bg: "#f0fdf4", border: "#bbf7d0", badge: "#22c55e", barra: "#22c55e", textBadge: "#fff", label: "2°" }
+                              ? { bg: "#F0F9FF", border: "#BAE6FD", badge: "#0284C7", barra: "linear-gradient(90deg, #0284C7, #38BDF8)", textBadge: "#fff" }
                               : idx === 2
-                              ? { bg: "#f9fafb", border: "#d1d5db", badge: "#86efac", barra: "#86efac", textBadge: "#166534", label: "3°" }
-                              : { bg: "#fff", border: "#e8e8e4", badge: "#d6d3d1", barra: "#a8a29e", textBadge: "#78716c", label: `${idx + 1}°` };
+                              ? { bg: "#F8FAFC", border: "#E2E8F0", badge: "#64748B", barra: "linear-gradient(90deg, #64748B, #94A3B8)", textBadge: "#fff" }
+                              : { bg: "#fff", border: "#E2E8F0", badge: "#CBD5E1", barra: "linear-gradient(90deg, #CBD5E1, #94A3B8)", textBadge: "#475569" };
                             return (
                               <div key={c.estudianteId} style={{
                                 display: "flex", alignItems: "center", gap: 12,
@@ -1344,9 +1454,9 @@ export function ProyectoWorkspacePage() {
                               }}>
                                 <span style={{
                                   width: 32, height: 32, borderRadius: 8,
-                                  background: c.esGanador ? "#059669" : pos.badge,
+                                  background: c.esGanador ? "#1B6FE8" : pos.badge,
                                   display: "flex", alignItems: "center", justifyContent: "center",
-                                  color: c.esGanador ? "#fff" : pos.textBadge,
+                                  color: "#fff",
                                   fontSize: 13, fontWeight: 700, flexShrink: 0,
                                 }}>
                                   {idx + 1}
@@ -1359,10 +1469,10 @@ export function ProyectoWorkspacePage() {
                                       </span>
                                       {c.esGanador && (
                                         <span style={{
-                                          fontSize: 9, fontWeight: 600, color: "#059669",
-                                          background: "#ecfdf5", padding: "1px 7px",
-                                          borderRadius: 5, border: "0.5px solid #a7f3d0",
-                                        }}>Ganador</span>
+                                          fontSize: 9, fontWeight: 600, color: "#1d4ed8",
+                                          background: "#EFF6FF", padding: "1px 7px",
+                                          borderRadius: 5, border: "0.5px solid #BFDBFE",
+                                        }}>Delegado</span>
                                       )}
                                     </div>
                                     <div style={{ textAlign: "right" }}>
@@ -1382,14 +1492,8 @@ export function ProyectoWorkspacePage() {
                                       style={{
                                         height: "100%", borderRadius: 4,
                                         background: c.esGanador
-                                          ? "linear-gradient(90deg, #059669, #10b981)"
-                                          : idx === 0
-                                          ? "linear-gradient(90deg, #059669, #34d399)"
-                                          : idx === 1
-                                          ? "linear-gradient(90deg, #22c55e, #86efac)"
-                                          : idx === 2
-                                          ? "linear-gradient(90deg, #86efac, #bbf7d0)"
-                                          : "linear-gradient(90deg, #d6d3d1, #a8a29e)",
+                                          ? "linear-gradient(90deg, #1B6FE8, #3B82F6)"
+                                          : pos.barra,
                                       }}
                                     />
                                   </div>
@@ -1417,12 +1521,8 @@ export function ProyectoWorkspacePage() {
                               minWidth: 140,
                               padding: "16px 18px",
                               borderRadius: 14,
-                              background: c.esGanador
-                                ? "linear-gradient(135deg, #fffbeb, #fef3c7)"
-                                : "#f9fafb",
-                              border: c.esGanador
-                                ? "2px solid #fbbf24"
-                                : "1px solid #e5e7eb",
+                              background: c.esGanador ? "#EFF6FF" : "#F8FAFC",
+                              border: c.esGanador ? "1.5px solid #BFDBFE" : "1px solid #E2E8F0",
                               textAlign: "center",
                             }}
                           >
@@ -1432,18 +1532,18 @@ export function ProyectoWorkspacePage() {
                                 height: 44,
                                 borderRadius: "50%",
                                 background: c.esGanador
-                                  ? "linear-gradient(135deg, #fbbf24, #f59e0b)"
-                                  : "linear-gradient(135deg, #e0e7ff, #c7d2fe)",
+                                  ? "linear-gradient(135deg, #1B6FE8, #0F1F3D)"
+                                  : "#E2E8F0",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 margin: "0 auto 10px",
-                                color: c.esGanador ? "#fff" : "#4f46e5",
+                                color: "#fff",
                                 fontWeight: 700,
                                 fontSize: 16,
                               }}
                             >
-                              {c.esGanador ? "👑" : c.estudianteNombre?.charAt(0)}
+                              {c.esGanador ? <Crown size={20} color="#fff" /> : c.estudianteNombre?.charAt(0)}
                             </div>
                             <span
                               style={{
@@ -1451,6 +1551,7 @@ export function ProyectoWorkspacePage() {
                                 fontWeight: 700,
                                 color: "#0f1f3d",
                                 display: "block",
+                                fontFamily: FONT,
                               }}
                             >
                               {c.estudianteNombre}
@@ -1458,13 +1559,14 @@ export function ProyectoWorkspacePage() {
                             <span
                               style={{
                                 fontSize: 11,
-                                color: c.esGanador ? "#92400e" : "#6b7280",
+                                color: c.esGanador ? "#1d4ed8" : "#6b7280",
                                 fontWeight: 600,
                                 marginTop: 4,
                                 display: "block",
+                                fontFamily: FONT,
                               }}
                             >
-                              {c.esGanador ? " Delegado elegido" : " Miembro del equipo"}
+                              {c.esGanador ? "Delegado elegido" : "Miembro del equipo"}
                             </span>
                           </motion.div>
                         ))}
@@ -1620,31 +1722,17 @@ export function ProyectoWorkspacePage() {
         </div>
       </motion.div>
 
-      <div
-        style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}
-      >
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
         <motion.button
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          whileHover={{ scale: 1.03 }}
+          whileHover={{ y: -1 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate(-1)}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "9px 18px",
-            borderRadius: 9,
-            border: `0.5px solid ${C.border}`,
-            background: "#fff",
-            fontSize: 12,
-            fontWeight: 600,
-            color: C.textSecondary,
-            cursor: "pointer",
-          }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 10, border: "1px solid #E2E8F0", background: "#FFFFFF", fontSize: 12, fontWeight: 600, color: "#475569", cursor: "pointer", fontFamily: FONT }}
         >
-          ← Volver a proyectos
+          <ArrowLeft size={14} /> Volver
         </motion.button>
       </div>
 

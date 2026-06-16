@@ -112,9 +112,6 @@ const ExecutiveCommandCenter = ({ totalProyectos, metrics }) => {
       {/* Titular y Acción (Integrados sin redundancia) */}
       <div style={{ position: "relative", zIndex: 10, flex: "1 1 50%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
         <div>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)", borderRadius: "8px", padding: "6px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#38BDF8", marginBottom: 16 }}>
-            Panel Ejecutivo
-          </div>
           <h1 style={{ fontFamily: FONT, fontSize: "2.4rem", fontWeight: 500, color: "#FFFFFF", margin: "0 0 12px", letterSpacing: "-0.03em" }}>
            Centro de Proyectos
           </h1>
@@ -532,8 +529,7 @@ export function MisProyectosPage() {
       </AnimatePresence>
 
       {/* Eliminación del actionTop redundante porque lo integraremos en el Master Command Center para una vista más limpia */}
-      <div style={{ maxWidth: 1200, margin: "0 auto", paddingBottom: "120px", display: "flex", flexDirection: "column" }}>
-        
+      <div style={{ maxWidth: 1320, margin: "0 auto", paddingBottom: "120px", display: "flex", flexDirection: "column" }}>        
         <ExecutiveCommandCenter totalProyectos={totalProyectos} metrics={metrics} />
 
         {/* ESTRUCTURA CORE DE INICIATIVAS (PIPELINE) */}
