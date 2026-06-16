@@ -223,6 +223,59 @@ const ProjectCard = ({ proyecto }) => {
 };
 
 /* ═══════════════════════════════════════════════
+   SUB: ActiveProjectCard
+═══════════════════════════════════════════════ */
+const ActiveProjectCard = ({ postulacion }) => {
+  const nav = useNavigate();
+  const isEnRevision = postulacion.proyectoEstado === 'EN_REVISION';
+  const badgeColor   = isEnRevision ? '#d97706' : '#059669';
+  const badgeBg      = isEnRevision ? '#fffbeb' : '#ecfdf5';
+  const badgeText    = isEnRevision ? 'En revisión' : 'En desarrollo';
+
+  return (
+    <div
+      style={{
+        background:   '#fff',
+        border:       '1px solid #E5E7EB',
+        borderRadius: 12,
+        padding:      16,
+        position:     'relative',
+        overflow:     'hidden',
+        flex:         1,
+        minWidth:     220,
+      }}
+    >
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg,#1B6FE8,#06B6D4)' }} />
+      <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 6, lineHeight: 1.3 }}>
+        {postulacion.proyectoTitulo || 'Proyecto activo'}
+      </div>
+      <div style={{ fontSize: 11, color: '#6b6b7a', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 10 }}>
+        <Building2 size={11} /> {postulacion.mypeNombre || 'MYPE'}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{
+          fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
+          textTransform: 'uppercase', padding: '3px 8px',
+          borderRadius: 4, background: badgeBg, color: badgeColor,
+        }}>
+          {badgeText}
+        </span>
+        <button
+          onClick={() => nav(`/workspace/${postulacion.proyectoId}`)}
+          style={{
+            fontSize: 11, fontWeight: 700, color: '#1B6FE8',
+            background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 3,
+          }}
+        >
+          Ir al workspace <ArrowRight size={11} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
    SUB: SiguientePasoBanner
 ═══════════════════════════════════════════════ */
 const SiguientePasoBanner = ({ postulaciones = [], completitud = 0, navigate }) => {
@@ -555,7 +608,9 @@ const EstudianteDashboardPage = () => {
   const totalCertificados     = certificados?.length || 0;
   const activityItems         = notificaciones?.slice(0, 3) || [];
   const proyectosRecomendados = proyectosData?.content?.slice(0, 3) || [];
-  const proyectosActivos      = postulaciones?.filter(p => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado') || [];
+  const proyectosActivos      = postulaciones?.filter(
+    p => p.estado === 'CONFIRMADO' && ['EN_DESARROLLO', 'EN_REVISION'].includes(p.proyectoEstado)
+  ) || [];
 
   let completitud = 10;
   if (user?.bio) completitud += 15;
@@ -642,30 +697,51 @@ const EstudianteDashboardPage = () => {
 
       {/* ── FILA INFERIOR: PROYECTOS + SIDEBAR ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'start' }}>
-        {/* Proyectos recomendados */}
-        <Panel delay={0.20}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-            <div style={S.sectionTitle}><span style={S.sectionBar} />Proyectos recomendados</div>
-            <Link to="/proyectos" style={S.seeAll}>Explorar todos <ArrowRight size={12} /></Link>
-          </div>
-          {loadingProyectos ? (
-            <div style={{ padding:36, textAlign:'center', color:'#6b6b7a', fontSize:13 }}>
-              <svg style={{ animation:'spin 1s linear infinite', height:20, width:20, color:'#1B6FE8', display:'block', margin:'0 auto 8px' }} viewBox="0 0 24 24">
-                <circle style={{ opacity:0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path style={{ opacity:0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Buscando las mejores oportunidades…
-            </div>
-          ) : proyectosRecomendados.length === 0 ? (
-            <div style={{ padding:36, textAlign:'center', color:'#6b6b7a', fontSize:13, border:'0.5px dashed #e8e8e4', borderRadius:10 }}>
-              No hay proyectos disponibles por el momento.
-            </div>
-          ) : (
-            <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:14 }}>
-              {proyectosRecomendados.map(p => <ProjectCard key={p.id} proyecto={p} />)}
-            </div>
+
+        {/* ── COLUMNA PRINCIPAL ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* Proyectos activos — solo si hay */}
+          {proyectosActivos.length > 0 && (
+            <Panel delay={0.18}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={S.sectionTitle}><span style={S.sectionBar} />Tus proyectos activos</div>
+                <Link to="/mis-postulaciones" style={S.seeAll}>Ver todo <ArrowRight size={12} /></Link>
+              </div>
+              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                {proyectosActivos.map(p => (
+                  <ActiveProjectCard key={p.id || p.proyectoId} postulacion={p} />
+                ))}
+              </div>
+            </Panel>
           )}
-        </Panel>
+
+          {/* Proyectos recomendados */}
+          <Panel delay={0.20}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+              <div style={S.sectionTitle}><span style={S.sectionBar} />Proyectos recomendados</div>
+              <Link to="/proyectos" style={S.seeAll}>Explorar todos <ArrowRight size={12} /></Link>
+            </div>
+            {loadingProyectos ? (
+              <div style={{ padding:36, textAlign:'center', color:'#6b6b7a', fontSize:13 }}>
+                <svg style={{ animation:'spin 1s linear infinite', height:20, width:20, color:'#1B6FE8', display:'block', margin:'0 auto 8px' }} viewBox="0 0 24 24">
+                  <circle style={{ opacity:0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path style={{ opacity:0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Buscando las mejores oportunidades…
+              </div>
+            ) : proyectosRecomendados.length === 0 ? (
+              <div style={{ padding:36, textAlign:'center', color:'#6b6b7a', fontSize:13, border:'0.5px dashed #e8e8e4', borderRadius:10 }}>
+                No hay proyectos disponibles por el momento.
+              </div>
+            ) : (
+              <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:14 }}>
+                {proyectosRecomendados.map(p => <ProjectCard key={p.id} proyecto={p} />)}
+              </div>
+            )}
+          </Panel>
+
+        </div>{/* fin columna principal */}
 
         {/* ── SIDEBAR ── */}
         <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
