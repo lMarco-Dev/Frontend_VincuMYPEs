@@ -223,6 +223,90 @@ const ProjectCard = ({ proyecto }) => {
 };
 
 /* ═══════════════════════════════════════════════
+   SUB: SiguientePasoBanner
+═══════════════════════════════════════════════ */
+const SiguientePasoBanner = ({ postulaciones = [], completitud = 0, navigate }) => {
+  const oferta     = postulaciones.find(p => p.estado === 'VALIDADO_MYPE');
+  const enRevision = postulaciones.find(
+    p => p.estado === 'CONFIRMADO' && p.proyectoEstado === 'EN_REVISION'
+  );
+
+  let cfg;
+  if (oferta) {
+    cfg = {
+      Icon:   Bell,
+      color:  '#dc2626',
+      texto:  `Una MYPE validó tu postulación — confirma tu participación en "${oferta.proyectoTitulo || 'el proyecto'}"`,
+      accion: 'Ver oferta',
+      ruta:   '/mis-postulaciones',
+    };
+  } else if (enRevision) {
+    cfg = {
+      Icon:   AlertCircle,
+      color:  '#f59e0b',
+      texto:  `Tu proyecto "${enRevision.proyectoTitulo || 'activo'}" está en revisión — revisa el estado`,
+      accion: 'Ir al workspace',
+      ruta:   `/workspace/${enRevision.proyectoId}`,
+    };
+  } else if (completitud < 70) {
+    cfg = {
+      Icon:   ArrowUpRight,
+      color:  '#f59e0b',
+      texto:  'Completa tu perfil para aumentar tus posibilidades de ser seleccionado',
+      accion: 'Completar perfil',
+      ruta:   '/perfil',
+    };
+  } else {
+    cfg = {
+      Icon:   ArrowRight,
+      color:  '#1B6FE8',
+      texto:  'Revisa los nuevos proyectos publicados esta semana',
+      accion: 'Ver proyectos',
+      ruta:   '/proyectos',
+    };
+  }
+
+  return (
+    <motion.div
+      {...fadeUp(0.14)}
+      style={{
+        background:   '#fff',
+        border:       `1px solid ${C.border}`,
+        borderLeft:   `4px solid ${cfg.color}`,
+        borderRadius: 14,
+        padding:      '14px 20px',
+        display:      'flex',
+        alignItems:   'center',
+        gap:          12,
+        marginBottom: 20,
+      }}
+    >
+      <cfg.Icon size={16} color={cfg.color} style={{ flexShrink: 0 }} />
+      <div style={{ flex: 1, fontSize: 13, fontWeight: 500, color: C.ink }}>
+        {cfg.texto}
+      </div>
+      <button
+        onClick={() => navigate(cfg.ruta)}
+        style={{
+          fontSize:    12,
+          fontWeight:  700,
+          color:       cfg.color,
+          background:  'none',
+          border:      'none',
+          cursor:      'pointer',
+          display:     'flex',
+          alignItems:  'center',
+          gap:         4,
+          flexShrink:  0,
+        }}
+      >
+        {cfg.accion} <ArrowRight size={12} />
+      </button>
+    </motion.div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
    SUB: Hero Banner (diseño MYPE)
 ═══════════════════════════════════════════════ */
 const HeroBanner = ({ totalPostulaciones = 0, aceptados = 0, certificados = 0 }) => {
@@ -549,6 +633,12 @@ const EstudianteDashboardPage = () => {
         certificados={totalCertificados}
       />
 
+      {/* ── SIGUIENTE PASO ── */}
+      <SiguientePasoBanner
+        postulaciones={postulaciones || []}
+        completitud={completitud}
+        navigate={navigate}
+      />
 
       {/* ── FILA INFERIOR: PROYECTOS + SIDEBAR ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'start' }}>
