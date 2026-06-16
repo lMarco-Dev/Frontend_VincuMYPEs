@@ -549,39 +549,6 @@ const EstudianteDashboardPage = () => {
         certificados={totalCertificados}
       />
 
-      {/* ── MÉTRICAS ── */}
-      <motion.div {...fadeUp(0.16)} style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16, marginBottom:24 }}>
-        <MetricCard
-          label="Mi perfil"
-          value={loadingPostulaciones ? '...' : `${completitud}%`}
-          linkTo="/perfil"
-          linkLabel="Completar datos"
-          color="#1B6FE8"
-          accentColor="linear-gradient(90deg,#1B6FE8,#06B6D4)"
-          icon={ScanFace}
-          pct={completitud}
-        />
-        <MetricCard
-          label="Mis Postulaciones"
-          value={loadingPostulaciones ? '...' : totalPostulaciones}
-          linkTo="/mis-postulaciones"
-          linkLabel="Ver historial"
-          color="#d4580a"
-          accentColor="linear-gradient(90deg,#d4580a,#f59e0b)"
-          icon={ClipboardList}
-          pct={porcentajeExito}
-        />
-        <MetricCard
-          label="Mis certificados"
-          value={loadingCertificados ? '...' : totalCertificados}
-          linkTo="/certificados"
-          linkLabel="Ver logros"
-          color="#059669"
-          accentColor="linear-gradient(90deg,#059669,#06B6D4)"
-          icon={BadgeCheck}
-          pct={totalCertificados > 0 ? 100 : 0}
-        />
-      </motion.div>
 
       {/* ── FILA INFERIOR: PROYECTOS + SIDEBAR ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'start' }}>
