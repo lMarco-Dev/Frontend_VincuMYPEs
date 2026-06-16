@@ -339,8 +339,8 @@ const HeroBanner = ({ totalPostulaciones = 0, aceptados = 0, certificados = 0 })
       style={{
         position: 'relative', overflow: 'hidden', borderRadius: 24,
         background: `linear-gradient(135deg, ${C.navyDeep} 0%, ${C.navyMid} 55%, ${C.navySoft} 100%)`,
-        padding: '36px 40px', color: '#fff',
-        marginBottom: 20, minHeight: 200,
+        padding: '28px 40px', color: '#fff',
+        marginBottom: 20, minHeight: 160,
         display: 'flex', alignItems: 'center',
         boxShadow: '0 24px 48px -28px rgba(10,22,40,0.7)',
         border: '1px solid rgba(255,255,255,0.06)',
@@ -412,7 +412,7 @@ const HeroBanner = ({ totalPostulaciones = 0, aceptados = 0, certificados = 0 })
         <motion.p
           initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
           transition={{ delay:0.44, duration:0.6 }}
-          style={{ fontSize:13, fontWeight:400, color:'rgba(255,255,255,0.45)', lineHeight:1.65, marginBottom:24 }}
+          style={{ fontSize:13, fontWeight:400, color:'rgba(255,255,255,0.45)', lineHeight:1.65, marginBottom:0 }}
         >
           Proyectos reales con empresas de Cajamarca.<br />
           Construye tu portafolio mientras estudias.
@@ -425,7 +425,25 @@ const HeroBanner = ({ totalPostulaciones = 0, aceptados = 0, certificados = 0 })
         transition={{ delay:0.7, duration:0.7 }}
         style={{ position:'absolute', right:40, top:'50%', transform:'translateY(-50%)', zIndex:10, display:'flex', alignItems:'center', gap:0 }}
       >
-        
+        {[
+          { num: counts.a, label: 'postulaciones' },
+          { num: counts.b, label: 'aceptadas'     },
+          { num: counts.c, label: 'certificados'  },
+        ].map((stat, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && (
+              <div style={{ width: 1, height: 50, background: 'rgba(255,255,255,0.12)', margin: '0 24px' }} />
+            )}
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 34, fontWeight: 800, color: '#fff', letterSpacing: '-0.04em', lineHeight: 1 }}>
+                {stat.num}
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 4 }}>
+                {stat.label}
+              </div>
+            </div>
+          </React.Fragment>
+        ))}
       </motion.div>
     </motion.div>
   );
