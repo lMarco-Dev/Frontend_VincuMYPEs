@@ -14,9 +14,8 @@ import {
   Building2,
   Bell,
   Search,
-  ScanFace,
-  ClipboardList,
-  BadgeCheck,
+  AlertCircle,
+  ChevronRight,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -129,52 +128,6 @@ const Panel = ({ children, delay = 0, dark = false, style = {} }) => (
   </motion.section>
 );
 
-/* ═══════════════════════════════════════════════
-   SUB: Metric Card
-═══════════════════════════════════════════════ */
-const MetricCard = ({ label, value, sub, linkTo, linkLabel, color, accentColor, icon: Icon, pct }) => (
-  <Link to={linkTo} style={{ textDecoration: 'none' }}>
-    <div
-      style={{
-        background: '#fff', border: '0.5px solid #e8e8e4', borderRadius: 16,
-        padding: '20px 22px', display: 'flex', alignItems: 'flex-start',
-        justifyContent: 'space-between', transition: 'all 0.25s',
-        cursor: 'pointer', position: 'relative', overflow: 'hidden',
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.07)';
-        e.currentTarget.querySelector('.accent-bar').style.transform = 'scaleX(1)';
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.transform = 'none';
-        e.currentTarget.style.boxShadow = 'none';
-        e.currentTarget.querySelector('.accent-bar').style.transform = 'scaleX(0)';
-      }}
-    >
-      <div className="accent-bar" style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: 2,
-        background: accentColor, transform: 'scaleX(0)', transformOrigin: 'left',
-        transition: 'transform 0.35s', borderRadius: '0 0 16px 16px',
-      }} />
-      <div>
-        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#6b6b7a', marginBottom: 6 }}>
-          {label}
-        </div>
-        <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1, color: '#0f1f3d' }}>
-          {value}
-        </div>
-        {sub && <div style={{ fontSize: 11, color: '#6b6b7a', marginTop: 4 }}>{sub}</div>}
-        {linkLabel && (
-          <div style={{ fontSize: 11, fontWeight: 600, color, marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            {linkLabel} <ArrowRight size={12} />
-          </div>
-        )}
-      </div>
-      <Ring pct={pct} color={color} icon={Icon} />
-    </div>
-  </Link>
-);
 
 /* ═══════════════════════════════════════════════
    SUB: Project Card (estilo MYPE)
@@ -443,28 +396,7 @@ const HeroBanner = ({ totalPostulaciones = 0, aceptados = 0, certificados = 0 })
         transition={{ delay:0.7, duration:0.7 }}
         style={{ position:'absolute', right:40, top:'50%', transform:'translateY(-50%)', zIndex:10, display:'flex', alignItems:'center', gap:0 }}
       >
-        {[
-          { val: counts.a, label: 'POSTULACIONES', bar: '#1B6FE8', w: '70%' },
-          { val: counts.b, label: 'ACEPTADAS',     bar: '#4ade80', w: '40%' },
-          { val: counts.c, label: 'CERTIFICADOS',  bar: '#f59e0b', w: '55%' },
-        ].map((s, i) => (
-          <React.Fragment key={i}>
-            {i > 0 && (
-              <div style={{ width:1, height:40, background:'rgba(255,255,255,0.12)', margin:'0 4px' }} />
-            )}
-            <div style={{ textAlign:'center', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:12, padding:'12px 20px', minWidth:110 }}>
-              <div style={{ fontSize:26, fontWeight:800, color:'#67d4f8', letterSpacing:'-0.04em', lineHeight:1 }}>{s.val}</div>
-              <div style={{ fontSize:9, color:'rgba(255,255,255,0.3)', textTransform:'uppercase', letterSpacing:'0.1em', marginTop:4 }}>{s.label}</div>
-              <div style={{ height:2, background:'rgba(255,255,255,0.08)', borderRadius:1, marginTop:6, overflow:'hidden' }}>
-                <motion.div
-                  initial={{ scaleX:0 }} animate={{ scaleX:1 }}
-                  transition={{ delay: 0.9 + i * 0.2, duration:1.2, ease:[0.22,1,0.36,1] }}
-                  style={{ height:'100%', width:s.w, background:s.bar, borderRadius:1, transformOrigin:'left' }}
-                />
-              </div>
-            </div>
-          </React.Fragment>
-        ))}
+        
       </motion.div>
     </motion.div>
   );
@@ -575,7 +507,6 @@ const EstudianteDashboardPage = () => {
         <MetricCard
           label="Mi perfil"
           value={loadingPostulaciones ? '...' : `${completitud}%`}
-          sub="Completitud"
           linkTo="/perfil"
           linkLabel="Completar datos"
           color="#1B6FE8"
@@ -586,7 +517,6 @@ const EstudianteDashboardPage = () => {
         <MetricCard
           label="Mis Postulaciones"
           value={loadingPostulaciones ? '...' : totalPostulaciones}
-          sub={`${aceptados} aceptadas · ${totalPostulaciones - aceptados} pendientes`}
           linkTo="/mis-postulaciones"
           linkLabel="Ver historial"
           color="#d4580a"
@@ -597,7 +527,6 @@ const EstudianteDashboardPage = () => {
         <MetricCard
           label="Mis certificados"
           value={loadingCertificados ? '...' : totalCertificados}
-          sub="Certificados obtenidos"
           linkTo="/certificados"
           linkLabel="Ver logros"
           color="#059669"
@@ -709,52 +638,6 @@ const EstudianteDashboardPage = () => {
           {/* Calificaciones pendientes */}
           <CalificacionesPendientesCard />
 
-          {/* Accesos rápidos */}
-          <Panel delay={0.32}>
-            <div style={{ display:'flex', alignItems:'center', marginBottom:14 }}>
-              <div style={S.sectionTitle}><span style={S.sectionBar} />Accesos rápidos</div>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              <Link to="/proyectos" style={{ textDecoration:'none' }}>
-                <div
-                  style={{
-                    padding:12, borderRadius:13,
-                    background:'#EFF6FF', border:'1px solid #BFDBFE',
-                    color:'#1B6FE8', display:'flex', alignItems:'center',
-                    gap:11, fontWeight:700, fontSize:13, cursor:'pointer',
-                    transition:'transform 0.2s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(3px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
-                >
-                  <div style={{ width:30, height:30, borderRadius:9, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                    <Search size={15} color="#1B6FE8" />
-                  </div>
-                  Buscar proyectos
-                  <ArrowUpRight size={15} style={{ marginLeft:'auto', opacity:0.55 }} />
-                </div>
-              </Link>
-              <Link to="/perfil" style={{ textDecoration:'none' }}>
-                <div
-                  style={{
-                    padding:12, borderRadius:13,
-                    background:'#F5F3FF', border:'1px solid #DDD6FE',
-                    color:'#7C3AED', display:'flex', alignItems:'center',
-                    gap:11, fontWeight:700, fontSize:13, cursor:'pointer',
-                    transition:'transform 0.2s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(3px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
-                >
-                  <div style={{ width:30, height:30, borderRadius:9, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                    <ScanFace size={15} color="#7C3AED" />
-                  </div>
-                  Completar perfil
-                  <ArrowUpRight size={15} style={{ marginLeft:'auto', opacity:0.55 }} />
-                </div>
-              </Link>
-            </div>
-          </Panel>
 
         </div>{/* fin sidebar */}
       </div>
