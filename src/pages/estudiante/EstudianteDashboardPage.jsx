@@ -79,6 +79,35 @@ const getAreaStyle = (area = '') => {
   return AREA_STYLES[key] || AREA_STYLES.DEFAULT;
 };
 
+/* ─── Duración estimada de un proyecto ─── */
+const renderDuracion = (proyecto) => {
+  if (proyecto.diasEstimados) return { label: 'Duración', value: `${proyecto.diasEstimados} días` };
+  if (proyecto.fechaLimiteCalculada) return { label: 'Fecha límite', value: new Date(proyecto.fechaLimiteCalculada).toLocaleDateString('es-PE') };
+  if (proyecto.fechaLimite) {
+    const dias = Math.ceil((new Date(proyecto.fechaLimite) - Date.now()) / 86400000);
+    if (dias > 0) return { label: 'Duración aprox.', value: `${dias} días` };
+  }
+  return { label: 'Duración', value: 'Por definir' };
+};
+
+/* ─── Tiempo relativo para notificaciones ─── */
+const tiempoRelativo = (fecha) => {
+  if (!fecha) return 'Fecha no disponible';
+  const diff = Date.now() - new Date(fecha).getTime();
+  const h = Math.floor(diff / 3600000);
+  const d = Math.floor(diff / 86400000);
+  if (h < 1) return 'hace un momento';
+  if (h < 24) return `hace ${h}h`;
+  if (d === 1) return 'ayer';
+  return `hace ${d} días`;
+};
+
+/* ─── Color del borde izquierdo por estado de notificación ─── */
+const colorNotif = (item) => {
+  if (!item.leida) return '#1B6FE8';
+  return '#d1d5db';
+};
+
 /* ═══════════════════════════════════════════════
    SUB: Ring SVG
 ═══════════════════════════════════════════════ */
