@@ -1,20 +1,51 @@
+import { useState } from "react"; // ← FALTABA ESTA IMPORTACIÓN
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   emitirCertificadoApi,
   getCertificadosEmitidosApi,
   eliminarCertificadoApi,
+  enviarCertificadoApi,
 } from "./certificados.api";
 import { handleApiError } from "@/shared/api/apiErrors";
 import { useAuthStore } from "@/store/authStore";
 
+// En useCertificadosMype.js, asegúrate de que el refetch funcione:
 export function useCertificadosEmitidos() {
   const { user } = useAuthStore();
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["certificados-emitidos", user?.id],
-    queryFn: getCertificadosEmitidosApi,
+    queryFn: async () => {
+      const response = await getCertificadosEmitidosApi();
+      console.log("📥 Respuesta cruda:", response);
+      
+      // Mapear los nombres de campos del backend al frontend
+      const certificados = (response.data?.data || response.data || []).map(cert => ({
+        id: cert.id,
+        codigo: cert.codigo,
+        proyectoTitulo: cert.nombreProyecto, // Mapeo importante
+        proyectoId: cert.proyectoId,
+        estudianteNombre: cert.estudianteNombre,
+        estudianteId: cert.estudianteId,
+        gerente: cert.gerenteNombre, // Mapeo importante
+        mypeNombre: cert.nombreMype, // Mapeo importante
+        firmaUrl: cert.firmaUrl, // Mapeo importante
+        fechaEmision: cert.fechaEmision,
+        enviadoEmail: cert.fechaEnvio !== null,
+        urlCertificado: cert.urlCertificado,
+      }));
+      
+      console.log("📋 Certificados mapeados:", certificados);
+      return certificados;
+    },
     enabled: !!user?.id,
   });
-  return { certificados: data?.data ?? [], isLoading, error };
+  
+  return { 
+    certificados: Array.isArray(data) ? data : [], 
+    isLoading, 
+    error,
+    refetch 
+  };
 }
 
 export function useEmitirCertificado() {
@@ -23,11 +54,12 @@ export function useEmitirCertificado() {
     mutationFn: emitirCertificadoApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
+      queryClient.invalidateQueries({ queryKey: ["mis-proyectos"] });
     },
     onError: (error) => console.error(handleApiError(error)),
   });
   return {
-    emitir: mutation.mutate,
+    emitir: mutation.mutateAsync, // Cambiado a mutateAsync para poder usar await
     isLoading: mutation.isPending,
     isSuccess: mutation.isSuccess,
     error: mutation.error ? handleApiError(mutation.error) : null,
@@ -41,6 +73,7 @@ export function useEliminarCertificado() {
     mutationFn: eliminarCertificadoApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
+      queryClient.invalidateQueries({ queryKey: ["mis-proyectos"] });
     },
     onError: (error) => {
       console.error("Error eliminando certificado:", error);
@@ -53,4 +86,29 @@ export function useEliminarCertificado() {
     isSuccess: mutation.isSuccess,
     error: mutation.error ? handleApiError(mutation.error) : null,
   };
+}
+
+// ✅ Hook para enviar certificado por email
+export function useEnviarCertificado() {
+  const queryClient = useQueryClient();
+  const [loading, setLoading] = useState({}); // ← AHORA FUNCIONA
+  const [errorMap, setErrorMap] = useState({}); // ← AHORA FUNCIONA
+
+  const enviar = async (certificadoId) => {
+    setLoading((p) => ({ ...p, [certificadoId]: true }));
+    setErrorMap((p) => ({ ...p, [certificadoId]: null }));
+    try {
+      await enviarCertificadoApi(certificadoId);
+      queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
+    } catch (e) {
+      setErrorMap((p) => ({
+        ...p,
+        [certificadoId]: "Error al formalizar despacho. Reintente proceso.",
+      }));
+    } finally {
+      setLoading((p) => ({ ...p, [certificadoId]: false }));
+    }
+  };
+
+  return { enviar, loading, errorMap };
 }

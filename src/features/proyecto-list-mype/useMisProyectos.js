@@ -5,7 +5,7 @@ import { useAuthStore } from "@/store/authStore";
 export function useMisProyectos() {
   const { user } = useAuthStore();
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({ // ✅ Agregar refetch
     queryKey: ["mis-proyectos", user?.id],
     queryFn: getMisProyectosApi,
     enabled: !!user?.id,
@@ -16,5 +16,6 @@ export function useMisProyectos() {
     proyectos: data?.data ?? [],
     isLoading,
     error,
+    refetch, // ✅ Exportar refetch
   };
 }
