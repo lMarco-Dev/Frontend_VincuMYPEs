@@ -11,7 +11,6 @@ import { RegisterPage } from "@pages/auth/RegisterPage";
 import { ForgotPasswordPage } from "@pages/auth/ForgotPasswordPage";
 import { VerifyOtpPage } from "@pages/auth/VerifyOtpPage";
 import { ResetPasswordPage } from "@pages/auth/ResetPasswordPage";
-
 // MYPE pages
 import { MypeDashboardPage } from "@pages/mype/MypeDashboardPage";
 import { CrearProyectoPage } from "@pages/mype/CrearProyectoPage";
@@ -47,6 +46,7 @@ import AdminPostulacionesPage from "@pages/admin/AdminPostulacionesPage";
 import PerfilPublicoEstudiantePage from "@pages/perfil-publico/PerfilPublicoEstudiantePage";
 import AdminCertificadosPage from "@pages/admin/AdminCertificadosPage";
 import AdminCalificacionesPage from "@pages/admin/AdminCalificacionesPage";
+import AdminMypesPendientesPage from "@pages/admin/AdminMypesPendientesPage";
 
 // Layouts
 import StudentLayout from "@shared/layouts/StudentLayout";
@@ -209,6 +209,7 @@ const router = createBrowserRouter([
       { path: "/admin/postulaciones", element: <AdminPostulacionesPage /> },
       { path: "/admin/certificados", element: <AdminCertificadosPage /> },
       { path: "/admin/calificaciones", element: <AdminCalificacionesPage /> },
+      { path: "/admin/mypes-pendientes", element: <AdminMypesPendientesPage /> },
     ],
   },
 

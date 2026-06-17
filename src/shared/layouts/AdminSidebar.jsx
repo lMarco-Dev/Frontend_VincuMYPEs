@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   UserCheck,
   Star,
+  Building2,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { useSidebarBadges } from "@/shared/hooks/useSidebarBadges";
@@ -33,6 +34,7 @@ const getNAV = (badges) => [
   {
     label: "Gestión",
     items: [
+      { to: "/admin/mypes-pendientes", icon: Building2, label: "Validar MYPEs", showDot: badges.mypesPendientes, dotColor: '#F59E0B' },
       { to: "/admin/postulaciones", icon: UserCheck, label: "Postulaciones", showDot: badges.postulaciones, dotColor: '#3B82F6' },
       { to: "/admin/calificaciones", icon: Star, label: "Calificaciones" },
       { to: "/admin/certificados", icon: Award, label: "Certificados" },

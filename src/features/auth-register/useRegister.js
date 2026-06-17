@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { registerEstudianteApi, registerMypeApi } from "./authRegister.api";
@@ -8,6 +9,7 @@ import { handleApiError } from "@shared/api/apiErrors";
 export function useRegister(tipo) {
   const navigate = useNavigate();
   const { login } = useAuthStore();
+  const [successData, setSuccessData] = useState(null);
 
   const apiFn = tipo === "estudiante" ? registerEstudianteApi : registerMypeApi;
 
@@ -15,10 +17,12 @@ export function useRegister(tipo) {
     mutationFn: apiFn,
 
     onSuccess: ({ data }) => {
-      // 1. Guardar el token para httpClient
-      tokenStorage.setTokens(data.token, null);
+      if (tipo === "mype" && !data.token) {
+        setSuccessData(data);
+        return;
+      }
 
-      // 2. Guardar en el store antiguo
+      tokenStorage.setTokens(data.token, null);
       login(data);
 
       if (data.rol === "MYPE" || data.rol === "ROLE_MYPE") {
@@ -37,5 +41,6 @@ export function useRegister(tipo) {
     register: mutation.mutate,
     isLoading: mutation.isPending,
     error: mutation.error ? handleApiError(mutation.error) : null,
+    successData,
   };
 }

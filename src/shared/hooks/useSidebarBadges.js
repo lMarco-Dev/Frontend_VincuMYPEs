@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useNotificaciones, useLeerNotificacion } from '@/features/notificaciones/useNotificaciones';
+import { getMypesPorEstadoApi } from '@/features/admin/adminMypes.api';
 
 // Qué tipos de notificación se marcan como leídas al entrar a cada ruta
 const ROUTE_TIPOS = [
@@ -15,6 +16,13 @@ export function useSidebarBadges() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { mutate: leerNotificacion } = useLeerNotificacion();
+
+  const { data: mypesPendientes } = useQuery({
+    queryKey: ["admin", "mypes", "PENDIENTE"],
+    queryFn: () => getMypesPorEstadoApi("PENDIENTE"),
+    refetchInterval: 30000,
+    enabled: location.pathname.startsWith("/admin"),
+  });
 
   // Registrar visita a /proyectos para resetear el badge de Explorar
   useEffect(() => {
@@ -56,6 +64,8 @@ export function useSidebarBadges() {
   const tieneNotifDeTipo = (...tipos) =>
     notificaciones.some((n) => !n.leida && tipos.includes(n.tipo));
 
+  const listaMypes = Array.isArray(mypesPendientes?.data) ? mypesPendientes.data : [];
+
   return {
     explorar,
     postulaciones: tieneNotifDeTipo('POSTULACION'),
@@ -63,5 +73,6 @@ export function useSidebarBadges() {
     certificados:  tieneNotifDeTipo('CERTIFICADO'),
     mensajes:      tieneNotifDeTipo('MENSAJE'),
     proyectosMype: tieneNotifDeTipo('PROYECTO'),
+    mypesPendientes: listaMypes.length > 0,
   };
 }

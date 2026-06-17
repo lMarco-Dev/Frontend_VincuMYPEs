@@ -38,8 +38,16 @@ export function useLogin() {
         return;
       }
 
-      if (status === 401 || status === 403) {
+      if (status === 401) {
         error.message = "Credenciales incorrectas. Verifica tu email y contraseña.";
+      } else if (status === 403) {
+        if (data?.codigo === "MYPE_PENDIENTE") {
+          error.message = "Tu cuenta aún no ha sido aprobada por el administrador.";
+        } else if (data?.codigo === "MYPE_RECHAZADO") {
+          error.message = "Tu cuenta ha sido rechazada. Contacta al administrador.";
+        } else {
+          error.message = "Credenciales incorrectas. Verifica tu email y contraseña.";
+        }
       } else if (status === 429) {
         error.message = "Demasiados intentos. Espera un momento.";
       } else if (!error.response) {

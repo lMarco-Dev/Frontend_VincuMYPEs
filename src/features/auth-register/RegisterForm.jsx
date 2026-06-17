@@ -2,6 +2,7 @@
 import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import {
   User, Mail, Lock, Building2, Briefcase, FileText,
   GraduationCap, BookOpen, BadgeInfo, AlertCircle, Phone,
@@ -194,7 +195,7 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
   const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION_ENABLED === "true";
   const TOTAL_STEPS = EMAIL_VERIFICATION_ENABLED ? 4 : 3;
 
-  const { register: registerUser, isLoading, error: backendError } = useRegister(tipo);
+  const { register: registerUser, isLoading, error: backendError, successData } = useRegister(tipo);
   const [showBackendError, setShowBackendError] = useState(false);
   const { buscarDni, isLoading: isLoadingDni, error: dniError, clearError: clearDniError } = useConsultaDni();
   const { buscarRuc, isLoading: isLoadingRuc, error: rucError, clearError: clearRucError } = useConsultaRuc();
@@ -639,6 +640,65 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
 
   const isDniSearchBlocked = dniCooldown || isLoadingDni;
   const isRucSearchBlocked = rucCooldown || isLoadingRuc;
+
+  if (successData) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease }}
+        style={{ textAlign: "center", padding: "20px 0" }}
+      >
+        <div
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #DBEAFE, #BFDBFE)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 20px",
+          }}
+        >
+          <Clock size={32} color="#1B6FE8" />
+        </div>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f1f3d", margin: "0 0 12px" }}>
+          Registro exitoso
+        </h2>
+        <p style={{ fontSize: 14, color: "#64748b", lineHeight: 1.6, margin: "0 0 24px" }}>
+          {successData.mensaje || "Tu cuenta está pendiente de aprobación por el administrador."}
+        </p>
+        <Link
+          to="/login"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            background: "linear-gradient(135deg, #1B6FE8, #0E54C4)",
+            color: "#fff",
+            textDecoration: "none",
+            borderRadius: 10,
+            padding: "12px 28px",
+            fontSize: 15,
+            fontWeight: 600,
+            fontFamily: "Arial, sans-serif",
+            transition: "transform 0.25s ease, box-shadow 0.25s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 8px 24px rgba(27,111,232,0.35)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "none";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
+          Ir a iniciar sesión <ArrowRight size={18} />
+        </Link>
+      </motion.div>
+    );
+  }
 
   return (
     <>
