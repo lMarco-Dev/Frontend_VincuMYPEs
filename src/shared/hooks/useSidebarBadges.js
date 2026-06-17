@@ -1,18 +1,43 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNotificaciones } from '@/features/notificaciones/useNotificaciones';
+import { useNotificaciones, useLeerNotificacion } from '@/features/notificaciones/useNotificaciones';
+
+// Qué tipos de notificación se marcan como leídas al entrar a cada ruta
+const ROUTE_TIPOS = [
+  { route: '/mis-postulaciones', exact: true,  tipos: ['POSTULACION'] },
+  { route: '/workspace',         exact: false, tipos: ['ENTREGABLE', 'PROYECTO'] },
+  { route: '/certificados',      exact: true,  tipos: ['CERTIFICADO'] },
+];
 
 export function useSidebarBadges() {
   const { data: notificaciones = [] } = useNotificaciones();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const { mutate: leerNotificacion } = useLeerNotificacion();
 
-  // Registrar visita a /proyectos para resetear el badge
+  // Registrar visita a /proyectos para resetear el badge de Explorar
   useEffect(() => {
     if (location.pathname === '/proyectos') {
       localStorage.setItem('vm_last_visit_proyectos', Date.now().toString());
     }
+  }, [location.pathname]);
+
+  // Al entrar a un módulo relevante, marcar sus notificaciones no leídas como leídas
+  useEffect(() => {
+    const config = ROUTE_TIPOS.find(({ route, exact }) =>
+      exact ? location.pathname === route : location.pathname.startsWith(route)
+    );
+    if (!config) return;
+
+    // Leer directo del caché para no depender del state en este efecto
+    const cache = queryClient.getQueryData(['notificaciones']) || [];
+    cache
+      .filter((n) => !n.leida && config.tipos.includes(n.tipo))
+      .forEach((n) => leerNotificacion(n.id));
+
+  // Solo se dispara al cambiar de ruta; queryClient y leerNotificacion son referencias estables
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   // Badge "Explorar Proyectos": proyectos nuevos desde última visita
@@ -20,7 +45,6 @@ export function useSidebarBadges() {
   const lastVisit = localStorage.getItem('vm_last_visit_proyectos');
   if (lastVisit) {
     const cached = queryClient.getQueryData(['proyectos', 0, 10]);
-    // La API puede devolver { content: [...] } (paginado) o un array plano
     const lista = cached?.content ?? (Array.isArray(cached) ? cached : []);
     if (lista.length > 0) {
       explorar = lista.some(
@@ -29,15 +53,15 @@ export function useSidebarBadges() {
     }
   }
 
-  const tieneNotifDeTipo = (tipo) =>
-    notificaciones.some((n) => !n.leida && n.tipo === tipo);
+  const tieneNotifDeTipo = (...tipos) =>
+    notificaciones.some((n) => !n.leida && tipos.includes(n.tipo));
 
   return {
     explorar,
     postulaciones: tieneNotifDeTipo('POSTULACION'),
-    workspace: tieneNotifDeTipo('ENTREGABLE'),
-    certificados: tieneNotifDeTipo('CERTIFICADO'),
-    mensajes: tieneNotifDeTipo('MENSAJE'),
+    workspace:     tieneNotifDeTipo('ENTREGABLE', 'PROYECTO'),
+    certificados:  tieneNotifDeTipo('CERTIFICADO'),
+    mensajes:      tieneNotifDeTipo('MENSAJE'),
     proyectosMype: tieneNotifDeTipo('PROYECTO'),
   };
 }

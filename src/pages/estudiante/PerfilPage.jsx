@@ -681,11 +681,11 @@ const PerfilPage = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {user.linkedinUrl
                 ? <ConnectivityRow href={user.linkedinUrl} label="LinkedIn" />
-                : isEstudiante && <ConnectivityRow isEmpty onClick={handleStartEdit} label="Vincular LinkedIn" />
+                : isEstudiante && <ConnectivityRow isEmpty onClick={handleStartEdit} label="Perfil de LinkedIn" />
               }
               {user.portafolioUrl
                 ? <ConnectivityRow href={user.portafolioUrl} label="Portafolio" />
-                : isEstudiante && <ConnectivityRow isEmpty onClick={handleStartEdit} label="Vincular portafolio" />
+                : isEstudiante && <ConnectivityRow isEmpty onClick={handleStartEdit} label="Perfil de GitHub" />
               }
               <div style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', borderRadius: 10, background: '#F8FAFC', border: '1px solid #E5E7EB' }}>
                 <Mail size={13} color="#64748B" style={{ marginRight: 8, flexShrink: 0 }} />

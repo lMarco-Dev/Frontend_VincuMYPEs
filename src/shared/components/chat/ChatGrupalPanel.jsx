@@ -3,9 +3,6 @@ import { motion } from "framer-motion";
 import {
   Send,
   Loader2,
-  Users,
-  Building2,
-  MessageSquare,
   Check,
   CheckCheck,
 } from "lucide-react";
@@ -18,7 +15,7 @@ import { es } from "date-fns/locale/es";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
-export function ChatGrupalPanel({ proyectoId, chat }) {
+export function ChatGrupalPanel({ proyectoId, chat, mypeNombre }) {
   const { mensajes, isLoading, refetch } = useMensajesGrupo(
     proyectoId,
     chat?.id,
@@ -43,6 +40,8 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
   };
 
   const esChatEquipo = chat?.tipo === "EQUIPO";
+  // Título que se muestra encima de los mensajes
+  const tituloChat = esChatEquipo ? "Equipo" : mypeNombre || "MYPE";
 
   if (!chat) {
     return (
@@ -68,16 +67,9 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
               margin: "0 auto 16px",
             }}
           >
-            <MessageSquare size={24} color="#d1d5db" />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           </div>
-          <p
-            style={{
-              fontFamily: FONT,
-              fontSize: 14,
-              fontWeight: 600,
-              color: "#9CA3AF",
-            }}
-          >
+          <p style={{ fontFamily: FONT, fontSize: 14, fontWeight: 600, color: "#9CA3AF" }}>
             Selecciona un chat
           </p>
         </div>
@@ -94,65 +86,43 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
         background: "#fff",
       }}
     >
-      {/* Header */}
+      {/* Título discreto sobre los mensajes */}
       <div
         style={{
-          padding: "14px 20px",
-          borderBottom: "1px solid #e5e7eb",
-          background: "#fff",
+          padding: "10px 20px 0",
           display: "flex",
           alignItems: "center",
-          gap: 12,
-          flexShrink: 0,
+          gap: 8,
         }}
       >
         <div
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 12,
-            background: esChatEquipo
-              ? "linear-gradient(135deg, #EFF6FF, #DBEAFE)"
-              : "linear-gradient(135deg, #F5F3FF, #EDE9FE)",
-            border: esChatEquipo ? "2px solid #BFDBFE" : "2px solid #DDD6FE",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
+            width: 4,
+            height: 16,
+            borderRadius: 2,
+            background: esChatEquipo ? "#1B6FE8" : "#10b981",
+          }}
+        />
+        <span
+          style={{
+            fontFamily: FONT,
+            fontSize: 12,
+            fontWeight: 600,
+            color: "#0f1f3d",
           }}
         >
-          {esChatEquipo ? (
-            <Users size={18} color="#1D4ED8" />
-          ) : (
-            <Building2 size={18} color="#7C3AED" />
-          )}
-        </div>
-        <div>
-          <p
-            style={{
-              fontFamily: FONT,
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#0F1F3D",
-              margin: 0,
-            }}
-          >
-            {chat.nombre ||
-              (esChatEquipo ? "Chat de Equipo" : "Chat del Proyecto")}
-          </p>
-          <p
-            style={{
-              fontFamily: FONT,
-              fontSize: 11,
-              color: "#9CA3AF",
-              margin: "2px 0 0",
-            }}
-          >
-            {esChatEquipo
-              ? `${chat.totalMiembros || 0} miembros · Solo estudiantes`
-              : "Equipo completo + MYPE"}
-          </p>
-        </div>
+          {tituloChat}
+        </span>
+        <span
+          style={{
+            fontFamily: FONT,
+            fontSize: 10,
+            color: "#9ca3af",
+            marginLeft: 4,
+          }}
+        >
+          {esChatEquipo ? "Solo estudiantes" : "Equipo + MYPE"}
+        </span>
       </div>
 
       {/* Mensajes */}
@@ -160,21 +130,10 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "16px 20px",
+          padding: "8px 20px 16px",
           background: "#f8fafc",
         }}
       >
-        {/* Banner de sistema (centrado, no pertenece a ninguna cuenta) */}
-        <div style={{ display: "flex", justifyContent: "center", margin: "10px 0 18px" }}>
-          <div style={{ maxWidth: "85%", textAlign: "center", background: "rgba(15,31,61,0.04)", border: "1px solid #e5e7eb", borderRadius: 12, padding: "8px 14px" }}>
-            <p style={{ fontFamily: FONT, fontSize: 11, color: "#6b7280", margin: 0, lineHeight: 1.5 }}>
-              {esChatEquipo
-                ? "Chat de equipo · Solo visible para los estudiantes del proyecto. Coordinen sus entregables y recuerden votar por su delegado."
-                : "Chat del proyecto · Espacio para que el equipo se comunique con la MYPE."}
-            </p>
-          </div>
-        </div>
-
         {isLoading ? (
           <div
             style={{
@@ -244,6 +203,7 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
                   }}
                 >
                   <div style={{ maxWidth: "72%" }}>
+                    {/* Nombre del remitente (solo cuando no es mío) */}
                     {!msg.esMio && (
                       <div
                         style={{
@@ -256,17 +216,16 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
                       >
                         <div
                           style={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: 8,
-                            background:
-                              "linear-gradient(135deg, #e0e7ff, #c7d2fe)",
+                            width: 20,
+                            height: 20,
+                            borderRadius: "50%",
+                            background: esChatEquipo ? "#eff6ff" : "#ecfdf5",
+                            color: esChatEquipo ? "#1d4ed8" : "#047857",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             fontSize: 9,
                             fontWeight: 700,
-                            color: "#4f46e5",
                           }}
                         >
                           {msg.remitenteNombre?.charAt(0) || "?"}
@@ -283,20 +242,14 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
                         </span>
                       </div>
                     )}
+                    {/* Burbuja del mensaje */}
                     <div
                       style={{
                         padding: "10px 14px",
-                        borderRadius: msg.esMio
-                          ? "16px 16px 4px 16px"
-                          : "16px 16px 16px 4px",
-                        background: msg.esMio
-                          ? "linear-gradient(135deg, #1B6FE8, #0E54C4)"
-                          : "#fff",
+                        borderRadius: 16,
+                        background: msg.esMio ? "#1B6FE8" : "#ffffff",
                         border: msg.esMio ? "none" : "1px solid #e5e7eb",
                         color: msg.esMio ? "#fff" : "#0F1F3D",
-                        boxShadow: msg.esMio
-                          ? "0 2px 8px rgba(27,111,232,0.2)"
-                          : "0 1px 3px rgba(0,0,0,0.04)",
                       }}
                     >
                       <p
@@ -325,7 +278,7 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
                             fontFamily: FONT,
                             fontSize: 10,
                             color: msg.esMio
-                              ? "rgba(255,255,255,0.6)"
+                              ? "rgba(255,255,255,0.7)"
                               : "#9CA3AF",
                           }}
                         >
@@ -334,9 +287,11 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
                             : ""}
                         </span>
                         {msg.esMio && (
-                          msg.leido
-                            ? <CheckCheck size={14} color="#7DD3FC" />            // 2 checks azul = leído
-                            : <Check size={14} color="rgba(255,255,255,0.6)" />   // 1 check plomo = enviado
+                          msg.leido ? (
+                            <CheckCheck size={14} color="#7DD3FC" />
+                          ) : (
+                            <Check size={14} color="rgba(255,255,255,0.7)" />
+                          )
                         )}
                       </div>
                     </div>
@@ -390,16 +345,13 @@ export function ChatGrupalPanel({ proyectoId, chat }) {
             height: 44,
             borderRadius: 12,
             flexShrink: 0,
-            background: texto.trim()
-              ? "linear-gradient(135deg, #1B6FE8, #0E54C4)"
-              : "#f3f4f6",
+            background: texto.trim() ? "#1B6FE8" : "#f3f4f6",
             border: "none",
             cursor: texto.trim() ? "pointer" : "not-allowed",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            transition: "all 0.2s",
-            boxShadow: texto.trim() ? "0 2px 8px rgba(27,111,232,0.3)" : "none",
+            transition: "background 0.2s",
           }}
         >
           {isEnviando ? (

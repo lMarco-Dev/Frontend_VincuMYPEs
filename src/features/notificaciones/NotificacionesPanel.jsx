@@ -1,30 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, Bell, Briefcase, Award, MessageSquare, 
-  FileText, Trash2, CheckCheck, AlertTriangle
-} from 'lucide-react';
+import { X, Bell, Trash2 } from 'lucide-react';
 import { useNotificaciones, useLeerNotificacion, useEliminarNotificacion } from './useNotificaciones';
 
-const ICONOS = {
-  POSTULACION: <Briefcase size={14} className="text-blue-500" />,
-  PROYECTO: <FileText size={14} className="text-amber-500" />,
-  MENSAJE: <MessageSquare size={14} className="text-emerald-500" />,
-  ENTREGABLE: <FileText size={14} className="text-purple-500" />,
-  CERTIFICADO: <Award size={14} className="text-orange-500" />,
-  ALERTA: <AlertTriangle size={14} className="text-red-500" />,
-  SISTEMA: <Bell size={14} className="text-slate-400" />,
-};
+const FONT = "'Angro Std', 'Outfit', sans-serif";
 
-const COLORES_BORDE = {
-  POSTULACION: '#3B82F6',
-  PROYECTO: '#F59E0B',
-  MENSAJE: '#10B981',
-  ENTREGABLE: '#8B5CF6',
-  CERTIFICADO: '#F97316',
-  ALERTA: '#EF4444',
-  SISTEMA: '#94a3b8',
+// Colores suaves para el borde izquierdo según tipo (apenas perceptible)
+const BORDE_TIPO = {
+  POSTULACION: '#cbd5e1',
+  PROYECTO: '#cbd5e1',
+  MENSAJE: '#cbd5e1',
+  ENTREGABLE: '#cbd5e1',
+  CERTIFICADO: '#cbd5e1',
+  ALERTA: '#fecaca',
+  SISTEMA: '#cbd5e1',
 };
 
 export function NotificacionesPanel({ isOpen, onClose }) {
@@ -34,7 +24,7 @@ export function NotificacionesPanel({ isOpen, onClose }) {
   const { mutate: eliminarNotificacion } = useEliminarNotificacion();
   const [filtro, setFiltro] = useState('todas');
 
-  const notificacionesFiltradas = filtro === 'no-leidas' 
+  const notificacionesFiltradas = filtro === 'no-leidas'
     ? notificaciones.filter(n => !n.leida)
     : notificaciones;
 
@@ -45,22 +35,50 @@ export function NotificacionesPanel({ isOpen, onClose }) {
 
   const noLeidas = notificaciones.filter(n => !n.leida).length;
 
-  const getRuta = (notif) => {
-    if (notif.urlReferencia && notif.urlReferencia.trim() !== '') {
-      return notif.urlReferencia.startsWith('/') 
-        ? notif.urlReferencia 
-        : `/${notif.urlReferencia}`;
-    }
+  // Determina si una notificación está vinculada a un proyecto temporal
+ const esDeProyecto = (notif) => {
+  if (notif.proyectoId) return true;
+  const tipo = (notif.tipo || '').toUpperCase();
+  return (
+    tipo === 'PROYECTO' ||
+    tipo === 'PROYECTO_COMPLETADO' ||
+    tipo === 'PROYECTO_CONFIRMADO' ||
+    tipo === 'ENTREGABLE' ||
+    tipo.includes('PROYECTO') ||
+    tipo.includes('ENTREGABLE')
+  );
+};
+
+const getRuta = (notif) => {
+  // 1. Si ya detectamos que es de proyecto, no hay ruta
+  if (esDeProyecto(notif)) return null;
+
+  // 2. Construimos la ruta según la lógica actual
+  let ruta = null;
+  if (notif.urlReferencia && notif.urlReferencia.trim() !== '') {
+    ruta = notif.urlReferencia.startsWith('/')
+      ? notif.urlReferencia
+      : `/${notif.urlReferencia}`;
+  } else {
     const tipo = notif.tipo?.toUpperCase() || '';
-    if (tipo.includes('MENSAJE')) return '/workspace';
-    if (tipo.includes('CERTIFICADO')) return '/certificados';
-    return '/mis-postulaciones';
-  };
+    if (tipo.includes('MENSAJE')) ruta = '/workspace';
+    else if (tipo.includes('CERTIFICADO')) ruta = '/certificados';
+    else ruta = '/mis-postulaciones';
+  }
+
+  // 3. Bloqueamos explícitamente cualquier ruta que apunte a un workspace
+  if (ruta && ruta.startsWith('/workspace')) return null;
+
+  return ruta;
+};
 
   const handleClick = (notif) => {
     if (!notif.leida) leerNotificacion(notif.id);
     onClose();
-    setTimeout(() => navigate(getRuta(notif)), 200);
+    // Solo navega si NO es de proyecto
+    if (!esDeProyecto(notif)) {
+      setTimeout(() => navigate(getRuta(notif)), 200);
+    }
   };
 
   const tiempoRelativo = (fecha) => {
@@ -77,144 +95,243 @@ export function NotificacionesPanel({ isOpen, onClose }) {
     <AnimatePresence>
       {isOpen && (
         <>
+          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(0,0,0,0.3)' }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 40,
+              background: 'rgba(15, 23, 42, 0.3)',
+              backdropFilter: 'blur(2px)',
+            }}
           />
+
+          {/* Panel */}
           <motion.div
             initial={{ x: '100%', opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '100%', opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 260 }}
             style={{
-              position: 'fixed', top: 0, right: 0, bottom: 0,
-              width: '400px', maxWidth: '100vw', zIndex: 50,
-              background: '#fff', boxShadow: '-8px 0 30px rgba(0,0,0,0.15)',
-              display: 'flex', flexDirection: 'column',
-              fontFamily: "'Inter', sans-serif",
+              position: 'fixed',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: '400px',
+              maxWidth: '100vw',
+              zIndex: 50,
+              background: '#ffffff',
+              boxShadow: '-8px 0 30px rgba(0,0,0,0.06)',
+              display: 'flex',
+              flexDirection: 'column',
+              fontFamily: FONT,
             }}
           >
-            {/* Header */}
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'linear-gradient(135deg, #081828, #0F2A4A)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 10,
-                    background: noLeidas > 0 ? 'rgba(27,111,232,0.25)' : 'rgba(255,255,255,0.08)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    position: 'relative',
-                  }}>
-                    <Bell size={18} color={noLeidas > 0 ? '#06B6D4' : 'rgba(255,255,255,0.4)'} />
-                    {noLeidas > 0 && (
-                      <span style={{
-                        position: 'absolute', top: -4, right: -4,
-                        width: 18, height: 18, borderRadius: '50%',
-                        background: '#EF4444', color: '#fff',
-                        fontSize: 10, fontWeight: 700,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>{noLeidas}</span>
-                    )}
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: 15, fontWeight: 700, color: '#fff', margin: 0 }}>Notificaciones</h3>
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', margin: 0 }}>{noLeidas} sin leer de {notificaciones.length}</p>
-                  </div>
+            {/* Header sin ícono */}
+            <div
+              style={{
+                padding: '20px 24px',
+                borderBottom: '1px solid #f1f5f9',
+                background: '#ffffff',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div>
+                  <h3 style={{ fontSize: 15, fontWeight: 600, color: '#0f1f3d', margin: 0, fontFamily: FONT }}>
+                    Notificaciones
+                  </h3>
+                  <p style={{ fontSize: 11, color: '#94a3b8', margin: '2px 0 0', fontFamily: FONT }}>
+                    {noLeidas} sin leer de {notificaciones.length}
+                  </p>
                 </div>
-                <button onClick={onClose} style={{
-                  width: 32, height: 32, borderRadius: 8, border: 'none',
-                  background: 'rgba(255,255,255,0.1)', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <X size={16} color="rgba(255,255,255,0.7)" />
+                <button
+                  onClick={onClose}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    border: 'none',
+                    background: '#f8fafc',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#64748b',
+                  }}
+                >
+                  <X size={16} />
                 </button>
               </div>
+
+              {/* Filtros (igual que antes) */}
               <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => setFiltro('todas')} style={{
-                  padding: '6px 12px', borderRadius: 6, border: 'none',
-                  fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                  background: filtro === 'todas' ? '#1B6FE8' : 'rgba(255,255,255,0.1)',
-                  color: filtro === 'todas' ? '#fff' : 'rgba(255,255,255,0.55)',
-                }}>Todas</button>
-                <button onClick={() => setFiltro('no-leidas')} style={{
-                  padding: '6px 12px', borderRadius: 6, border: 'none',
-                  fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                  background: filtro === 'no-leidas' ? '#1B6FE8' : 'rgba(255,255,255,0.1)',
-                  color: filtro === 'no-leidas' ? '#fff' : 'rgba(255,255,255,0.55)',
-                }}>No leídas</button>
+                <button
+                  onClick={() => setFiltro('todas')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 8,
+                    border: 'none',
+                    fontSize: 11,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    background: filtro === 'todas' ? '#f1f5f9' : 'transparent',
+                    color: filtro === 'todas' ? '#0f1f3d' : '#94a3b8',
+                    fontFamily: FONT,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  Todas
+                </button>
+                <button
+                  onClick={() => setFiltro('no-leidas')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 8,
+                    border: 'none',
+                    fontSize: 11,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    background: filtro === 'no-leidas' ? '#f0fdf4' : 'transparent',
+                    color: filtro === 'no-leidas' ? '#059669' : '#94a3b8',
+                    fontFamily: FONT,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  No leídas
+                </button>
               </div>
             </div>
 
             {/* Lista */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px' }}>
               {isLoading ? (
-                <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8', fontSize: 13 }}>Cargando...</div>
+                <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8', fontSize: 13 }}>
+                  Cargando...
+                </div>
               ) : ordenadas.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: 40 }}>
-                  <Bell size={40} style={{ margin: '0 auto 12px', opacity: 0.15, color: '#94a3b8' }} />
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', margin: 0 }}>
-                    {filtro === 'no-leidas' ? 'No hay notificaciones sin leer' : 'No tienes notificaciones'}
+                  <Bell size={36} style={{ margin: '0 auto 12px', color: '#e2e8f0' }} />
+                  <p style={{ fontSize: 13, fontWeight: 500, color: '#94a3b8', margin: 0 }}>
+                    {filtro === 'no-leidas' ? 'Sin notificaciones nuevas' : 'No tienes notificaciones'}
                   </p>
                 </div>
               ) : (
-                ordenadas.map((notif, index) => (
-                  <motion.div
-                    key={notif.id || index}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    style={{
-                      padding: '12px 14px', marginBottom: 6, borderRadius: 10,
-                      border: '1px solid #e8e8e4',
-                      borderLeft: `3px solid ${COLORES_BORDE[notif.tipo] || '#94a3b8'}`,
-                      background: notif.leida ? '#fff' : '#f8fafc',
-                      cursor: 'pointer', opacity: notif.leida ? 0.7 : 1,
-                    }}
-                  >
-                    <div style={{ display: 'flex', gap: 10 }}>
-                      <div style={{
-                        width: 32, height: 32, borderRadius: 8,
-                        background: '#f1f5f9', display: 'flex',
-                        alignItems: 'center', justifyContent: 'center',
-                        flexShrink: 0, marginTop: 2,
-                      }}>
-                        {ICONOS[notif.tipo] || <Bell size={14} className="text-slate-400" />}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div onClick={() => handleClick(notif)}>
-                          <p style={{ fontSize: 12, fontWeight: 600, color: '#0f1f3d', margin: '0 0 3px' }}>
-                            {notif.titulo}
-                          </p>
-                          <p style={{
-                            fontSize: 11, color: '#64748b', margin: 0,
-                            overflow: 'hidden', display: '-webkit-box',
-                            WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                          }}>
-                            {notif.mensaje}
-                          </p>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
-                          <span style={{ fontSize: 10, color: '#94a3b8' }}>{tiempoRelativo(notif.fechaCreacion)}</span>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); eliminarNotificacion(notif.id); }}
+                ordenadas.map((notif, index) => {
+                  const esProyecto = esDeProyecto(notif);
+                  return (
+                    <motion.div
+                      key={notif.id || index}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.02, duration: 0.25 }}
+                      style={{
+                        marginBottom: 8,
+                        borderRadius: 12,
+                        border: '1px solid #f1f5f9',
+                        borderLeft: `3px solid ${BORDE_TIPO[notif.tipo] || '#e2e8f0'}`,
+                        background: notif.leida ? '#ffffff' : '#f0fdf4',
+                        cursor: esProyecto ? 'default' : 'pointer',
+                        transition: 'background 0.3s ease',
+                      }}
+                      layout
+                    >
+                      <div style={{ padding: '14px 16px' }}>
+                        <div style={{ display: 'flex', gap: 10 }}>
+                          <div
                             style={{
-                              width: 24, height: 24, borderRadius: 6, border: 'none',
-                              background: 'transparent', cursor: 'pointer',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              opacity: 0.3,
+                              width: 32,
+                              height: 32,
+                              borderRadius: 8,
+                              background: '#f8fafc',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                              marginTop: 1,
                             }}
-                            onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = '#fee2e2'; }}
-                            onMouseLeave={e => { e.currentTarget.style.opacity = '0.3'; e.currentTarget.style.background = 'transparent'; }}
                           >
-                            <Trash2 size={12} color="#EF4444" />
-                          </button>
+                            <Bell size={14} color="#94a3b8" />
+                          </div>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div onClick={() => handleClick(notif)}>
+                              <p
+                                style={{
+                                  fontSize: 13,
+                                  fontWeight: 600,
+                                  color: '#0f1f3d',
+                                  margin: '0 0 4px',
+                                  lineHeight: 1.4,
+                                }}
+                              >
+                                {notif.titulo}
+                              </p>
+                              <p
+                                style={{
+                                  fontSize: 12,
+                                  color: '#64748b',
+                                  margin: 0,
+                                  lineHeight: 1.5,
+                                  overflow: 'hidden',
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: 'vertical',
+                                }}
+                              >
+                                {notif.mensaje}
+                              </p>
+                            </div>
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginTop: 8,
+                              }}
+                            >
+                              <span style={{ fontSize: 10, color: '#94a3b8' }}>
+                                {tiempoRelativo(notif.fechaCreacion)}
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  eliminarNotificacion(notif.id);
+                                }}
+                                style={{
+                                  width: 24,
+                                  height: 24,
+                                  borderRadius: 6,
+                                  border: 'none',
+                                  background: 'transparent',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#cbd5e1',
+                                  transition: 'all 0.2s',
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.color = '#ef4444';
+                                  e.currentTarget.style.background = '#fef2f2';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.color = '#cbd5e1';
+                                  e.currentTarget.style.background = 'transparent';
+                                }}
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))
+                    </motion.div>
+                  );
+                })
               )}
             </div>
           </motion.div>

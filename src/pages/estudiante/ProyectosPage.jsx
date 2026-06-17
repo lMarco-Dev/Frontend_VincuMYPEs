@@ -251,14 +251,7 @@ const ProyectosCommandCenter = ({ totalDisponibles, totalPostulaciones }) => {
             <div style={{ fontSize: 32, fontWeight: 400, color: "#FFFFFF", fontFamily: FONT, lineHeight: 1 }}>{totalPostulaciones}</div>
           </div>
         </div>
-        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 12, padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: 11, color: "#FFFFFF", fontWeight: 600, fontFamily: FONT, marginBottom: 3 }}>Cajamarca, Perú</div>
-          </div>
-          <div style={{ width: 100, height: 5, background: "#1E293B", borderRadius: 4, overflow: "hidden" }}>
-            <div style={{ width: `${totalDisponibles ? Math.min((totalPostulaciones / totalDisponibles) * 100, 100) : 0}%`, height: "100%", background: "linear-gradient(90deg, #1B6FE8, #38BDF8)" }} />
-          </div>
-        </div>
+        
       </div>
     </motion.div>
   );

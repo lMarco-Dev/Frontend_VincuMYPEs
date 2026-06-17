@@ -160,9 +160,7 @@ function SectionHeader({ title, subtitle, count }) {
         <h3 style={{ margin: 0, fontFamily: FONT, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>{title}</h3>
         {subtitle && <p style={{ margin: "4px 0 0", fontFamily: FONT, fontSize: 12, color: "#64748B" }}>{subtitle}</p>}
       </div>
-      {count != null && (
-        <span style={{ fontFamily: FONT, fontSize: 12, fontWeight: 600, color: "#64748B", background: "#F1F5F9", padding: "4px 12px", borderRadius: 8 }}>{count}</span>
-      )}
+
     </div>
   );
 }
@@ -268,7 +266,9 @@ function WorkspaceRow({ p, index, onOpen }) {
                 {p.proyectoArea && (
                   <div style={{ background: "#F8FAFC", borderRadius: 12, padding: "14px 16px", border: "1px solid #F1F5F9" }}>
                     <div style={{ fontSize: 10, fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: FONT, marginBottom: 6 }}>Área</div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "#0F172A", fontFamily: FONT }}>{p.proyectoArea}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#0F172A", fontFamily: FONT }}>
+                      {p.proyectoArea ? p.proyectoArea.replace(/_/g, " ") : "—"}
+                    </div>
                   </div>
                 )}
               </div>
@@ -293,7 +293,7 @@ function HistorialRow({ p }) {
 
   const rows = [
     ["Tipo", tipoDe(p.cupos)],
-    p.proyectoArea && ["Área", p.proyectoArea],
+    p.proyectoArea && ["Área", p.proyectoArea.replace(/_/g, " ")],
     fmt(p.proyectoFechaInicioReal) && ["Inicio", fmt(p.proyectoFechaInicioReal)],
     fmt(p.proyectoFechaFin) && ["Culminación", fmt(p.proyectoFechaFin)],
     ["Tu rol", p.esDelegado ? "Delegado" : "Integrante"],
@@ -406,7 +406,7 @@ function ActivityHeatmap({ entregables }) {
     counts[key] = (counts[key] || 0) + 1;
   });
 
-  const WEEKS = 13;
+  const WEEKS = 30;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const start = new Date(today);
@@ -418,60 +418,91 @@ function ActivityHeatmap({ entregables }) {
     const key = cur.toISOString().slice(0, 10);
     days.push({ date: new Date(cur), count: counts[key] || 0 });
   }
+
   const cols = [];
   for (let i = 0; i < days.length; i += 7) cols.push(days.slice(i, i + 7));
 
   const totalEntregas = dates.length;
   const diasTrabajados = Object.keys(counts).length;
+
   const color = (c) =>
     !c ? "#E2E8F0" : c === 1 ? "#BFDBFE" : c <= 3 ? "#93B8F3" : c <= 5 ? "#4D8AE9" : "#1B6FE8";
 
   const meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
   let lastMonth = -1;
   const monthLabels = cols.map((col) => {
-    const m = col[0].date.getMonth();
-    if (m !== lastMonth) { lastMonth = m; return meses[m]; }
+    const m = col[0]?.date?.getMonth();
+    if (m !== undefined && m !== lastMonth) { lastMonth = m; return meses[m]; }
     return "";
   });
 
-  const CELL = 10, GAP = 2;
+  const dayLabels = ["Lun", "", "Mié", "", "Vie", "", "Dom"];
+  const CELL = 13, GAP = 3;
+  const DAY_LABEL_WIDTH = 28;
 
   return (
     <div style={{ background: "#FFFFFF", borderRadius: 18, border: "1px solid #E2E8F0", padding: "24px 28px", marginTop: 32 }}>
+      {/* Encabezado */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid #E2E8F0" }}>
         <div>
           <h3 style={{ fontFamily: FONT, fontSize: 15, fontWeight: 700, color: "#0F172A", margin: 0 }}>Actividad de entregas</h3>
           <p style={{ fontFamily: FONT, fontSize: 12, color: "#64748B", margin: "4px 0 0" }}>
-            Últimos 3 meses · {diasTrabajados} día{diasTrabajados !== 1 ? "s" : ""} activo{diasTrabajados !== 1 ? "s" : ""} · {totalEntregas} entrega{totalEntregas !== 1 ? "s" : ""}
+            {totalEntregas} entrega{totalEntregas !== 1 ? "s" : ""} en el último año · {diasTrabajados} día{diasTrabajados !== 1 ? "s" : ""} con actividad
           </p>
         </div>
-      </div>
-      <div style={{ overflowX: "auto" }}>
-        <div style={{ display: "flex", gap: GAP, marginBottom: 3 }}>
-          {monthLabels.map((m, i) => (
-            <div key={i} style={{ width: CELL, fontFamily: FONT, fontSize: 8, color: "#94A3B8" }}>{m}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontFamily: FONT, fontSize: 10, color: "#94A3B8" }}>Menos</span>
+          {["#E2E8F0","#BFDBFE","#93B8F3","#4D8AE9","#1B6FE8"].map((c) => (
+            <div key={c} style={{ width: 12, height: 12, borderRadius: 3, background: c }} />
           ))}
+          <span style={{ fontFamily: FONT, fontSize: 10, color: "#94A3B8" }}>Más</span>
         </div>
-        <div style={{ display: "flex", gap: GAP }}>
-          {cols.map((col, ci) => (
-            <div key={ci} style={{ display: "flex", flexDirection: "column", gap: GAP }}>
-              {col.map((d, di) => (
-                <div
-                  key={di}
-                  title={`${d.date.toLocaleDateString("es-PE")} · ${d.count} entrega${d.count !== 1 ? "s" : ""}`}
-                  style={{ width: CELL, height: CELL, borderRadius: 2, background: color(d.count) }}
-                />
+      </div>
+
+      {/* Área del heatmap centrada */}
+      <div style={{ display: "flex", justifyContent: "center", overflowX: "auto" }}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {/* Fila de meses (alineada con las columnas) */}
+          <div style={{ display: "flex", gap: GAP, marginBottom: 4, marginLeft: DAY_LABEL_WIDTH + 4 }}>
+            {monthLabels.map((m, i) => (
+              <div key={i} style={{ width: CELL, fontFamily: FONT, fontSize: 9, color: "#94A3B8", textAlign: "center" }}>
+                {m}
+              </div>
+            ))}
+          </div>
+
+          {/* Grid con días + celdas */}
+          <div style={{ display: "flex" }}>
+            {/* Etiquetas de días de la semana */}
+            <div style={{ display: "flex", flexDirection: "column", gap: GAP, marginRight: 4 }}>
+              {dayLabels.map((day, i) => (
+                <div key={i} style={{ width: DAY_LABEL_WIDTH, height: CELL, display: "flex", alignItems: "center", justifyContent: "flex-end", fontFamily: FONT, fontSize: 9, color: "#94A3B8", paddingRight: 4 }}>
+                  {day}
+                </div>
               ))}
             </div>
-          ))}
+
+            {/* Celdas del heatmap */}
+            <div style={{ display: "flex", gap: GAP }}>
+              {cols.map((col, ci) => (
+                <div key={ci} style={{ display: "flex", flexDirection: "column", gap: GAP }}>
+                  {col.map((d, di) => (
+                    <div
+                      key={di}
+                      title={`${d.date.toLocaleDateString("es-PE")} · ${d.count} entrega${d.count !== 1 ? "s" : ""}`}
+                      style={{
+                        width: CELL,
+                        height: CELL,
+                        borderRadius: 3,
+                        background: color(d.count),
+                      }}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10, justifyContent: "flex-end" }}>
-        <span style={{ fontFamily: FONT, fontSize: 9, color: "#94A3B8" }}>Menos</span>
-        {["#E2E8F0","#BFDBFE","#93B8F3","#4D8AE9","#1B6FE8"].map((c) => (
-          <div key={c} style={{ width: 9, height: 9, borderRadius: 2, background: c }} />
-        ))}
-        <span style={{ fontFamily: FONT, fontSize: 9, color: "#94A3B8" }}>Más</span>
       </div>
     </div>
   );

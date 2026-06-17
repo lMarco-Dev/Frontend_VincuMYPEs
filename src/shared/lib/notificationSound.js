@@ -1,7 +1,7 @@
-export function playNotificationSound() {
+export async function playNotificationSound() {
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    audioContext.resume();
+    await audioContext.resume();
     const playTone = (frequency, duration, startTime, volume = 0.2) => {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();

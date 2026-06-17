@@ -7,13 +7,12 @@ const TABS = [
     id: "EQUIPO",
     label: "Equipo",
     icon: Users,
-    desc: "Solo estudiantes",
+
   },
   {
     id: "PROYECTO",
     label: "Proyecto",
     icon: Building2,
-    desc: "Equipo + MYPE",
   },
 ];
 

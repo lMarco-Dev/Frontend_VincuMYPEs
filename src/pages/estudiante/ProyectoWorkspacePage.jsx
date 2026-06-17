@@ -82,148 +82,35 @@ const LinearStatsChart = ({ completados, enRevision, pendientes, rechazados = 0,
   const pctRechazados = total > 0 ? (rechazados / total) * 100 : 0;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-      style={{ background: C.card, borderRadius: 20, border: `0.5px solid ${C.border}`, padding: "20px 28px", marginBottom: 20 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+    <div style={{ background: '#fff', borderRadius: 20, border: `0.5px solid ${C.border}`, padding: '20px 28px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
         <div style={{ width: 4, height: 20, borderRadius: 2, background: C.primary }} />
-        <h3 style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary, margin: 0 }}>Distribución de entregables</h3>
+        <h3 style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary, margin: 0, fontFamily: FONT }}>Distribución de entregables</h3>
+        <span style={{ marginLeft: 'auto', fontSize: 10, color: C.textMuted, fontFamily: FONT }}>{completados}/{total} aprobados</span>
       </div>
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", height: 12, borderRadius: 12, overflow: "hidden", background: "#f1f5f9" }}>
+
+      {/* Barra de progreso */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', height: 14, borderRadius: 10, overflow: 'hidden', background: '#f1f5f9', marginBottom: 16 }}>
           {pctCompletados > 0 && <motion.div initial={{ width: 0 }} animate={{ width: `${pctCompletados}%` }} transition={{ duration: 0.8, ease: "easeOut" }} style={{ height: "100%", background: CHART_COLORS.completados }} />}
           {pctEnRevision > 0 && <motion.div initial={{ width: 0 }} animate={{ width: `${pctEnRevision}%` }} transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }} style={{ height: "100%", background: CHART_COLORS.enRevision }} />}
           {pctPendientes > 0 && <motion.div initial={{ width: 0 }} animate={{ width: `${pctPendientes}%` }} transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }} style={{ height: "100%", background: CHART_COLORS.pendientes }} />}
           {pctRechazados > 0 && <motion.div initial={{ width: 0 }} animate={{ width: `${pctRechazados}%` }} transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }} style={{ height: "100%", background: CHART_COLORS.rechazados }} />}
         </div>
+
+        {/* Solo texto resumen, sin círculos de colores */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#64748B', fontFamily: FONT }}>
+          <span>Aprobados: {completados}</span>
+          <span>En revisión: {enRevision}</span>
+          <span>Pendientes: {pendientes}</span>
+          {rechazados > 0 && <span>Requieren cambios: {rechazados}</span>}
+        </div>
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 20, paddingTop: 16, borderTop: `0.5px solid ${C.border}` }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 3, background: CHART_COLORS.completados }} /><span style={{ fontSize: 12, color: C.textSecondary }}>Aprobados</span><span style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>{completados}</span></div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 3, background: CHART_COLORS.enRevision }} /><span style={{ fontSize: 12, color: C.textSecondary }}>En revisión</span><span style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>{enRevision}</span></div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 3, background: CHART_COLORS.pendientes }} /><span style={{ fontSize: 12, color: C.textSecondary }}>Pendientes</span><span style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>{pendientes}</span></div>
-        {rechazados > 0 && <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 10, height: 10, borderRadius: 3, background: CHART_COLORS.rechazados }} /><span style={{ fontSize: 12, color: C.textSecondary }}>Requieren cambios</span><span style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>{rechazados}</span></div>}
-      </div>
-      <div style={{ marginTop: 18, paddingTop: 12, borderTop: `0.5px solid ${C.border}` }}>
-        <p style={{ fontSize: 12, fontWeight: 500, color: C.textSecondary, margin: 0 }}>
+
+      <div style={{ marginTop: 16, paddingTop: 12, borderTop: `0.5px solid ${C.border}` }}>
+        <p style={{ fontSize: 12, fontWeight: 500, color: C.textSecondary, margin: 0, fontFamily: FONT }}>
           {completados === total && total > 0 ? "🎉 ¡Felicidades! Todos los entregables aprobados." : completados > 0 ? `✅ Llevas ${completados} de ${total} aprobados.` : pendientes > 0 ? `${pendientes} entregable${pendientes !== 1 ? "s" : ""} pendiente${pendientes !== 1 ? "s" : ""}.` : "Sube tus entregables para avanzar."}
         </p>
-      </div>
-    </motion.div>
-  );
-};
-
-/* ═══════════════════════════════════════════════
-   HEATMAP DE ACTIVIDAD (estilo GitHub)
-═══════════════════════════════════════════════ */
-const ACTIVITY_COLORS = ['#EEF2F7', '#BFDBFE', '#93C5FD', '#3B82F6', '#1B6FE8'];
-
-const ActivityHeatmap = ({ entregables }) => {
-  const activityMap = {};
-  entregables.forEach(e => {
-    if (e.fechaSubida) {
-      try {
-        const dateKey = format(new Date(e.fechaSubida), 'yyyy-MM-dd');
-        activityMap[dateKey] = (activityMap[dateKey] || 0) + 1;
-      } catch {}
-    }
-  });
-
-  const today = new Date();
-  const WEEKS = 20;
-
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - WEEKS * 7 + 1);
-  const dow = startDate.getDay();
-  const offset = dow === 0 ? 6 : dow - 1;
-  startDate.setDate(startDate.getDate() - offset);
-
-  const weeks = [];
-  const cur = new Date(startDate);
-  for (let w = 0; w < WEEKS; w++) {
-    const week = [];
-    for (let d = 0; d < 7; d++) {
-      const dateKey = format(cur, 'yyyy-MM-dd');
-      week.push({ date: new Date(cur), dateKey, count: activityMap[dateKey] || 0, isFuture: cur > today });
-      cur.setDate(cur.getDate() + 1);
-    }
-    weeks.push(week);
-  }
-
-  const monthLabels = [];
-  weeks.forEach((week, wi) => {
-    const m = week[0].date.getMonth();
-    if (wi === 0 || weeks[wi - 1][0].date.getMonth() !== m) {
-      monthLabels.push({ wi, label: format(week[0].date, 'MMM', { locale: es }) });
-    }
-  });
-
-  const getColor = (count, isFuture) => {
-    if (isFuture || count === 0) return ACTIVITY_COLORS[0];
-    if (count === 1) return ACTIVITY_COLORS[1];
-    if (count === 2) return ACTIVITY_COLORS[2];
-    if (count === 3) return ACTIVITY_COLORS[3];
-    return ACTIVITY_COLORS[4];
-  };
-
-  const totalEntregas = entregables.filter(e => e.fechaSubida).length;
-  const activeDays = Object.keys(activityMap).length;
-  const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-
-  return (
-    <div style={{ background: '#fff', borderRadius: 20, border: `0.5px solid ${C.border}`, padding: '20px 24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-        <div style={{ width: 4, height: 16, borderRadius: 2, background: C.primary, flexShrink: 0 }} />
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary, margin: 0, fontFamily: FONT }}>Actividad de entregas</h3>
-        <span style={{ marginLeft: 'auto', fontSize: 10, color: C.textMuted, fontFamily: FONT }}>
-          {totalEntregas} entrega{totalEntregas !== 1 ? 's' : ''} · {activeDays} día{activeDays !== 1 ? 's' : ''} activo{activeDays !== 1 ? 's' : ''}
-        </span>
-      </div>
-      <div style={{ display: 'flex', gap: 5, alignItems: 'flex-start' }}>
-        {/* Day labels */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 19, width: 12, flexShrink: 0 }}>
-          {DAY_LABELS.map((day, i) => (
-            <div key={i} style={{ height: 12, fontSize: 8, color: '#94A3B8', fontWeight: 700, lineHeight: '12px', visibility: [0, 2, 4].includes(i) ? 'visible' : 'hidden', fontFamily: FONT }}>
-              {day}
-            </div>
-          ))}
-        </div>
-        {/* Grid */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Month labels row */}
-          <div style={{ display: 'flex', gap: 2, height: 17, marginBottom: 2 }}>
-            {weeks.map((week, wi) => {
-              const found = monthLabels.find(m => m.wi === wi);
-              return (
-                <div key={wi} style={{ width: 12, fontSize: 9, color: '#64748B', fontWeight: 600, overflow: 'visible', whiteSpace: 'nowrap', fontFamily: FONT }}>
-                  {found ? found.label : ''}
-                </div>
-              );
-            })}
-          </div>
-          {/* Cells */}
-          <div style={{ display: 'flex', gap: 2 }}>
-            {weeks.map((week, wi) => (
-              <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {week.map((day, di) => (
-                  <div
-                    key={di}
-                    title={`${format(day.date, "d 'de' MMM", { locale: es })}: ${day.count} entrega${day.count !== 1 ? 's' : ''}`}
-                    style={{ width: 12, height: 12, borderRadius: 2, background: getColor(day.count, day.isFuture), transition: 'transform 0.1s', cursor: day.count > 0 ? 'pointer' : 'default', flexShrink: 0 }}
-                    onMouseEnter={e => { if (day.count > 0) e.currentTarget.style.transform = 'scale(1.3)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-                  />
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      {/* Legend */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 12, justifyContent: 'flex-end' }}>
-        <span style={{ fontSize: 9, color: '#94A3B8', fontFamily: FONT }}>Menos</span>
-        {ACTIVITY_COLORS.map((color, i) => (
-          <div key={i} style={{ width: 10, height: 10, borderRadius: 2, background: color }} />
-        ))}
-        <span style={{ fontSize: 9, color: '#94A3B8', fontFamily: FONT }}>Más</span>
       </div>
     </div>
   );
@@ -248,9 +135,6 @@ const ProjectDetailsPanel = ({ proyecto, mype, mypeNombre }) => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ width: 4, height: 16, borderRadius: 2, background: C.primary, flexShrink: 0 }} />
         <h3 style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary, margin: 0, fontFamily: FONT }}>Detalles</h3>
-        <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: estadoStyle.color, background: estadoStyle.bg, border: `1px solid ${estadoStyle.border}`, padding: '2px 8px', borderRadius: 20, fontFamily: FONT }}>
-          {estadoStyle.label}
-        </span>
       </div>
 
       {proyecto?.descripcion && (
@@ -770,11 +654,8 @@ export function ProyectoWorkspacePage() {
         total={currentStats.total}
       />
 
-      <LinearStatsChart completados={currentStats.completados} enRevision={currentStats.enRevision} pendientes={currentStats.pendientes} rechazados={currentStats.rechazados} total={currentStats.total} />
-
-      {/* Actividad + Detalles */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20, marginBottom: 20 }}>
-        <ActivityHeatmap entregables={entregables} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, marginBottom: 20 }}>
+        <LinearStatsChart completados={currentStats.completados} enRevision={currentStats.enRevision} pendientes={currentStats.pendientes} rechazados={currentStats.rechazados} total={currentStats.total} />
         <ProjectDetailsPanel proyecto={proyecto} mype={mype} mypeNombre={mypeNombre} />
       </div>
 
@@ -836,681 +717,646 @@ export function ProyectoWorkspacePage() {
           <AnimatePresence mode="wait">
             {/* TAB: ENTREGABLES */}
             {activeTab === "entregables" && (
-              <motion.div key="entregables" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
-                {votacionCompletada && ganador && !esProyectoIndividual && (
-                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 12, padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: esDelegado ? "linear-gradient(135deg, #0F1F3D, #1B6FE8)" : "linear-gradient(135deg, #1B6FE8, #06B6D4)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{esDelegado ? <Crown size={20} color="#fff" /> : <Shield size={20} color="#fff" />}</div>
-                    <div>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: "#0f1f3d", margin: 0 }}>{esDelegado ? "¡Eres el delegado del equipo!" : `Delegado: ${ganador.estudianteNombre}`}</p>
-                      <p style={{ fontSize: 11, color: "#6b7280", margin: "2px 0 0" }}>Todos los miembros pueden subir entregables. El sistema evita ediciones simultáneas automáticamente.</p>
+            <motion.div key="entregables" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
+              {entregablesProyecto.length > 0 ? (
+                <>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ width: 4, height: 18, borderRadius: 2, background: C.primary, flexShrink: 0 }} />
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary, margin: 0 }}>Lista de entregables</h3>
                     </div>
-                  </motion.div>
-                )}
-                {entregablesProyecto.length > 0 ? (
-                  <>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 4, height: 18, borderRadius: 2, background: C.primary, flexShrink: 0 }} />
-                        <h3 style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary, margin: 0 }}>Lista de entregables</h3>
-                        <span style={{ fontSize: 10, fontWeight: 600, color: C.textMuted, background: "#f1f5f9", padding: "3px 10px", borderRadius: 12 }}>{entregablesProyecto.length}</span>
+                    {/* Badge de delegado justificado a la derecha */}
+                    {votacionCompletada && ganador && !esProyectoIndividual && (
+                      <div style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: 6, 
+                        fontSize: 11, 
+                        color: '#64748B', 
+                        fontFamily: FONT,
+                        fontWeight: 500,
+                        background: '#F8FAFC',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: 6,
+                        padding: '3px 10px',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {esDelegado ? (
+                          <><Crown size={12} color="#1B6FE8" /> Eres el delegado</>
+                        ) : (
+                          <><Shield size={12} color="#64748B" /> Delegado: {ganador.estudianteNombre}</>
+                        )}
                       </div>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 16 }}>
-                      {entregablesProyecto.map((titulo, idx) => {
-                        const entrega = entregables.find((e) => e.titulo?.toLowerCase() === titulo.toLowerCase());
-                        return (
-                          <EntregableCard
-                            key={`e-${idx}`}
-                            titulo={titulo}
-                            index={idx}
-                            entregable={entrega || null}
-                            esDelegado={esDelegado}
-                            esProyectoIndividual={esProyectoIndividual}
-                            onUpload={async (titulo, entregaExistente) => {
-                              if (entregaExistente?.id) {
-                                try {
-                                  await lockEntregable(proyectoId, entregaExistente.id);
-                                  setLockedEntregableId(entregaExistente.id);
-                                } catch (err) {
-                                  const msg = err.response?.data?.message || "Otro usuario está editando este entregable";
-                                  alert(msg);
-                                  return;
-                                }
-                              }
-                              setSelectedEntregable(titulo);
-                              setShowUploadModal(true);
-                            }}
-                            onDownload={descargarArchivo}
-                            onDelete={handleEliminarEntregable}
-                          />
-                        );
-                      })}
-                    </div>
-                  </>
-                ) : (
-                  <div style={{ textAlign: "center", padding: "60px 20px" }}>
-                    <FileText size={48} color={C.textMuted} style={{ marginBottom: 16 }} />
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: C.textPrimary, marginBottom: 6 }}>No hay entregables definidos</h3>
-                    <p style={{ fontSize: 13, color: C.textMuted }}>La MYPE aún no ha definido los entregables para este proyecto.</p>
+                    )}
                   </div>
-                )}
-              </motion.div>
-            )}
 
-            {/* TAB: CHAT */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 16 }}>
+                    {entregablesProyecto.map((titulo, idx) => {
+                      const entrega = entregables.find((e) => e.titulo?.toLowerCase() === titulo.toLowerCase());
+                      return (
+                        <EntregableCard
+                          key={`e-${idx}`}
+                          titulo={titulo}
+                          index={idx}
+                          entregable={entrega || null}
+                          esDelegado={esDelegado}
+                          esProyectoIndividual={esProyectoIndividual}
+                          onUpload={async (titulo, entregaExistente) => {
+                            if (entregaExistente?.id) {
+                              try {
+                                await lockEntregable(proyectoId, entregaExistente.id);
+                                setLockedEntregableId(entregaExistente.id);
+                              } catch (err) {
+                                const msg = err.response?.data?.message || "Otro usuario está editando este entregable";
+                                alert(msg);
+                                return;
+                              }
+                            }
+                            setSelectedEntregable(titulo);
+                            setShowUploadModal(true);
+                          }}
+                          onDownload={descargarArchivo}
+                          onDelete={handleEliminarEntregable}
+                        />
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: "center", padding: "60px 20px" }}>
+                  <FileText size={48} color={C.textMuted} style={{ marginBottom: 16 }} />
+                  <h3 style={{ fontSize: 16, fontWeight: 700, color: C.textPrimary, marginBottom: 6 }}>No hay entregables definidos</h3>
+                  <p style={{ fontSize: 13, color: C.textMuted }}>La MYPE aún no ha definido los entregables para este proyecto.</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
             {activeTab === "chat" && (
-              <motion.div
-                key="chat"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {esProyectoIndividual ? (
-                  /* ─── PROYECTO INDIVIDUAL: Solo chat directo con MYPE ─── */
+            <motion.div
+              key="chat"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {esProyectoIndividual ? (
+                /* ─── PROYECTO INDIVIDUAL: Solo chat directo con MYPE ─── */
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "500px",
+                    background: "#fff",
+                    borderRadius: 16,
+                    border: "1px solid #e5e7eb",
+                    overflow: "hidden",
+                  }}
+                >
+                  {/* Cabecera simplificada para proyecto individual */}
                   <div
                     style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      height: "500px",
+                      padding: "12px 20px",
+                      borderBottom: "1px solid #e5e7eb",
                       background: "#fff",
-                      borderRadius: 16,
-                      border: "1px solid #e5e7eb",
-                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
                     }}
                   >
                     <div
                       style={{
-                        padding: "14px 20px",
-                        borderBottom: "1px solid #e5e7eb",
-                        background: "#fff",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        flexShrink: 0,
+                        width: 4,
+                        height: 16,
+                        borderRadius: 2,
+                        background: "#10b981",
                       }}
-                    >
-                      <div style={{ position: "relative" }}>
-                        <div
-                          style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: "50%",
-                            background:
-                              "linear-gradient(135deg, #10b981, #059669)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 15,
-                            fontWeight: 700,
-                            color: "#fff",
-                          }}
-                        >
-                          {mypeNombre.charAt(0).toUpperCase()}
-                        </div>
-                        <motion.span
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          style={{
-                            position: "absolute",
-                            bottom: 0,
-                            right: 0,
-                            width: 11,
-                            height: 11,
-                            borderRadius: "50%",
-                            background: "#10b981",
-                            border: "2px solid #fff",
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <p
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: "#0F1F3D",
-                            margin: 0,
-                          }}
-                        >
-                          {mypeNombre}
-                        </p>
-                        <p
-                          style={{
-                            fontSize: 10,
-                            color: "#10b981",
-                            fontWeight: 600,
-                            margin: 0,
-                          }}
-                        >
-                          Chat directo
-                        </p>
-                      </div>
-                    </div>
-                    <div
+                    />
+                    <span
                       style={{
-                        flex: 1,
-                        overflowY: "auto",
-                        padding: "16px 20px",
-                        background: "#f8fafc",
+                        fontFamily: FONT,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "#0f1f3d",
                       }}
                     >
-                      {mensajes.length === 0 ? (
-                        <div
-                          style={{
-                            height: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <div style={{ textAlign: "center" }}>
-                            <MessageSquare
-                              size={36}
-                              color="#9ca3af"
-                              style={{ marginBottom: 10 }}
-                            />
-                            <p
-                              style={{
-                                fontSize: 12,
-                                fontWeight: 600,
-                                color: "#9ca3af",
-                              }}
-                            >
-                              Sin mensajes aún
-                            </p>
-                            <p style={{ fontSize: 11, color: "#9ca3af" }}>
-                              Envía un mensaje para coordinar
-                            </p>
-                          </div>
-                        </div>
-                      ) : (
-                        mensajes.map((msg, idx) => {
-                          const isEstudiante =
-                            msg.remitenteId === "estudiante" ||
-                            msg.rol === "ESTUDIANTE" ||
-                            msg.esMio ||
-                            msg.remitente?.toLowerCase() === "tú";
-                          const hora =
-                            msg.fechaEnvio || msg.fecha
-                              ? format(
-                                  new Date(msg.fechaEnvio || msg.fecha),
-                                  "HH:mm",
-                                )
-                              : "";
-                          const mostrarFecha =
-                            idx === 0 ||
-                            (msg.fechaEnvio &&
-                              mensajes[idx - 1]?.fechaEnvio &&
-                              format(new Date(msg.fechaEnvio), "yyyy-MM-dd") !==
-                                format(
-                                  new Date(mensajes[idx - 1].fechaEnvio),
-                                  "yyyy-MM-dd",
-                                ));
-                          return (
-                            <React.Fragment key={msg.id || idx}>
-                              {mostrarFecha && (
-                                <div
-                                  style={{
-                                    textAlign: "center",
-                                    margin: "14px 0 10px",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      fontSize: 10,
-                                      fontWeight: 600,
-                                      color: "#9ca3af",
-                                      background: "#fff",
-                                      padding: "3px 12px",
-                                      borderRadius: 12,
-                                      border: "0.5px solid #e5e7eb",
-                                    }}
-                                  >
-                                    {msg.fechaEnvio
-                                      ? format(
-                                          new Date(msg.fechaEnvio),
-                                          "EEEE d 'de' MMMM",
-                                          { locale: es },
-                                        )
-                                      : ""}
-                                  </span>
-                                </div>
-                              )}
-                              <motion.div
-                                initial={{
-                                  opacity: 0,
-                                  x: isEstudiante ? 16 : -16,
-                                  scale: 0.92,
-                                }}
-                                animate={{ opacity: 1, x: 0, scale: 1 }}
-                                style={{
-                                  display: "flex",
-                                  justifyContent: isEstudiante
-                                    ? "flex-end"
-                                    : "flex-start",
-                                  marginBottom: 6,
-                                }}
-                              >
-                                <div style={{ maxWidth: "76%" }}>
-                                  {!isEstudiante && (
-                                    <p
-                                      style={{
-                                        fontSize: 10,
-                                        fontWeight: 700,
-                                        color: "#059669",
-                                        margin: "0 0 2px 10px",
-                                      }}
-                                    >
-                                      {mypeNombre}
-                                    </p>
-                                  )}
-                                  <div
-                                    style={{
-                                      padding: "8px 13px",
-                                      borderRadius: 12,
-                                      background: isEstudiante
-                                        ? "#dcf8c5"
-                                        : "#fff",
-                                      border: isEstudiante
-                                        ? "none"
-                                        : "0.5px solid #e5e7eb",
-                                      borderTopRightRadius: isEstudiante
-                                        ? 4
-                                        : 12,
-                                      borderTopLeftRadius: isEstudiante
-                                        ? 12
-                                        : 4,
-                                    }}
-                                  >
-                                    <p
-                                      style={{
-                                        fontSize: 13,
-                                        color: "#0f1f3d",
-                                        margin: 0,
-                                        lineHeight: 1.5,
-                                        whiteSpace: "pre-wrap",
-                                        wordBreak: "break-word",
-                                      }}
-                                    >
-                                      {msg.mensaje || msg.contenido}
-                                    </p>
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 4,
-                                        justifyContent: "flex-end",
-                                        marginTop: 4,
-                                      }}
-                                    >
-                                      <span
-                                        style={{
-                                          fontSize: 9,
-                                          color: "#9ca3af",
-                                        }}
-                                      >
-                                        {hora}
-                                      </span>
-                                      {isEstudiante && (
-                                        <CheckCircle2
-                                          size={10}
-                                          color="#9ca3af"
-                                        />
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              </motion.div>
-                            </React.Fragment>
-                          );
-                        })
-                      )}
-                      <div ref={chatEndRef} />
-                    </div>
-                    <div
+                      {mypeNombre}
+                    </span>
+                    <span
                       style={{
-                        padding: "12px 16px",
-                        borderTop: "1px solid #e5e7eb",
-                        background: "#fff",
-                        display: "flex",
-                        gap: 10,
-                        flexShrink: 0,
+                        fontFamily: FONT,
+                        fontSize: 10,
+                        color: "#9ca3af",
+                        marginLeft: 4,
                       }}
                     >
-                      <input
-                        type="text"
-                        value={nuevoMensaje}
-                        onChange={(e) => setNuevoMensaje(e.target.value)}
-                        onKeyPress={(e) =>
-                          e.key === "Enter" && handleEnviarMensaje(e)
-                        }
-                        placeholder="Escribe un mensaje..."
-                        disabled={isEnviandoMensaje}
+                      Chat directo
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      flex: 1,
+                      overflowY: "auto",
+                      padding: "16px 20px",
+                      background: "#f8fafc",
+                    }}
+                  >
+                    {mensajes.length === 0 ? (
+                      <div
                         style={{
-                          flex: 1,
-                          padding: "10px 16px",
-                          borderRadius: 24,
-                          border: "0.5px solid #e5e7eb",
-                          background: "#f8fafc",
-                          fontSize: 13,
-                          outline: "none",
-                          color: "#0f1f3d",
-                          fontFamily: "inherit",
-                        }}
-                      />
-                      <motion.button
-                        whileHover={{ scale: 1.08 }}
-                        whileTap={{ scale: 0.92 }}
-                        onClick={handleEnviarMensaje}
-                        disabled={!nuevoMensaje.trim() || isEnviandoMensaje}
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: "50%",
-                          border: "none",
-                          background: nuevoMensaje.trim()
-                            ? "#10b981"
-                            : "#e2e8f0",
-                          color: "#fff",
-                          cursor: nuevoMensaje.trim() ? "pointer" : "default",
+                          height: "100%",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                         }}
                       >
-                        {isEnviandoMensaje ? (
-                          <Loader2
-                            size={16}
-                            style={{ animation: "spin 1s linear infinite" }}
+                        <div style={{ textAlign: "center" }}>
+                          <MessageSquare
+                            size={36}
+                            color="#9ca3af"
+                            style={{ marginBottom: 10 }}
                           />
-                        ) : (
-                          <Send size={16} />
-                        )}
-                      </motion.button>
-                    </div>
+                          <p
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 600,
+                              color: "#9ca3af",
+                            }}
+                          >
+                            Sin mensajes aún
+                          </p>
+                          <p style={{ fontSize: 11, color: "#9ca3af" }}>
+                            Envía un mensaje para coordinar
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      mensajes.map((msg, idx) => {
+                        const isEstudiante =
+                          msg.remitenteId === "estudiante" ||
+                          msg.rol === "ESTUDIANTE" ||
+                          msg.esMio ||
+                          msg.remitente?.toLowerCase() === "tú";
+                        const hora =
+                          msg.fechaEnvio || msg.fecha
+                            ? format(
+                                new Date(msg.fechaEnvio || msg.fecha),
+                                "HH:mm",
+                              )
+                            : "";
+                        const mostrarFecha =
+                          idx === 0 ||
+                          (msg.fechaEnvio &&
+                            mensajes[idx - 1]?.fechaEnvio &&
+                            format(new Date(msg.fechaEnvio), "yyyy-MM-dd") !==
+                              format(
+                                new Date(mensajes[idx - 1].fechaEnvio),
+                                "yyyy-MM-dd",
+                              ));
+                        return (
+                          <React.Fragment key={msg.id || idx}>
+                            {mostrarFecha && (
+                              <div
+                                style={{
+                                  textAlign: "center",
+                                  margin: "14px 0 10px",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: 10,
+                                    fontWeight: 600,
+                                    color: "#9ca3af",
+                                    background: "#fff",
+                                    padding: "3px 12px",
+                                    borderRadius: 12,
+                                    border: "0.5px solid #e5e7eb",
+                                  }}
+                                >
+                                  {msg.fechaEnvio
+                                    ? format(
+                                        new Date(msg.fechaEnvio),
+                                        "EEEE d 'de' MMMM",
+                                        { locale: es },
+                                      )
+                                    : ""}
+                                </span>
+                              </div>
+                            )}
+                            <motion.div
+                              initial={{
+                                opacity: 0,
+                                x: isEstudiante ? 16 : -16,
+                                scale: 0.92,
+                              }}
+                              animate={{ opacity: 1, x: 0, scale: 1 }}
+                              style={{
+                                display: "flex",
+                                justifyContent: isEstudiante
+                                  ? "flex-end"
+                                  : "flex-start",
+                                marginBottom: 6,
+                              }}
+                            >
+                              <div style={{ maxWidth: "76%" }}>
+                                {!isEstudiante && (
+                                  <p
+                                    style={{
+                                      fontSize: 10,
+                                      fontWeight: 700,
+                                      color: "#059669",
+                                      margin: "0 0 2px 10px",
+                                    }}
+                                  >
+                                    {mypeNombre}
+                                  </p>
+                                )}
+                                <div
+                                  style={{
+                                    padding: "8px 13px",
+                                    borderRadius: 12,
+                                    background: isEstudiante
+                                      ? "#dcf8c5"
+                                      : "#fff",
+                                    border: isEstudiante
+                                      ? "none"
+                                      : "0.5px solid #e5e7eb",
+                                    borderTopRightRadius: isEstudiante
+                                      ? 4
+                                      : 12,
+                                    borderTopLeftRadius: isEstudiante
+                                      ? 12
+                                      : 4,
+                                  }}
+                                >
+                                  <p
+                                    style={{
+                                      fontSize: 13,
+                                      color: "#0f1f3d",
+                                      margin: 0,
+                                      lineHeight: 1.5,
+                                      whiteSpace: "pre-wrap",
+                                      wordBreak: "break-word",
+                                    }}
+                                  >
+                                    {msg.mensaje || msg.contenido}
+                                  </p>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 4,
+                                      justifyContent: "flex-end",
+                                      marginTop: 4,
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        fontSize: 9,
+                                        color: "#9ca3af",
+                                      }}
+                                    >
+                                      {hora}
+                                    </span>
+                                    {isEstudiante && (
+                                      <CheckCircle2
+                                        size={10}
+                                        color="#9ca3af"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          </React.Fragment>
+                        );
+                      })
+                    )}
+                    <div ref={chatEndRef} />
                   </div>
-                ) : (
-                  /* ─── PROYECTO EN EQUIPO: Sidebar + Chat Grupal ─── */
                   <div
                     style={{
-                      display: "flex",
-                      height: "500px",
+                      padding: "12px 16px",
+                      borderTop: "1px solid #e5e7eb",
                       background: "#fff",
-                      borderRadius: 16,
-                      border: "1px solid #e5e7eb",
-                      overflow: "hidden",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                      display: "flex",
+                      gap: 10,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <input
+                      type="text"
+                      value={nuevoMensaje}
+                      onChange={(e) => setNuevoMensaje(e.target.value)}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && handleEnviarMensaje(e)
+                      }
+                      placeholder="Escribe un mensaje..."
+                      disabled={isEnviandoMensaje}
+                      style={{
+                        flex: 1,
+                        padding: "10px 16px",
+                        borderRadius: 24,
+                        border: "0.5px solid #e5e7eb",
+                        background: "#f8fafc",
+                        fontSize: 13,
+                        outline: "none",
+                        color: "#0f1f3d",
+                        fontFamily: "inherit",
+                      }}
+                    />
+                    <motion.button
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={handleEnviarMensaje}
+                      disabled={!nuevoMensaje.trim() || isEnviandoMensaje}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                        border: "none",
+                        background: nuevoMensaje.trim()
+                          ? "#10b981"
+                          : "#e2e8f0",
+                        color: "#fff",
+                        cursor: nuevoMensaje.trim() ? "pointer" : "default",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {isEnviandoMensaje ? (
+                        <Loader2
+                          size={16}
+                          style={{ animation: "spin 1s linear infinite" }}
+                        />
+                      ) : (
+                        <Send size={16} />
+                      )}
+                    </motion.button>
+                  </div>
+                </div>
+              ) : (
+                /* ─── PROYECTO EN EQUIPO: Sidebar + Chat Grupal ─── */
+                <div
+                  style={{
+                    display: "flex",
+                    height: "500px",
+                    background: "#fff",
+                    borderRadius: 16,
+                    border: "1px solid #e5e7eb",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 260,
+                      borderRight: "1px solid #e5e7eb",
+                      display: "flex",
+                      flexDirection: "column",
+                      flexShrink: 0,
+                      background: "#fff",
                     }}
                   >
                     <div
                       style={{
-                        width: 260,
-                        borderRight: "1px solid #e5e7eb",
-                        display: "flex",
-                        flexDirection: "column",
-                        flexShrink: 0,
-                        background: "#fff",
+                        padding: "14px 16px",
+                        borderBottom: "1px solid #f3f4f6",
                       }}
                     >
-                      <div
+                      <h2
                         style={{
-                          padding: "14px 16px",
-                          borderBottom: "1px solid #f3f4f6",
+                          fontFamily: FONT,
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: "#0F1F3D",
+                          margin: 0,
                         }}
                       >
-                        <h2
-                          style={{
-                            fontFamily: "Inter, Arial, sans-serif",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: "#0F1F3D",
-                            margin: 0,
-                          }}
-                        >
-                          Conversaciones
-                        </h2>
-                      </div>
-                      <div style={{ flex: 1, overflowY: "auto" }}>
-                        <button
-                          onClick={() => setChatTabActivo("EQUIPO")}
-                          style={{
-                            width: "100%",
-                            padding: "12px 16px",
-                            background:
-                              chatTabActivo === "EQUIPO"
-                                ? "#eff6ff"
-                                : "transparent",
-                            border: "none",
-                            borderBottom: "1px solid #f9fafb",
-                            borderLeft:
-                              chatTabActivo === "EQUIPO"
-                                ? "3px solid #1B6FE8"
-                                : "3px solid transparent",
-                            cursor: "pointer",
-                            textAlign: "left",
-                            transition: "all 0.15s",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                          }}
-                          onMouseEnter={(e) => {
-                            if (chatTabActivo !== "EQUIPO")
-                              e.currentTarget.style.background = "#f9fafb";
-                          }}
-                          onMouseLeave={(e) => {
-                            if (chatTabActivo !== "EQUIPO")
-                              e.currentTarget.style.background = "transparent";
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 10,
-                              background:
-                                chatTabActivo === "EQUIPO"
-                                  ? "linear-gradient(135deg, #1B6FE8, #06B6D4)"
-                                  : "linear-gradient(135deg, #EFF6FF, #DBEAFE)",
-                              border:
-                                chatTabActivo === "EQUIPO"
-                                  ? "2px solid #1B6FE8"
-                                  : "2px solid #BFDBFE",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              flexShrink: 0,
-                            }}
-                          >
-                            <Users
-                              size={16}
-                              color={
-                                chatTabActivo === "EQUIPO" ? "#fff" : "#1D4ED8"
-                              }
-                            />
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p
-                              style={{
-                                fontFamily: FONT,
-                                fontSize: 12,
-                                fontWeight: 600,
-                                color: "#0F1F3D",
-                                margin: 0,
-                              }}
-                            >
-                              Chat de Equipo
-                            </p>
-                            <p
-                              style={{
-                                fontFamily: FONT,
-                                fontSize: 10,
-                                color: "#9CA3AF",
-                                margin: "2px 0 0",
-                              }}
-                            >
-                              Solo estudiantes
-                            </p>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => setChatTabActivo("PROYECTO")}
-                          style={{
-                            width: "100%",
-                            padding: "12px 16px",
-                            background:
-                              chatTabActivo === "PROYECTO"
-                                ? "#eff6ff"
-                                : "transparent",
-                            border: "none",
-                            borderBottom: "1px solid #f9fafb",
-                            borderLeft:
-                              chatTabActivo === "PROYECTO"
-                                ? "3px solid #1B6FE8"
-                                : "3px solid transparent",
-                            cursor: "pointer",
-                            textAlign: "left",
-                            transition: "all 0.15s",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                          }}
-                          onMouseEnter={(e) => {
-                            if (chatTabActivo !== "PROYECTO")
-                              e.currentTarget.style.background = "#f9fafb";
-                          }}
-                          onMouseLeave={(e) => {
-                            if (chatTabActivo !== "PROYECTO")
-                              e.currentTarget.style.background = "transparent";
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 10,
-                              background:
-                                chatTabActivo === "PROYECTO"
-                                  ? "linear-gradient(135deg, #7C3AED, #A855F7)"
-                                  : "linear-gradient(135deg, #F5F3FF, #EDE9FE)",
-                              border:
-                                chatTabActivo === "PROYECTO"
-                                  ? "2px solid #7C3AED"
-                                  : "2px solid #DDD6FE",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              flexShrink: 0,
-                            }}
-                          >
-                            <Building2
-                              size={16}
-                              color={
-                                chatTabActivo === "PROYECTO"
-                                  ? "#fff"
-                                  : "#7C3AED"
-                              }
-                            />
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p
-                              style={{
-                                fontFamily: FONT,
-                                fontSize: 12,
-                                fontWeight: 600,
-                                color: "#0F1F3D",
-                                margin: 0,
-                              }}
-                            >
-                              Chat del Proyecto
-                            </p>
-                            <p
-                              style={{
-                                fontFamily: FONT,
-                                fontSize: 10,
-                                color: "#9CA3AF",
-                                margin: "2px 0 0",
-                              }}
-                            >
-                              Equipo + {mypeNombre}
-                            </p>
-                          </div>
-                        </button>
-                      </div>
-                      <div
-                        style={{
-                          padding: "10px 16px",
-                          borderTop: "1px solid #f3f4f6",
-                          textAlign: "center",
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontFamily: FONT,
-                            fontSize: 10,
-                            color: "#d1d5db",
-                          }}
-                        >
-                          2 conversaciones
-                        </span>
-                      </div>
+                        Conversaciones
+                      </h2>
                     </div>
-                    <div
-                      style={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                      }}
-                    >
-                      {chatsGrupales?.length > 0 ? (
-                        <ChatGrupalPanel
-                          proyectoId={proyectoId}
-                          chat={chatsGrupales.find(
-                            (c) => c.tipo === chatTabActivo,
-                          )}
-                        />
-                      ) : (
+                    <div style={{ flex: 1, overflowY: "auto" }}>
+                      {/* Botón Equipo */}
+                      <button
+                        onClick={() => setChatTabActivo("EQUIPO")}
+                        style={{
+                          width: "100%",
+                          padding: "12px 16px",
+                          background:
+                            chatTabActivo === "EQUIPO" ? "#f8fafc" : "transparent",
+                          border: "none",
+                          borderLeft:
+                            chatTabActivo === "EQUIPO"
+                              ? "3px solid #1B6FE8"
+                              : "3px solid transparent",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          transition: "background 0.15s",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (chatTabActivo !== "EQUIPO")
+                            e.currentTarget.style.background = "#f8fafc";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (chatTabActivo !== "EQUIPO")
+                            e.currentTarget.style.background = "transparent";
+                        }}
+                      >
                         <div
                           style={{
-                            flex: 1,
+                            width: 32,
+                            height: 32,
+                            borderRadius: "50%",
+                            background:
+                              chatTabActivo === "EQUIPO" ? "#1B6FE8" : "#e2e8f0",
+                            color: "#fff",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            background: "#f8fafc",
+                            fontSize: 14,
+                            fontWeight: 700,
                           }}
                         >
-                          <div style={{ textAlign: "center" }}>
-                            <div
-                              style={{
-                                width: 64,
-                                height: 64,
-                                borderRadius: 16,
-                                background: "#f1f5f9",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                margin: "0 auto 16px",
-                              }}
-                            >
-                              <MessageSquare size={28} color="#d1d5db" />
-                            </div>
-                            <p
-                              style={{
-                                fontFamily: FONT,
-                                fontSize: 15,
-                                fontWeight: 600,
-                                color: "#9CA3AF",
-                              }}
-                            >
-                              Chats no disponibles
-                            </p>
-                          </div>
+                          EQ
                         </div>
-                      )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p
+                            style={{
+                              fontFamily: FONT,
+                              fontSize: 12,
+                              fontWeight: 600,
+                              color: "#0F1F3D",
+                              margin: 0,
+                            }}
+                          >
+                            Equipo
+                          </p>
+                          <p
+                            style={{
+                              fontFamily: FONT,
+                              fontSize: 10,
+                              color: "#9CA3AF",
+                              margin: "2px 0 0",
+                            }}
+                          >
+                            Solo estudiantes
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* Botón MYPE */}
+                      <button
+                        onClick={() => setChatTabActivo("PROYECTO")}
+                        style={{
+                          width: "100%",
+                          padding: "12px 16px",
+                          background:
+                            chatTabActivo === "PROYECTO" ? "#f8fafc" : "transparent",
+                          border: "none",
+                          borderLeft:
+                            chatTabActivo === "PROYECTO"
+                              ? "3px solid #10b981"
+                              : "3px solid transparent",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          transition: "background 0.15s",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (chatTabActivo !== "PROYECTO")
+                            e.currentTarget.style.background = "#f8fafc";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (chatTabActivo !== "PROYECTO")
+                            e.currentTarget.style.background = "transparent";
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "50%",
+                            background:
+                              chatTabActivo === "PROYECTO" ? "#10b981" : "#e2e8f0",
+                            color: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 14,
+                            fontWeight: 700,
+                          }}
+                        >
+                          {mypeNombre?.charAt(0) || "M"}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p
+                            style={{
+                              fontFamily: FONT,
+                              fontSize: 12,
+                              fontWeight: 600,
+                              color: "#0F1F3D",
+                              margin: 0,
+                            }}
+                          >
+                            {mypeNombre}
+                          </p>
+                          <p
+                            style={{
+                              fontFamily: FONT,
+                              fontSize: 10,
+                              color: "#9CA3AF",
+                              margin: "2px 0 0",
+                            }}
+                          >
+                            Equipo + MYPE
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                    <div
+                      style={{
+                        padding: "10px 16px",
+                        borderTop: "1px solid #f3f4f6",
+                        textAlign: "center",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: FONT,
+                          fontSize: 10,
+                          color: "#d1d5db",
+                        }}
+                      >
+                        2 conversaciones
+                      </span>
                     </div>
                   </div>
-                )}
-              </motion.div>
-            )}
+
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    {chatsGrupales?.length > 0 ? (
+                      <ChatGrupalPanel
+                        proyectoId={proyectoId}
+                        chat={chatsGrupales.find(
+                          (c) => c.tipo === chatTabActivo,
+                        )}
+                        mypeNombre={mypeNombre}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: "#f8fafc",
+                        }}
+                      >
+                        <div style={{ textAlign: "center" }}>
+                          <div
+                            style={{
+                              width: 64,
+                              height: 64,
+                              borderRadius: 16,
+                              background: "#f1f5f9",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              margin: "0 auto 16px",
+                            }}
+                          >
+                            <MessageSquare size={28} color="#d1d5db" />
+                          </div>
+                          <p
+                            style={{
+                              fontFamily: FONT,
+                              fontSize: 15,
+                              fontWeight: 600,
+                              color: "#9CA3AF",
+                            }}
+                          >
+                            Chats no disponibles
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
 
             {/* TAB: VOTACIÓN - SOLO si NO es proyecto individual */}
             {!esProyectoIndividual && activeTab === "votacion" && (
@@ -1524,49 +1370,19 @@ export function ProyectoWorkspacePage() {
               >
                 {isLoadingVotacion ? (
                   <div style={{ textAlign: "center", padding: 40 }}>
-                    <Loader2
-                      size={32}
-                      className="animate-spin"
-                      color="#1B6FE8"
-                    />
-                    <p
-                      style={{ marginTop: 12, color: "#6b7280", fontSize: 13 }}
-                    >
+                    <p style={{ color: "#64748b", fontSize: 13, fontFamily: FONT }}>
                       Cargando votación...
                     </p>
                   </div>
                 ) : votacionCompletada && ganador ? (
                   <div style={{ textAlign: "center", padding: "20px 0" }}>
-                    {/* Si son 2: ícono Shuffle. Si son más: corona */}
-                    {votacion.candidatos?.length === 2 ? (
-                      <div style={{ width: 80, height: 80, margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", background: "#EFF6FF", borderRadius: 16, border: "1px solid #BFDBFE" }}>
-                        <Shuffle size={40} color="#1B6FE8" />
-                      </div>
-                    ) : (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 200 }}
-                        style={{
-                          width: 80,
-                          height: 80,
-                          borderRadius: "50%",
-                          background: "linear-gradient(135deg, #0F1F3D, #1B6FE8)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          margin: "0 auto 16px",
-                        }}
-                      >
-                        <Crown size={36} color="#fff" />
-                      </motion.div>
-                    )}
                     <h3
                       style={{
                         fontSize: 18,
-                        fontWeight: 800,
+                        fontWeight: 600,
                         color: "#0f1f3d",
                         marginBottom: 4,
+                        fontFamily: FONT,
                       }}
                     >
                       {ganador.estudianteNombre}
@@ -1574,120 +1390,166 @@ export function ProyectoWorkspacePage() {
                     <p
                       style={{
                         fontSize: 13,
-                        color: "#6b7280",
-                        marginBottom: 8,
-                      }}
-                    >
-                      {votacion.candidatos?.length === 2 ? (
-                        <span> Elegido al azar por el sistema</span>
-                      ) : (
-                        <span>
-                          Delegado del equipo · {ganador.votosRecibidos} voto
-                          {ganador.votosRecibidos !== 1 ? "s" : ""} recibido
-                          {ganador.votosRecibidos !== 1 ? "s" : ""}
-                        </span>
-                      )}
-                    </p>
-                    <div
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        padding: "8px 16px",
-                        borderRadius: 12,
-                        background: "#eff6ff",
-                        border: "1px solid #bfdbfe",
-                        color: "#1d4ed8",
-                        fontSize: 12,
-                        fontWeight: 600,
+                        color: "#64748b",
                         marginBottom: 24,
+                        fontFamily: FONT,
                       }}
                     >
-                      <Shield size={14} />
-                      Todos los miembros pueden subir entregables
-                    </div>
+                      Delegado del equipo
+                    </p>
 
-                    {/* ✅ Ranking ordenado por votos (3+ candidatos) */}
+                    {votacion.candidatos?.length === 2 && (
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: "#94a3b8",
+                          marginBottom: 32,
+                          fontFamily: FONT,
+                        }}
+                      >
+                        Elegido al azar por el sistema
+                      </p>
+                    )}
+
+                    {/* Ranking para 3+ candidatos */}
                     {votacion.candidatos?.length > 2 && (
-                      <div style={{ maxWidth: 480, margin: "0 auto" }}>
-                        <div style={{
-                          display: "flex", alignItems: "center", gap: 8,
-                          marginBottom: 14,
-                        }}>
-                          <div style={{ width: 4, height: 16, borderRadius: 2, background: C.primary }} />
-                          <span style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: FONT }}>
-                            Clasificación
+                      <div style={{ maxWidth: 400, margin: "0 auto 32px" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            marginBottom: 14,
+                            justifyContent: "center",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 4,
+                              height: 16,
+                              borderRadius: 2,
+                              background: "#64748b",
+                            }}
+                          />
+                          <span
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 600,
+                              color: "#64748b",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.05em",
+                              fontFamily: FONT,
+                            }}
+                          >
+                            Resultado
                           </span>
                         </div>
                         {[...votacion.candidatos]
-                          .sort((a, b) => (b.votosRecibidos || 0) - (a.votosRecibidos || 0))
+                          .sort(
+                            (a, b) =>
+                              (b.votosRecibidos || 0) - (a.votosRecibidos || 0)
+                          )
                           .map((c, idx) => {
-                            const pct = votacion.totalVotos > 0
-                              ? Math.round((c.votosRecibidos / votacion.totalVotos) * 100)
-                              : 0;
-                            const pos = idx === 0
-                              ? { bg: "#EFF6FF", border: "#BFDBFE", badge: "#1B6FE8", barra: "linear-gradient(90deg, #1B6FE8, #3B82F6)", textBadge: "#fff" }
-                              : idx === 1
-                              ? { bg: "#F0F9FF", border: "#BAE6FD", badge: "#0284C7", barra: "linear-gradient(90deg, #0284C7, #38BDF8)", textBadge: "#fff" }
-                              : idx === 2
-                              ? { bg: "#F8FAFC", border: "#E2E8F0", badge: "#64748B", barra: "linear-gradient(90deg, #64748B, #94A3B8)", textBadge: "#fff" }
-                              : { bg: "#fff", border: "#E2E8F0", badge: "#CBD5E1", barra: "linear-gradient(90deg, #CBD5E1, #94A3B8)", textBadge: "#475569" };
+                            const pct =
+                              votacion.totalVotos > 0
+                                ? Math.round(
+                                    (c.votosRecibidos / votacion.totalVotos) * 100
+                                  )
+                                : 0;
                             return (
-                              <div key={c.estudianteId} style={{
-                                display: "flex", alignItems: "center", gap: 12,
-                                padding: "14px 18px", borderRadius: 12,
-                                background: pos.bg, border: `1px solid ${pos.border}`,
-                                marginBottom: 6,
-                                boxShadow: idx === 0 ? "0 2px 8px rgba(5,150,105,0.1)" : "none",
-                              }}>
-                                <span style={{
-                                  width: 32, height: 32, borderRadius: 8,
-                                  background: c.esGanador ? "#1B6FE8" : pos.badge,
-                                  display: "flex", alignItems: "center", justifyContent: "center",
-                                  color: "#fff",
-                                  fontSize: 13, fontWeight: 700, flexShrink: 0,
-                                }}>
+                              <div
+                                key={c.estudianteId}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 12,
+                                  padding: "12px 16px",
+                                  borderRadius: 10,
+                                  background: idx === 0 ? "#f8fafc" : "#ffffff",
+                                  border:
+                                    idx === 0
+                                      ? "1px solid #cbd5e1"
+                                      : "1px solid #e2e8f0",
+                                  marginBottom: 6,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    width: 28,
+                                    height: 28,
+                                    borderRadius: 6,
+                                    background:
+                                      idx === 0 ? "#0f1f3d" : "#e2e8f0",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    color: idx === 0 ? "#fff" : "#64748b",
+                                    fontSize: 12,
+                                    fontWeight: 600,
+                                    flexShrink: 0,
+                                  }}
+                                >
                                   {idx + 1}
                                 </span>
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                      <span style={{ fontSize: 13, fontWeight: 600, color: "#1c1917" }}>
-                                        {c.estudianteNombre}
-                                      </span>
-                                      {c.esGanador && (
-                                        <span style={{
-                                          fontSize: 9, fontWeight: 600, color: "#1d4ed8",
-                                          background: "#EFF6FF", padding: "1px 7px",
-                                          borderRadius: 5, border: "0.5px solid #BFDBFE",
-                                        }}>Delegado</span>
-                                      )}
-                                    </div>
-                                    <div style={{ textAlign: "right" }}>
-                                      <span style={{ fontSize: 14, fontWeight: 700, color: "#1c1917" }}>
-                                        {c.votosRecibidos}
-                                      </span>
-                                      <span style={{ fontSize: 10, color: "#78716c", marginLeft: 3 }}>
-                                        {c.votosRecibidos !== 1 ? "votos" : "voto"}
-                                      </span>
-                                    </div>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "space-between",
+                                      marginBottom: 4,
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        color: "#0f1f3d",
+                                        fontFamily: FONT,
+                                      }}
+                                    >
+                                      {c.estudianteNombre}
+                                    </span>
+                                    <span
+                                      style={{
+                                        fontSize: 12,
+                                        fontWeight: 500,
+                                        color: "#64748b",
+                                        fontFamily: FONT,
+                                      }}
+                                    >
+                                      {c.votosRecibidos}{" "}
+                                      {c.votosRecibidos !== 1
+                                        ? "votos"
+                                        : "voto"}{" "}
+                                      · {pct}%
+                                    </span>
                                   </div>
-                                  <div style={{ height: 6, borderRadius: 4, background: "#e7e5e4", overflow: "hidden" }}>
+                                  <div
+                                    style={{
+                                      height: 4,
+                                      borderRadius: 2,
+                                      background: "#f1f5f9",
+                                      overflow: "hidden",
+                                    }}
+                                  >
                                     <motion.div
                                       initial={{ width: 0 }}
                                       animate={{ width: `${pct}%` }}
-                                      transition={{ duration: 1, ease: "easeOut" }}
+                                      transition={{
+                                        duration: 0.8,
+                                        ease: "easeOut",
+                                      }}
                                       style={{
-                                        height: "100%", borderRadius: 4,
-                                        background: c.esGanador
-                                          ? "linear-gradient(90deg, #1B6FE8, #3B82F6)"
-                                          : pos.barra,
+                                        height: "100%",
+                                        borderRadius: 2,
+                                        background:
+                                          idx === 0
+                                            ? "#0f1f3d"
+                                            : "#cbd5e1",
                                       }}
                                     />
                                   </div>
-                                  <span style={{ fontSize: 10, color: "#9ca3af", marginTop: 3, display: "block" }}>
-                                    {pct}%
-                                  </span>
                                 </div>
                               </div>
                             );
@@ -1695,171 +1557,96 @@ export function ProyectoWorkspacePage() {
                       </div>
                     )}
 
-                    {/* ✅ Si son 2: mostrar tarjetas simples SIN votos ni barras */}
-                    {votacion.candidatos?.length === 2 && (
-                      <div style={{ maxWidth: 400, margin: "0 auto", display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-                        {votacion.candidatos?.map((c, idx) => (
-                          <motion.div
-                            key={c.estudianteId}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.15 }}
-                            style={{
-                              flex: 1,
-                              minWidth: 140,
-                              padding: "16px 18px",
-                              borderRadius: 14,
-                              background: c.esGanador ? "#EFF6FF" : "#F8FAFC",
-                              border: c.esGanador ? "1.5px solid #BFDBFE" : "1px solid #E2E8F0",
-                              textAlign: "center",
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: 44,
-                                height: 44,
-                                borderRadius: "50%",
-                                background: c.esGanador
-                                  ? "linear-gradient(135deg, #1B6FE8, #0F1F3D)"
-                                  : "#E2E8F0",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                margin: "0 auto 10px",
-                                color: "#fff",
-                                fontWeight: 700,
-                                fontSize: 16,
-                              }}
-                            >
-                              {c.esGanador ? <Crown size={20} color="#fff" /> : c.estudianteNombre?.charAt(0)}
-                            </div>
-                            <span
-                              style={{
-                                fontSize: 13,
-                                fontWeight: 700,
-                                color: "#0f1f3d",
-                                display: "block",
-                                fontFamily: FONT,
-                              }}
-                            >
-                              {c.estudianteNombre}
-                            </span>
-                            <span
-                              style={{
-                                fontSize: 11,
-                                color: c.esGanador ? "#1d4ed8" : "#6b7280",
-                                fontWeight: 600,
-                                marginTop: 4,
-                                display: "block",
-                                fontFamily: FONT,
-                              }}
-                            >
-                              {c.esGanador ? "Delegado elegido" : "Miembro del equipo"}
-                            </span>
-                          </motion.div>
-                        ))}
-                      </div>
-                    )}
+                    <p
+                      style={{
+                        fontSize: 11,
+                        color: "#94a3b8",
+                        fontFamily: FONT,
+                      }}
+                    >
+                      Todos los miembros pueden subir entregables
+                    </p>
                   </div>
                 ) : votacionActiva ? (
                   <div style={{ textAlign: "center", padding: "20px 0" }}>
-                    <motion.div
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      style={{
-                        width: 70,
-                        height: 70,
-                        borderRadius: "50%",
-                        background: "linear-gradient(135deg, #1B6FE8, #06B6D4)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        margin: "0 auto 16px",
-                      }}
-                    >
-                      <Vote size={32} color="#fff" />
-                    </motion.div>
                     <h3
                       style={{
                         fontSize: 17,
-                        fontWeight: 800,
+                        fontWeight: 600,
                         color: "#0f1f3d",
                         marginBottom: 6,
+                        fontFamily: FONT,
                       }}
                     >
-                       Votación en curso
+                      Votación en curso
                     </h3>
                     <p
                       style={{
                         fontSize: 13,
-                        color: "#6b7280",
-                        marginBottom: 20,
+                        color: "#64748b",
+                        marginBottom: 24,
+                        fontFamily: FONT,
                       }}
                     >
-                      Elige al delegado del equipo. Solo él podrá subir
-                      entregables.
+                      Elige al delegado del equipo
                     </p>
                     <button
                       onClick={() => setShowVotacionModal(true)}
                       style={{
-                        padding: "12px 28px",
-                        borderRadius: 12,
-                        border: "none",
-                        background: "linear-gradient(135deg, #1B6FE8, #06B6D4)",
-                        color: "#fff",
-                        fontSize: 14,
-                        fontWeight: 700,
+                        padding: "10px 24px",
+                        borderRadius: 10,
+                        border: "1px solid #0f1f3d",
+                        background: "transparent",
+                        color: "#0f1f3d",
+                        fontSize: 13,
+                        fontWeight: 600,
                         cursor: "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 8,
-                        boxShadow: "0 4px 16px rgba(27,111,232,0.3)",
+                        fontFamily: FONT,
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#0f1f3d";
+                        e.currentTarget.style.color = "#fff";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                        e.currentTarget.style.color = "#0f1f3d";
                       }}
                     >
-                      <Vote size={16} />
                       Ir a votar
                     </button>
+
+                    {/* Lista simple de candidatos */}
                     <div
                       style={{
-                        marginTop: 24,
+                        marginTop: 28,
                         display: "flex",
                         gap: 12,
                         justifyContent: "center",
                         flexWrap: "wrap",
                       }}
                     >
-                      {votacion?.candidatos?.slice(0, 4).map((c) => (
+                      {votacion?.candidatos?.map((c) => (
                         <div
                           key={c.estudianteId}
                           style={{
-                            padding: "12px 16px",
-                            borderRadius: 12,
-                            background: "#f9fafb",
-                            border: "1px solid #e5e7eb",
+                            padding: "10px 16px",
+                            borderRadius: 10,
+                            background: "#f8fafc",
+                            border: "1px solid #e2e8f0",
                             textAlign: "center",
-                            minWidth: 80,
+                            minWidth: 120,
                           }}
                         >
-                          <div
+                          <span
                             style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: "50%",
-                              background:
-                                "linear-gradient(135deg, #e0e7ff, #c7d2fe)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              margin: "0 auto 6px",
-                              color: "#4f46e5",
-                              fontWeight: 700,
                               fontSize: 13,
+                              fontWeight: 600,
+                              color: "#0f1f3d",
+                              fontFamily: FONT,
                             }}
                           >
-                            {c.estudianteNombre?.charAt(0)}
-                          </div>
-                          <span style={{ fontSize: 11, color: "#6b7280" }}>
-                            {c.estudianteNombre?.split(" ")[0]}
+                            {c.estudianteNombre}
                           </span>
                         </div>
                       ))}
@@ -1867,26 +1654,13 @@ export function ProyectoWorkspacePage() {
                   </div>
                 ) : (
                   <div style={{ textAlign: "center", padding: "40px 20px" }}>
-                    <div
-                      style={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: "50%",
-                        background: "#f3f4f6",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        margin: "0 auto 16px",
-                      }}
-                    >
-                      <Clock size={28} color="#9ca3af" />
-                    </div>
                     <h3
                       style={{
                         fontSize: 16,
-                        fontWeight: 700,
+                        fontWeight: 600,
                         color: "#0f1f3d",
-                        marginBottom: 6,
+                        marginBottom: 8,
+                        fontFamily: FONT,
                       }}
                     >
                       Votación no disponible
@@ -1894,9 +1668,10 @@ export function ProyectoWorkspacePage() {
                     <p
                       style={{
                         fontSize: 13,
-                        color: "#6b7280",
+                        color: "#64748b",
                         maxWidth: 360,
                         margin: "0 auto",
+                        fontFamily: FONT,
                       }}
                     >
                       La votación de delegado se abrirá automáticamente cuando
