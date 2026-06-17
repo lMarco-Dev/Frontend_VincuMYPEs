@@ -111,9 +111,191 @@ const LinearStatsChart = ({ completados, enRevision, pendientes, rechazados = 0,
   );
 };
 
-const HeroRing = ({ value = 0, max = 1, size = 88 }) => { /* ... igual que antes ... */ };
+/* ═══════════════════════════════════════════════
+   HEATMAP DE ACTIVIDAD (estilo GitHub)
+═══════════════════════════════════════════════ */
+const ACTIVITY_COLORS = ['#EEF2F7', '#BFDBFE', '#93C5FD', '#3B82F6', '#1B6FE8'];
 
-const EstadoBadge = ({ estado }) => { /* ... igual que antes ... */ };
+const ActivityHeatmap = ({ entregables }) => {
+  const activityMap = {};
+  entregables.forEach(e => {
+    if (e.fechaSubida) {
+      try {
+        const dateKey = format(new Date(e.fechaSubida), 'yyyy-MM-dd');
+        activityMap[dateKey] = (activityMap[dateKey] || 0) + 1;
+      } catch {}
+    }
+  });
+
+  const today = new Date();
+  const WEEKS = 20;
+
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - WEEKS * 7 + 1);
+  const dow = startDate.getDay();
+  const offset = dow === 0 ? 6 : dow - 1;
+  startDate.setDate(startDate.getDate() - offset);
+
+  const weeks = [];
+  const cur = new Date(startDate);
+  for (let w = 0; w < WEEKS; w++) {
+    const week = [];
+    for (let d = 0; d < 7; d++) {
+      const dateKey = format(cur, 'yyyy-MM-dd');
+      week.push({ date: new Date(cur), dateKey, count: activityMap[dateKey] || 0, isFuture: cur > today });
+      cur.setDate(cur.getDate() + 1);
+    }
+    weeks.push(week);
+  }
+
+  const monthLabels = [];
+  weeks.forEach((week, wi) => {
+    const m = week[0].date.getMonth();
+    if (wi === 0 || weeks[wi - 1][0].date.getMonth() !== m) {
+      monthLabels.push({ wi, label: format(week[0].date, 'MMM', { locale: es }) });
+    }
+  });
+
+  const getColor = (count, isFuture) => {
+    if (isFuture || count === 0) return ACTIVITY_COLORS[0];
+    if (count === 1) return ACTIVITY_COLORS[1];
+    if (count === 2) return ACTIVITY_COLORS[2];
+    if (count === 3) return ACTIVITY_COLORS[3];
+    return ACTIVITY_COLORS[4];
+  };
+
+  const totalEntregas = entregables.filter(e => e.fechaSubida).length;
+  const activeDays = Object.keys(activityMap).length;
+  const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+  return (
+    <div style={{ background: '#fff', borderRadius: 20, border: `0.5px solid ${C.border}`, padding: '20px 24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <div style={{ width: 4, height: 16, borderRadius: 2, background: C.primary, flexShrink: 0 }} />
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary, margin: 0, fontFamily: FONT }}>Actividad de entregas</h3>
+        <span style={{ marginLeft: 'auto', fontSize: 10, color: C.textMuted, fontFamily: FONT }}>
+          {totalEntregas} entrega{totalEntregas !== 1 ? 's' : ''} · {activeDays} día{activeDays !== 1 ? 's' : ''} activo{activeDays !== 1 ? 's' : ''}
+        </span>
+      </div>
+      <div style={{ display: 'flex', gap: 5, alignItems: 'flex-start' }}>
+        {/* Day labels */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 19, width: 12, flexShrink: 0 }}>
+          {DAY_LABELS.map((day, i) => (
+            <div key={i} style={{ height: 12, fontSize: 8, color: '#94A3B8', fontWeight: 700, lineHeight: '12px', visibility: [0, 2, 4].includes(i) ? 'visible' : 'hidden', fontFamily: FONT }}>
+              {day}
+            </div>
+          ))}
+        </div>
+        {/* Grid */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Month labels row */}
+          <div style={{ display: 'flex', gap: 2, height: 17, marginBottom: 2 }}>
+            {weeks.map((week, wi) => {
+              const found = monthLabels.find(m => m.wi === wi);
+              return (
+                <div key={wi} style={{ width: 12, fontSize: 9, color: '#64748B', fontWeight: 600, overflow: 'visible', whiteSpace: 'nowrap', fontFamily: FONT }}>
+                  {found ? found.label : ''}
+                </div>
+              );
+            })}
+          </div>
+          {/* Cells */}
+          <div style={{ display: 'flex', gap: 2 }}>
+            {weeks.map((week, wi) => (
+              <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {week.map((day, di) => (
+                  <div
+                    key={di}
+                    title={`${format(day.date, "d 'de' MMM", { locale: es })}: ${day.count} entrega${day.count !== 1 ? 's' : ''}`}
+                    style={{ width: 12, height: 12, borderRadius: 2, background: getColor(day.count, day.isFuture), transition: 'transform 0.1s', cursor: day.count > 0 ? 'pointer' : 'default', flexShrink: 0 }}
+                    onMouseEnter={e => { if (day.count > 0) e.currentTarget.style.transform = 'scale(1.3)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* Legend */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 12, justifyContent: 'flex-end' }}>
+        <span style={{ fontSize: 9, color: '#94A3B8', fontFamily: FONT }}>Menos</span>
+        {ACTIVITY_COLORS.map((color, i) => (
+          <div key={i} style={{ width: 10, height: 10, borderRadius: 2, background: color }} />
+        ))}
+        <span style={{ fontSize: 9, color: '#94A3B8', fontFamily: FONT }}>Más</span>
+      </div>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════
+   PANEL DETALLES DEL PROYECTO
+═══════════════════════════════════════════════ */
+const ProjectDetailsPanel = ({ proyecto, mype, mypeNombre }) => {
+  const estadoConfig = {
+    ACTIVO: { label: 'Activo', bg: '#ECFDF5', color: '#059669', border: '#A7F3D0' },
+    COMPLETADO: { label: 'Completado', bg: '#EFF6FF', color: '#1B6FE8', border: '#BFDBFE' },
+    EN_PROGRESO: { label: 'En progreso', bg: '#FFFBEB', color: '#D97706', border: '#FDE68A' },
+    PENDIENTE: { label: 'Pendiente', bg: '#F8FAFC', color: '#64748B', border: '#E2E8F0' },
+  };
+  const estadoStyle = estadoConfig[proyecto?.estado] || estadoConfig.PENDIENTE;
+  const cupos = proyecto?.cupos || 1;
+  const esIndividual = cupos === 1;
+
+  return (
+    <div style={{ background: '#fff', borderRadius: 20, border: `0.5px solid ${C.border}`, padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ width: 4, height: 16, borderRadius: 2, background: C.primary, flexShrink: 0 }} />
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary, margin: 0, fontFamily: FONT }}>Detalles</h3>
+        <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: estadoStyle.color, background: estadoStyle.bg, border: `1px solid ${estadoStyle.border}`, padding: '2px 8px', borderRadius: 20, fontFamily: FONT }}>
+          {estadoStyle.label}
+        </span>
+      </div>
+
+      {proyecto?.descripcion && (
+        <div>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: FONT }}>Descripción</p>
+          <p style={{ fontSize: 12, color: C.textSecondary, margin: 0, lineHeight: 1.6, fontFamily: FONT, display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {proyecto.descripcion}
+          </p>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: 10, border: '0.5px solid #E2E8F0' }}>
+          <span style={{ fontSize: 11, color: '#64748B', fontWeight: 500, fontFamily: FONT }}>Tipo</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: C.textPrimary, fontFamily: FONT }}>
+            {esIndividual ? 'Individual' : `Equipo · ${cupos} cupos`}
+          </span>
+        </div>
+
+        {mypeNombre && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: 10, border: '0.5px solid #E2E8F0' }}>
+            <span style={{ fontSize: 11, color: '#64748B', fontWeight: 500, fontFamily: FONT }}>MYPE</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: C.textPrimary, fontFamily: FONT, textAlign: 'right', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mypeNombre}</span>
+          </div>
+        )}
+
+        {mype?.sector && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: 10, border: '0.5px solid #E2E8F0' }}>
+            <span style={{ fontSize: 11, color: '#64748B', fontWeight: 500, fontFamily: FONT }}>Sector</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: C.textPrimary, fontFamily: FONT }}>{mype.sector}</span>
+          </div>
+        )}
+
+        {proyecto?.fechaLimite && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#FFF7ED', borderRadius: 10, border: '0.5px solid #FED7AA' }}>
+            <span style={{ fontSize: 11, color: '#92400E', fontWeight: 500, fontFamily: FONT }}>Fecha límite</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#C2410C', fontFamily: FONT }}>
+              {format(new Date(proyecto.fechaLimite), "d MMM yyyy", { locale: es })}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 /* ═══════════════════════════════════════════════
    HERO BANNER NAVY (canvas + partículas)
@@ -180,10 +362,10 @@ function WorkspaceHero({ proyecto, mypeNombre, completados, total }) {
         position: "relative",
         background: "linear-gradient(135deg, #0A1628 0%, #0F2A4A 55%, #1E3A5F 100%)",
         borderRadius: 20,
-        padding: "36px 44px",
+        padding: "48px 56px",
         overflow: "hidden",
-        boxShadow: "0 20px 40px -12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)",
-        marginBottom: 20,
+        boxShadow: "0 24px 48px -12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
+        marginBottom: 32,
         border: "1px solid rgba(255,255,255,0.08)",
         display: "flex",
         alignItems: "center",
@@ -552,7 +734,7 @@ export function ProyectoWorkspacePage() {
   }
 
   return (
-    <div style={{ fontFamily: "Inter, Arial, 'Helvetica Neue', sans-serif", background: C.bg, minHeight: "100vh", padding: "28px 32px", maxWidth: 1400, margin: "0 auto" }}>
+    <div style={{ fontFamily: FONT, maxWidth: 1200, margin: "0 auto", padding: "32px 36px", paddingBottom: 120 }}>
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes vping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
@@ -589,6 +771,12 @@ export function ProyectoWorkspacePage() {
       />
 
       <LinearStatsChart completados={currentStats.completados} enRevision={currentStats.enRevision} pendientes={currentStats.pendientes} rechazados={currentStats.rechazados} total={currentStats.total} />
+
+      {/* Actividad + Detalles */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20, marginBottom: 20 }}>
+        <ActivityHeatmap entregables={entregables} />
+        <ProjectDetailsPanel proyecto={proyecto} mype={mype} mypeNombre={mypeNombre} />
+      </div>
 
       {/* Banners informativos */}
       {!esProyectoIndividual && votacionActiva && (

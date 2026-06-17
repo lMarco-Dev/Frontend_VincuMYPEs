@@ -1,5 +1,5 @@
 // src/pages/estudiante/EstudianteDashboardPage.jsx
-import React, { useRef } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { useMisPostulaciones } from '../../features/postulaciones-list/useMisPostulaciones';
 import { useCertificados } from '../../features/certificados/useCertificados';
@@ -10,12 +10,11 @@ import CalificacionesPendientesCard from "@/features/calificaciones/Calificacion
 
 import {
   ArrowRight,
-  ArrowUpRight,
   Building2,
   Bell,
   Search,
-  AlertCircle,
   ChevronRight,
+  ChevronLeft,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -54,6 +53,43 @@ const fadeUp = (delay = 0) => ({
 /* ─── Timestamp de carga (para badge "Nuevo") ─── */
 const AHORA = Date.now();
 
+/* ─── Avatar de empresa ─── */
+const AVATAR_PALETTE = [
+  "#1B6FE8", "#059669", "#8B5CF6", "#D97706",
+  "#0284C7", "#DB2777", "#65A30D", "#DC2626",
+];
+const getAvatarColor = (seed = "") => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  return AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length];
+};
+const hexToRgba = (hex, alpha) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+};
+
+/* ─── Hook: proyectos visitados (localStorage) ─── */
+const useViewedProjects = () => {
+  const [viewed, setViewed] = React.useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('vmp_viewed_projects') || '[]')); }
+    catch { return new Set(); }
+  });
+  const markViewed = (id) => {
+    setViewed(prev => {
+      const next = new Set(prev);
+      next.add(String(id));
+      localStorage.setItem('vmp_viewed_projects', JSON.stringify([...next]));
+      return next;
+    });
+  };
+  return { viewed, markViewed };
+};
+
 /* ─── Colores de área ─── */
 const AREA_STYLES = {
   WEB:             { bg: '#eff6ff', color: '#1B6FE8' },
@@ -67,16 +103,6 @@ const getAreaStyle = (area = '') => {
   return AREA_STYLES[key] || AREA_STYLES.DEFAULT;
 };
 
-/* ─── Duración estimada de un proyecto ─── */
-const renderDuracion = (proyecto) => {
-  if (proyecto.diasEstimados) return { label: 'Duración', value: `${proyecto.diasEstimados} días` };
-  if (proyecto.fechaLimiteCalculada) return { label: 'Fecha límite', value: new Date(proyecto.fechaLimiteCalculada).toLocaleDateString('es-PE') };
-  if (proyecto.fechaLimite) {
-    const dias = Math.ceil((new Date(proyecto.fechaLimite) - Date.now()) / 86400000);
-    if (dias > 0) return { label: 'Duración aprox.', value: `${dias} días` };
-  }
-  return { label: 'Duración', value: 'Por definir' };
-};
 
 /* ─── Tiempo relativo para notificaciones ─── */
 const tiempoRelativo = (fecha) => {
@@ -90,10 +116,127 @@ const tiempoRelativo = (fecha) => {
   return `hace ${d} días`;
 };
 
-/* ─── Color del borde izquierdo por estado de notificación ─── */
-const colorNotif = (item) => {
-  if (!item.leida) return '#1B6FE8';
-  return '#d1d5db';
+
+/* ─── Chip contador de sección ─── */
+const CountChip = ({ count }) => count > 0 ? (
+  <span style={{ background: '#EFF6FF', color: '#1B6FE8', fontSize: 10, fontWeight: 600, borderRadius: 20, padding: '2px 8px', marginLeft: 6 }}>
+    {count}
+  </span>
+) : null;
+
+/* ═══════════════════════════════════════════════
+   SUB: Card de empresa + carrusel con flechas
+═══════════════════════════════════════════════ */
+const CARD_W = 220;
+const CARD_H = 120;
+const CARD_GAP = 12;
+
+const EmpresaCard = ({ empresa }) => {
+  const navigate = useNavigate();
+  const inicial = (empresa.nombre || 'E').trim().charAt(0).toUpperCase();
+  const color = getAvatarColor(empresa.nombre || '');
+  return (
+    <div
+      onClick={() => navigate(`/mypes/${empresa.id}`)}
+      title={empresa.nombre}
+      style={{
+        width: CARD_W, minWidth: CARD_W, height: CARD_H,
+        background: color,
+        borderRadius: 16,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer', flexShrink: 0,
+        transition: 'all 0.18s ease',
+        boxShadow: '0 2px 8px rgba(15,23,42,0.10)',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = '0 10px 24px rgba(15,23,42,0.18)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.10)';
+      }}
+    >
+      <span style={{ fontSize: 38, fontWeight: 700, color: '#fff', fontFamily: FONT, lineHeight: 1 }}>
+        {inicial}
+      </span>
+    </div>
+  );
+};
+
+const ArrowBtn = ({ direction, onClick, visible }) => (
+  <button
+    onClick={onClick}
+    style={{
+      position: 'absolute', top: '50%', transform: 'translateY(-50%)',
+      [direction === 'left' ? 'left' : 'right']: -20,
+      zIndex: 10,
+      width: 40, height: 40, borderRadius: '50%',
+      background: '#FFFFFF',
+      border: '1px solid #E2E8F0',
+      boxShadow: '0 2px 8px rgba(15,23,42,0.12)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      cursor: 'pointer',
+      opacity: visible ? 1 : 0,
+      pointerEvents: visible ? 'auto' : 'none',
+      transition: 'opacity 0.2s, box-shadow 0.15s',
+    }}
+    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(15,23,42,0.18)'; }}
+    onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.12)'; }}
+    aria-label={direction === 'left' ? 'Anterior' : 'Siguiente'}
+  >
+    {direction === 'left'
+      ? <ChevronLeft size={20} color="#0F1F3D" strokeWidth={2} />
+      : <ChevronRight size={20} color="#0F1F3D" strokeWidth={2} />
+    }
+  </button>
+);
+
+const EmpresasCarousel = ({ empresas }) => {
+  const trackRef = useRef(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(false);
+
+  const checkScroll = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 4);
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+    const el = trackRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', checkScroll, { passive: true });
+    const ro = new ResizeObserver(checkScroll);
+    ro.observe(el);
+    return () => { el.removeEventListener('scroll', checkScroll); ro.disconnect(); };
+  }, [checkScroll, empresas]);
+
+  const scroll = (dir) => {
+    const step = (CARD_W + CARD_GAP) * 3;
+    trackRef.current?.scrollBy({ left: dir === 'left' ? -step : step, behavior: 'smooth' });
+  };
+
+  return (
+    <div style={{ position: 'relative', padding: '0 24px' }}>
+      <ArrowBtn direction="left"  onClick={() => scroll('left')}  visible={canLeft} />
+      <div
+        ref={trackRef}
+        style={{
+          display: 'flex', gap: CARD_GAP,
+          overflowX: 'auto', paddingBottom: 8,
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
+        {empresas.map(emp => <EmpresaCard key={emp.id} empresa={emp} />)}
+      </div>
+      <ArrowBtn direction="right" onClick={() => scroll('right')} visible={canRight} />
+      <style>{`.no-scrollbar::-webkit-scrollbar{display:none}`}</style>
+    </div>
+  );
 };
 
 /* ═══════════════════════════════════════════════
@@ -123,138 +266,102 @@ const Panel = ({ children, delay = 0, dark = false, style = {} }) => (
 /* ═══════════════════════════════════════════════
    SUB: Project Card (estilo MYPE)
 ═══════════════════════════════════════════════ */
-const ProjectCard = ({ proyecto }) => {
-  const area = proyecto.areaSistemas?.replace('_', ' ') || 'SISTEMAS';
-  const { bg, color } = getAreaStyle(area);
-  const gradients = {
-    WEB:  'linear-gradient(90deg,#1B6FE8,#06B6D4)',
-    DATA: 'linear-gradient(90deg,#059669,#06B6D4)',
-    UX:   'linear-gradient(90deg,#8B5CF6,#1B6FE8)',
-  };
-  const gradient = gradients[area.toUpperCase().replace(/[\s_]/g, '')] || gradients.WEB;
+const ProjectCard = ({ proyecto, isViewed = false, onView }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
+    onView?.(proyecto.id);
     navigate(`/proyectos?selected=${proyecto.id}`);
   };
 
   return (
-    <div
+    <motion.div
       onClick={handleClick}
       style={{
-        background: '#FCFDFD', border: '1px solid #F1F5F9', borderRadius: 14,
-        padding: 18, display: 'flex', flexDirection: 'column',
-        justifyContent: 'space-between', minHeight: 160,
-        cursor: 'pointer', transition: 'all 0.15s ease',
-        position: 'relative', overflow: 'hidden',
+        background: isViewed ? '#F8FAFC' : '#FCFDFD',
+        border: '1px solid #F1F5F9',
+        borderRadius: 14,
+        padding: '14px 16px',
+        display: 'flex', flexDirection: 'column',
+        justifyContent: 'space-between',
+        cursor: 'pointer',
         boxShadow: '0 2px 4px rgba(15,23,42,0.01)',
       }}
-      onMouseEnter={e => {
-        e.currentTarget.style.borderColor = '#E2E8F0';
-        e.currentTarget.style.boxShadow = '0 4px 12px rgba(15,23,42,0.06)';
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.borderColor = '#F1F5F9';
-        e.currentTarget.style.boxShadow = '0 2px 4px rgba(15,23,42,0.01)';
-      }}
+      whileHover={{ background: '#FFFDF5', borderColor: '#FEF3C7', boxShadow: '0 4px 8px rgba(15,23,42,0.04)' }}
+      transition={{ duration: 0.15 }}
     >
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: gradient }} />
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-          <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 4, background: bg, color, display: 'inline-flex', alignItems: 'center' }}>
-            {area}
-          </span>
-          {proyecto.fechaCreacion && (AHORA - new Date(proyecto.fechaCreacion).getTime()) < 172800000 && (
-            <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: 4, background: '#dcfce7', color: '#15803d' }}>
-              Nuevo
-            </span>
-          )}
-        </div>
-        <div style={{ fontSize: 14, fontFamily: FONT, fontWeight: 600, color: '#0F1F3D', lineHeight: 1.35, marginBottom: 5 }}>
-          {proyecto.titulo}
-        </div>
-        <div style={{ fontSize: 12, fontFamily: FONT, color: '#64748B', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Building2 size={11} />
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontFamily: FONT, color: '#94A3B8', fontWeight: 500, marginBottom: 4 }}>
           {proyecto.mypeNombre || proyecto.nombre || 'MYPE'}
         </div>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: '1px solid #F1F5F9', marginTop: 'auto' }}>
-        {(() => {
-          const dur = renderDuracion(proyecto);
-          return (
-            <div style={{ fontSize: 10, fontFamily: FONT, color: '#94A3B8' }}>
-              {dur.label}: <span style={{ fontWeight: 600, color: '#64748B' }}>{dur.value}</span>
-            </div>
-          );
-        })()}
-        <div style={{ fontSize: 11, fontFamily: FONT, fontWeight: 600, color: '#1B6FE8', display: 'flex', alignItems: 'center', gap: 3 }}>
-          Postular <ArrowRight size={11} />
+        <div style={{ fontSize: 13, fontFamily: FONT, fontWeight: 600, color: '#0F1F3D', lineHeight: 1.35 }}>
+          {proyecto.titulo}
         </div>
       </div>
-    </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 8, borderTop: '1px solid #F1F5F9' }}>
+        <span style={{ fontSize: 11, fontFamily: FONT, fontWeight: 600, color: '#1B6FE8', display: 'flex', alignItems: 'center', gap: 3 }}>
+          Postular <ArrowRight size={11} />
+        </span>
+      </div>
+    </motion.div>
   );
 };
 
 /* ═══════════════════════════════════════════════
    SUB: PerfilWidget (sidebar)
 ═══════════════════════════════════════════════ */
-const PerfilWidget = ({ completitud = 0, sugerencias = [] }) => {
+const PerfilWidget = ({ completitud = 0, sugerencias = [], style = {} }) => {
   const R    = 34;
   const circ = 2 * Math.PI * R;
   const offset = circ - (circ * Math.min(completitud, 100)) / 100;
 
   return (
-    <Panel delay={0.20}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: sugerencias.length > 0 && completitud < 100 ? 14 : 0 }}>
-        <div style={{ position: 'relative', width: 80, height: 80, flexShrink: 0 }}>
-          <svg width="80" height="80" viewBox="0 0 80 80" style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx="40" cy="40" r={R} stroke="#f1f5f9" strokeWidth="6" fill="none" />
+    <Panel delay={0.20} style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', ...style }}>
+      <div style={{ margin:'-24px -24px 18px -24px', padding:'14px 24px', borderBottom:'1px solid #F1F5F9', borderRadius:'22px 22px 0 0', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ fontSize:14, fontFamily:FONT, fontWeight:600, letterSpacing:'-0.01em', color:'#0F1F3D', display:'flex', alignItems:'center', gap:8 }}>
+          <span style={{ display:'block', width:3, height:14, background:'#1B6FE8', borderRadius:2, flexShrink:0 }} />
+          Mi perfil
+        </div>
+        <Link to="/perfil" style={{ fontSize:11, fontFamily:FONT, fontWeight:600, color:'#1B6FE8', cursor:'pointer', display:'flex', alignItems:'center', gap:4, textDecoration:'none' }}>Ver perfil <ArrowRight size={12} /></Link>
+      </div>
+
+      {/* contenido centrado */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        {/* Anillo */}
+        <div style={{ position: 'relative', width: 96, height: 96, marginBottom: 14 }}>
+          <svg width="96" height="96" viewBox="0 0 96 96" style={{ transform: 'rotate(-90deg)' }}>
+            <circle cx="48" cy="48" r="40" stroke="#f1f5f9" strokeWidth="7" fill="none" />
             <circle
-              cx="40" cy="40" r={R}
-              stroke="#1B6FE8" strokeWidth="6" fill="none"
-              strokeDasharray={circ} strokeDashoffset={offset}
+              cx="48" cy="48" r="40"
+              stroke="#1B6FE8" strokeWidth="7" fill="none"
+              strokeDasharray={2 * Math.PI * 40} strokeDashoffset={2 * Math.PI * 40 - (2 * Math.PI * 40 * Math.min(completitud, 100)) / 100}
               strokeLinecap="round"
               style={{ transition: 'stroke-dashoffset 1s ease' }}
             />
           </svg>
-          <div style={{
-            position: 'absolute', top: '50%', left: '50%',
-            transform: 'translate(-50%,-50%)',
-            fontSize: 17, fontFamily: FONT, fontWeight: 600, color: '#1B6FE8',
-          }}>
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 18, fontFamily: FONT, fontWeight: 700, color: '#1B6FE8' }}>
             {completitud}%
           </div>
         </div>
-        <div>
-          <div style={{ fontSize: 14, fontFamily: FONT, fontWeight: 600, color: '#0F1F3D', marginBottom: 2 }}>
-            Mi perfil
+
+        {completitud === 100 ? (
+          <div style={{ fontSize: 12, fontFamily: FONT, color: '#059669', fontWeight: 600, marginBottom: 16 }}>Perfil completado</div>
+        ) : (
+          <div style={{ fontSize: 11, fontFamily: FONT, color: '#64748B', marginBottom: 16 }}>{completitud}% completado</div>
+        )}
+
+        {/* Sugerencias */}
+        {completitud < 100 && sugerencias.length > 0 && (
+          <div style={{ width: '100%', marginBottom: 16 }}>
+            {sugerencias.map((s, i) => (
+              <div key={i} style={{ fontSize: 12, fontFamily: FONT, color: '#64748B', padding: '6px 12px', background: '#F8FAFC', borderRadius: 8, marginBottom: 6, textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#CBD5E1', flexShrink: 0 }} />
+                {s}
+              </div>
+            ))}
           </div>
-          {completitud === 100 ? (
-            <div style={{ fontSize: 12, fontFamily: FONT, color: '#059669', fontWeight: 600 }}>Perfil completo ✓</div>
-          ) : (
-            <div style={{ fontSize: 11, fontFamily: FONT, color: '#64748B' }}>{completitud}% completado</div>
-          )}
-        </div>
+        )}
       </div>
-
-      {completitud < 100 && sugerencias.length > 0 && (
-        <div style={{ marginBottom: 12 }}>
-          {sugerencias.map((s, i) => (
-            <div key={i} style={{ fontSize: 12, fontFamily: FONT, color: '#64748B', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#CBD5E1', flexShrink: 0 }} />
-              {s}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {completitud < 100 && (
-        <Link to="/perfil" style={{ textDecoration: 'none' }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#1B6FE8', display: 'flex', alignItems: 'center', gap: 4 }}>
-            Completar perfil <ArrowRight size={12} />
-          </div>
-        </Link>
-      )}
     </Panel>
   );
 };
@@ -274,6 +381,7 @@ const ActiveProjectCard = ({ postulacion }) => {
       style={{
         background:   '#FCFDFD',
         border:       '1px solid #F1F5F9',
+        borderLeft:   '3px solid #1B6FE8',
         borderRadius: 14,
         padding:      16,
         position:     'relative',
@@ -283,7 +391,6 @@ const ActiveProjectCard = ({ postulacion }) => {
         boxShadow:    '0 2px 4px rgba(15,23,42,0.01)',
       }}
     >
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg,#1B6FE8,#06B6D4)' }} />
       <div style={{ fontSize: 14, fontFamily: FONT, fontWeight: 600, color: '#0F1F3D', marginBottom: 5, lineHeight: 1.3 }}>
         {postulacion.proyectoTitulo || 'Proyecto activo'}
       </div>
@@ -313,91 +420,6 @@ const ActiveProjectCard = ({ postulacion }) => {
   );
 };
 
-/* ═══════════════════════════════════════════════
-   SUB: SiguientePasoBanner
-═══════════════════════════════════════════════ */
-const SiguientePasoBanner = ({ postulaciones = [], completitud = 0, navigate }) => {
-  const oferta     = postulaciones.find(p => p.estado === 'VALIDADO_MYPE');
-  const enRevision = postulaciones.find(
-    p => p.estado === 'CONFIRMADO' && p.proyectoEstado === 'EN_REVISION'
-  );
-
-  let cfg;
-  if (oferta) {
-    cfg = {
-      Icon:   Bell,
-      color:  '#dc2626',
-      texto:  `Una MYPE validó tu postulación — confirma tu participación en "${oferta.proyectoTitulo || 'el proyecto'}"`,
-      accion: 'Ver oferta',
-      ruta:   '/mis-postulaciones',
-    };
-  } else if (enRevision) {
-    cfg = {
-      Icon:   AlertCircle,
-      color:  '#f59e0b',
-      texto:  `Tu proyecto "${enRevision.proyectoTitulo || 'activo'}" está en revisión — revisa el estado`,
-      accion: 'Ir al workspace',
-      ruta:   `/workspace/${enRevision.proyectoId}`,
-    };
-  } else if (completitud < 70) {
-    cfg = {
-      Icon:   ArrowUpRight,
-      color:  '#f59e0b',
-      texto:  'Completa tu perfil para aumentar tus posibilidades de ser seleccionado',
-      accion: 'Completar perfil',
-      ruta:   '/perfil',
-    };
-  } else {
-    cfg = {
-      Icon:   ArrowRight,
-      color:  '#1B6FE8',
-      texto:  'Revisa los nuevos proyectos publicados esta semana',
-      accion: 'Ver proyectos',
-      ruta:   '/proyectos',
-    };
-  }
-
-  return (
-    <motion.div
-      {...fadeUp(0.14)}
-      style={{
-        background:   '#fff',
-        border:       `1px solid ${C.border}`,
-        borderLeft:   `4px solid ${cfg.color}`,
-        borderRadius: 14,
-        padding:      '14px 20px',
-        display:      'flex',
-        alignItems:   'center',
-        gap:          12,
-        marginBottom: 20,
-      }}
-    >
-      <cfg.Icon size={16} color={cfg.color} style={{ flexShrink: 0 }} />
-      <div style={{ flex: 1, fontSize: 13, fontFamily: FONT, fontWeight: 500, color: '#0F1F3D' }}>
-        {cfg.texto}
-      </div>
-      <button
-        onClick={() => navigate(cfg.ruta)}
-        style={{
-          fontSize:    11,
-          fontFamily:  FONT,
-          fontWeight:  600,
-          color:       cfg.color,
-          background:  'none',
-          border:      'none',
-          cursor:      'pointer',
-          display:     'flex',
-          alignItems:  'center',
-          gap:         4,
-          flexShrink:  0,
-          whiteSpace:  'nowrap',
-        }}
-      >
-        {cfg.accion} <ArrowRight size={12} />
-      </button>
-    </motion.div>
-  );
-};
 
 /* ═══════════════════════════════════════════════
    SUB: Hero Banner (diseño MYPE)
@@ -647,7 +669,7 @@ const EstudianteDashboardPage = () => {
   const totalPostulaciones    = postulaciones?.length || 0;
   const aceptados             = postulaciones?.filter(p => p.estado === 'CONFIRMADO' || p.estado === 'ACEPTADO' || p.estado === 'Aceptado').length || 0;
   const totalCertificados     = certificados?.length || 0;
-  const activityItems         = notificaciones?.slice(0, 3) || [];
+  const activityItems         = notificaciones?.slice(0, 5) || [];
   const proyectosRecomendados = proyectosData?.content?.slice(0, 3) || [];
   const proyectosActivos      = postulaciones?.filter(
     p => p.estado === 'CONFIRMADO' && ['EN_DESARROLLO', 'EN_REVISION'].includes(p.proyectoEstado)
@@ -672,6 +694,19 @@ const EstudianteDashboardPage = () => {
   ].filter(Boolean).slice(0, 3);
 
   const firstName = user?.nombre?.split(' ')[0] || 'Estudiante';
+  const { viewed, markViewed } = useViewedProjects();
+
+  const empresas = React.useMemo(() => {
+    if (!proyectosData?.content) return [];
+    const seen = new Set();
+    return proyectosData.content.reduce((acc, p) => {
+      if (p.mypeId && !seen.has(p.mypeId)) {
+        seen.add(p.mypeId);
+        acc.push({ id: p.mypeId, nombre: p.mypeNombre || 'Empresa' });
+      }
+      return acc;
+    }, []);
+  }, [proyectosData]);
 
   const S = {
     sectionTitle: { fontSize:14, fontFamily:FONT, fontWeight:600, letterSpacing:'-0.01em', color:'#0F1F3D', display:'flex', alignItems:'center', gap:8 },
@@ -680,11 +715,21 @@ const EstudianteDashboardPage = () => {
   };
 
   return (
-    <div style={{ fontFamily: FONT, background:'#f8fafc', minHeight:'100vh', padding:'32px 36px', maxWidth:1440, margin:'0 auto' }}>
+    <div style={{ fontFamily: FONT, background:'#f8fafc', minHeight:'100vh', padding:'32px 20px', maxWidth:1200, margin:'0 auto' }}>
       <style>{`
         @keyframes vping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
         @keyframes vpulse { 0%,100%{opacity:1} 50%{opacity:.45} }
         @keyframes vshimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        @keyframes gradientFlow {
+          0%   { background-position: 0%   50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0%   50%; }
+        }
+        @keyframes floatOrb {
+          0%,100% { transform: translate(0,0) scale(1); }
+          40%     { transform: translate(-8px,12px) scale(1.06); }
+          70%     { transform: translate(10px,-6px) scale(0.96); }
+        }
       `}</style>
 
       {/* ── TOPBAR ── */}
@@ -733,157 +778,170 @@ const EstudianteDashboardPage = () => {
         certificados={totalCertificados}
       />
 
-      {/* ── SIGUIENTE PASO ── */}
-      <SiguientePasoBanner
-        postulaciones={postulaciones || []}
-        completitud={completitud}
-        navigate={navigate}
-      />
+      {/* ── EMPRESAS ── */}
+      {empresas.length > 0 && (
+        <motion.div {...fadeUp(0.16)} style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
+            <div style={S.sectionTitle}>
+              <span style={S.sectionBar} />Las empresas
+              <CountChip count={empresas.length} />
+            </div>
+          </div>
+          <EmpresasCarousel empresas={empresas} />
+        </motion.div>
+      )}
 
-      {/* ── FILA INFERIOR: PROYECTOS + SIDEBAR ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, alignItems: 'start' }}>
+      {/* ── PROYECTOS ACTIVOS (ancho completo, solo si hay) ── */}
+      {proyectosActivos.length > 0 && (
+        <Panel delay={0.18} style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={S.sectionTitle}><span style={S.sectionBar} />Tus proyectos activos<CountChip count={proyectosActivos.length} /></div>
+            <Link to="/mis-postulaciones" style={S.seeAll}>Ver todo <ArrowRight size={12} /></Link>
+          </div>
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+            {proyectosActivos.map(p => (
+              <ActiveProjectCard key={p.id || p.proyectoId} postulacion={p} />
+            ))}
+          </div>
+        </Panel>
+      )}
 
-        {/* ── COLUMNA PRINCIPAL ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* ── FILA 1: Proyectos recomendados 60% | Actividad reciente 40% ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '60fr 40fr', gap: 20, alignItems: 'stretch', marginBottom: 20 }}>
 
-          {/* Proyectos activos — solo si hay */}
-          {proyectosActivos.length > 0 && (
-            <Panel delay={0.18}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <div style={S.sectionTitle}><span style={S.sectionBar} />Tus proyectos activos</div>
-                <Link to="/mis-postulaciones" style={S.seeAll}>Ver todo <ArrowRight size={12} /></Link>
-              </div>
-              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-                {proyectosActivos.map(p => (
-                  <ActiveProjectCard key={p.id || p.proyectoId} postulacion={p} />
-                ))}
-              </div>
-            </Panel>
+        <Panel delay={0.20} style={{
+          height: '100%', boxSizing: 'border-box',
+          background: '#FFFFFF',
+          border: '1px solid #E5E7EB',
+          boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
+        }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+            <div style={S.sectionTitle}><span style={{ ...S.sectionBar, background:'#F59E0B' }} />Proyectos recomendados</div>
+            <Link to="/proyectos" style={{ ...S.seeAll, color:'#D97706' }}>Explorar todos <ArrowRight size={12} /></Link>
+          </div>
+          {loadingProyectos ? (
+            <div style={{ padding:36, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT }}>
+              <svg style={{ animation:'spin 1s linear infinite', height:20, width:20, color:'#1B6FE8', display:'block', margin:'0 auto 8px' }} viewBox="0 0 24 24">
+                <circle style={{ opacity:0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path style={{ opacity:0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Buscando las mejores oportunidades…
+            </div>
+          ) : proyectosRecomendados.length === 0 ? (
+            <div style={{ padding:36, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT, border:'1px dashed #E2E8F0', borderRadius:10 }}>
+              No hay proyectos disponibles por el momento.
+            </div>
+          ) : (
+            <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:14 }}>
+              {proyectosRecomendados.map(p => (
+                <ProjectCard
+                  key={p.id}
+                  proyecto={p}
+                  isViewed={viewed.has(String(p.id))}
+                  onView={markViewed}
+                />
+              ))}
+            </div>
           )}
+        </Panel>
 
-          {/* Proyectos recomendados */}
-          <Panel delay={0.20}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-              <div style={S.sectionTitle}><span style={S.sectionBar} />Proyectos recomendados</div>
-              <Link to="/proyectos" style={S.seeAll}>Explorar todos <ArrowRight size={12} /></Link>
+        <Panel delay={0.22} style={{
+          height: '100%', boxSizing: 'border-box',
+          background: '#FFFFFF',
+          border: '1px solid #E5E7EB',
+          boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
+        }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+            <div style={S.sectionTitle}><span style={{ ...S.sectionBar, background:'#06B6D4' }} />Actividad reciente<CountChip count={activityItems.filter(n => !n.leida).length} /></div>
+            <button
+              onClick={() => setIsNotifPanelOpen(true)}
+              style={{ ...S.seeAll, background: 'none', border: 'none', padding: 0, color:'#0891B2' }}
+            >
+              Ver todo <ArrowRight size={12} />
+            </button>
+          </div>
+          {loadingNotificaciones ? (
+            <div style={{ padding:16, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT }}>Cargando actividad…</div>
+          ) : activityItems.length === 0 ? (
+            <div style={{ padding:20, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT, border:'1px dashed #E2E8F0', borderRadius:10 }}>
+              No hay actividad reciente.
             </div>
-            {loadingProyectos ? (
-              <div style={{ padding:36, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT }}>
-                <svg style={{ animation:'spin 1s linear infinite', height:20, width:20, color:'#1B6FE8', display:'block', margin:'0 auto 8px' }} viewBox="0 0 24 24">
-                  <circle style={{ opacity:0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path style={{ opacity:0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Buscando las mejores oportunidades…
-              </div>
-            ) : proyectosRecomendados.length === 0 ? (
-              <div style={{ padding:36, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT, border:'1px dashed #E2E8F0', borderRadius:10 }}>
-                No hay proyectos disponibles por el momento.
-              </div>
-            ) : (
-              <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:14 }}>
-                {proyectosRecomendados.map(p => <ProjectCard key={p.id} proyecto={p} />)}
-              </div>
-            )}
-          </Panel>
-
-        </div>{/* fin columna principal */}
-
-        {/* ── SIDEBAR ── */}
-        <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-
-          {/* Perfil */}
-          <PerfilWidget completitud={completitud} sugerencias={sugerencias} />
-
-          {/* Actividad reciente */}
-          <Panel delay={0.24}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-              <div style={S.sectionTitle}><span style={S.sectionBar} />Actividad reciente</div>
-              <button
-                onClick={() => setIsNotifPanelOpen(true)}
-                style={{ ...S.seeAll, background: 'none', border: 'none', padding: 0 }}
-              >
-                Ver todo <ArrowRight size={12} />
-              </button>
-            </div>
-            {loadingNotificaciones ? (
-              <div style={{ padding:16, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT }}>Cargando actividad…</div>
-            ) : activityItems.length === 0 ? (
-              <div style={{ padding:20, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT, border:'1px dashed #E2E8F0', borderRadius:10 }}>
-                No hay actividad reciente.
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {activityItems.map((item, index) => (
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {activityItems.map((item, index) => {
+                const key = item.id || index;
+                const isOpen = expandido === key;
+                const url = item.urlReferencia
+                  ? (item.urlReferencia.startsWith('/') ? item.urlReferencia : `/${item.urlReferencia}`)
+                  : null;
+                const clickable = url && (url.startsWith('/mis-postulaciones') || url.startsWith('/proyectos'));
+                return (
                   <div
-                    key={item.id || index}
+                    key={key}
                     onClick={() => {
                       if (!item.leida) leerNotificacion(item.id);
-                      if (expandido === (item.id || index)) {
-                        const ruta = item.urlReferencia
-                          ? (item.urlReferencia.startsWith('/') ? item.urlReferencia : `/${item.urlReferencia}`)
-                          : null;
-                        if (ruta) navigate(ruta);
-                        setExpandido(null);
-                      } else {
-                        setExpandido(item.id || index);
-                      }
+                      setExpandido(isOpen ? null : key);
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#F7F8FA'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                    onMouseEnter={e => { if (clickable || item.mensaje) e.currentTarget.style.background = '#F0FFFE'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = item.leida ? '#FFFFFF' : '#F0FFFE'; }}
                     style={{
-                      borderLeft:   `3px solid ${colorNotif(item)}`,
+                      borderLeft:   '3px solid #E2E8F0',
                       borderRadius: 8,
                       padding:      '10px 14px',
-                      cursor:       'pointer',
-                      background:   'transparent',
-                      transition:   'background 0.15s',
+                      cursor:       (clickable || item.mensaje) ? 'pointer' : 'default',
+                      background:   item.leida ? '#FFFFFF' : '#EFF6FF',
+                      transition:   'background 0.3s ease',
                       marginBottom: 6,
+                      flexShrink:   0,
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{
-                        fontSize: 13, fontFamily: FONT, fontWeight: 600, color: '#0F1F3D',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        flex: 1, marginRight: 8,
-                      }}>
+                      <div style={{ fontSize: 13, fontFamily: FONT, fontWeight: 600, color: '#0F1F3D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, marginRight: 8 }}>
                         {item.titulo}
                       </div>
-                      <ChevronRight
-                        size={14}
-                        color="#9CA3AF"
-                        style={{
-                          flexShrink: 0,
-                          transform: expandido === (item.id || index) ? 'rotate(90deg)' : 'none',
-                          transition: 'transform 0.2s',
-                        }}
-                      />
+                      {item.mensaje && (
+                        <ChevronRight size={14} color="#9CA3AF" style={{ flexShrink: 0, transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
+                      )}
                     </div>
                     <div style={{ fontSize: 11, fontFamily: FONT, color: '#94A3B8', marginTop: 2 }}>
                       {tiempoRelativo(item.fechaCreacion)}
                     </div>
-                    {expandido === (item.id || index) && item.mensaje && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        transition={{ duration: 0.2 }}
-                        style={{ overflow: 'hidden' }}
-                      >
+                    {isOpen && item.mensaje && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
                         <div style={{ fontSize: 12, fontFamily: FONT, color: '#64748B', marginTop: 8, paddingTop: 8, borderTop: '1px solid #F1F5F9' }}>
                           {item.mensaje}
                         </div>
+                        {clickable && (
+                          <button
+                            onClick={e => { e.stopPropagation(); navigate(url); }}
+                            style={{ marginTop: 8, fontSize: 11, fontFamily: FONT, fontWeight: 600, color: '#1B6FE8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, padding: 0 }}
+                          >
+                            Ver detalle <ArrowRight size={11} />
+                          </button>
+                        )}
                       </motion.div>
                     )}
                   </div>
-                ))}
-              </div>
-            )}
-          </Panel>
+                );
+              })}
+            </div>
+          )}
+        </Panel>
 
-          {/* Calificaciones pendientes */}
-          <CalificacionesPendientesCard />
+      </div>
 
+      {/* ── FILA 2: Mi perfil 40% | Calificaciones pendientes 60% ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '40fr 60fr', gap: 20, alignItems: 'stretch' }}>
 
-        </div>{/* fin sidebar */}
+        <PerfilWidget completitud={completitud} sugerencias={sugerencias} style={{
+          height: '100%', boxSizing: 'border-box',
+          background: '#FFFFFF',
+          border: '1px solid #E5E7EB',
+          boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
+        }} />
+
+        <CalificacionesPendientesCard />
+
       </div>
 
       <NotificacionesPanel

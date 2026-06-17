@@ -54,6 +54,61 @@ const getAreaStyle = (area = "") => {
   return AREA_STYLES[key] || AREA_STYLES.DEFAULT;
 };
 
+/* ─── Avatar de MYPE: foto si existe, si no, inicial con color por hash ───
+   TODO backend: cuando la MYPE pueda subir su logo desde su perfil,
+   exponer la URL en `proyecto.mypeFotoUrl` (o el campo que se acuerde
+   en el endpoint de listado/detalle de proyectos). Este componente ya
+   está listo para recibirla — solo falta que el campo llegue con datos. */
+const AVATAR_PALETTE = [
+  "#1B6FE8", "#059669", "#8B5CF6", "#D97706",
+  "#0284C7", "#DB2777", "#65A30D", "#DC2626",
+];
+
+const getAvatarColor = (seed = "") => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  return AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length];
+};
+
+const MypeAvatar = ({ nombre, fotoUrl, size = 40 }) => {
+  const inicial = (nombre || "E").trim().charAt(0).toUpperCase();
+  const color = getAvatarColor(nombre || "Empresa");
+
+  if (fotoUrl) {
+    return (
+      <img
+        src={fotoUrl}
+        alt={nombre || "Empresa"}
+        style={{ width: size, height: size, borderRadius: "10px", objectFit: "cover", flexShrink: 0, border: "1px solid #F1F5F9" }}
+      />
+    );
+  }
+
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "10px",
+        flexShrink: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: `${color}1A`,
+        color,
+        fontFamily: FONT,
+        fontWeight: 700,
+        fontSize: size * 0.4,
+      }}
+    >
+      {inicial}
+    </div>
+  );
+};
+
 const getGradient = (area = "") => {
   const key = area.toUpperCase().replace(/[\s_]/g, "_");
   const gradients = {
@@ -214,70 +269,58 @@ const ProyectosCommandCenter = ({ totalDisponibles, totalPostulaciones }) => {
    PROJECT ROW — estilo MYPE compacto (izquierda)
 ═══════════════════════════════════════════════ */
 const ProyectoRow = ({ proyecto, onClick, yaPostulo, isSelected, postulacionesCount }) => {
-  const area = proyecto.areaSistemas?.replace(/_/g, " ") || "SISTEMAS";
-  const vacancyStatus = getVacancyStatus(proyecto, postulacionesCount);
   const duracion = renderDuracion(proyecto);
 
   return (
     <motion.div
       onClick={onClick}
       style={{
-        background: isSelected ? "#F0F7FF" : "#FCFDFD",
+        background: isSelected ? "#FFFFFF" : "#FCFDFD",
         border: "1px solid",
-        borderColor: isSelected ? "#BFDBFE" : "#F1F5F9",
-        borderLeft: isSelected ? "3px solid #1B6FE8" : "1px solid #F1F5F9",
-        borderRadius: "14px",
+        borderColor: isSelected ? "#E2E8F0" : "#F1F5F9",
+        borderRadius: "16px",
         overflow: "hidden",
-        boxShadow: isSelected ? "0 4px 12px rgba(27,111,232,0.08)" : "0 2px 4px rgba(15,23,42,0.01)",
-        transition: "all 0.15s ease",
-        marginBottom: 10,
+        boxShadow: isSelected ? "0 12px 32px -8px rgba(15,23,42,0.08)" : "0 2px 4px rgba(15,23,42,0.01)",
+        marginBottom: 16,
         cursor: "pointer",
         padding: "14px 16px",
       }}
-      whileHover={!isSelected ? { borderColor: "#E2E8F0", boxShadow: "0 4px 8px rgba(15,23,42,0.04)" } : {}}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      whileHover={!isSelected ? { background: "#F5F9FF", borderColor: "#DBEAFE", boxShadow: "0 4px 8px rgba(15,23,42,0.04)" } : {}}
     >
-      {/* ID + área + postulado */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
-        <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-          {`PROJ-${String(proyecto.id).padStart(4, "0")}`}
-        </span>
-        <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: 600, color: "#1B6FE8", background: "#EFF6FF", padding: "1px 6px", borderRadius: "4px" }}>
-          {area}
-        </span>
-        {yaPostulo && (
-          <span style={{ marginLeft: "auto", fontSize: 9, fontFamily: FONT, fontWeight: 600, color: "#059669", background: "#F0FDF4", padding: "1px 6px", borderRadius: "4px", display: "flex", alignItems: "center", gap: 3 }}>
-            <CheckCircle2 size={8} /> Postulado
-          </span>
-        )}
-      </div>
+      <div style={{ display: "flex", gap: 12 }}>
+        <MypeAvatar nombre={proyecto.mypeNombre} fotoUrl={proyecto.mypeFotoUrl} size={40} />
 
-      {/* Título */}
-      <h3 style={{ margin: "0 0 3px", fontFamily: FONT, fontSize: 14, fontWeight: 600, color: "#0F1F3D", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        {proyecto.titulo}
-      </h3>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* ID + postulado */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
+            <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              {`PROJ-${String(proyecto.id).padStart(4, "0")}`}
+            </span>
+            {yaPostulo && (
+              <span style={{ marginLeft: "auto", fontSize: 9, fontFamily: FONT, fontWeight: 600, color: "#059669", background: "#F0FDF4", padding: "1px 6px", borderRadius: "4px", display: "flex", alignItems: "center", gap: 3 }}>
+                <CheckCircle2 size={8} /> Postulado
+              </span>
+            )}
+          </div>
 
-      {/* MYPE */}
-      <div style={{ fontSize: 12, fontFamily: FONT, color: "#64748B", marginBottom: 8, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        {proyecto.mypeNombre || "Empresa"}
-      </div>
+          {/* Título */}
+          <h3 style={{ margin: "0 0 3px", fontFamily: FONT, fontSize: 14, fontWeight: 600, color: "#0F1F3D", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {proyecto.titulo}
+          </h3>
 
-      {/* Footer: ubicación + duración + vacantes */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 4 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 10, color: "#94A3B8", display: "flex", alignItems: "center", gap: 3, fontFamily: FONT }}>
-            <MapPin size={9} /> {proyecto.mypeDireccion || "Cajamarca"}
-          </span>
-          <span style={{ fontSize: 10, color: "#94A3B8", display: "flex", alignItems: "center", gap: 3, fontFamily: FONT }}>
-            <Calendar size={9} /> {duracion.value}
-          </span>
+          {/* MYPE */}
+          <div style={{ fontSize: 12, fontFamily: FONT, color: "#64748B", marginBottom: 8, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {proyecto.mypeNombre || "Empresa"}
+          </div>
+
+          {/* Footer: duración */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 10, color: "#94A3B8", display: "flex", alignItems: "center", gap: 3, fontFamily: FONT }}>
+              <Calendar size={9} /> {duracion.value}
+            </span>
+          </div>
         </div>
-        {vacancyStatus.status === "complete" ? (
-          <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: 500, color: "#9CA3AF" }}>Completo</span>
-        ) : (
-          <span style={{ fontSize: 9, fontFamily: FONT, fontWeight: vacancyStatus.status === "urgent" ? 700 : 500, color: vacancyStatus.status === "available" ? "#6B7280" : "#1B6FE8" }}>
-            {vacancyStatus.remaining} vacante{vacancyStatus.remaining !== 1 ? "s" : ""}
-          </span>
-        )}
       </div>
     </motion.div>
   );
@@ -290,24 +333,24 @@ const ProyectoRow = ({ proyecto, onClick, yaPostulo, isSelected, postulacionesCo
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   if (totalPages <= 1) return null;
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderTop: "1px solid #F1F5F9", marginTop: 4 }}>
-      <span style={{ fontSize: 11, fontFamily: FONT, color: "#64748B", fontWeight: 500 }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 32, padding: "16px 24px", border: "1px solid #E2E8F0", borderRadius: 16, background: "#FAFAFA" }}>
+      <span style={{ fontSize: 12, fontFamily: FONT, color: "#64748B", fontWeight: 500 }}>
         Página <span style={{ color: "#0F1F3D", fontWeight: 700 }}>{currentPage}</span> de <span style={{ color: "#0F1F3D", fontWeight: 700 }}>{totalPages}</span>
       </span>
-      <div style={{ display: "flex", gap: 8 }}>
+      <div style={{ display: "flex", gap: 12 }}>
         <button
           disabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "50%", background: currentPage === 1 ? "#F1F5F9" : "#FFFFFF", border: "1px solid", borderColor: currentPage === 1 ? "transparent" : "#E2E8F0", color: currentPage === 1 ? "#94A3B8" : "#0F1F3D", cursor: currentPage === 1 ? "not-allowed" : "pointer" }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: "50%", background: currentPage === 1 ? "#F1F5F9" : "#FFFFFF", border: "1px solid", borderColor: currentPage === 1 ? "transparent" : "#E2E8F0", color: currentPage === 1 ? "#94A3B8" : "#0F1F3D", cursor: currentPage === 1 ? "not-allowed" : "pointer" }}
         >
-          <ChevronLeft size={14} />
+          <ChevronLeft size={16} />
         </button>
         <button
           disabled={currentPage === totalPages}
           onClick={() => onPageChange(currentPage + 1)}
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "50%", background: currentPage === totalPages ? "#F1F5F9" : "#FFFFFF", border: "1px solid", borderColor: currentPage === totalPages ? "transparent" : "#E2E8F0", color: currentPage === totalPages ? "#94A3B8" : "#0F1F3D", cursor: currentPage === totalPages ? "not-allowed" : "pointer" }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: "50%", background: currentPage === totalPages ? "#F1F5F9" : "#FFFFFF", border: "1px solid", borderColor: currentPage === totalPages ? "transparent" : "#E2E8F0", color: currentPage === totalPages ? "#94A3B8" : "#0F1F3D", cursor: currentPage === totalPages ? "not-allowed" : "pointer" }}
         >
-          <ChevronRight size={14} />
+          <ChevronRight size={16} />
         </button>
       </div>
     </div>
@@ -424,37 +467,45 @@ const ProjectDetailPanel = ({
       </div>
 
       <div style={{ padding: "16px 20px 20px" }}>
-        {/* Métricas */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 20 }}>
-          {[
-            { label: duracion.label, value: duracion.value, icon: <Calendar size={13} /> },
-            { label: "Cupos totales", value: totalVacantes, icon: <Users size={13} /> },
-            { label: "Ubicación", value: proyecto.mypeDireccion || "Cajamarca", icon: <MapPin size={13} /> },
-          ].map((metric, idx) => (
-            <div key={idx} style={{ background: "#F8FAFC", padding: "10px 8px", borderRadius: 8, border: "1px solid #E2E8F0", textAlign: "center" }}>
-              <div style={{ fontSize: 9, fontFamily: FONT, color: "#64748B", fontWeight: 600, marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                {metric.label}
+        {/* Duración + Cupos (con conteo de vacantes) */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
+          {/* Duración */}
+          <div style={{ background: "linear-gradient(135deg, #EFF6FF, #F8FAFC)", padding: "12px 14px", borderRadius: 12, border: "1px solid #DBEAFE" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+              <div style={{ width: 22, height: 22, borderRadius: 7, background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", color: "#1B6FE8" }}>
+                <Calendar size={12} />
               </div>
-              <div style={{ fontSize: 12, fontWeight: 600, fontFamily: FONT, color: "#0F1F3D", display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
-                {metric.icon} {metric.value}
-              </div>
+              <span style={{ fontSize: 9, fontFamily: FONT, color: "#64748B", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                {duracion.label}
+              </span>
             </div>
-          ))}
-        </div>
-
-        {/* Barra de progreso de vacantes */}
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 11, fontFamily: FONT, fontWeight: 600, color: "#374151" }}>Progreso de vacantes</span>
-            <span style={{ fontSize: 11, fontFamily: FONT, fontWeight: 600, color: "#64748B" }}>{postulacionesCount}/{totalVacantes} ocupadas</span>
+            <div style={{ fontSize: 14, fontWeight: 700, fontFamily: FONT, color: "#0F1F3D" }}>
+              {duracion.value}
+            </div>
           </div>
-          <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3, overflow: "hidden" }}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${(postulacionesCount / totalVacantes) * 100}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              style={{ height: "100%", background: esProyectoCompleto ? "linear-gradient(90deg, #10B981, #34D399)" : postulacionesCount / totalVacantes > 0.7 ? "linear-gradient(90deg, #F59E0B, #D97706)" : "linear-gradient(90deg, #1B6FE8, #38BDF8)", borderRadius: 3 }}
-            />
+
+          {/* Cupos con conteo de vacantes */}
+          <div style={{ background: "linear-gradient(135deg, #F0FDF4, #F8FAFC)", padding: "12px 14px", borderRadius: 12, border: "1px solid #D1FAE5" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+              <div style={{ width: 22, height: 22, borderRadius: 7, background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", color: "#059669" }}>
+                <Users size={12} />
+              </div>
+              <span style={{ fontSize: 9, fontFamily: FONT, color: "#64748B", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Cupos totales
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
+              <span style={{ fontSize: 14, fontWeight: 700, fontFamily: FONT, color: "#0F1F3D" }}>{postulacionesCount}/{totalVacantes}</span>
+              <span style={{ fontSize: 10, fontFamily: FONT, color: "#64748B", fontWeight: 500 }}>ocupadas</span>
+            </div>
+            <div style={{ height: 5, background: "rgba(15,23,42,0.06)", borderRadius: 3, overflow: "hidden" }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(postulacionesCount / totalVacantes) * 100}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                style={{ height: "100%", background: esProyectoCompleto ? "linear-gradient(90deg, #10B981, #34D399)" : postulacionesCount / totalVacantes > 0.7 ? "linear-gradient(90deg, #F59E0B, #D97706)" : "linear-gradient(90deg, #1B6FE8, #38BDF8)", borderRadius: 3 }}
+              />
+            </div>
           </div>
         </div>
 
@@ -485,6 +536,15 @@ const ProjectDetailPanel = ({
             <p style={{ fontSize: 13, fontFamily: FONT, color: "#475569", lineHeight: 1.6, margin: 0 }}>{proyecto.objetivo}</p>
           </div>
         )}
+
+        {/* Ubicación */}
+        <div style={{ marginBottom: 20 }}>
+          <h4 style={{ fontSize: 10, fontFamily: FONT, fontWeight: 700, color: "#64748B", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Ubicación</h4>
+          <p style={{ fontSize: 13, fontFamily: FONT, color: "#475569", lineHeight: 1.6, margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
+            <MapPin size={13} style={{ color: "#94A3B8", flexShrink: 0 }} />
+            {proyecto.mypeDireccion || "Cajamarca"}
+          </p>
+        </div>
 
         {/* Empresa (rubro + descripción, sin nombre que ya aparece arriba) */}
         {(proyecto.mypeRubro || proyecto.mypeDescripcion) && (
@@ -533,7 +593,7 @@ const ProjectDetailPanel = ({
 /* ═══════════════════════════════════════════════
    COMPONENTE PRINCIPAL
 ═══════════════════════════════════════════════ */
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 5;
 
 const ProyectosPage = () => {
   const navigate = useNavigate();

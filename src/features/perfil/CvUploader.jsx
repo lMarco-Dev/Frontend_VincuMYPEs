@@ -81,34 +81,21 @@ export function CvUploader({ cvUrl, compact = false }) {
 
   // ── Modo completo: para PerfilPage del estudiante ─────────────
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-      {/* Encabezado con check de éxito a la derecha - tamaño reducido */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
-            <FileText size={16} className="text-indigo-600" />
-          </div>
-          <div>
-           
-            <p className="text-xs text-slate-400">PDF · máx {MAX_MB}MB</p>
-          </div>
-        </div>
-        
-        {/* Check de éxito pequeño que no altera el diseño */}
-        {showSuccessIcon && (
-          <div className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 animate-in fade-in duration-300">
-            <CheckCircle2 size={12} className="text-emerald-600" />
-            <span className="text-[10px] font-medium text-emerald-700">Actualizado</span>
-          </div>
-        )}
-      </div>
+    <div>
 
-      {/* Opción alternativa: botón debajo del enlace */}
       {cvUrl ? (
         <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 mb-3">
-          <div className="flex items-center gap-2 mb-2">
-            <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-            <p className="text-xs font-bold text-emerald-700">CV subido correctamente</p>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+              <p className="text-xs font-bold text-emerald-700">CV subido correctamente</p>
+            </div>
+            {showSuccessIcon && (
+              <div className="flex items-center gap-1 bg-white px-2 py-0.5 rounded-full border border-emerald-200">
+                <CheckCircle2 size={11} className="text-emerald-600" />
+                <span className="text-[10px] font-medium text-emerald-700">Actualizado</span>
+              </div>
+            )}
           </div>
           <div className="mb-3">
             <a
@@ -150,12 +137,10 @@ export function CvUploader({ cvUrl, compact = false }) {
           )}
           <div className="text-center">
             <p className="text-sm font-bold text-slate-700">
-              {isLoading ? "Subiendo tu CV..." : "Subir CV"}
+              {isLoading ? "Subiendo tu CV..." : "Sube tu CV en PDF"}
             </p>
             <p className="text-xs text-slate-400 mt-0.5">
-              {isLoading
-                ? "Por favor espera"
-                : "Haz clic para seleccionar un PDF"}
+              {isLoading ? "Por favor espera" : `Haz clic para seleccionar · máx ${MAX_MB}MB`}
             </p>
           </div>
         </button>

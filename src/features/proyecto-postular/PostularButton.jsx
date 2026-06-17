@@ -4,8 +4,8 @@ import { usePerfil } from "../perfil/usePerfil";
 import { subirCvApi } from "../perfil/cvApi";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Send, Loader2, CheckCircle, X, FileText, Upload,
-  AlertCircle, Check,
+  Send, Loader2, X, FileText, Upload,
+  AlertCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -39,12 +39,11 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
         style={{
           width: "100%", padding: "12px 20px", borderRadius: 10,
           border: "1px solid #d1d5db", background: "#f9fafb",
-          color: "#6b7280", fontSize: 14, fontWeight: 600,
+          color: "#6b7280", fontSize: 13, fontWeight: 600,
           cursor: "not-allowed",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          textAlign: "center",
         }}
       >
-        <CheckCircle size={16} style={{ color: "#059669" }} />
         Ya has postulado a este proyecto
       </button>
     );
@@ -70,27 +69,16 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
   if (isSuccess) {
     return (
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         style={{
-          width: "100%", background: "#f0fdf4",
-          border: "1px solid #bbf7d0", padding: 16, borderRadius: 12,
-          display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center", textAlign: "center",
+          width: "100%", background: "#f9fafb",
+          border: "1px solid #e5e7eb", padding: 16, borderRadius: 10,
+          textAlign: "center",
         }}
       >
-        <div style={{
-          width: 48, height: 48, borderRadius: "50%",
-          background: "#22c55e", display: "flex",
-          alignItems: "center", justifyContent: "center", marginBottom: 12,
-        }}>
-          <CheckCircle size={24} color="#fff" />
-        </div>
-        <h4 style={{ fontSize: 14, fontWeight: 700, color: "#166534", marginBottom: 4 }}>
-          ¡Postulación Enviada!
-        </h4>
-        <p style={{ fontSize: 11, color: "#15803d", fontWeight: 500 }}>
-          Tu aplicación ha sido registrada exitosamente.
+        <p style={{ fontSize: 13, fontWeight: 600, color: "#374151", margin: 0 }}>
+          Postulaste a este proyecto
         </p>
       </motion.div>
     );
@@ -143,11 +131,6 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
   const manejarEnvioDePostulacion = async (e) => {
     e.preventDefault();
     setErrorMessage("");
-
-    if (mensaje.length > 200) {
-      setErrorMessage("El mensaje no puede superar los 200 caracteres");
-      return;
-    }
 
     let cvUrlAEnviar = null;
 
@@ -276,32 +259,24 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
               tabIndex={tieneCvActual ? 0 : -1}
               onClick={handleSelectActual}
               style={{
-                padding: 12, borderRadius: 10,
-                border: cvOption === "actual" ? "2px solid #1B6FE8" : "1px solid #e2e8f0",
-                background: cvOption === "actual" ? "#eff6ff" : tieneCvActual ? "#fff" : "#f8fafc",
+                padding: 12, borderRadius: 8,
+                border: cvOption === "actual" ? "1px solid #1e293b" : "1px solid #e2e8f0",
+                background: tieneCvActual ? "#fff" : "#f8fafc",
                 cursor: tieneCvActual ? "pointer" : "not-allowed",
                 opacity: tieneCvActual ? 1 : 0.55,
-                transition: "all 0.2s", position: "relative", minHeight: 90,
+                transition: "border-color 0.15s", position: "relative", minHeight: 90,
                 display: "flex", flexDirection: "column", justifyContent: "center", gap: 6,
                 userSelect: "none",
               }}
             >
-              {cvOption === "actual" && (
-                <div style={{
-                  position: "absolute", top: 8, right: 8,
-                  width: 18, height: 18, borderRadius: "50%",
-                  background: "#1B6FE8",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <Check size={11} color="#fff" />
-                </div>
-              )}
+              <div style={{
+                position: "absolute", top: 10, right: 10,
+                width: 14, height: 14, borderRadius: "50%",
+                border: cvOption === "actual" ? "4px solid #1e293b" : "1.5px solid #cbd5e1",
+              }} />
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <FileText size={16} color={cvOption === "actual" ? "#1B6FE8" : "#64748b"} />
-                <span style={{
-                  fontSize: 12, fontWeight: 700,
-                  color: cvOption === "actual" ? "#1B6FE8" : "#1e293b",
-                }}>
+                <FileText size={15} color="#64748b" />
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#1e293b" }}>
                   Enviar mi CV
                 </span>
               </div>
@@ -316,7 +291,7 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
                   onClick={(e) => e.stopPropagation()}
                   style={{
                     fontSize: 10, fontWeight: 600,
-                    color: "#1B6FE8", textDecoration: "none",
+                    color: "#475569", textDecoration: "none",
                     alignSelf: "flex-start",
                   }}
                 >
@@ -330,31 +305,23 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
               tabIndex={0}
               onClick={handleSelectNuevo}
               style={{
-                padding: 12, borderRadius: 10,
-                border: cvOption === "nuevo" ? "2px solid #1B6FE8" : "1px solid #e2e8f0",
-                background: cvOption === "nuevo" ? "#eff6ff" : "#fff",
+                padding: 12, borderRadius: 8,
+                border: cvOption === "nuevo" ? "1px solid #1e293b" : "1px solid #e2e8f0",
+                background: "#fff",
                 cursor: "pointer",
-                transition: "all 0.2s", position: "relative", minHeight: 90,
+                transition: "border-color 0.15s", position: "relative", minHeight: 90,
                 display: "flex", flexDirection: "column", justifyContent: "center", gap: 6,
                 userSelect: "none",
               }}
             >
-              {cvOption === "nuevo" && (
-                <div style={{
-                  position: "absolute", top: 8, right: 8,
-                  width: 18, height: 18, borderRadius: "50%",
-                  background: "#1B6FE8",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <Check size={11} color="#fff" />
-                </div>
-              )}
+              <div style={{
+                position: "absolute", top: 10, right: 10,
+                width: 14, height: 14, borderRadius: "50%",
+                border: cvOption === "nuevo" ? "4px solid #1e293b" : "1.5px solid #cbd5e1",
+              }} />
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <Upload size={16} color={cvOption === "nuevo" ? "#1B6FE8" : "#64748b"} />
-                <span style={{
-                  fontSize: 12, fontWeight: 700,
-                  color: cvOption === "nuevo" ? "#1B6FE8" : "#1e293b",
-                }}>
+                <Upload size={15} color="#64748b" />
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#1e293b" }}>
                   Cargar nuevo CV
                 </span>
               </div>
@@ -362,7 +329,7 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
                 {cvFile ? cvFile.name : "Subir un PDF (máx 5 MB)"}
               </p>
               {cvFile && (
-                <span style={{ fontSize: 10, fontWeight: 600, color: "#059669" }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "#64748b" }}>
                   Archivo seleccionado
                 </span>
               )}
@@ -397,22 +364,20 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
           </label>
           <textarea
             value={mensaje}
-            onChange={(e) => setMensaje(e.target.value)}
+            onChange={(e) => setMensaje(e.target.value.slice(0, 100))}
+            maxLength={100}
             placeholder="Cuéntale a la empresa por qué te interesa este proyecto..."
             style={{
               width: "100%", padding: "10px 12px", borderRadius: 8,
-              border: mensaje.length > 200 ? "1px solid #fecaca" : "1px solid #e2e8f0",
+              border: "1px solid #e2e8f0",
               fontSize: 13, outline: "none", resize: "vertical",
               minHeight: 80, fontFamily: "inherit",
               boxSizing: "border-box",
             }}
           />
           <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
-            <span style={{
-              fontSize: 10,
-              color: mensaje.length > 200 ? "#ef4444" : "#94a3b8",
-            }}>
-              {mensaje.length}/200
+            <span style={{ fontSize: 10, color: "#94a3b8" }}>
+              {mensaje.length}/100
             </span>
           </div>
         </div>
@@ -433,7 +398,7 @@ const PostularButton = ({ proyectoId, yaPostulo, disabled }) => {
           </button>
           <button
             type="submit"
-            disabled={cargando || mensaje.length > 200}
+            disabled={cargando}
             style={{
               flex: 1, padding: "10px 16px", borderRadius: 8,
               border: "none",
