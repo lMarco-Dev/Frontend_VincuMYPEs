@@ -564,6 +564,7 @@ const selectedHook = usarCompleto ? hookCompleto : hookNormal;
                        <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1E293B", fontFamily: FONT }}>Administración Estratégica del Equipo</h4>
                        <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748B", fontFamily: FONT, lineHeight: 1.6 }}>Define con precisión a quién integras y de quién decides prescindir dentro de los bloques asignados para la consolidación de tecnología en la empresa.</p>
                    </div>
+                   {globalOpenStateFilter !== 'operativos' && (
                    <div style={{ display: "flex", background: "#E2E8F0", padding: "4px", borderRadius: "8px", gap: "2px" }}>
                        <button onClick={() => setInternalViewAll(false)} style={{ border: "none", background: !internalViewAll ? "#FFFFFF" : "transparent", color: !internalViewAll ? "#0F1F3D" : "#475569", fontWeight: !internalViewAll ? 600 : 500, padding: "6px 14px", borderRadius: "6px", fontSize: 12, cursor: "pointer", boxShadow: !internalViewAll ? "0 1px 2px rgba(0,0,0,0.06)" : "none", fontFamily: FONT, transition: "0.2s" }}>
                           Evaluación Principal
@@ -571,7 +572,7 @@ const selectedHook = usarCompleto ? hookCompleto : hookNormal;
                        <button onClick={() => setInternalViewAll(true)} style={{ border: "none", background: internalViewAll ? "#FFFFFF" : "transparent", color: internalViewAll ? "#0F1F3D" : "#475569", fontWeight: internalViewAll ? 600 : 500, padding: "6px 14px", borderRadius: "6px", fontSize: 12, cursor: "pointer", boxShadow: internalViewAll ? "0 1px 2px rgba(0,0,0,0.06)" : "none", fontFamily: FONT, transition: "0.2s" }}>
                           Registro Completo
                        </button>
-                   </div>
+                   </div> )}
                </div>
 
                {isLoading ? (
@@ -620,11 +621,10 @@ const selectedHook = usarCompleto ? hookCompleto : hookNormal;
                     ) : (
                       <>
                         <h3 style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, color: "#1E293B", margin: "0 0 8px" }}>
-                          Sin talento a procesar
+                          Equipo pendiente
                         </h3>
                         <p style={{ fontFamily: FONT, fontSize: 13, color: "#64748B", margin: "0 auto", maxWidth: 450, lineHeight: 1.5 }}>
-                          No se encontraron perfiles en esta vista del módulo. Permite que más tiempo corra para consolidar datos en las propuestas operativas empresariales.
-                        </p>
+                        No hay perfiles disponibles por el momento.                        </p>
                       </>
                     )}
                   </div>
