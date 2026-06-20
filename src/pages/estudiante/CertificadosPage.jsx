@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -9,14 +9,136 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  X,
+  Download,
 } from "lucide-react";
 import { useCertificados } from "@features/certificados/useCertificados";
+import { PlantillaCertificado } from "@/features/certificados/PlantillaCertificado";
 import { useCalificacionesPendientes } from "@/features/calificaciones/useCalificacionesPendientes";
 import RateUserModal from "@/features/calificaciones/RateUserModal";
 import { useQueryClient } from "@tanstack/react-query";
+import { useMypePerfil } from "@/features/mype-perfil/useMypePerfil";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 const ITEMS_PER_PAGE = 5;
+
+/* ═══════════════════════════════════════════════
+   MODAL VISTA PREVIA
+═══════════════════════════════════════════════ */
+function VistaPreviaCertificado({ certificado, onClose }) {
+  const { perfil: perfilMype } = useMypePerfil(certificado?.mypeUsuarioId);
+  const [descargando, setDescargando] = useState(false);
+  const datosCert = {
+    ...certificado,
+    rucMype: certificado.rucMype || perfilMype?.ruc || "",
+  };
+
+  const tienePdf = !!certificado.pdfBase64;
+
+  const handleDescargarPDF = async () => {
+    if (tienePdf) {
+      const link = document.createElement("a");
+      link.href = certificado.pdfBase64;
+      link.download = `certificado_${certificado.estudianteNombre || "certificado"}.pdf`;
+      link.click();
+      return;
+    }
+    // Fallback: generar PDF desde la plantilla renderizada
+    setDescargando(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      const { createRoot } = await import("react-dom/client");
+      const { createElement } = await import("react");
+      const contenedor = document.createElement("div");
+      contenedor.style.cssText = "position:fixed;left:-9999px;top:0;width:297mm;height:210mm;background:#fff;z-index:-1;";
+      document.body.appendChild(contenedor);
+      const root = createRoot(contenedor);
+      root.render(createElement(PlantillaCertificado, { datos: datosCert }));
+      await new Promise(r => setTimeout(r, 900));
+      const el = contenedor.querySelector("#certificado-preview");
+      if (el) {
+        await html2pdf()
+          .set({ margin: 0, filename: `certificado_${certificado.estudianteNombre || "certificado"}.pdf`, image: { type: "jpeg", quality: 1 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: "mm", format: "a4", orientation: "landscape" } })
+          .from(el)
+          .save();
+      }
+      root.unmount();
+      document.body.removeChild(contenedor);
+    } finally {
+      setDescargando(false);
+    }
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(10,22,40,0.85)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }}
+        style={{ background: "#FFFFFF", borderRadius: 16, width: "95%", maxWidth: 1400, height: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: "0 40px 80px rgba(0,0,0,0.5)" }}
+      >
+        <div style={{ padding: "20px 24px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#FFFFFF" }}>
+          <div>
+            <h3 style={{ margin: 0, fontFamily: FONT, fontSize: 16, fontWeight: 600, color: "#0F172A" }}>Certificado Oficial</h3>
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748B", fontFamily: FONT }}>
+              Emitido por: <strong>{certificado.mypeNombre}</strong> | Proyecto: {certificado.proyectoTitulo}
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button
+              onClick={handleDescargarPDF}
+              disabled={descargando}
+              style={{ padding: "10px 20px", background: descargando ? "#64748B" : "#0F172A", color: "#FFF", borderRadius: 8, border: "none", cursor: descargando ? "wait" : "pointer", fontSize: 12, fontWeight: 600, fontFamily: FONT, display: "flex", alignItems: "center", gap: 8, opacity: descargando ? 0.7 : 1 }}
+            >
+              <Download size={14} /> {descargando ? "Generando..." : "Descargar PDF"}
+            </button>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#94A3B8", padding: "8px", borderRadius: "6px" }}>
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+
+        <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
+          {tienePdf ? (
+            <iframe
+              src={certificado.pdfBase64}
+              title="Certificado PDF"
+              style={{ width: "100%", height: "100%", border: "none" }}
+            />
+          ) : (
+            <VistaPlantillaFallback datosCert={datosCert} />
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function VistaPlantillaFallback({ datosCert }) {
+  const containerRef = useRef(null);
+  const [zoom, setZoom] = useState(0.65);
+  const PADDING = 60;
+  const adjustScaleToFit = useCallback(() => {
+    if (!containerRef.current) return;
+    const { clientWidth, clientHeight } = containerRef.current;
+    setZoom(Math.min((clientWidth - PADDING * 2) / 1122.5, (clientHeight - PADDING * 2) / 793.7, 1.2));
+  }, []);
+  useEffect(() => {
+    adjustScaleToFit();
+    window.addEventListener("resize", adjustScaleToFit);
+    const t = setTimeout(adjustScaleToFit, 150);
+    return () => { window.removeEventListener("resize", adjustScaleToFit); clearTimeout(t); };
+  }, [adjustScaleToFit]);
+  const w = 1122.5 * zoom;
+  const h = 793.7 * zoom;
+  return (
+    <div ref={containerRef} style={{ width: "100%", height: "100%", background: "#E2E8F0", backgroundImage: "linear-gradient(rgba(148,163,184,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.15) 1px, transparent 1px)", backgroundSize: "24px 24px", overflow: "auto", position: "relative" }}>
+      <div style={{ position: "absolute", width: `${w}px`, height: `${h}px`, left: w < (containerRef.current?.clientWidth || 0) ? `calc(50% - ${w / 2}px)` : `${PADDING}px`, top: h < (containerRef.current?.clientHeight || 0) ? `calc(50% - ${h / 2}px)` : `${PADDING}px` }}>
+        <div style={{ transform: `scale(${zoom})`, transformOrigin: "0 0" }}>
+          <PlantillaCertificado datos={datosCert} isForPreviewCanvas={true} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ═══════════════════════════════════════════════
    COMMAND CENTER
@@ -293,8 +415,13 @@ const CertificadosPage = () => {
   const { data: certificados = [], isLoading, isError, error } = useCertificados();
   const { pendientes: pendientesCalificacion } = useCalificacionesPendientes();
   const [modalCalificacion, setModalCalificacion] = useState({ open: false, data: null });
+  const [certificadoVistaPrevia, setCertificadoVistaPrevia] = useState(null);
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
+
+  const abrirCertificado = (cert) => {
+    setCertificadoVistaPrevia(cert);
+  };
 
   const handleVerCertificado = (cert) => {
     const pendiente = pendientesCalificacion?.some(
@@ -308,11 +435,11 @@ const CertificadosPage = () => {
           calificadoId: cert.mypeUsuarioId,
           calificadoNombre: cert.nombreMype,
           proyectoTitulo: cert.proyectoTitulo,
-          urlCertificado: cert.urlCertificado,
+          cert,
         },
       });
     } else {
-      window.open(cert.urlCertificado, "_blank");
+      abrirCertificado(cert);
     }
   };
 
@@ -346,6 +473,15 @@ const CertificadosPage = () => {
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 36px", paddingBottom: 120, fontFamily: FONT }}>
+      <AnimatePresence>
+        {certificadoVistaPrevia && (
+          <VistaPreviaCertificado
+            certificado={certificadoVistaPrevia}
+            onClose={() => setCertificadoVistaPrevia(null)}
+          />
+        )}
+      </AnimatePresence>
+
       <CertificadosCommandCenter total={total} />
 
       {total === 0 ? (
@@ -398,13 +534,11 @@ const CertificadosPage = () => {
           pendiente={modalCalificacion.data}
           onClose={() => setModalCalificacion({ open: false, data: null })}
           onSuccess={() => {
-            const urlCertificado = modalCalificacion.data?.urlCertificado;
+            const cert = modalCalificacion.data?.cert;
             queryClient.invalidateQueries(["calificaciones-pendientes"]);
             queryClient.invalidateQueries(["certificados"]);
-            setTimeout(() => {
-              if (urlCertificado) window.open(urlCertificado, "_blank");
-            }, 100);
             setModalCalificacion({ open: false, data: null });
+            if (cert) setTimeout(() => abrirCertificado(cert), 100);
           }}
         />
       )}

@@ -26,9 +26,11 @@ export function useCertificadosEmitidos() {
         proyectoId: cert.proyectoId,
         estudianteNombre: cert.estudianteNombre,
         estudianteId: cert.estudianteId,
-        gerente: cert.gerenteNombre, // Mapeo importante
-        mypeNombre: cert.nombreMype, // Mapeo importante
-        firmaUrl: cert.firmaUrl, // Mapeo importante
+        gerente: cert.gerenteNombre || cert.gerente || cert.nombreGerente || "",
+        cargo: cert.cargoRepresentante || cert.cargo || cert.cargoGerente || "",
+        mypeNombre: cert.nombreMype,
+        rucMype: cert.rucMype,
+        firmaUrl: cert.firmaUrl,
         fechaEmision: cert.fechaEmision,
         enviadoEmail: cert.fechaEnvio !== null,
         urlCertificado: cert.urlCertificado,
@@ -94,11 +96,11 @@ export function useEnviarCertificado() {
   const [loading, setLoading] = useState({}); // ← AHORA FUNCIONA
   const [errorMap, setErrorMap] = useState({}); // ← AHORA FUNCIONA
 
-  const enviar = async (certificadoId) => {
+  const enviar = async (certificadoId, pdfBase64 = null) => {
     setLoading((p) => ({ ...p, [certificadoId]: true }));
     setErrorMap((p) => ({ ...p, [certificadoId]: null }));
     try {
-      await enviarCertificadoApi(certificadoId);
+      await enviarCertificadoApi(certificadoId, pdfBase64);
       queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
     } catch (e) {
       setErrorMap((p) => ({

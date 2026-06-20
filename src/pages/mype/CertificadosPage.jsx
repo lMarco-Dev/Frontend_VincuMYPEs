@@ -7,7 +7,9 @@ import {
   useEliminarCertificado,
   useEnviarCertificado,
 } from "@/features/certificados/useCertificadosMype";
+import { PlantillaCertificado } from "@/features/certificados/PlantillaCertificado";
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
+import RateUserModal from "@/features/calificaciones/RateUserModal";
 import { useMiPerfilMype } from "@/features/mype-perfil/useMypePerfil";
 import { httpClient } from "@/shared/api/httpClient";
 import { useQueryClient } from "@tanstack/react-query";
@@ -40,7 +42,6 @@ import {
 } from "lucide-react";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
-const FONT_SERIF = "Georgia, 'Times New Roman', serif";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 15 },
@@ -189,171 +190,6 @@ function CentroCertificacionHero({ certificadosEmitidos, estudiantesReconocidos,
   );
 }
 
-// ── Plantilla Visual Premium Real Fija ──
-function PlantillaCertificado({ datos, isForPreviewCanvas = false }) {
-  const hoy = new Date().toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric" });
-  const codigoCert = datos.codigo || `CTX-V${new Date().getFullYear()}-${String(datos.proyectoId || "1").padStart(6, "0")}`;
-
-  return (
-    <div
-      id="certificado-preview"
-      style={{
-        width: "297mm", 
-        height: "210mm",
-        background: "#FFFFFF",
-        position: "relative",
-        boxSizing: "border-box",
-        fontFamily: FONT_SERIF,
-        color: "#1E293B",
-        boxShadow: isForPreviewCanvas ? "0 30px 60px rgba(0,0,0,0.1), 0 5px 25px rgba(0,0,0,0.08)" : "none",
-        overflow: "hidden",
-        border: "none",
-        transformOrigin: "top left", 
-      }}
-    >
-      <div style={{
-        position: "absolute",
-        top: "20mm",
-        right: "20mm",
-        zIndex: 10,
-        background: "transparent"
-      }}>
-        <img 
-          src="/linkuy_logo_Blanco.svg" 
-          alt="Logo Linkuy" 
-          style={{
-            width: "35mm",
-            height: "auto",
-            objectFit: "contain"
-          }}
-        />
-      </div>
-      <div style={{ 
-        position: "absolute", top: "15mm", bottom: "15mm", 
-        left: "15mm", right: "15mm", 
-        border: "1.5px solid #0F172A", padding: "3px" 
-      }}>
-        <div style={{ 
-          border: "0.5px solid #475569", height: "100%", width: "100%", position: "relative", 
-          boxSizing: "border-box", display: "flex", flexDirection: "column", padding: "26mm 35mm",
-          background: "linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(248,250,252,0.8) 100%)"
-        }}>
-          
-          {[
-            { top: -2, left: -2, borderBottom: "1.5px solid #0F172A", borderRight: "1.5px solid #0F172A" },
-            { top: -2, right: -2, borderBottom: "1.5px solid #0F172A", borderLeft: "1.5px solid #0F172A" },
-            { bottom: -2, left: -2, borderTop: "1.5px solid #0F172A", borderRight: "1.5px solid #0F172A" },
-            { bottom: -2, right: -2, borderTop: "1.5px solid #0F172A", borderLeft: "1.5px solid #0F172A" }
-          ].map((style, idx) => (
-             <div key={idx} style={{ position: "absolute", width: "12px", height: "12px", background: "#FFFFFF", ...style }} />
-          ))}
-
-          <div style={{ textAlign: "center", marginBottom: 15 }}>
-             <h4 style={{ 
-               margin: 0, fontSize: 13, fontWeight: 400, letterSpacing: "0.4em", textTransform: "uppercase", color: "#64748B", 
-               fontFamily: "system-ui, sans-serif" 
-             }}>Certificado Oficial</h4>
-             <div style={{ width: 45, height: "1.5px", background: "#D4AF37", margin: "14px auto" }} />
-             <h1 style={{ margin: 0, fontSize: 46, fontWeight: 400, color: "#0F172A", lineHeight: 1.1 }}>
-               Constancia de Participación
-             </h1>
-          </div>
-
-          <div style={{ textAlign: "center", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-             <p style={{ margin: 0, fontSize: 18, fontStyle: "italic", color: "#475569" }}>Por conducto de este documento se confiere validación expresa a:</p>
-             <h2 style={{ 
-                margin: "18px 0", fontSize: 38, fontWeight: 400, 
-                borderBottom: "1.5px dashed #CBD5E1", paddingBottom: "4px", display: "inline-block",
-                letterSpacing: "-0.01em"
-             }}>
-                {datos.estudianteNombre || "Individuo Calificado / Talento Estratégico"}
-             </h2>
-             <p style={{ margin: "0", fontSize: 16, color: "#475569", lineHeight: 1.8, maxWidth: "90%" }}>
-                Por su participación activa, cumplimiento de hitos y calidad en los entregables, demostrando habilidades técnicas y trabajo en equipo durante el desarrollo del proyecto.
-             </p>
-             <div style={{ background: "#F1F5F9", border: "1px solid #E2E8F0", padding: "18px 24px", margin: "22px 0", borderRadius: "2px", width: "100%", maxWidth: "80%" }}>
-               <h3 style={{ margin: 0, fontSize: 19, fontWeight: 600, fontFamily: "system-ui, sans-serif", letterSpacing: "-0.01em", color: "#1E293B" }}>
-                 {datos.proyectoTitulo || "[Referencia Oficial de Operación Acreditada]"}
-               </h3>
-             </div>
-          </div>
-
-          <div style={{ 
-             display: "flex", justifyContent: "space-between", alignItems: "flex-end", 
-             marginTop: "auto", borderTop: "1.5px solid rgba(15,23,42,0.1)", paddingTop: 15, 
-             fontFamily: "system-ui, sans-serif" 
-          }}>
-             <div style={{ flex: 1, textAlign: "left", marginTop: 20 }}>
-              <p style={{ fontSize: 10, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.15em", margin: "0 0 6px" }}>ID de Validación Matriz</p>
-              <p style={{ fontSize: 15, fontWeight: 600, color: "#1E293B", margin: 0 }}>{codigoCert}</p>
-            </div>
-
-             <div style={{ flex: 1.5, textAlign: "center", paddingBottom: "2px" }}>
-               {datos.firmaUrl ? (
-   (() => {
-     // Durante la creación del certificado (base64)
-     if (datos.firmaUrl.startsWith('data:image')) {
-       return <img src={datos.firmaUrl} alt="Firma" style={{ height: 60, objectFit: "contain", margin: "0 auto" }} />;
-     } 
-     // Si hay un ID de certificado, usar el proxy del backend
-     else if (datos.certificadoId) {
-       const token = localStorage.getItem('accessToken');
-// Usar solo /api para que el proxy de Vite funcione
-const proxyUrl = `/api/certificados/${datos.certificadoId}/firma?token=${encodeURIComponent(token)}`;
-console.log('🖼️ URL de firma:', proxyUrl);
-       return <img 
-         src={proxyUrl}
-         alt="Firma" 
-         style={{ height: 60, objectFit: "contain", margin: "0 auto" }}
-         onError={(e) => {
-           console.warn('No se pudo cargar la firma desde el proxy');
-           e.target.style.display = 'none';
-         }}
-       />;
-     } 
-     // Fallback: URL directa (con CORS configurado)
-     else if (datos.firmaUrl.startsWith('http')) {
-       return <img 
-         src={datos.firmaUrl}
-         alt="Firma" 
-         style={{ height: 60, objectFit: "contain", margin: "0 auto" }}
-         crossOrigin="anonymous"
-         onError={(e) => {
-           console.warn('No se pudo cargar la firma');
-           e.target.style.display = 'none';
-         }}
-       />;
-     } 
-     // Base64 sin prefijo
-     else {
-       return <img src={`data:image/png;base64,${datos.firmaUrl}`} alt="Firma" style={{ height: 60, objectFit: "contain", margin: "0 auto" }} />;
-     }
-   })()
-) : (
-   <div style={{ height: 60, width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <span style={{ border: "1px dashed #CBD5E1", padding: "5px 15px", color: "#94A3B8", fontSize: 11 }}>Firma Digital Pendiente</span>
-   </div>
-)}
-                <div style={{ width: "65%", height: "1px", background: "#0F172A", margin: "10px auto" }} />
-                <p style={{ fontSize: 15, fontWeight: 600, color: "#1E293B", margin: "0 0 4px" }}>
-                  {datos.gerente || "Representante Legal"}
-                </p>
-                <p style={{ fontSize: 12, color: "#64748B", margin: 0, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  {datos.mypeNombre || "CORPORACIÓN TITULAR"}
-                </p>
-             </div>
-
-             <div style={{ flex: 1, textAlign: "right" }}>
-                <p style={{ fontSize: 10, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.15em", margin: "0 0 6px" }}>Acta Fechada en Perú</p>
-                <p style={{ fontSize: 15, fontWeight: 600, color: "#1E293B", margin: 0 }}>{hoy}</p>
-             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Modal de Vista Previa de Certificado ──────────────────────────────────
 function VistaPreviaCertificado({ certificado, onClose }) {
   const containerRef = useRef(null);
@@ -394,12 +230,14 @@ function VistaPreviaCertificado({ certificado, onClose }) {
       
       const datosCertificado = {
   codigo: certificado.codigo,
-  certificadoId: certificado.id, // ✅ AÑADIR
+  certificadoId: certificado.id,
   proyectoId: certificado.proyectoId,
   proyectoTitulo: certificado.proyectoTitulo,
   estudianteNombre: certificado.estudianteNombre,
   gerente: certificado.gerente,
+  cargo: certificado.cargo,
   mypeNombre: certificado.mypeNombre,
+  rucMype: certificado.rucMype,
   firmaUrl: certificado.firmaUrl
 };
       console.log('🔍 Datos del certificado para PDF:', datosCertificado);
@@ -623,18 +461,20 @@ console.log('📸 URL de la firma:', certificado.firmaUrl);
             top: exactHeightToExpect < (containerRef.current?.clientHeight || 0) ? `calc(50% - ${exactHeightToExpect / 2}px)` : `${PADDING}px`,
           }}>
             <div style={{ transform: `scale(${zoom})`, transformOrigin: "0 0" }}>
-              <PlantillaCertificado 
+              <PlantillaCertificado
   datos={{
     codigo: certificado.codigo,
-    certificadoId: certificado.id, // ✅ AÑADIR ESTA LÍNEA
+    certificadoId: certificado.id,
     proyectoId: certificado.proyectoId,
     proyectoTitulo: certificado.proyectoTitulo,
     estudianteNombre: certificado.estudianteNombre,
     gerente: certificado.gerente,
+    cargo: certificado.cargo,
     mypeNombre: certificado.mypeNombre,
+    rucMype: certificado.rucMype,
     firmaUrl: certificado.firmaUrl
-  }} 
-  isForPreviewCanvas={true} 
+  }}
+  isForPreviewCanvas={true}
 />
             </div>
           </div>
@@ -648,6 +488,7 @@ console.log('📸 URL de la firma:', certificado.firmaUrl);
 function FormalizacionDocumentalOverlay({
   proyectosCompletados,
   mypeNombre,
+  rucMype,
   gerenteNombre,
   certificadosEmitidos,
   onClose,
@@ -695,20 +536,16 @@ function FormalizacionDocumentalOverlay({
     proyectoId: "",
     proyectoTitulo: "",
     estudiantesSeleccionados: [],
-    gerente: gerenteNombre || "",
+    gerente: "",
+    cargo: "",
     firmaUrl: "",
   });
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
-  // Filtrar proyectos que ya tienen todos los certificados emitidos
-  const proyectosDisponibles = proyectosCompletados.filter(proyecto => {
-    const estudiantesDelProyecto = proyecto.estudiantesCount || 0;
-    const certificadosDelProyecto = certificadosEmitidos.filter(
-      cert => cert.proyectoId === proyecto.id
-    ).length;
-    return certificadosDelProyecto < estudiantesDelProyecto || estudiantesDelProyecto === 0;
-  });
+  // Excluir proyectos que ya tienen al menos un certificado emitido
+  const proyectosConCert = new Set(certificadosEmitidos.map(c => c.proyectoId));
+  const proyectosDisponibles = proyectosCompletados.filter(p => !proyectosConCert.has(p.id));
 
   const handleProyectoChange = async (e) => {
     const valId = e.target.value;
@@ -736,9 +573,10 @@ function FormalizacionDocumentalOverlay({
         );
         
         setEstudiantesConfirmados(estudiantesDisponibles);
-        if(estudiantesDisponibles.length === 1) {
-          setForm(prev => ({...prev, estudiantesSeleccionados: [estudiantesDisponibles[0].estudianteId]}));
-        }
+        setForm(prev => ({
+          ...prev,
+          estudiantesSeleccionados: estudiantesDisponibles.map(e => e.estudianteId),
+        }));
       } catch (err) {
         console.error(err);
       } finally {
@@ -788,7 +626,7 @@ function FormalizacionDocumentalOverlay({
       const root = createRoot(contenedor);
 
       const primerNombre = estudiantesConfirmados.find(e => e.estudianteId === form.estudiantesSeleccionados[0])?.estudianteNombre;
-      const datos = datosParaPDF || { ...form, mypeNombre, estudianteNombre: primerNombre };
+      const datos = datosParaPDF || { ...form, mypeNombre, rucMype, estudianteNombre: primerNombre };
       
       root.render(<PlantillaCertificado datos={datos} />);
 
@@ -825,12 +663,17 @@ function FormalizacionDocumentalOverlay({
         tituloCertificado: `Registro Formal — ${form.proyectoTitulo}`,
         firmaBase64: form.firmaUrl || null,
         gerenteNombre: form.gerente || null,
+        cargoRepresentante: form.cargo || null,
       });
       
       console.log('✅ Certificado emitido:', resultado);
       
       if (onSuccess) {
-        await onSuccess(resultado);
+        await onSuccess(resultado, {
+          proyectoId: form.proyectoId,
+          gerente: form.gerente,
+          cargo: form.cargo,
+        });
       }
     } catch (err) {
       console.error("Error al emitir:", err);
@@ -838,7 +681,7 @@ function FormalizacionDocumentalOverlay({
   };
 
   const currentDisplayNombre = estudiantesConfirmados.find(e => e.estudianteId === form.estudiantesSeleccionados?.[0])?.estudianteNombre || null;
-  const isFormCompleto = form.proyectoId && form.estudiantesSeleccionados.length > 0 && form.gerente && form.firmaUrl;
+  const isFormCompleto = form.proyectoId && form.estudiantesSeleccionados.length > 0 && form.gerente && form.cargo && form.firmaUrl;
 
   const formSectionLabelStyle = { fontFamily: FONT, fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6, display: "block" };
   const genericInputStyle = { width: "100%", padding: "10px 14px", borderRadius: 8, fontFamily: FONT, fontSize: 13, border: "1px solid #CBD5E1", outline: "none", background: "#FFFFFF", color: "#1E293B", transition: "border 0.2s" };
@@ -899,8 +742,20 @@ function FormalizacionDocumentalOverlay({
              <div style={{ opacity: form.proyectoId ? 1 : 0.4, pointerEvents: form.proyectoId ? "auto" : "none", transition: "all 0.2s" }}>
                 <label style={formSectionLabelStyle}>3. Datos del Representante Legal</label>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <input placeholder="Nombre de quien refrenda operativamente..." required value={form.gerente} onChange={(e) => set("gerente", e.target.value)} style={genericInputStyle} />
-                  
+                  <input placeholder="Ingrese su nombre completo" required value={form.gerente} onChange={(e) => set("gerente", e.target.value.toUpperCase())} style={genericInputStyle} />
+
+                  <div style={{ position: "relative" }}>
+                    <select required value={form.cargo} onChange={(e) => set("cargo", e.target.value)} style={{ ...genericInputStyle, paddingRight: 30, appearance: "none", cursor: "pointer" }}>
+                      <option value="" disabled>Seleccione cargo del representante...</option>
+                      <option value="Gerente General">Gerente General</option>
+                      <option value="Administrador">Administrador</option>
+                      <option value="Representante Legal">Representante Legal</option>
+                      <option value="Director">Director</option>
+                      <option value="Propietario">Propietario</option>
+                    </select>
+                    <ChevronDown size={14} color="#64748B" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+                  </div>
+
                   <div onClick={() => document.getElementById("firma-file").click()} style={{ border: "1px dashed #CBD5E1", borderRadius: 8, padding: 16, background: "#FFFFFF", cursor: "pointer", display: "flex", alignItems: "center", gap: 14, transition: "border 0.2s" }} onMouseEnter={e => e.currentTarget.style.borderColor="#0F172A"} onMouseLeave={e => e.currentTarget.style.borderColor="#CBD5E1"}>
                     <div style={{ width: 36, height: 36, borderRadius: "50%", background: form.firmaUrl ? "#0F172A" : "#F8FAFC", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: form.firmaUrl ? "#FFF" : "#94A3B8" }}>
                       {form.firmaUrl ? <CheckCircle2 size={16} /> : <FileCheck size={16} />}
@@ -1008,14 +863,15 @@ function FormalizacionDocumentalOverlay({
                 minHeight: "max-content"
              }}>
                  <div style={{ transform: `scale(${zoom})`, transformOrigin: "0 0" }}>
-                   <PlantillaCertificado 
-  datos={{ 
-    ...form, 
-    mypeNombre, 
+                   <PlantillaCertificado
+  datos={{
+    ...form,
+    mypeNombre,
+    rucMype,
     estudianteNombre: currentDisplayNombre,
-    certificadoId: null // Durante la creación no hay ID aún
-  }} 
-  isForPreviewCanvas={true} 
+    certificadoId: null,
+  }}
+  isForPreviewCanvas={true}
 />
                  </div>
              </div>
@@ -1207,7 +1063,10 @@ function EditorFirmaModal({ imagenSrc, onConfirm, onCancel }) {
 /* ═══════════════════════════════════════════════
    HISTORIAL DE CERTIFICACIONES (DISEÑO PREMIUM)
 ═══════════════════════════════════════════════ */
+
 const HistorialCertificaciones = ({ certificados, enviarMap, eliminar, onVerCertificado }) => {
+  const [certParaCalificar, setCertParaCalificar] = useState(null);
+
   return (
     <div style={{ marginTop: 20, background: "#FFFFFF", borderRadius: 16, border: "1px solid #E2E8F0", overflow: "hidden" }}>
       <div style={{ padding: "24px 30px", borderBottom: "1px solid #F1F5F9", background: "#F8FAFC", display: "flex", alignItems: "center", gap: 10 }}>
@@ -1323,8 +1182,8 @@ const HistorialCertificaciones = ({ certificados, enviarMap, eliminar, onVerCert
                     </button>
 
                     {/* Botón Enviar al Estudiante */}
-                    <button 
-                      onClick={() => enviarMap.enviar(cert.id)} 
+                    <button
+                      onClick={() => !enviado && setCertParaCalificar(cert)}
                       disabled={isEnviando || enviado}
                       style={{ 
                         display: "inline-flex", alignItems: "center", gap: 8,
@@ -1407,6 +1266,22 @@ const HistorialCertificaciones = ({ certificados, enviarMap, eliminar, onVerCert
           })}
         </div>
       </div>
+
+      <RateUserModal
+        open={!!certParaCalificar}
+        pendiente={certParaCalificar ? {
+          proyectoId:      certParaCalificar.proyectoId,
+          calificadoId:    certParaCalificar.estudianteId,
+          calificadoNombre: certParaCalificar.estudianteNombre,
+          proyectoTitulo:  certParaCalificar.proyectoTitulo,
+        } : null}
+        onClose={() => setCertParaCalificar(null)}
+        onSuccess={() => {
+          const cert = certParaCalificar;
+          setCertParaCalificar(null);
+          enviarMap.enviar(cert.id, null);
+        }}
+      />
     </div>
   );
 };
@@ -1421,39 +1296,50 @@ export function CertificadosPage() {
   const { user } = useAuthStore();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [certificadoVistaPrevia, setCertificadoVistaPrevia] = useState(null);
+  const [pendingCertsByProject, setPendingCertsByProject] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("vincumype_cert_pending") || "{}");
+    } catch {
+      return {};
+    }
+  });
   const { eliminar, error: errorEliminarGeneral } = useEliminarCertificado();
   const enviadorTools = useEnviarCertificado();
   const queryClient = useQueryClient();
 
   const proyectosCompletados = proyectos.filter((p) => p.estado === "COMPLETADO");
-  const certsArr = certificados || [];
-  
+
+  const certsArr = (certificados || []).map(c => {
+    const pending = pendingCertsByProject[c.proyectoId];
+    return {
+      ...c,
+      gerente: c.gerente || (pending ? pending.gerente : ""),
+      cargo: c.cargo || (pending ? pending.cargo : ""),
+      rucMype: c.rucMype || perfil?.ruc || "",
+    };
+  });
+
   const totalEmitidos = certsArr.length;
   const estudiantesCert = new Set(certsArr.map((c) => c.estudianteNombre)).size;
   const operacionesConCert = new Set(certsArr.map((c) => c.proyectoId)).size;
 
-  const handleEmitSuccess = async () => {
-    // Refrescar datos
+  const handleEmitSuccess = async (resultado, formData) => {
+    if (formData?.proyectoId) {
+      const entry = { gerente: formData.gerente, cargo: formData.cargo };
+      setPendingCertsByProject(prev => {
+        const next = { ...prev, [formData.proyectoId]: entry };
+        try { localStorage.setItem("vincumype_cert_pending", JSON.stringify(next)); } catch {}
+        return next;
+      });
+    }
     await refetchCertificados();
-    
-    // Invalidar queries para forzar recarga
     queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
     queryClient.invalidateQueries({ queryKey: ["mis-proyectos"] });
-    
-    // Cerrar modal
     setModalAbierto(false);
-    
-    // Recargar la página para asegurar datos frescos (opcional)
-    // window.location.reload();
-};
+  };
 
-  const proyectosDisponibles = proyectosCompletados.filter(proyecto => {
-    const estudiantesDelProyecto = proyecto.estudiantesCount || 0;
-    const certificadosDelProyecto = certsArr.filter(
-      cert => cert.proyectoId === proyecto.id
-    ).length;
-    return certificadosDelProyecto < estudiantesDelProyecto || estudiantesDelProyecto === 0;
-  });
+  const proyectosConCertEmitido = new Set(certsArr.map(c => c.proyectoId));
+  const proyectosDisponibles = proyectosCompletados.filter(p => !proyectosConCertEmitido.has(p.id));
 
   return (
     <MypeLayout titulo="Conformidad Contractual y Cierre">
@@ -1462,6 +1348,7 @@ export function CertificadosPage() {
           <FormalizacionDocumentalOverlay
             proyectosCompletados={proyectosCompletados}
             mypeNombre={perfil?.nombreComercial ?? ""}
+            rucMype={perfil?.ruc ?? ""}
             gerenteNombre={perfil?.nombreRepresentante ?? user?.nombre ?? ""}
             certificadosEmitidos={certsArr}
             onClose={() => setModalAbierto(false)}
@@ -1488,7 +1375,7 @@ export function CertificadosPage() {
         <motion.div {...fadeUp(0.1)} style={{ marginBottom: 20 }}>
           <button
             onClick={() => setModalAbierto(true)}
-            disabled={proyectosDisponibles.length === 0}
+            disabled={proyectosCompletados.length === 0}
             style={{
               fontFamily: FONT,
               display: "inline-flex",
@@ -1501,12 +1388,12 @@ export function CertificadosPage() {
               color: "#0F172A",
               fontSize: 13,
               fontWeight: 500,
-              cursor: proyectosDisponibles.length === 0 ? "not-allowed" : "pointer",
-              opacity: proyectosDisponibles.length === 0 ? 0.5 : 1,
+              cursor: proyectosCompletados.length === 0 ? "not-allowed" : "pointer",
+              opacity: proyectosCompletados.length === 0 ? 0.5 : 1,
               transition: "all 0.2s ease"
             }}
             onMouseEnter={(e) => {
-              if (proyectosDisponibles.length > 0) {
+              if (proyectosCompletados.length > 0) {
                 e.currentTarget.style.borderBottomColor = "#F59E0B";
                 e.currentTarget.style.gap = "14px";
               }

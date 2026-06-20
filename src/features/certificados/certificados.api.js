@@ -20,7 +20,7 @@ export const getCertificadoByIdApi = (certificadoId) => {
   return httpClient.get(`/certificados/${certificadoId}`);
 };
 
-// ✅ Enviar certificado por email
-export const enviarCertificadoApi = (certificadoId) => {
-  return httpClient.post(`/certificados/${certificadoId}/enviar`);
+// ✅ Enviar certificado al estudiante (incluye PDF generado)
+export const enviarCertificadoApi = (certificadoId, pdfBase64 = null) => {
+  return httpClient.post(`/certificados/${certificadoId}/enviar`, { pdfBase64 });
 };

@@ -3,7 +3,7 @@ import { Star, X, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCalificarUsuario } from "./useCalificarUsuario";
 
-export default function RateUserModal({ open, onClose, pendiente }) {
+export default function RateUserModal({ open, onClose, pendiente, onSuccess }) {
   const [puntuacion, setPuntuacion] = useState(0);
   const [hover, setHover] = useState(0);
   const { calificar, isLoading, error } = useCalificarUsuario();
