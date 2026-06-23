@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
+import { NotificacionesSocketInitializer } from '@/features/notificaciones/NotificacionesSocketInitializer';
 import {
   LayoutDashboard,
   Search,
@@ -205,7 +206,7 @@ const StudentLayout = () => {
 
   return (
     <div className="portal-estudiante" style={{ minHeight: '100vh', background: '#F8FAFC', display: 'flex', overflow: 'hidden' }}>
-
+      <NotificacionesSocketInitializer />
       {/* SIDEBAR DESKTOP */}
       <aside className="hidden lg:flex" style={{
         width: 220, flexShrink: 0, flexDirection: 'column',

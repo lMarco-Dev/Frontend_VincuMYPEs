@@ -252,7 +252,12 @@ const CertificadoRow = ({ cert, index, onVerCertificado }) => {
   const proyecto = cert.proyectoTitulo || "Proyecto MYPE";
   const mype = cert.nombreMype || cert.mypeNombre || "MYPE";
   const fecha = cert.fechaEmision
-    ? new Date(cert.fechaEmision).toLocaleDateString("es-PE", { day: "numeric", month: "short", year: "numeric" })
+    ? new Date(cert.fechaEmision).toLocaleDateString("es-PE", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC"  
+      })
     : "Reciente";
   const codigo = cert.codigo || "VAL-—";
 
@@ -468,8 +473,13 @@ const CertificadosPage = () => {
   }
 
   const total = certificados.length;
+  const certificadosOrdenados = [...certificados].sort((a, b) => {
+    const fechaA = a.fechaEmision ? new Date(a.fechaEmision).getTime() : 0;
+    const fechaB = b.fechaEmision ? new Date(b.fechaEmision).getTime() : 0;
+    return fechaB - fechaA; // Descendente
+  });
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
-  const paginados = certificados.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const paginados = certificadosOrdenados.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 36px", paddingBottom: 120, fontFamily: FONT }}>

@@ -1,58 +1,78 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { playNotificationSound } from '@shared/lib/notificationSound';
+import { Client } from '@stomp/stompjs';
+import { useAuthStore } from '@/store/authStore';
 
-export function useNotificacionesSocket(userId) {
+// Variable global para mantener la instancia única del cliente STOMP
+let stompClientInstance = null;
+
+export function useNotificacionesSocket() {
   const queryClient = useQueryClient();
-  const wsRef = useRef(null);
+  const { user, token } = useAuthStore();
+  const userId = user?.id;
 
   useEffect(() => {
-    if (!userId) return;
+    // Si no hay usuario o token, desconectar si existe
+    if (!userId || !token) {
+      if (stompClientInstance) {
+        console.log('🔌 Desconectando STOMP por logout');
+        stompClientInstance.deactivate();
+        stompClientInstance = null;
+      }
+      return;
+    }
 
-    let reconnectTimer;
-    let isConnected = false;
+    // Si ya hay una instancia activa, no crear otra
+    if (stompClientInstance && stompClientInstance.connected) {
+      console.log('⚠️ Cliente STOMP ya conectado y activo');
+      return;
+    }
 
-    const connect = () => {
-      if (isConnected) return;
-      try {
-        const ws = new WebSocket('ws://localhost:8080/ws/websocket');
-        wsRef.current = ws;
+    console.log('🔑 Token disponible, conectando WebSocket...');
 
-        ws.onopen = () => {
-          isConnected = true;
-          ws.send(JSON.stringify({
-            type: 'SUBSCRIBE',
-            destination: `/user/queue/notificaciones`,
-          }));
-        };
-
-        ws.onmessage = (event) => {
+    const client = new Client({
+      brokerURL: 'ws://localhost:8080/ws',
+      connectHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+      debug: (msg) => console.log('[STOMP]', msg),
+      reconnectDelay: 5000,
+      onConnect: () => {
+        console.log('✅ STOMP conectado');
+        // Suscribirse al destino del usuario
+        client.subscribe('/user/queue/notificaciones', (message) => {
           try {
-            const notificacion = JSON.parse(event.data);
+            const notificacion = JSON.parse(message.body);
+            console.log('📨 Notificación recibida:', notificacion);
+            
+            // Actualizar caché de React Query
             queryClient.setQueryData(['notificaciones'], (oldData) => {
               if (!oldData) return [notificacion];
               return [notificacion, ...oldData];
             });
+            
+            // Reproducir sonido
             playNotificationSound();
-          } catch (e) {}
-        };
+          } catch (e) {
+            console.error('Error al procesar mensaje:', e);
+          }
+        });
+      },
+      onStompError: (frame) => {
+        console.error('❌ Error STOMP:', frame);
+      },
+      onWebSocketError: (event) => {
+        console.error('❌ Error WebSocket:', event);
+      },
+      onDisconnect: () => {
+        console.log('STOMP desconectado');
+      },
+    });
 
-        ws.onclose = () => {
-          isConnected = false;
-          reconnectTimer = setTimeout(connect, 5000);
-        };
+    client.activate();
+    stompClientInstance = client;
 
-        ws.onerror = () => {};
-      } catch (error) {
-        reconnectTimer = setTimeout(connect, 5000);
-      }
-    };
-
-    connect();
-
-    return () => {
-      clearTimeout(reconnectTimer);
-      if (wsRef.current) wsRef.current.close();
-    };
-  }, [userId, queryClient]);
+    // No limpiamos en el cleanup, para mantener la conexión viva
+  }, [userId, token, queryClient]);
 }

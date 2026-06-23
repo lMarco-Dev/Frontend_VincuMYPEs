@@ -1,5 +1,6 @@
 // Sonido de notificación usando Web Audio API (sin necesidad de archivos externos)
 export function playNotificationSound() {
+  console.log('🔔 Reproduciendo sonido');
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     

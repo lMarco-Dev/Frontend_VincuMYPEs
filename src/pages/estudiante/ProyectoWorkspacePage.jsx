@@ -321,6 +321,11 @@ const EntregableCard = ({ titulo, entregable, onUpload, onDownload, onDelete, in
     : estado === "RECHAZADO" ? "Requiere cambios"
     : "Pendiente";
 
+  const statusColor = estado === "APROBADO" ? "#10b981"
+    : estado === "EN_REVISION" ? "#eab308"
+    : estado === "RECHAZADO" ? "#ef4444"
+    : "#94a3b8";
+
   const handleViewFile = () => {
     const fileUrl = entregable?.archivoUrl || entregable?.archivo;
     if (!fileUrl) return;
@@ -335,101 +340,116 @@ const EntregableCard = ({ titulo, entregable, onUpload, onDownload, onDelete, in
 
   const getFileIcon = () => {
     const ext = (entregable?.archivoNombre || "").split(".").pop()?.toLowerCase();
-    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return <FileImage size={16} color={C.primary} />;
-    if (ext === "pdf") return <FileText size={16} color="#dc2626" />;
-    return <FileArchive size={16} color={C.textMuted} />;
+    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return <FileImage size={14} color={C.primary} />;
+    if (ext === "pdf") return <FileText size={14} color="#dc2626" />;
+    return <FileArchive size={14} color={C.textMuted} />;
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.07 }}
-      onHoverStart={() => setHovered(true)} onHoverEnd={() => setHovered(false)}
-      style={{ height: "100%", position: "relative" }}>
-
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      style={{ position: "relative" }}
+    >
       {showDeleteConfirm && (
-        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)", zIndex: 10, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} style={{ background: "#fff", borderRadius: 12, padding: 16, width: "80%", maxWidth: 260, textAlign: "center", boxShadow: "0 10px 25px rgba(0,0,0,0.15)", border: "1px solid #E2E8F0" }} onClick={(e) => e.stopPropagation()}>
-            <p style={{ fontSize: 12, fontWeight: 600, color: C.textPrimary, marginBottom: 16, fontFamily: FONT }}>¿Eliminar "{titulo.length > 40 ? titulo.slice(0, 40) + "…" : titulo}"?</p>
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 10, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} style={{ background: "#fff", borderRadius: 10, padding: 16, width: "80%", maxWidth: 240, textAlign: "center", boxShadow: "0 10px 25px rgba(0,0,0,0.15)" }} onClick={(e) => e.stopPropagation()}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: C.textPrimary, marginBottom: 14 }}>¿Eliminar "{titulo.length > 30 ? titulo.slice(0, 30) + "…" : titulo}"?</p>
             <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-              <button onClick={() => setShowDeleteConfirm(false)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff", fontSize: 11, cursor: "pointer", fontWeight: 500 }}>Cancelar</button>
-              <button onClick={confirmDelete} style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: "#dc2626", color: "#fff", fontSize: 11, cursor: "pointer", fontWeight: 500 }}>Eliminar</button>
+              <button onClick={() => setShowDeleteConfirm(false)} style={{ padding: "5px 12px", borderRadius: 6, border: "1px solid #E2E8F0", background: "#fff", fontSize: 11, cursor: "pointer" }}>Cancelar</button>
+              <button onClick={confirmDelete} style={{ padding: "5px 12px", borderRadius: 6, border: "none", background: "#dc2626", color: "#fff", fontSize: 11, cursor: "pointer" }}>Eliminar</button>
             </div>
           </motion.div>
         </div>
       )}
 
-      <div style={{ background: "#FFFFFF", borderRadius: 14, border: `1px solid ${hovered ? "#C7D7F0" : "#E2E8F0"}`, overflow: "hidden", transition: "border-color 0.2s", height: "100%", display: "flex", flexDirection: "column" }}>
+      <div
+        style={{
+          background: "#FFFFFF",
+          borderRadius: 10,
+          border: `1px solid ${hovered ? "#CBD5E1" : "#E2E8F0"}`,
+          padding: "10px 14px",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          transition: "border-color 0.15s",
+        }}
+      >
+        {/* Número y estado */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 60 }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", background: "#F1F5F9", padding: "1px 6px", borderRadius: 4 }}>#{index+1}</span>
+          <span style={{ fontSize: 10, fontWeight: 600, color: statusColor }}>{statusLabel}</span>
+        </div>
 
-        {/* Header: index + status label */}
-        <div style={{ padding: "14px 16px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        {/* Título y detalles */}
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 9, fontWeight: 700, color: C.textMuted, background: "#F1F5F9", padding: "2px 7px", borderRadius: 6, fontFamily: FONT }}>#{index + 1}</span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#475569", fontFamily: FONT }}>{statusLabel}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: C.textPrimary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {titulo}
+            </span>
+            {tieneArchivo && (
+              <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "#64748B", background: "#F8FAFC", padding: "1px 6px", borderRadius: 4 }}>
+                {getFileIcon()}
+                <span style={{ maxWidth: 80, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {entregable?.archivoNombre || "Archivo"}
+                </span>
+              </span>
+            )}
           </div>
-          {tieneArchivo && puedeSubir && (
-            <button onClick={() => setShowDeleteConfirm(true)} style={{ background: "transparent", border: "none", color: "#9ca3af", cursor: "pointer", padding: 4, borderRadius: 4 }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#dc2626")} onMouseLeave={(e) => (e.currentTarget.style.color = "#9ca3af")}><Trash2 size={12} /></button>
+          {tieneArchivo && entregable?.subidoPorNombre && (
+            <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>
+              Subido por {entregable.subidoPorNombre}
+              {entregable.fechaSubida && ` · ${formatDistanceToNow(new Date(entregable.fechaSubida), { addSuffix: true, locale: es })}`}
+            </div>
           )}
         </div>
 
-        <div style={{ padding: "10px 16px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
-          {/* File preview */}
-          <div style={{ height: 72, background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
-            {tieneArchivo ? (
-              <div style={{ textAlign: "center" }}>
-                <div style={{ width: 30, height: 38, background: "#fff", borderRadius: 5, border: "0.5px solid #E2E8F0", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>{getFileIcon()}</div>
-                <span style={{ fontSize: 7, fontWeight: 700, color: "#64748B", marginTop: 4, display: "block" }}>{(entregable?.archivoNombre || "").split(".").pop()?.toUpperCase()}</span>
-              </div>
-            ) : (
-              <div style={{ textAlign: "center" }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", border: `1.5px dashed ${hovered ? C.primary : "#CBD5E1"}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}><Upload size={14} color={hovered ? C.primary : "#CBD5E1"} /></div>
-                <span style={{ fontSize: 9, color: "#94A3B8", fontWeight: 500, marginTop: 4, display: "block", fontFamily: FONT }}>Sin archivo</span>
-              </div>
-            )}
-          </div>
-
-          <h4 style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, margin: "0 0 auto", lineHeight: 1.4, fontFamily: FONT }}>{titulo}</h4>
-
-          {tieneArchivo && (
-            <div style={{ marginTop: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontSize: 10, fontWeight: 600, color: "#475569", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, fontFamily: FONT }}>{entregable.archivoNombre || "Archivo"}</span>
-                {entregable.subidoPorNombre && <span style={{ fontSize: 8, fontWeight: 600, background: "#F1F5F9", color: "#475569", padding: "1px 6px", borderRadius: 5, flexShrink: 0, fontFamily: FONT }}>{entregable.subidoPorNombre}</span>}
-              </div>
-              {entregable.fechaSubida && <p style={{ fontSize: 9, color: C.textMuted, margin: "2px 0 0", fontFamily: FONT }}>{formatDistanceToNow(new Date(entregable.fechaSubida), { addSuffix: true, locale: es })}</p>}
-            </div>
-          )}
-
-          <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
-            {tieneArchivo ? (
-              <>
-                <button onClick={handleViewFile} style={{ flex: 1, padding: "7px", borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff", color: C.primary, fontSize: 10, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontFamily: FONT }}><Eye size={12} /> Ver</button>
-                <button onClick={() => onDownload(entregable.archivoUrl || entregable.archivo, entregable.archivoNombre)} style={{ flex: 1, padding: "7px", borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff", color: "#475569", fontSize: 10, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, fontFamily: FONT }}><Download size={12} /> Bajar</button>
-                <button onClick={() => onUpload(titulo, entregable)} style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid #E2E8F0", background: "#F8FAFC", cursor: "pointer" }} title="Actualizar"><RefreshCw size={12} color={C.textMuted} /></button>
-              </>
-            ) : (
-              <button onClick={() => onUpload(titulo, entregable)} style={{ width: "100%", padding: "9px", borderRadius: 8, border: "none", background: C.primary, color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: FONT }}><Upload size={14} /> Subir entregable</button>
-            )}
-          </div>
-
-          {tieneFeedback && (
-            <div style={{ marginTop: 10 }}>
-              <button onClick={() => setExpanded(!expanded)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 10px", borderRadius: 8, border: "0.5px solid #E2E8F0", background: "#F8FAFC", cursor: "pointer" }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#475569", fontFamily: FONT }}>Recomendaciones</span>
-                <ChevronDown size={12} color="#475569" style={{ transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+        {/* Acciones */}
+        <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          {tieneArchivo ? (
+            <>
+              <button onClick={handleViewFile} title="Ver" style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#64748B", fontSize: 12, display: "flex", alignItems: "center", gap: 3 }}>
+                <Eye size={13} /> Ver
               </button>
-              <AnimatePresence>
-                {expanded && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: "hidden" }}>
-                    <div style={{ marginTop: 6, padding: 10, borderRadius: 8, background: "#F8FAFC", border: "0.5px solid #E2E8F0" }}>
-                      <p style={{ fontSize: 11, color: C.textPrimary, margin: 0, lineHeight: 1.5, fontFamily: FONT }}>{entregable.observaciones}</p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+              <button onClick={() => onDownload(entregable.archivoUrl || entregable.archivo, entregable.archivoNombre)} title="Descargar" style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#64748B", fontSize: 12, display: "flex", alignItems: "center", gap: 3 }}>
+                <Download size={13} /> Bajar
+              </button>
+              <button onClick={() => onUpload(titulo, entregable)} title="Actualizar" style={{ padding: "4px 6px", borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#64748B" }}>
+                <RefreshCw size={13} />
+              </button>
+              {puedeSubir && (
+                <button onClick={() => setShowDeleteConfirm(true)} title="Eliminar" style={{ padding: "4px 6px", borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#94a3b8" }}>
+                  <Trash2 size={13} />
+                </button>
+              )}
+            </>
+          ) : (
+            <button onClick={() => onUpload(titulo, null)} style={{ padding: "4px 12px", borderRadius: 6, border: "none", background: C.primary, color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+              <Upload size={12} /> Subir
+            </button>
+          )}
+          {tieneFeedback && (
+            <button onClick={() => setExpanded(!expanded)} style={{ padding: "2px 4px", border: "none", background: "transparent", cursor: "pointer", color: "#94a3b8" }}>
+              <ChevronDown size={14} style={{ transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+            </button>
           )}
         </div>
       </div>
+
+      {tieneFeedback && (
+        <AnimatePresence>
+          {expanded && (
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: "hidden" }}>
+              <div style={{ marginTop: 4, padding: "8px 12px", borderRadius: 6, background: "#F8FAFC", border: "1px solid #E2E8F0", fontSize: 11, color: "#475569" }}>
+                {entregable.observaciones}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
     </motion.div>
   );
 };
@@ -549,7 +569,7 @@ export function ProyectoWorkspacePage() {
         recargarWorkspace();
       }, 1800);
     } catch (err) {
-      setUploadError(err.response?.data?.message || err.message || "Error al subir");
+      setUploadError(err.message || "Error al subir el archivo");
     }
   };
 
@@ -654,9 +674,14 @@ export function ProyectoWorkspacePage() {
         total={currentStats.total}
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, marginBottom: 20 }}>
-        <LinearStatsChart completados={currentStats.completados} enRevision={currentStats.enRevision} pendientes={currentStats.pendientes} rechazados={currentStats.rechazados} total={currentStats.total} />
-        <ProjectDetailsPanel proyecto={proyecto} mype={mype} mypeNombre={mypeNombre} />
+      <div style={{ marginBottom: 20 }}>
+        <LinearStatsChart 
+          completados={currentStats.completados} 
+          enRevision={currentStats.enRevision} 
+          pendientes={currentStats.pendientes} 
+          rechazados={currentStats.rechazados} 
+          total={currentStats.total} 
+        />
       </div>
 
       {/* Banners informativos */}
@@ -1700,450 +1725,264 @@ export function ProyectoWorkspacePage() {
       </div>
 
       {/* Modal de subida */}
-      <AnimatePresence>
-        {showUploadModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 100,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 20,
-            }}
-          >
+<AnimatePresence>
+  {showUploadModal && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 100,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => {
+          if (!isSubiendo) {
+            setShowUploadModal(false);
+            setUploadError("");
+            setUploadFile(null);
+          }
+        }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.5)",
+          backdropFilter: "blur(4px)",
+        }}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        style={{
+          position: "relative",
+          background: "#fff",
+          borderRadius: 16,
+          width: "100%",
+          maxWidth: 440,
+          overflow: "hidden",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+        }}
+      >
+        {/* Header */}
+        <div style={{ padding: "16px 20px", borderBottom: "1px solid #E2E8F0" }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0f1f3d", margin: 0 }}>Subir entregable</h3>
+          <p style={{ fontSize: 12, color: "#64748B", margin: "4px 0 0" }}>{selectedEntregable}</p>
+        </div>
+
+        <div style={{ padding: "20px" }}>
+          {uploadSuccess ? (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              key="success"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => {
-                if (!isSubiendo) {
-                  setShowUploadModal(false);
-                  setUploadError("");
-                  setUploadFile(null);
-                }
-              }}
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: "rgba(0,0,0,0.6)",
-                backdropFilter: "blur(4px)",
-              }}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              style={{
-                position: "relative",
-                background: "#fff",
-                borderRadius: 24,
-                width: "100%",
-                maxWidth: 480,
-                overflow: "hidden",
-                boxShadow: "0 32px 64px rgba(0,0,0,0.2)",
-              }}
+              style={{ textAlign: "center", padding: "20px 0" }}
             >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+                style={{ width: 48, height: 48, borderRadius: "50%", background: "#ECFDF5", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}
+              >
+                <CheckCircle2 size={24} color="#059669" />
+              </motion.div>
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: "#0f1f3d", margin: "0 0 4px" }}>Archivo subido</h4>
+              <p style={{ fontSize: 12, color: "#64748B", margin: 0 }}>La MYPE será notificada</p>
+            </motion.div>
+          ) : (
+            <form onSubmit={handleSubirEntregable}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 11, fontWeight: 600, color: "#64748B", display: "block", marginBottom: 4 }}>
+                  Descripción <span style={{ fontWeight: 400, color: "#94a3b8" }}>(opcional)</span>
+                </label>
+                <textarea
+                  value={uploadDescripcion}
+                  onChange={(e) => setUploadDescripcion(e.target.value)}
+                  placeholder="Breve descripción de la entrega..."
+                  rows={2}
+                  style={{
+                    width: "100%",
+                    padding: "8px 10px",
+                    borderRadius: 8,
+                    border: "1px solid #E2E8F0",
+                    fontSize: 12,
+                    outline: "none",
+                    resize: "vertical",
+                    fontFamily: "inherit",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
+
               <div
+                onDragEnter={(e) => { e.preventDefault(); setDragActive(true); }}
+                onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                onDragLeave={(e) => { e.preventDefault(); setDragActive(false); }}
+                onDrop={(e) => {
+  e.preventDefault();
+  setDragActive(false);
+  const file = e.dataTransfer.files?.[0];
+  if (file) {
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("El archivo supera el tamaño máximo de 5 MB");
+      setUploadFile(null);
+      return;
+    }
+    const allowedExtensions = ['pdf', 'doc', 'docx', 'txt', 'ppt', 'pptx'];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!ext || !allowedExtensions.includes(ext)) {
+      setUploadError("Formato no permitido. Solo se aceptan: PDF, Word, TXT y PowerPoint.");
+      setUploadFile(null);
+      return;
+    }
+    setUploadFile(file);
+    setUploadError("");
+  }
+}}
                 style={{
-                  padding: "20px 24px",
-                  borderBottom: `0.5px solid ${C.border}`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  background: `linear-gradient(135deg, ${C.primary}08, transparent)`,
+                  padding: "20px",
+                  borderRadius: 10,
+                  textAlign: "center",
+                  border: `2px dashed ${dragActive ? "#1B6FE8" : uploadFile ? "#10b981" : "#E2E8F0"}`,
+                  background: dragActive ? "#EFF6FF" : uploadFile ? "#ECFDF5" : "#FAFAFA",
+                  transition: "all 0.2s",
+                  marginBottom: 16,
+                  cursor: "pointer",
                 }}
               >
-                <div>
-                  <h3
-                    style={{
-                      fontSize: 17,
-                      fontWeight: 700,
-                      color: C.textPrimary,
-                      margin: 0,
-                    }}
-                  >
-                    {uploadSuccess ? "¡Subida exitosa!" : "Subir entregable"}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: 12,
-                      color: C.textSecondary,
-                      margin: "4px 0 0",
-                    }}
-                  >
-                    {selectedEntregable}
-                  </p>
-                </div>
-                {!isSubiendo && (
-                  <motion.button
-                    whileHover={{ scale: 1.1, rotate: 90 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => {
-                      setShowUploadModal(false);
-                      setUploadError("");
-                      setUploadFile(null);
-                    }}
-                    style={{
-                      padding: 6,
-                      borderRadius: 10,
-                      border: "none",
-                      background: "transparent",
-                      cursor: "pointer",
-                      color: C.textMuted,
-                      display: "flex",
-                    }}
-                  >
-                    <X size={20} />
-                  </motion.button>
+                <input
+                  type="file"
+                  id="file-input"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    // Validar tamaño
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("El archivo supera el tamaño máximo de 5 MB");
+      setUploadFile(null);
+      return;
+    }
+    // Validar extensión
+    const allowedExtensions = ['pdf', 'doc', 'docx', 'txt', 'ppt', 'pptx'];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!ext || !allowedExtensions.includes(ext)) {
+      setUploadError("Formato no permitido. Solo se aceptan: PDF, Word, TXT y PowerPoint.");
+      setUploadFile(null);
+      return;
+    }
+    setUploadFile(file);
+    setUploadError("");
+  }
+}}
+                />
+                {uploadFile ? (
+                  <div>
+                    <FileText size={24} color="#1B6FE8" style={{ marginBottom: 6 }} />
+                    <p style={{ fontSize: 12, fontWeight: 600, color: "#0f1f3d", margin: "0 0 2px" }}>{uploadFile.name}</p>
+                    <p style={{ fontSize: 10, color: "#94a3b8", margin: "0 0 6px" }}>{(uploadFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <button type="button" onClick={() => setUploadFile(null)} style={{ fontSize: 11, color: "#dc2626", border: "none", background: "none", cursor: "pointer" }}>Cambiar archivo</button>
+                  </div>
+                ) : (
+                  <label htmlFor="file-input" style={{ cursor: "pointer" }}>
+                    <Upload size={24} color="#94a3b8" style={{ marginBottom: 6 }} />
+                    <p style={{ fontSize: 12, fontWeight: 500, color: "#64748B", margin: "0 0 4px" }}>Arrastra tu archivo o haz clic</p>
+                    <p style={{ fontSize: 10, color: "#94a3b8", margin: 0 }}>
+                      PDF, Word, TXT, PowerPoint · Máx. 5 MB
+                    </p>
+                  </label>
                 )}
               </div>
-              <AnimatePresence mode="wait">
-                {uploadSuccess ? (
-                  <motion.div
-                    key="success"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    style={{ padding: "48px 24px", textAlign: "center" }}
-                  >
+
+              {uploadError && (
+                <p style={{ fontSize: 11, color: "#dc2626", marginBottom: 12 }}>{uploadError}</p>
+              )}
+
+              {isSubiendo && (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: "#64748B" }}>Subiendo…</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: "#1B6FE8" }}>{uploadProgress}%</span>
+                  </div>
+                  <div style={{ width: "100%", height: 4, borderRadius: 2, background: "#F1F5F9", overflow: "hidden" }}>
                     <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 200,
-                        delay: 0.1,
-                      }}
-                      style={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: "50%",
-                        background: "#ecfdf5",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        margin: "0 auto 16px",
-                      }}
-                    >
-                      <CheckCircle2 size={32} color={C.success} />
-                    </motion.div>
-                    <h4
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 700,
-                        color: C.textPrimary,
-                        margin: "0 0 8px",
-                      }}
-                    >
-                      Archivo subido correctamente
-                    </h4>
-                    <p
-                      style={{
-                        fontSize: 13,
-                        color: C.textSecondary,
-                        margin: 0,
-                      }}
-                    >
-                      La MYPE será notificada
-                    </p>
-                  </motion.div>
-                ) : (
-                  <motion.form
-                    key="form"
-                    onSubmit={handleSubirEntregable}
-                    style={{ padding: 24 }}
-                  >
-                    <div style={{ marginBottom: 16 }}>
-                      <label
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          color: C.textMuted,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.08em",
-                          display: "block",
-                          marginBottom: 7,
-                        }}
-                      >
-                        Descripción
-                      </label>
-                      <textarea
-                        value={uploadDescripcion}
-                        onChange={(e) => setUploadDescripcion(e.target.value)}
-                        placeholder="Describe esta entrega..."
-                        rows={3}
-                        style={{
-                          width: "100%",
-                          padding: "11px 13px",
-                          borderRadius: 12,
-                          border: `0.5px solid ${C.border}`,
-                          fontSize: 13,
-                          outline: "none",
-                          resize: "none",
-                          color: C.textPrimary,
-                          fontFamily: "inherit",
-                          boxSizing: "border-box",
-                        }}
-                      />
-                    </div>
-                    <div
-                      onDragEnter={(e) => {
-                        e.preventDefault();
-                        setDragActive(true);
-                      }}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        setDragActive(true);
-                      }}
-                      onDragLeave={(e) => {
-                        e.preventDefault();
-                        setDragActive(false);
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        setDragActive(false);
-                        const file = e.dataTransfer.files?.[0];
-                        if (file) {
-                          if (file.size > 15 * 1024 * 1024)
-                            setUploadError("Máx 15 MB");
-                          else {
-                            setUploadFile(file);
-                            setUploadError("");
-                          }
-                        }
-                      }}
-                      style={{
-                        padding: "28px 20px",
-                        borderRadius: 14,
-                        textAlign: "center",
-                        cursor: "pointer",
-                        border: `2px dashed ${dragActive ? C.primary : uploadFile ? "#10b981" : C.border}`,
-                        background: dragActive
-                          ? "#eff6ff"
-                          : uploadFile
-                            ? "#ecfdf5"
-                            : "#fafaf8",
-                        transition: "all 0.3s",
-                        marginBottom: 18,
-                      }}
-                    >
-                      <input
-                        type="file"
-                        id="file-input"
-                        style={{ display: "none" }}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            if (file.size > 15 * 1024 * 1024)
-                              setUploadError("Máx 15 MB");
-                            else {
-                              setUploadFile(file);
-                              setUploadError("");
-                            }
-                          }
-                        }}
-                      />
-                      {uploadFile ? (
-                        <div>
-                          <FileText
-                            size={32}
-                            color={C.primary}
-                            style={{ marginBottom: 10 }}
-                          />
-                          <p
-                            style={{
-                              fontSize: 13,
-                              fontWeight: 600,
-                              color: C.textPrimary,
-                              margin: "0 0 4px",
-                            }}
-                          >
-                            {uploadFile.name}
-                          </p>
-                          <p
-                            style={{
-                              fontSize: 11,
-                              color: C.textMuted,
-                              margin: "0 0 10px",
-                            }}
-                          >
-                            {(uploadFile.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => setUploadFile(null)}
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 600,
-                              color: "#dc2626",
-                              border: "none",
-                              background: "none",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Cambiar archivo
-                          </button>
-                        </div>
-                      ) : (
-                        <label
-                          htmlFor="file-input"
-                          style={{ cursor: "pointer" }}
-                        >
-                          <Upload
-                            size={30}
-                            color={C.textMuted}
-                            style={{ marginBottom: 10 }}
-                          />
-                          <p
-                            style={{
-                              fontSize: 13,
-                              fontWeight: 600,
-                              color: C.textSecondary,
-                              margin: "0 0 4px",
-                            }}
-                          >
-                            Arrastra tu archivo o haz clic
-                          </p>
-                          <p
-                            style={{
-                              fontSize: 11,
-                              color: C.textMuted,
-                              margin: 0,
-                            }}
-                          >
-                            PDF, DOCX, ZIP, JPG (Máx. 15 MB)
-                          </p>
-                        </label>
-                      )}
-                    </div>
-                    {isSubiendo && (
-                      <div style={{ marginBottom: 16 }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            marginBottom: 5,
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: 10,
-                              fontWeight: 600,
-                              color: C.textMuted,
-                            }}
-                          >
-                            Subiendo…
-                          </span>
-                          <span
-                            style={{
-                              fontSize: 10,
-                              fontWeight: 600,
-                              color: C.primary,
-                            }}
-                          >
-                            {uploadProgress}%
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            width: "100%",
-                            height: 6,
-                            borderRadius: 3,
-                            background: "#f1f5f9",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${uploadProgress}%` }}
-                            transition={{ duration: 0.3 }}
-                            style={{
-                              height: "100%",
-                              borderRadius: 3,
-                              background: `linear-gradient(90deg, ${C.primary}, ${C.purple})`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    {uploadError && (
-                      <p
-                        style={{
-                          fontSize: 12,
-                          color: "#dc2626",
-                          fontWeight: 600,
-                          textAlign: "center",
-                          marginBottom: 14,
-                        }}
-                      >
-                        {uploadError}
-                      </p>
-                    )}
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <button
-                        type="button"
-                        onClick={() => setShowUploadModal(false)}
-                        style={{
-                          flex: 1,
-                          padding: "11px 16px",
-                          borderRadius: 12,
-                          border: `0.5px solid ${C.border}`,
-                          background: "#f8fafc",
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: C.textSecondary,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={!uploadFile || isSubiendo}
-                        style={{
-                          flex: 1,
-                          padding: "11px 16px",
-                          borderRadius: 12,
-                          border: "none",
-                          background: !uploadFile ? "#e2e8f0" : C.primary,
-                          color: "#fff",
-                          fontSize: 13,
-                          fontWeight: 600,
-                          cursor: !uploadFile ? "default" : "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 8,
-                        }}
-                      >
-                        {isSubiendo ? (
-                          <>
-                            <Loader2
-                              size={15}
-                              style={{ animation: "spin 1s linear infinite" }}
-                            />{" "}
-                            Subiendo…
-                          </>
-                        ) : (
-                          <>
-                            <Send size={14} /> Subir entregable
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </motion.form>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                      initial={{ width: 0 }}
+                      animate={{ width: `${uploadProgress}%` }}
+                      transition={{ duration: 0.3 }}
+                      style={{ height: "100%", background: "linear-gradient(90deg, #1B6FE8, #8B5CF6)", borderRadius: 2 }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUploadModal(false);
+                    setUploadError("");
+                    setUploadFile(null);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "9px 0",
+                    borderRadius: 8,
+                    border: "1px solid #E2E8F0",
+                    background: "#fff",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#64748B",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={!uploadFile || isSubiendo}
+                  style={{
+                    flex: 1,
+                    padding: "9px 0",
+                    borderRadius: 8,
+                    border: "none",
+                    background: !uploadFile ? "#E2E8F0" : "#1B6FE8",
+                    color: "#fff",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: !uploadFile ? "default" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                  }}
+                >
+                  {isSubiendo ? (
+                    <>
+                      <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Subiendo…
+                    </>
+                  ) : (
+                    <>Subir entregable</>
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
 
       {/* Modal de Votación */}
       <AnimatePresence>

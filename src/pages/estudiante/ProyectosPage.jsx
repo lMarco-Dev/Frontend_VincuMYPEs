@@ -37,6 +37,7 @@ const FONT = "'Angro Std', 'Outfit', sans-serif";
 const ESTADOS_POSTULACION_ACTIVA = ['CONFIRMADO', 'ACEPTADO', 'Aceptado'];
 const ESTADOS_PROYECTO_ACTIVOS = ['PENDIENTE', 'EN_DESARROLLO', 'EN_REVISION'];
 const ESTADOS_PROYECTO_INACTIVOS = ['COMPLETADO', 'FINALIZADO', 'CANCELADO', 'ARCHIVADO'];
+const ESTADOS_EN_REVISION = ['PENDIENTE', 'PRESELECCIONADO', 'VALIDADO_MYPE'];
 
 /* ─── Colores de área ─── */
 const AREA_STYLES = {
@@ -54,11 +55,7 @@ const getAreaStyle = (area = "") => {
   return AREA_STYLES[key] || AREA_STYLES.DEFAULT;
 };
 
-/* ─── Avatar de MYPE: foto si existe, si no, inicial con color por hash ───
-   TODO backend: cuando la MYPE pueda subir su logo desde su perfil,
-   exponer la URL en `proyecto.mypeFotoUrl` (o el campo que se acuerde
-   en el endpoint de listado/detalle de proyectos). Este componente ya
-   está listo para recibirla — solo falta que el campo llegue con datos. */
+
 const AVATAR_PALETTE = [
   "#1B6FE8", "#059669", "#8B5CF6", "#D97706",
   "#0284C7", "#DB2777", "#65A30D", "#DC2626",
@@ -607,6 +604,13 @@ const ProyectosPage = () => {
   const { data: userProfile } = usePerfil();
 
   const proyectos = proyectosData?.content || [];
+    const estadoPostulacionMap = useMemo(() => {
+    const map = {};
+    postulaciones?.forEach((p) => {
+      map[p.proyectoId] = p.estado;
+    });
+    return map;
+  }, [postulaciones]);
 
   useEffect(() => {
     const id = selectedProyecto?.id;
@@ -659,15 +663,34 @@ const ProyectosPage = () => {
   ];
 
   const filteredProyectos = useMemo(() => {
-    return proyectos.filter((proyecto) => {
-      const matchesSearch = !searchTerm ||
-        proyecto.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        proyecto.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        proyecto.mypeNombre?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesArea = !selectedArea || proyecto.areaSistemas?.toUpperCase().includes(selectedArea);
-      return matchesSearch && matchesArea;
-    });
-  }, [proyectos, searchTerm, selectedArea]);
+  const filtrados = proyectos.filter((proyecto) => {
+    const matchesSearch = !searchTerm ||
+      proyecto.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      proyecto.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      proyecto.mypeNombre?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesArea = !selectedArea || proyecto.areaSistemas?.toUpperCase().includes(selectedArea);
+    return matchesSearch && matchesArea;
+  });
+
+  const enRevision = [];
+  const noEnRevision = [];
+
+  filtrados.forEach((proyecto) => {
+    const estado = estadoPostulacionMap[proyecto.id];
+    // Si el usuario postuló y el estado está en 'en revisión', va al grupo de revisión
+    if (estado && ESTADOS_EN_REVISION.includes(estado.toUpperCase())) {
+      enRevision.push(proyecto);
+    } else {
+      noEnRevision.push(proyecto);
+    }
+  });
+
+  const ordenarPorFecha = (arr) => {
+    return arr.sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
+  };
+
+  return [...ordenarPorFecha(noEnRevision), ...ordenarPorFecha(enRevision)];
+}, [proyectos, searchTerm, selectedArea, estadoPostulacionMap]);
 
   const searchParams = new URLSearchParams(window.location.search);
   const selectedIdFromUrl = searchParams.get('selected');

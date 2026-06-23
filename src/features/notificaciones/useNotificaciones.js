@@ -1,7 +1,6 @@
 import { httpClient } from "@shared/api/httpClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
-import { playNotificationSound } from "@shared/lib/notificationSound";
 
 export function useNotificaciones() {
   const hasCheckedRef = useRef(false);
@@ -15,24 +14,6 @@ export function useNotificaciones() {
     refetchInterval: 5000,
     staleTime: 10000,
   });
-
-  useEffect(() => {
-    if (hasCheckedRef.current) return;
-    if (!query.data) return;
-
-    hasCheckedRef.current = true;
-
-    const lastLogout = localStorage.getItem('vm_last_logout');
-    if (!lastLogout) return;
-
-    const hasNew = query.data.some(
-      (n) => !n.leida && new Date(n.fechaCreacion) > new Date(Number(lastLogout))
-    );
-
-    if (hasNew) playNotificationSound();
-
-    localStorage.removeItem('vm_last_logout');
-  }, [query.data]);
 
   return query;
 }

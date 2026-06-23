@@ -6,6 +6,7 @@ import { Sidebar } from './MypeSidebar';
 import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { NotificacionesSocketInitializer } from '@/features/notificaciones/NotificacionesSocketInitializer';
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 
@@ -67,6 +68,7 @@ export function MypeLayout({ children, titulo, accion }) {
         background: "#F8FAFC",
         fontFamily: FONT,
       }}
+      
     >
       <Sidebar onLogoutClick={() => setShowLogoutModal(true)} />
       <div
@@ -77,6 +79,7 @@ export function MypeLayout({ children, titulo, accion }) {
           overflow: "hidden",
         }}
       >
+        <NotificacionesSocketInitializer />
         <header
           style={{
             background: "#fff",

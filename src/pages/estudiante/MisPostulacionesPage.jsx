@@ -209,7 +209,12 @@ const PostulacionPipelineRow = ({ postulacion, index }) => {
   const tituloProyecto = postulacion.proyectoTitulo || "Proyecto";
   const mypeNombre = postulacion.mypeNombre || "MYPE";
   const fecha = postulacion.fechaPostulacion
-    ? new Date(postulacion.fechaPostulacion).toLocaleDateString("es-PE", { day: "numeric", month: "short", year: "numeric" })
+    ? new Date(postulacion.fechaPostulacion).toLocaleDateString("es-PE", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC" 
+      })
     : "—";
   const mensaje = postulacion.mensajePostulacion || "";
   const MSG_PREVIEW = 120;

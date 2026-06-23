@@ -18,8 +18,8 @@ import { useMiActividad } from "@/features/workspace/useMiActividad";
 
 const FONT = "'Angro Std', 'Outfit', sans-serif";
 const ESTADOS_CONFIRMADO = ["CONFIRMADO", "Confirmado", "ACEPTADO"];
-const ACTIVOS_PER_PAGE = 5;
-const HISTORIAL_PER_PAGE = 10;
+const ACTIVOS_PER_PAGE = 2;
+const HISTORIAL_PER_PAGE = 3;
 
 /* ═══════════════════════════════════════════════
    BANNER NAVY CON CANVAS
@@ -373,24 +373,26 @@ function Pagination({ total, page, setPage, perPage }) {
   const totalPaginas = Math.ceil(total / perPage);
   if (totalPaginas <= 1) return null;
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 24 }}>
-      <button
-        disabled={page === 0}
-        onClick={() => setPage((p) => Math.max(0, p - 1))}
-        style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E2E8F0", borderRadius: 10, background: page === 0 ? "#F8FAFC" : "#FFFFFF", color: page === 0 ? "#CBD5E1" : "#1E293B", cursor: page === 0 ? "not-allowed" : "pointer" }}
-      >
-        <ChevronLeft size={16} />
-      </button>
-      <span style={{ fontFamily: FONT, fontSize: 13, fontWeight: 600, color: "#475569" }}>
-        {page + 1} / {totalPaginas}
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 24, padding: "12px 20px", border: "1px solid #E2E8F0", borderRadius: 16, background: "#FAFAFA" }}>
+      <span style={{ fontSize: 12, fontFamily: FONT, color: "#64748B", fontWeight: 500 }}>
+        Página <span style={{ color: "#0F1F3D", fontWeight: 700 }}>{page + 1}</span> de <span style={{ color: "#0F1F3D", fontWeight: 700 }}>{totalPaginas}</span>
       </span>
-      <button
-        disabled={page >= totalPaginas - 1}
-        onClick={() => setPage((p) => Math.min(totalPaginas - 1, p + 1))}
-        style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E2E8F0", borderRadius: 10, background: page >= totalPaginas - 1 ? "#F8FAFC" : "#FFFFFF", color: page >= totalPaginas - 1 ? "#CBD5E1" : "#1E293B", cursor: page >= totalPaginas - 1 ? "not-allowed" : "pointer" }}
-      >
-        <ChevronRight size={16} />
-      </button>
+      <div style={{ display: "flex", gap: 12 }}>
+        <button
+          disabled={page === 0}
+          onClick={() => setPage((p) => Math.max(0, p - 1))}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: "50%", background: page === 0 ? "#F1F5F9" : "#FFFFFF", border: "1px solid", borderColor: page === 0 ? "transparent" : "#E2E8F0", color: page === 0 ? "#94A3B8" : "#0F1F3D", cursor: page === 0 ? "not-allowed" : "pointer" }}
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <button
+          disabled={page >= totalPaginas - 1}
+          onClick={() => setPage((p) => Math.min(totalPaginas - 1, p + 1))}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: "50%", background: page >= totalPaginas - 1 ? "#F1F5F9" : "#FFFFFF", border: "1px solid", borderColor: page >= totalPaginas - 1 ? "transparent" : "#E2E8F0", color: page >= totalPaginas - 1 ? "#94A3B8" : "#0F1F3D", cursor: page >= totalPaginas - 1 ? "not-allowed" : "pointer" }}
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
     </div>
   );
 }

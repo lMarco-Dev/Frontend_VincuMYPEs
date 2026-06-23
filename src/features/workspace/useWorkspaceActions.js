@@ -9,37 +9,46 @@ export function useWorkspaceActions(proyectoId) {
 
   // ✅ Subir entregable
   const subirEntregableMutation = useMutation({
-    mutationFn: async ({ formData }) => {
-      const { data } = await httpClient.post(
-        `/proyectos/${proyectoId}/entregables`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent?.total) {
-              const progress = Math.round(
-                (progressEvent.loaded * 100) / progressEvent.total
-              );
-              setUploadProgress(progress);
-            }
-          },
-        }
-      );
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["workspace-entregables", proyectoId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["workspace-proyecto", proyectoId],
-      });
-      setUploadProgress(0);
-    },
-    onError: () => {
-      setUploadProgress(0);
-    },
-  });
+  mutationFn: async ({ formData }) => {
+    const { data } = await httpClient.post(
+      `/proyectos/${proyectoId}/entregables`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent?.total) {
+            const progress = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setUploadProgress(progress);
+          }
+        },
+      }
+    );
+    return data;
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({
+      queryKey: ["workspace-entregables", proyectoId],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["workspace-proyecto", proyectoId],
+    });
+    setUploadProgress(0);
+  },
+  onError: (error) => {
+    setUploadProgress(0);
+    // Extraer mensaje del backend o usar uno genérico
+    let mensaje = "Error al subir el archivo. Verifica que no supere los 5 MB y que el formato sea válido (PDF, Word, TXT, PPT).";
+    if (error.response?.data?.message) {
+      mensaje = error.response.data.message;
+    } else if (error.message) {
+      mensaje = error.message;
+    }
+    // Lanzar el error para que el componente lo capture
+    throw new Error(mensaje);
+  },
+});
 
   // ✅ Eliminar entregable
   const eliminarEntregableMutation = useMutation({
