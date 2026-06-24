@@ -3,6 +3,13 @@ import { useParams, Link } from "react-router-dom";
 import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { useEntregables } from "@/features/proyecto-entregables/useEntregables";
 import { useCompletarProyecto } from "@/features/proyecto-edit/useEditarProyecto";
+import { FormalizacionDocumentalOverlay } from "@/pages/mype/CertificadosPage";
+import { useNavigate } from "react-router-dom";
+import { useMiPerfilMype } from "@/features/mype-perfil/useMypePerfil";
+import { useAuthStore } from "@/store/authStore";
+
+import { AnimatePresence } from "framer-motion"; 
+
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import {
@@ -12,7 +19,8 @@ import {
   ChevronDown,
   Info,
   Award,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
 
 /**
@@ -20,11 +28,19 @@ import {
  */
 export function RevisionEntregablesPage() {
   const { id: proyectoId } = useParams();
+  
 
   const { entregables, isLoading, revisarEntregable, isRevisando, refetch } =
     useEntregables(proyectoId, false, true);
   const [observacion, setObservacion] = useState("");
   const [entregableSeleccionado, setEntregableSeleccionado] = useState(null);
+  const navigate = useNavigate();
+const { user } = useAuthStore();
+const { perfil } = useMiPerfilMype();
+
+const mypeNombre = perfil?.nombreComercial || "MYPE";
+const rucMype = perfil?.ruc || "";
+const gerenteNombre = perfil?.nombreRepresentante || user?.nombre || "";
 
   const [expandidoId, setExpandidoId] = useState(null);
   const [paginaActual, setPaginaActual] = useState(1);
@@ -32,18 +48,42 @@ export function RevisionEntregablesPage() {
 
   const { completar, isLoading: completando } = useCompletarProyecto();
   const [confirmarCompletado, setConfirmarCompletado] = useState(false);
-  const { proyectos } = useMisProyectos();
-  const proyecto = proyectos.find((p) => p.id === Number(proyectoId));
+const { proyectos, refetch: refetchProyectos } = useMisProyectos();  const proyecto = proyectos.find((p) => p.id === Number(proyectoId));
   const isCompletado = proyecto?.estado === "COMPLETADO";
+  const [mostrarModalCertificado, setMostrarModalCertificado] = useState(false);
+const [proyectoParaCertificar, setProyectoParaCertificar] = useState(null);
 
   const handleRevisar = (entregableId, estado) => {
-    revisarEntregable({
-      entregableId,
-      payload: { estado, observaciones: observacion },
-    });
-    setEntregableSeleccionado(null);
-    setObservacion("");
-    refetch();
+    revisarEntregable(
+      {
+        entregableId,
+        payload: { estado, observaciones: observacion },
+      },
+      {
+        onError: (error) => {
+          const msg = error.response?.data?.message || error.message || "Error al revisar el entregable";
+          if (msg.includes("delegado") || msg.includes("votación")) {
+            alert("El proyecto no puede completarse porque el equipo aún no ha elegido un delegado. Espera a que finalice la votación.");
+          } else {
+            alert(msg);
+          }
+          setEntregableSeleccionado(null);
+          setObservacion("");
+        },
+        onSuccess: async () => {
+          setEntregableSeleccionado(null);
+          setObservacion("");
+          await refetch(); // Refrescar entregables
+          await refetchProyectos(); // Refrescar proyectos
+          // ✅ Obtener el proyecto actualizado del array ya refrescado
+          const proyectoActualizado = proyectos.find((p) => p.id === Number(proyectoId));
+          if (proyectoActualizado?.estado === "COMPLETADO") {
+            setProyectoParaCertificar(proyectoActualizado);
+            setMostrarModalCertificado(true);
+          }
+        },
+      }
+    );
   };
 
   const handleToggleExpand = (id) => {
@@ -241,6 +281,7 @@ export function RevisionEntregablesPage() {
               </div>
             </div>
 
+
             {/* LISTA DE ENTREGABLES */}
             <div className="mt-4">
               <div className="flex items-center justify-between mb-3">
@@ -394,9 +435,13 @@ export function RevisionEntregablesPage() {
                  </div>
               )}
             </div>
+            
           </>
+          
         )}
+        
       </div>
+      
 
       <style dangerouslySetInnerHTML={{__html: `
         .custom-scrollbar::-webkit-scrollbar { height: 6px; }
@@ -404,7 +449,25 @@ export function RevisionEntregablesPage() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
       `}} />
-    </MypeLayout>
+      
+    <AnimatePresence>
+      {mostrarModalCertificado && proyectoParaCertificar && (
+        <FormalizacionDocumentalOverlay
+          proyectosCompletados={[proyectoParaCertificar]}
+          mypeNombre={mypeNombre}
+          rucMype={rucMype}
+          gerenteNombre={gerenteNombre}
+          certificadosEmitidos={[]}
+          onClose={() => setMostrarModalCertificado(false)}
+          onSuccess={async () => {
+            setMostrarModalCertificado(false);
+            navigate("/dashboard/mype/certificados");
+          }}
+        />
+      )}
+    </AnimatePresence>
+  </MypeLayout>
+    
   );
 }
 

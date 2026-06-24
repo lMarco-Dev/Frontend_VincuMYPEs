@@ -14,6 +14,7 @@ import { useMiPerfilMype } from "@/features/mype-perfil/useMypePerfil";
 import { httpClient } from "@/shared/api/httpClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+
 import {
   X,
   Loader2,
@@ -501,7 +502,7 @@ function FormalizacionDocumentalOverlay({
   const [cargandoEstudiantes, setCargandoEstudiantes] = useState(false);
   const [firmaTemporal, setFirmaTemporal] = useState(null);
   const [mostrarEditorFirma, setMostrarEditorFirma] = useState(false);
-  
+  const [submitError, setSubmitError] = useState(null);
   const containerRef = useRef(null);
   const [zoom, setZoom] = useState(0.65);
   const PADDING = 60;
@@ -655,30 +656,31 @@ function FormalizacionDocumentalOverlay({
   };
 
  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const resultado = await emitir({
-        proyectoId: Number(form.proyectoId),
-        estudiantesIds: form.estudiantesSeleccionados,
-        tituloCertificado: `Registro Formal — ${form.proyectoTitulo}`,
-        firmaBase64: form.firmaUrl || null,
-        gerenteNombre: form.gerente || null,
-        cargoRepresentante: form.cargo || null,
+  e.preventDefault();
+  try {
+    const resultado = await emitir({
+      proyectoId: Number(form.proyectoId),
+      estudiantesIds: form.estudiantesSeleccionados,
+      tituloCertificado: `Registro Formal — ${form.proyectoTitulo}`,
+      firmaBase64: form.firmaUrl || null,
+      gerenteNombre: form.gerente || null,
+      cargoRepresentante: form.cargo || null,
+    });
+    
+    console.log('✅ Certificado emitido:', resultado);
+    
+    if (onSuccess) {
+      await onSuccess(resultado, {
+        proyectoId: form.proyectoId,
+        gerente: form.gerente,
+        cargo: form.cargo,
       });
-      
-      console.log('✅ Certificado emitido:', resultado);
-      
-      if (onSuccess) {
-        await onSuccess(resultado, {
-          proyectoId: form.proyectoId,
-          gerente: form.gerente,
-          cargo: form.cargo,
-        });
-      }
-    } catch (err) {
-      console.error("Error al emitir:", err);
     }
-  };
+  } catch (err) {
+    setSubmitError(err.response?.data?.message || err.message || "Error al emitir el certificado");
+
+  }
+};
 
   const currentDisplayNombre = estudiantesConfirmados.find(e => e.estudianteId === form.estudiantesSeleccionados?.[0])?.estudianteNombre || null;
   const isFormCompleto = form.proyectoId && form.estudiantesSeleccionados.length > 0 && form.gerente && form.cargo && form.firmaUrl;
@@ -705,6 +707,12 @@ function FormalizacionDocumentalOverlay({
              </div>
              <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#94A3B8" }}><X size={20}/></button>
           </div>
+          {submitError && (
+            <div style={{ fontSize: 12, color: "#DC2626", background: "#FEF2F2", padding: "8px 12px", borderRadius: 6, marginTop: 10 }}>
+              <AlertTriangle size={14} style={{ display: "inline", marginRight: 8 }} />
+              {submitError}
+            </div>
+          )}
           
           <form style={{ flex: 1, overflowY: "auto", padding: "24px", display: "flex", flexDirection: "column", gap: 24 }}>
              <div>
@@ -1465,6 +1473,10 @@ export function CertificadosPage() {
     </MypeLayout>
   );
 }
+
+export { FormalizacionDocumentalOverlay };
+
+export default CertificadosPage;
 
 // Icono Soporte requerido
 function ShieldAlert({size, color="#currentColor"}) {
