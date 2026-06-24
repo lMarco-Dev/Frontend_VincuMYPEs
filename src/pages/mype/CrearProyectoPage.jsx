@@ -1,5 +1,6 @@
 import { MypeLayout } from "@shared/layouts/MypeLayout";
 import { CrearProyectoForm } from "@/features/proyecto-create/CrearProyectoForm";
+import { CrearProyectoManualForm } from "@/features/proyecto-create/CrearProyectoManualForm";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -162,12 +163,7 @@ const FONT = "'Angro Std', 'Outfit', sans-serif";
               Asistente Inteligente
             </h3>
             
-            <div style={{ 
-              height: "2px", 
-              background: "linear-gradient(90deg, #1B6FE8, transparent)",
-              marginBottom: 16,
-              opacity: 1
-            }} />
+           
             
             <p style={{ color: "#475569", fontSize: 14, lineHeight: 1.5, margin: 0 }}>
               Proceso guiado paso a paso. Traducimos tu problema en un requerimiento técnico estructurado.
@@ -222,12 +218,7 @@ const FONT = "'Angro Std', 'Outfit', sans-serif";
               Configuración Manual
             </h3>
             
-            <div style={{ 
-              height: "2px", 
-              background: "linear-gradient(90deg, #10B981, transparent)",
-              marginBottom: 16,
-              opacity: 1
-            }} />
+            
             
             <p style={{ color: "#475569", fontSize: 14, lineHeight: 1.5, margin: 0 }}>
               Acceso directo a las especificaciones. Define tecnologías, alcances y entregables con total libertad.
@@ -506,7 +497,7 @@ export function CrearProyectoPage() {
                   Define los requerimientos exactos de tu solución. Cuanto más específico seas, mejor será el match con el talento.
                 </p>
               </div>
-                <CrearProyectoForm />
+                <CrearProyectoManualForm  />
               </div>
             </motion.div>
           )}

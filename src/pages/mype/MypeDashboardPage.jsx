@@ -221,20 +221,12 @@ const CommandHeader = ({ healthScore, totalProyectos, activos, completados }) =>
     };
   }, []);
 
-  /* Anillo del health score */
-  const ringSize = 132;
-  const stroke = 11;
-  const r = (ringSize - stroke) / 2;
-  const circ = 2 * Math.PI * r;
-  const dash = (animatedScore / 100) * circ;
-  const scoreColor = healthScore >= 70 ? "#4ade80" : healthScore >= 40 ? C.amber : "#f87171";
-
   const MiniContext = ({ value, label }) => {
     const v = useCountUp(value);
     return (
-      <div style={{ textAlign: "center", minWidth: 64 }}>
-        <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{v}</div>
-        <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 5, fontWeight: 600 }}>
+      <div style={{ textAlign: "center", minWidth: 72 }}>
+        <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{v}</div>
+        <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 6, fontWeight: 600 }}>
           {label}
         </div>
       </div>
@@ -252,13 +244,14 @@ const CommandHeader = ({ healthScore, totalProyectos, activos, completados }) =>
         overflow: "hidden",
         borderRadius: 24,
         background: `linear-gradient(135deg, ${C.navyDeep} 0%, ${C.navyMid} 55%, ${C.navySoft} 100%)`,
-        padding: "30px 36px",
+        padding: "38px 48px",
         color: "#fff",
         boxShadow: "0 24px 48px -28px rgba(10,22,40,0.7)",
         border: "1px solid rgba(255,255,255,0.06)",
       }}
     >
       <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} />
+      
       <div
         style={{
           position: "absolute",
@@ -282,92 +275,94 @@ const CommandHeader = ({ healthScore, totalProyectos, activos, completados }) =>
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: 28,
+          gap: 32,
         }}
       >
-        <div style={{ maxWidth: 520 }}>
-          {/* Espaciador */}
+        {/* LADO IZQUIERDO: Título y descripción */}
+        <div style={{ maxWidth: 560 }}>
           <div style={{ height: 8 }} />
 
-        <motion.h1
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        style={{ 
-          fontSize: "clamp(24px, 2.8vw, 34px)", 
-          fontWeight: 800, 
-          lineHeight: 1.15, 
-          letterSpacing: "-0.025em", 
-          margin: "0 0 12px",
-        }}
-      >
-        <span style={{ color: "#fff" }}>Impulsa </span>
-        <motion.span
-          initial={{ opacity: 0, filter: "blur(4px)" }}
-          animate={{ opacity: 1, filter: "blur(0px)" }}
-          transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          style={{ 
-            background: "linear-gradient(135deg, #10B981 0%, #34D399 40%, #6EE7B7 70%, #10B981 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-            display: "inline-block",
-          }}
-          whileHover={{
-            scale: 1.03,
-            transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
-          }}
-        >
-          tu negocio
-        </motion.span>
-        <span style={{ color: "#fff" }}> con </span>
-        <motion.span
-          initial={{ opacity: 0, filter: "blur(4px)" }}
-          animate={{ opacity: 1, filter: "blur(0px)" }}
-          transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          style={{ 
-            background: "linear-gradient(135deg, #06B6D4 0%, #22D3EE 40%, #67E8F9 70%, #06B6D4 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-            display: "inline-block",
-          }}
-          whileHover={{
-            scale: 1.03,
-            transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
-          }}
-        >
-          talento joven
-        </motion.span>
-      </motion.h1>
+          <motion.h1
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            style={{ 
+              fontSize: "clamp(26px, 3.2vw, 38px)", 
+              fontWeight: 800, 
+              lineHeight: 1.15, 
+              letterSpacing: "-0.025em", 
+              margin: "0 0 14px",
+            }}
+          >
+            <span style={{ color: "#fff" }}>Impulsa </span>
+            <motion.span
+              initial={{ opacity: 0, filter: "blur(4px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              style={{ 
+                background: "linear-gradient(135deg, #10B981 0%, #34D399 40%, #6EE7B7 70%, #10B981 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                display: "inline-block",
+              }}
+              whileHover={{
+                scale: 1.03,
+                transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
+              }}
+            >
+              tu negocio
+            </motion.span>
+            <span style={{ color: "#fff" }}> con </span>
+            <motion.span
+              initial={{ opacity: 0, filter: "blur(4px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              style={{ 
+                background: "linear-gradient(135deg, #06B6D4 0%, #22D3EE 40%, #67E8F9 70%, #06B6D4 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                display: "inline-block",
+              }}
+              whileHover={{
+                scale: 1.03,
+                transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
+              }}
+            >
+              talento joven
+            </motion.span>
+          </motion.h1>
 
-      <motion.p
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        style={{ 
-          fontSize: 14, 
-          color: "rgba(255,255,255,0.55)", 
-          lineHeight: 1.5, 
-          margin: 0, 
-          fontWeight: 400,
-          letterSpacing: "0.01em",
-          whiteSpace: "nowrap",
-        }}
-      >
-        Gestiona tus proyectos, entregables y postulaciones desde un solo lugar.
-      </motion.p>
-
-          <div style={{ display: "flex", gap: 26, marginTop: 22 }}>
-            <MiniContext value={totalProyectos} label="Total" />
-            <div style={{ width: 1, background: "rgba(255,255,255,0.12)" }} />
-            <MiniContext value={activos} label="Activos" />
-            <div style={{ width: 1, background: "rgba(255,255,255,0.12)" }} />
-            <MiniContext value={completados} label="Completados" />
-          </div>
+          <motion.p
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            style={{ 
+              fontSize: 15, 
+              color: "rgba(255,255,255,0.55)", 
+              lineHeight: 1.5, 
+              margin: 0, 
+              fontWeight: 400,
+              letterSpacing: "0.01em",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Gestiona tus proyectos, entregables y postulaciones desde un solo lugar.
+          </motion.p>
         </div>
 
-       
+        {/* LADO DERECHO: Total, Activos, Completados */}
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: 36,
+          flexShrink: 0,
+        }}>
+          <MiniContext value={totalProyectos} label="Total" />
+          <MiniContext value={activos} label="Activos" />
+          <MiniContext value={completados} label="Completados" />
+        </div>
       </div>
     </motion.div>
   );
@@ -563,6 +558,7 @@ export function MypeDashboardPage() {
     totalProyectos === 0
       ? 0
       : Math.min(100, Math.round(((completados * 1 + enDesarrollo * 0.8 + pendientes * 0.6) / totalProyectos) * 100));
+    
 
   /* Alertas y riesgos derivados */
   const hoy = new Date();
@@ -640,7 +636,12 @@ export function MypeDashboardPage() {
               <span style={{ textTransform: "uppercase", letterSpacing: "0.05em", fontSize: 13 }}>Rendimiento</span>
             </PanelTitle>
             <div style={{ display: "flex", justifyContent: "space-around", position: "relative", zIndex: 2, marginTop: 6 }}>
-              <ProgressRing percent={85} color="#4ade80" label="Tasa de respuesta" value="85%" />
+              <ProgressRing 
+                percent={totalProyectos > 0 ? Math.round(((pendientes + enDesarrollo + completados) / totalProyectos) * 100) : 0} 
+                color="#4ade80" 
+                label="Tasa de respuesta" 
+                value={`${totalProyectos > 0 ? Math.round(((pendientes + enDesarrollo + completados) / totalProyectos) * 100) : 0}%`} 
+              />
               <ProgressRing percent={completadosPct} color="#60a5fa" label="Tasa de entrega" value={`${completadosPct}%`} />
             </div>
           </Panel>

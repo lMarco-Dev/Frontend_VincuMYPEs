@@ -268,74 +268,107 @@ export function MypeProyectosCard({ proyectos = [], puedeVerContacto }) {
                   </div>
 
                   <div style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    gap: 8,
-                    paddingTop: 8,
-                    borderTop: "1px solid #F8FAFC",
-                  }}>
-                    {isPending && (
-                      <Link
-                        to={`/proyectos/${proyecto.id}`}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 5,
-                          fontSize: 11,
-                          fontWeight: 500,
-                          color: "#0F172A",
-                          textDecoration: "none",
-                          padding: "5px 10px",
-                          borderRadius: 6,
-                          transition: "all 0.15s",
-                          background: "#F8FAFC",
-                          border: "1px solid #F1F5F9",
-                          fontFamily: FONT,
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#F1F5F9";
-                          e.currentTarget.style.borderColor = "#E2E8F0";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#F8FAFC";
-                          e.currentTarget.style.borderColor = "#F1F5F9";
-                        }}
-                      >
-                        Ver proyecto <Eye size={11} />
-                      </Link>
-                    )}
-                    {isActive && (
-                      <Link
-                        to={`/dashboard/mype/proyectos/${proyecto.id}/entregables`}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 5,
-                          fontSize: 11,
-                          fontWeight: 500,
-                          color: "#0F172A",
-                          textDecoration: "none",
-                          padding: "5px 10px",
-                          borderRadius: 6,
-                          transition: "all 0.15s",
-                          background: "#F8FAFC",
-                          border: "1px solid #F1F5F9",
-                          fontFamily: FONT,
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#F1F5F9";
-                          e.currentTarget.style.borderColor = "#E2E8F0";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#F8FAFC";
-                          e.currentTarget.style.borderColor = "#F1F5F9";
-                        }}
-                      >
-                        Revisar entregables <ArrowRight size={11} />
-                      </Link>
-                    )}
-                  </div>
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  gap: 8,
+                  paddingTop: 8,
+                  borderTop: "1px solid #F8FAFC",
+                }}>
+                  {/* Pendiente → Ver proyecto */}
+                  {isPending && (
+                    <Link
+                      to={`/dashboard/mype/proyectos`}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 5,
+                        fontSize: 11,
+                        fontWeight: 500,
+                        color: "#0F172A",
+                        textDecoration: "none",
+                        padding: "5px 10px",
+                        borderRadius: 6,
+                        transition: "all 0.15s",
+                        background: "#F8FAFC",
+                        border: "1px solid #F1F5F9",
+                        fontFamily: FONT,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#F1F5F9";
+                        e.currentTarget.style.borderColor = "#E2E8F0";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#F8FAFC";
+                        e.currentTarget.style.borderColor = "#F1F5F9";
+                      }}
+                    >
+                      Ver proyecto <Eye size={11} />
+                    </Link>
+                  )}
+
+                  {/* En Desarrollo → Entregables */}
+                  {isActive && (
+                    <Link
+                      to={`/dashboard/mype/proyectos/${proyecto.id}/entregables`}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 5,
+                        fontSize: 11,
+                        fontWeight: 500,
+                        color: "#0F172A",
+                        textDecoration: "none",
+                        padding: "5px 10px",
+                        borderRadius: 6,
+                        transition: "all 0.15s",
+                        background: "#F8FAFC",
+                        border: "1px solid #F1F5F9",
+                        fontFamily: FONT,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#F1F5F9";
+                        e.currentTarget.style.borderColor = "#E2E8F0";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#F8FAFC";
+                        e.currentTarget.style.borderColor = "#F1F5F9";
+                      }}
+                    >
+                      Revisar entregables <ArrowRight size={11} />
+                    </Link>
+                  )}
+
+                  {/* Completado → Ver resultado */}
+                  {proyecto.estado === "COMPLETADO" && (
+                    <Link
+                      to={`/dashboard/mype/proyectos/${proyecto.id}/entregables`}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 5,
+                        fontSize: 11,
+                        fontWeight: 500,
+                        color: "#059669",
+                        textDecoration: "none",
+                        padding: "5px 10px",
+                        borderRadius: 6,
+                        transition: "all 0.15s",
+                        background: "#F0FDF4",
+                        border: "1px solid #BBF7D0",
+                        fontFamily: FONT,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#DCFCE7";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#F0FDF4";
+                      }}
+                    >
+                      Ver resultado <Eye size={11} />
+                    </Link>
+                  )}
+                </div>
                 </div>
               </motion.div>
             );

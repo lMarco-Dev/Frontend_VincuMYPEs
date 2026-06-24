@@ -270,49 +270,94 @@ const StudentLayout = () => {
         </div>
       </main>
 
-      {/* MODAL LOGOUT */}
+      {/* ✅ MODAL LOGOUT - DISEÑO PROFESIONAL CORPORATIVO */}
       <AnimatePresence>
         {showLogoutModal && (
           <div style={{
             position: 'fixed', inset: 0, zIndex: 60,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 16, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+            padding: 16, background: 'rgba(10,10,10,0.4)', backdropFilter: 'blur(1px)',
           }}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              initial={{ opacity: 0, scale: 0.97, y: 6 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
+              exit={{ opacity: 0, scale: 0.97, y: 6 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               style={{
                 position: 'relative', maxWidth: 420, width: '100%',
-                background: '#fff', borderRadius: 20,
-                boxShadow: '0 25px 60px rgba(0,0,0,0.2)', overflow: 'hidden',
+                background: '#fff', borderRadius: 12,
+                boxShadow: '0 24px 80px -8px rgba(0,0,0,0.18)',
+                overflow: 'hidden',
               }}
             >
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg, #d97706, #b45309)' }} />
-              <div style={{ padding: 24 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <AlertTriangle size={22} color="#d97706" />
+              {/* Línea de acento sutil */}
+              <div style={{ height: 2, width: '100%', background: '#E2E8F0' }} />
+
+              <div style={{ padding: 28 }}>
+                {/* Encabezado */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: '50%',
+                    background: '#F1F5F9',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <AlertTriangle size={18} style={{ color: '#64748B' }} strokeWidth={1.5} />
                   </div>
-                  <div>
-                    <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0 }}>Cerrar sesión</h3>
-                    <p style={{ fontSize: 13, color: '#64748b', margin: '2px 0 0' }}>¿Seguro que quieres salir?</p>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3 style={{
+                      fontSize: 16, fontWeight: 600, color: '#1E293B',
+                      margin: 0, letterSpacing: '-0.01em', lineHeight: 1.4,
+                    }}>
+                      Cerrar sesión
+                    </h3>
+                    <p style={{
+                      fontSize: 13.5, color: '#64748B', margin: '4px 0 0',
+                      lineHeight: 1.5,
+                    }}>
+                      Se cerrará tu sesión actual y deberás volver a iniciar sesión para acceder a tu cuenta.
+                    </p>
                   </div>
                 </div>
-                <p style={{ fontSize: 13, color: '#475569', marginBottom: 24 }}>
-                  Se cerrará tu sesión actual y deberás volver a iniciar sesión para acceder a tu cuenta.
-                </p>
-                <div style={{ display: 'flex', gap: 12 }}>
+
+                {/* Separador */}
+                <div style={{ height: 1, width: '100%', background: '#E2E8F0/60', marginTop: 24 }} />
+
+                {/* Botones */}
+                <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
                   <button
                     onClick={() => setShowLogoutModal(false)}
-                    style={{ flex: 1, padding: '10px 0', borderRadius: 12, border: 'none', background: '#F1F5F9', color: '#475569', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+                    style={{
+                      flex: 1, padding: '10px 0', borderRadius: 8,
+                      border: '1px solid #E2E8F0', background: 'transparent',
+                      color: '#475569', fontSize: 13, fontWeight: 500,
+                      cursor: 'pointer', transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#F8FAFC';
+                      e.currentTarget.style.borderColor = '#CBD5E1';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.borderColor = '#E2E8F0';
+                    }}
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleConfirmLogout}
-                    style={{ flex: 1, padding: '10px 0', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #d97706, #b45309)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                    style={{
+                      flex: 1, padding: '10px 0', borderRadius: 8,
+                      border: 'none', background: '#1E293B',
+                      color: '#fff', fontSize: 13, fontWeight: 500,
+                      cursor: 'pointer', transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#0F172A';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#1E293B';
+                    }}
                   >
                     Cerrar sesión
                   </button>

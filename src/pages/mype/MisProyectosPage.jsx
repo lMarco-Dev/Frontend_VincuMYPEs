@@ -268,10 +268,13 @@ const BusinessPipelineRow = ({ proyecto, onEdit, onDelete, onViewPostulantes, on
           </span>
         </div>
 
-        {/* Recursos */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#64748B", fontFamily: FONT, fontSize: 12 }}>
-           <Users size={14} /> <span style={{ fontWeight: 500 }}>{proyecto.cupos} Vacantes Disponibles</span>
-        </div>
+        {/* Recursos - VACANTES REALES */}
+<div style={{ display: "flex", alignItems: "center", gap: 8, color: "#64748B", fontFamily: FONT, fontSize: 12 }}>
+   <Users size={14} /> 
+   <span style={{ fontWeight: 500 }}>
+     {Math.max(0, (proyecto.cupos || 0) - (proyecto.postulantesAceptados || proyecto.cuposOcupados || 0))} vacantes
+   </span>
+</div>
 
         {/* Indicador de Acción */}
         <motion.div animate={{ rotate: isExpanded ? 90 : 0 }}>
@@ -484,9 +487,18 @@ function PremiumConfigurationModal({ proyecto, onClose }) {
    MAIN SYSTEM WORKSPACE CONTROLLER
 ═══════════════════════════════════════════════ */
 export function MisProyectosPage() {
-  const { proyectos, isLoading } = useMisProyectos();
+   // ✅ Agregar refetch para polling
+  const { proyectos, isLoading, refetch } = useMisProyectos();
   const navigate = useNavigate();
   const { eliminarProyecto, isLoading: eliminando } = useEliminarProyecto();
+
+  // ✅ Auto-refresh cada 15 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch?.();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [refetch]);
 
   // Internal Logic Engine remains untouched. UI architecture adapted on top.
   const [proyectoEditando, setProyectoEditando] = useState(null);

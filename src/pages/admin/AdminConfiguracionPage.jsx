@@ -468,17 +468,12 @@ function ModalEntregables({ tipo, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col"
-      >
+    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+  <div
+    style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.6)", backdropFilter: "blur(4px)" }}
+    onClick={onClose}
+  />
+  <motion.div style={{ position: "relative", zIndex: 60, background: "#fff", borderRadius: 16, boxShadow: "0 25px 50px rgba(0,0,0,0.25)", width: "100%", maxWidth: 512, maxHeight: "80vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
           <div>
             <h3 className="font-bold text-slate-900">
@@ -640,17 +635,12 @@ function ModalInsumos({ tipo, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[80vh] overflow-hidden flex flex-col"
-      >
+    <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+  <div
+    style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.6)", backdropFilter: "blur(4px)" }}
+    onClick={onClose}
+  />
+  <motion.div style={{ position: "relative", zIndex: 60, background: "#fff", borderRadius: 16, boxShadow: "0 25px 50px rgba(0,0,0,0.25)", width: "100%", maxWidth: 576, maxHeight: "80vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
           <div>
             <h3 className="font-bold text-slate-900">Insumos: {tipo.nombre}</h3>
@@ -1029,19 +1019,31 @@ export default function AdminConfiguracionPage() {
       {/* Modal de Tipo de Proyecto */}
       <AnimatePresence>
         {modalNuevoTipo && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-              onClick={() => {
-                setModalNuevoTipo(false);
-                setTipoEditando(null);
-              }}
-            />
+          <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div
+            style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.6)", backdropFilter: "blur(4px)" }}
+            onClick={() => {
+              setModalNuevoTipo(false);
+              setTipoEditando(null);
+            }}
+          />
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+              style={{ 
+                position: "relative", 
+                zIndex: 60, 
+                background: "#fff", 
+                borderRadius: 16, 
+                boxShadow: "0 25px 50px rgba(0,0,0,0.25)", 
+                width: "100%", 
+                maxWidth: 700, 
+                maxHeight: "90vh", 
+                overflow: "hidden", 
+                display: "flex", 
+                flexDirection: "column" 
+              }}
             >
               <form
                 onSubmit={handleGuardarTipo}
