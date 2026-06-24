@@ -279,7 +279,11 @@ const ProyectoRow = ({ proyecto, onClick, yaPostulo, isSelected, postulacionesCo
       whileHover={!isSelected ? { background: "#F5F9FF", borderColor: "#DBEAFE", boxShadow: "0 4px 8px rgba(15,23,42,0.04)" } : {}}
     >
       <div style={{ display: "flex", gap: 12 }}>
-        <MypeAvatar nombre={proyecto.mypeNombre} fotoUrl={proyecto.mypeFotoUrl} size={40} />
+       <MypeAvatar 
+  nombre={proyecto.mypeNombre} 
+  fotoUrl={proyecto.mypeFotoUrl || proyecto.mypeFotoPerfil} 
+  size={40} 
+/>
 
         <div style={{ flex: 1, minWidth: 0 }}>
           {/* ID + postulado */}

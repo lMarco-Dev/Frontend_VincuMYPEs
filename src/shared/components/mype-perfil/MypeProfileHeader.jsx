@@ -1,408 +1,169 @@
-import { Shield, Edit3, Sparkles } from "lucide-react";
+import { Edit3, Camera, Upload, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
+import { httpClient } from "@/shared/api/httpClient";
 
-const FONT = "'Angro Std', 'Outfit', sans-serif";
+const FONT = "'Inter', 'Outfit', sans-serif";
 
 export function MypeProfileHeader({ perfil, puedeEditar, onEditar }) {
   const canvasRef = useRef(null);
   const headerRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [avatarPreview, setAvatarPreview] = useState(perfil.fotoPerfil || null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const iniciales =
-    perfil.nombreComercial
-      ?.split(" ")
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase() ?? "M";
+  const iniciales = perfil.nombreComercial
+    ?.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase() ?? "M";
+
+  // Sincronizar si el perfil cambia externamente
+  useEffect(() => {
+    if (perfil.fotoPerfil) {
+      setAvatarPreview(perfil.fotoPerfil);
+    }
+  }, [perfil.fotoPerfil]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const header = headerRef.current;
     if (!canvas || !header) return;
-
     const ctx = canvas.getContext("2d");
     let W, H, animId;
-    const COLORS = ["rgba(27,111,232,", "rgba(6,182,212,", "rgba(245,158,11,"];
-
-    const resize = () => {
-      W = canvas.width = header.offsetWidth;
-      H = canvas.height = header.offsetHeight;
-    };
+    const COLORS = ["rgba(255,255,255,"];
+    const resize = () => { W = canvas.width = header.offsetWidth; H = canvas.height = header.offsetHeight; };
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(header);
-
     class Particle {
       constructor() {
-        this.x = Math.random() * W;
-        this.y = Math.random() * H;
-        this.size = Math.random() * 2 + 0.5;
-        this.speedX = (Math.random() - 0.5) * 0.3;
-        this.speedY = (Math.random() - 0.5) * 0.3;
+        this.x = Math.random() * W; this.y = Math.random() * H;
+        this.size = Math.random() * 1.5;
+        this.speedX = (Math.random() - 0.5) * 0.1; this.speedY = (Math.random() - 0.5) * 0.1;
         this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
-        this.alpha = Math.random() * 0.3 + 0.1;
+        this.alpha = Math.random() * 0.05 + 0.02;
       }
-      update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-        if (this.x < 0 || this.x > W) this.speedX *= -1;
-        if (this.y < 0 || this.y > H) this.speedY *= -1;
-      }
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = this.color + this.alpha + ")";
-        ctx.fill();
-      }
+      update() { this.x += this.speedX; this.y += this.speedY; if (this.x < 0 || this.x > W) this.speedX *= -1; if (this.y < 0 || this.y > H) this.speedY *= -1; }
+      draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fillStyle = this.color + this.alpha + ")"; ctx.fill(); }
     }
-
-    const particles = Array.from({ length: 35 }, () => new Particle());
-
-    const animate = () => {
-      ctx.fillStyle = "rgba(13, 27, 53, 0.1)";
-      ctx.fillRect(0, 0, W, H);
-      particles.forEach((p) => {
-        p.update();
-        p.draw();
-      });
-      animId = requestAnimationFrame(animate);
-    };
+    const particles = Array.from({ length: 40 }, () => new Particle());
+    const animate = () => { ctx.clearRect(0, 0, W, H); particles.forEach((p) => { p.update(); p.draw(); }); animId = requestAnimationFrame(animate); };
     animate();
-
-    return () => {
-      cancelAnimationFrame(animId);
-      ro.disconnect();
-    };
+    return () => { cancelAnimationFrame(animId); ro.disconnect(); };
   }, []);
+
+  const uploadPhoto = async (file) => {
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file, "profile.jpg");
+      const res = await httpClient.post("/mypes/upload-photo", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data.url;
+    } catch (error) { return null; }
+    finally { setIsUploading(false); }
+  };
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Mostrar preview inmediato
+    const reader = new FileReader();
+    reader.onload = (ev) => setAvatarPreview(ev.target.result);
+    reader.readAsDataURL(file);
+    
+    // Subir al backend
+    const uploadedUrl = await uploadPhoto(file);
+    if (uploadedUrl) {
+      setAvatarPreview(uploadedUrl);
+      perfil.fotoPerfil = uploadedUrl;
+    }
+  };
 
   return (
     <motion.div
       ref={headerRef}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        background:
-          "linear-gradient(135deg, #0A1628 0%, #0F2A4A 60%, #1E3A5F 100%)",
-        borderRadius: "2rem",
-        padding: "44px 52px",
-        position: "relative",
-        overflow: "hidden",
-        marginBottom: 28,
-        display: "flex",
-        alignItems: "center",
-        gap: 36,
-        flexWrap: "wrap",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+        background: "linear-gradient(135deg, #0A1628 0%, #0F2A4A 55%, #152642 100%)",
+        borderRadius: "20px", padding: "44px 48px", position: "relative",
+        overflow: "hidden", marginBottom: "32px", display: "flex",
+        alignItems: "center", gap: 32, flexWrap: "wrap",
+        border: "1px solid rgba(255,255,255,0.06)",
+        boxShadow: "0 24px 48px -12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
       }}
     >
-      {/* Canvas de partículas */}
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-          opacity: 0.6,
-        }}
-      />
+      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0 }} />
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", backgroundImage: "radial-gradient(circle at 1px 1px,rgba(255,255,255,0.06) 1px,transparent 0)", backgroundSize: "32px 32px", zIndex: 1 }} />
+      <div style={{ position: "absolute", top: -120, right: -60, width: 450, height: 450, background: "radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none", zIndex: 0 }} />
 
-      {/* Dot grid */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px,rgba(255,255,255,0.04) 1px,transparent 0)",
-          backgroundSize: "28px 28px",
-        }}
-      />
-
-      {/* Glow orbs */}
-      <div
-        style={{
-          position: "absolute",
-          top: -80,
-          right: -80,
-          width: 280,
-          height: 280,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, #06B6D4, transparent 70%)",
-          opacity: 0.1,
-          filter: "blur(60px)",
-          pointerEvents: "none",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          bottom: -60,
-          left: 80,
-          width: 200,
-          height: 200,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, #F59E0B, transparent 70%)",
-          opacity: 0.08,
-          filter: "blur(50px)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* Avatar con marco animado */}
-      <div style={{ position: "relative" }}>
-        <motion.div
-          animate={{
-            scale: [1, 1.02, 1],
-            opacity: [0.5, 0.8, 0.5],
-          }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      {/* Avatar con upload automático */}
+      <div style={{ position: "relative", zIndex: 2 }}>
+        <div onClick={() => !isUploading && fileInputRef.current?.click()}
           style={{
-            position: "absolute",
-            inset: -6,
-            borderRadius: "1.5rem",
-            background: "linear-gradient(135deg, #1B6FE8, #06B6D4, #F59E0B)",
-            opacity: 0.5,
-            filter: "blur(10px)",
-          }}
-        />
-        <div
-          style={{
-            width: 110,
-            height: 110,
-            borderRadius: "1.5rem",
-            background: "linear-gradient(135deg, #1B6FE8, #06B6D4)",
-            border: "3px solid rgba(255,255,255,0.2)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 38,
-            fontWeight: 800,
-            color: "#fff",
-            position: "relative",
-            zIndex: 1,
-            fontFamily: FONT,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+            width: 120, height: 120, borderRadius: "14px",
+            background: avatarPreview ? `url(${avatarPreview}) center/cover` : "#ffffff",
+            border: "2px solid rgba(255,255,255,0.2)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "42px", fontWeight: 700,
+            color: avatarPreview ? "transparent" : "#0A1628",
+            fontFamily: FONT, cursor: isUploading ? "wait" : "pointer",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1), 0 20px 30px -8px rgba(0,0,0,0.4)",
+            position: "relative", overflow: "hidden", transition: "all 0.2s ease",
+            opacity: isUploading ? 0.7 : 1,
           }}
         >
-          {iniciales}
-        </div>
-      </div>
-
-      {/* Información */}
-      <div style={{ flex: 1, position: "relative", zIndex: 1, minWidth: 200 }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            flexWrap: "wrap",
-            marginBottom: 10,
-          }}
-        >
-          <h1
-            style={{
-              fontFamily: FONT,
-              fontSize: "clamp(22px, 3vw, 32px)",
-              fontWeight: 800,
-              color: "#fff",
-              margin: 0,
-              letterSpacing: "-0.02em",
+          {isUploading ? (
+            <Loader2 size={32} color="#0A1628" className="animate-spin" />
+          ) : !avatarPreview ? (
+            iniciales
+          ) : null}
+          
+          {!isUploading && (
+            <div style={{
+              position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)",
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6,
+              opacity: 0, transition: "opacity 0.2s ease", borderRadius: "14px",
             }}
-          >
-            {perfil.nombreComercial}
-          </h1>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              background: "rgba(6,182,212,0.15)",
-              border: "1px solid rgba(6,182,212,0.3)",
-              borderRadius: 30,
-              padding: "4px 14px",
-            }}
-          >
-            <Shield size={13} color="#06B6D4" />
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                color: "#67E8F9",
-                textTransform: "uppercase",
-                letterSpacing: "0.8px",
-                fontFamily: FONT,
-              }}
+              onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = "0"; }}
             >
-              MYPE Verificada
-            </span>
-          </div>
+              {avatarPreview ? (
+                <><Upload size={24} color="#FFFFFF" /><span style={{ fontFamily: FONT, fontSize: 10, color: "#FFFFFF", fontWeight: 500 }}>Cambiar foto</span></>
+              ) : (
+                <><Camera size={24} color="#FFFFFF" /><span style={{ fontFamily: FONT, fontSize: 10, color: "#FFFFFF", fontWeight: 500 }}>Subir foto</span></>
+              )}
+            </div>
+          )}
         </div>
-
-        {perfil.razonSocial && (
-          <p
-            style={{
-              fontFamily: FONT,
-              fontSize: 13,
-              color: "rgba(255,255,255,0.5)",
-              margin: "0 0 10px",
-            }}
-          >
-            {perfil.razonSocial}
-          </p>
-        )}
-
-        {perfil.rubro && (
-          <span
-            style={{
-              fontFamily: FONT,
-              fontSize: 11,
-              fontWeight: 600,
-              background: "rgba(249,115,22,0.15)",
-              color: "#FB923C",
-              border: "1px solid rgba(249,115,22,0.25)",
-              padding: "5px 14px",
-              borderRadius: 30,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-            }}
-          >
-            <Sparkles size={11} />
-            {perfil.rubro}
-          </span>
-        )}
+        <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileSelect} />
       </div>
 
-      {/* Stats rápidos */}
-      <div
-        style={{ display: "flex", gap: 12, position: "relative", zIndex: 1 }}
-      >
-        <motion.div
-          whileHover={{ y: -2 }}
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: "1rem",
-            padding: "12px 20px",
-            textAlign: "center",
-            backdropFilter: "blur(10px)",
-            minWidth: 90,
-            transition: "all 0.2s",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 26,
-              fontWeight: 800,
-              color: "#06B6D4",
-              lineHeight: 1,
-            }}
-          >
-            {perfil.totalProyectos ?? 0}
-          </div>
-          <div
-            style={{
-              fontSize: 9,
-              color: "rgba(255,255,255,0.5)",
-              textTransform: "uppercase",
-              letterSpacing: "1px",
-              marginTop: 4,
-              fontWeight: 600,
-            }}
-          >
-            Proyectos
-          </div>
-        </motion.div>
-        <motion.div
-          whileHover={{ y: -2 }}
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: "1rem",
-            padding: "12px 20px",
-            textAlign: "center",
-            backdropFilter: "blur(10px)",
-            minWidth: 90,
-            transition: "all 0.2s",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 26,
-              fontWeight: 800,
-              color: "#F59E0B",
-              lineHeight: 1,
-            }}
-          >
-            {perfil.proyectosActivos ?? 0}
-          </div>
-          <div
-            style={{
-              fontSize: 9,
-              color: "rgba(255,255,255,0.5)",
-              textTransform: "uppercase",
-              letterSpacing: "1px",
-              marginTop: 4,
-              fontWeight: 600,
-            }}
-          >
-            Activos
-          </div>
-        </motion.div>
+      <div style={{ flex: 1, position: "relative", zIndex: 2, minWidth: 200 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: "8px" }}>
+          <h1 style={{ fontFamily: FONT, fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 600, color: "#ffffff", margin: 0, letterSpacing: "-0.5px" }}>{perfil.nombreComercial}</h1>
+        </div>
+        {perfil.razonSocial && <p style={{ fontFamily: FONT, fontSize: "14px", fontWeight: 400, color: "#a1a1aa", margin: "0 0 16px 0", letterSpacing: "-0.2px" }}>{perfil.razonSocial}</p>}
+        {perfil.rubro && <span style={{ fontFamily: FONT, fontSize: "12px", fontWeight: 500, color: "#94A3B8" }}>{perfil.rubro}</span>}
       </div>
 
-      {/* Botón editar — solo si es propietario */}
       {puedeEditar && onEditar && (
         <motion.button
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
           onClick={onEditar}
+          whileHover={{ background: "#f4f4f5", color: "#09090b", borderColor: "#e4e4e7" }}
           style={{
-            fontFamily: FONT,
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "10px 22px",
-            borderRadius: "0.75rem",
-            fontSize: 13,
-            fontWeight: 600,
-            background: "rgba(255,255,255,0.1)",
-            color: "#fff",
-            border: "1px solid rgba(255,255,255,0.2)",
-            cursor: "pointer",
-            transition: "all 0.2s",
-            position: "relative",
-            zIndex: 1,
-            backdropFilter: "blur(8px)",
+            fontFamily: FONT, display: "flex", alignItems: "center", gap: "8px",
+            height: "42px", padding: "0 20px", borderRadius: "8px", fontSize: "13px",
+            fontWeight: 500, background: "#ffffff", color: "#09090b",
+            border: "1px solid transparent", cursor: "pointer",
+            transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+            position: "relative", zIndex: 2, boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
           }}
-          whileHover={{
-            background: "rgba(255,255,255,0.2)",
-            y: -2,
-          }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Edit3 size={15} /> Editar perfil
-        </motion.button>
+        ><Edit3 size={15} /> Editar perfil</motion.button>
       )}
-
-      {/* Línea inferior decorativa */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 2,
-          background:
-            "linear-gradient(90deg, transparent, #1B6FE8, #06B6D4, #F59E0B, transparent)",
-          pointerEvents: "none",
-        }}
-      />
     </motion.div>
   );
 }

@@ -10,14 +10,8 @@ import { MypeProyectosCard } from "@/shared/components/mype-perfil/MypeProyectos
 import { MypeSocialLinks } from "@/shared/components/mype-perfil/MypeSocialLinks";
 import { MypeMapaCard } from "@/shared/components/mype-perfil/MypeMapaCard";
 import { MypePerfilEditarModal } from "@/shared/components/mype-perfil/MypePerfilEditarModal";
-import { Building2 } from "lucide-react";
 
-const FONT = "'Angro Std', 'Outfit', sans-serif";
-const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
-});
+const FONT = "'Inter', 'Outfit', sans-serif";
 
 export function MypePerfilPage() {
   const { perfil, isLoading } = useMiPerfilMype();
@@ -28,22 +22,20 @@ export function MypePerfilPage() {
   if (isLoading) {
     return (
       <MypeLayout titulo="Mi Perfil">
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 1100, margin: "0 auto" }}>
           {[280, 100, 160].map((h, i) => (
             <div
               key={i}
               style={{
                 height: h,
-                borderRadius: "1.5rem",
-                background: "#E5E7EB",
+                borderRadius: 16,
+                background: "#F1F5F9",
                 animation: "pulse 1.5s ease-in-out infinite",
               }}
             />
           ))}
         </div>
-        <style>{`
-          @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
-        `}</style>
+        <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }`}</style>
       </MypeLayout>
     );
   }
@@ -52,7 +44,7 @@ export function MypePerfilPage() {
     return (
       <MypeLayout titulo="Mi Perfil">
         <div style={{ textAlign: "center", padding: "60px 24px" }}>
-          <p style={{ fontFamily: FONT, fontSize: 14, color: "#9CA3AF" }}>
+          <p style={{ fontFamily: FONT, fontSize: 14, color: "#94A3B8" }}>
             No se encontró el perfil
           </p>
         </div>
@@ -62,116 +54,66 @@ export function MypePerfilPage() {
 
   return (
     <MypeLayout titulo="Mi Perfil">
-      <style>{`
-        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
-      `}</style>
-
       {editando && perfil && (
-        <MypePerfilEditarModal
-          perfil={perfil}
-          onClose={() => setEditando(false)}
-        />
+        <MypePerfilEditarModal perfil={perfil} onClose={() => setEditando(false)} />
       )}
 
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-        {/* Header con avatar, stats y botón editar */}
-        <MypeProfileHeader
-          perfil={perfil}
-          puedeEditar={puedeEditar}
-          onEditar={() => setEditando(true)}
-        />
+        <MypeProfileHeader perfil={perfil} puedeEditar={puedeEditar} onEditar={() => setEditando(true)} />
 
-        {/* Redes sociales - TEMPORALMENTE DESACTIVADO */}
-        <div style={{ marginBottom: 20 }}>
-          <MypeSocialLinks perfil={perfil} variant="full" />
-        </div>
+        <MypeSocialLinks perfil={perfil} variant="full" />
 
-        {/* Layout 2 columnas */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 320px",
-            gap: 20,
-            alignItems: "start",
-          }}
-        >
-          {/* Columna principal */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 340px",
+          gap: 14,
+          alignItems: "start",
+        }}>
           <div>
             {/* Descripción */}
             {perfil.descripcion && (
               <motion.div
-                {...fadeUp(0.05)}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 style={{
-                  background: "#fff",
-                  border: "0.5px solid #E5E7EB",
-                  borderRadius: "1rem",
-                  padding: "18px 20px",
-                  marginBottom: 16,
+                  background: "#FFFFFF",
+                  border: "1px solid #F1F5F9",
+                  borderRadius: 16,
+                  padding: "20px 24px",
+                  marginBottom: 14,
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    marginBottom: 10,
-                  }}
-                >
-                  <Building2 size={15} color="#1B6FE8" />
-                  <span
-                    style={{
-                      fontFamily: FONT,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: "#111827",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    Sobre la empresa
-                  </span>
-                </div>
-                <p
-                  style={{
-                    fontFamily: FONT,
-                    fontSize: 13,
-                    color: "#4B5563",
-                    lineHeight: 1.7,
-                    margin: 0,
-                  }}
-                >
+                <h3 style={{
+                  fontFamily: FONT,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "#0F172A",
+                  margin: "0 0 10px",
+                  letterSpacing: "-0.01em",
+                }}>
+                  Sobre la empresa
+                </h3>
+                <p style={{
+                  fontFamily: FONT,
+                  fontSize: 13,
+                  color: "#475569",
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}>
                   {perfil.descripcion}
                 </p>
               </motion.div>
             )}
 
-            {/* Stats de proyectos (totales/activos) */}
-            <motion.div {...fadeUp(0.1)} style={{ marginBottom: 16 }}>
-              <MypeInfoCard perfil={perfil} />
-            </motion.div>
-
-            {/* Proyectos */}
-            <motion.div {...fadeUp(0.15)}>
-              <MypeProyectosCard
-                proyectos={proyectos}
-                puedeVerContacto={puedeVerContacto}
-              />
-            </motion.div>
+            <MypeInfoCard perfil={perfil} />
+            <MypeProyectosCard proyectos={proyectos} puedeVerContacto={puedeVerContacto} />
           </div>
 
-          {/* Columna lateral */}
           <div>
-            <motion.div {...fadeUp(0.08)}>
-              <MypeContactCard
-                perfil={perfil}
-                puedeVerContacto={puedeVerContacto}
-              />
-              <MypeMapaCard
-                direccion={perfil.direccion}
-                puedeVerContacto={puedeVerContacto}
-              />
-            </motion.div>
+            <MypeContactCard perfil={perfil} puedeVerContacto={puedeVerContacto} />
+            <MypeMapaCard direccion={perfil.direccion} puedeVerContacto={puedeVerContacto} />
           </div>
         </div>
       </div>

@@ -286,26 +286,8 @@ const CommandHeader = ({ healthScore, totalProyectos, activos, completados }) =>
         }}
       >
         <div style={{ maxWidth: 520 }}>
-          {/* Indicador EN VIVO pulsante */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: "rgba(74,222,128,0.12)",
-              border: "1px solid rgba(74,222,128,0.3)",
-              borderRadius: 999,
-              padding: "6px 13px",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              marginBottom: 16,
-              backdropFilter: "blur(8px)",
-            }}
-          >
-
-          </div>
+          {/* Espaciador */}
+          <div style={{ height: 8 }} />
 
         <motion.h1
         initial={{ opacity: 0, y: 15 }}

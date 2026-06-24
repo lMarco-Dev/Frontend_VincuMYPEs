@@ -1,93 +1,57 @@
-import { Shield, Lock, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
-const FONT = "'Angro Std', 'Outfit', sans-serif";
+const FONT = "'Inter', 'Outfit', sans-serif";
 
 export function MypeAccesoBloqueado({ mensaje, submensaje }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -2 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        background: "linear-gradient(135deg, #F8FAFC, #fff)",
-        border: "1px solid #E5E7EB",
-        borderRadius: "1.5rem",
-        padding: "36px 28px",
+        background: "#FFFFFF",
+        border: "1px solid #F1F5F9",
+        borderRadius: 16,
+        padding: "40px 28px",
         textAlign: "center",
-        marginBottom: 20,
-        transition: "all 0.2s",
+        marginBottom: 14,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
       }}
     >
-      {/* Icono animado */}
-      <motion.div
-        animate={{ scale: [1, 1.05, 1] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        style={{
-          position: "relative",
-          width: 64,
-          height: 64,
-          margin: "0 auto 18px",
-        }}
-      >
-        <div
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: "50%",
-            background: "#F1F5F9",
-            border: "1px solid #E2E8F0",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Shield size={26} color="#CBD5E1" />
-        </div>
-        <motion.div
-          animate={{ rotate: [0, 10, -10, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          style={{
-            position: "absolute",
-            bottom: -4,
-            right: -4,
-            width: 26,
-            height: 26,
-            borderRadius: "50%",
-            background: "#FEF3C7",
-            border: "2px solid #fff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Lock size={12} color="#D97706" />
-        </motion.div>
-      </motion.div>
+      <div style={{
+        width: 56,
+        height: 56,
+        borderRadius: "50%",
+        background: "#F1F5F9",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        margin: "0 auto 16px",
+      }}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M8 11l2 2 4-4"/>
+        </svg>
+      </div>
 
-      <p
-        style={{
-          fontFamily: FONT,
-          fontSize: 15,
-          fontWeight: 700,
-          color: "#374151",
-          margin: "0 0 8px",
-        }}
-      >
+      <p style={{
+        fontFamily: FONT,
+        fontSize: 14,
+        fontWeight: 600,
+        color: "#334155",
+        margin: "0 0 6px",
+      }}>
         {mensaje || "Información restringida"}
       </p>
-      <p
-        style={{
-          fontFamily: FONT,
-          fontSize: 12,
-          color: "#9CA3AF",
-          maxWidth: 320,
-          margin: "0 auto",
-          lineHeight: 1.6,
-        }}
-      >
-        {submensaje ||
-          "Esta información solo está disponible para estudiantes aceptados en proyectos de esta empresa."}
+      <p style={{
+        fontFamily: FONT,
+        fontSize: 12,
+        color: "#94A3B8",
+        maxWidth: 300,
+        margin: "0 auto",
+        lineHeight: 1.6,
+      }}>
+        {submensaje || "Esta información solo está disponible para estudiantes aceptados en proyectos de esta empresa."}
       </p>
     </motion.div>
   );

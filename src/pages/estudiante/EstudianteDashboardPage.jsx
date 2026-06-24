@@ -135,18 +135,20 @@ const EmpresaCard = ({ empresa }) => {
   const navigate = useNavigate();
   const inicial = (empresa.nombre || 'E').trim().charAt(0).toUpperCase();
   const color = getAvatarColor(empresa.nombre || '');
+  
   return (
     <div
       onClick={() => navigate(`/mypes/${empresa.id}`)}
       title={empresa.nombre}
       style={{
         width: CARD_W, minWidth: CARD_W, height: CARD_H,
-        background: color,
+        background: empresa.fotoPerfil ? `url(${empresa.fotoPerfil}) center/cover` : color,
         borderRadius: 16,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: 'pointer', flexShrink: 0,
         transition: 'all 0.18s ease',
         boxShadow: '0 2px 8px rgba(15,23,42,0.10)',
+        position: 'relative',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.transform = 'translateY(-4px)';
@@ -157,9 +159,23 @@ const EmpresaCard = ({ empresa }) => {
         e.currentTarget.style.boxShadow = '0 2px 8px rgba(15,23,42,0.10)';
       }}
     >
-      <span style={{ fontSize: 38, fontWeight: 700, color: '#fff', fontFamily: FONT, lineHeight: 1 }}>
-        {inicial}
-      </span>
+      {!empresa.fotoPerfil && (
+        <span style={{ fontSize: 38, fontWeight: 700, color: '#fff', fontFamily: FONT, lineHeight: 1 }}>
+          {inicial}
+        </span>
+      )}
+      {empresa.fotoPerfil && (
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          background: 'linear-gradient(transparent, rgba(0,0,0,0.5))',
+          padding: '24px 10px 8px',
+          borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
+        }}>
+          <span style={{ fontSize: 11, fontWeight: 500, color: '#fff', fontFamily: FONT }}>
+            {empresa.nombre}
+          </span>
+        </div>
+      )}
     </div>
   );
 };
@@ -696,17 +712,21 @@ const EstudianteDashboardPage = () => {
   const firstName = user?.nombre?.split(' ')[0] || 'Estudiante';
   const { viewed, markViewed } = useViewedProjects();
 
-  const empresas = React.useMemo(() => {
-    if (!proyectosData?.content) return [];
-    const seen = new Set();
-    return proyectosData.content.reduce((acc, p) => {
-      if (p.mypeId && !seen.has(p.mypeId)) {
-        seen.add(p.mypeId);
-        acc.push({ id: p.mypeId, nombre: p.mypeNombre || 'Empresa' });
-      }
-      return acc;
-    }, []);
-  }, [proyectosData]);
+ const empresas = React.useMemo(() => {
+  if (!proyectosData?.content) return [];
+  const seen = new Set();
+  return proyectosData.content.reduce((acc, p) => {
+    if (p.mypeId && !seen.has(p.mypeId)) {
+      seen.add(p.mypeId);
+      acc.push({ 
+        id: p.mypeId, 
+        nombre: p.mypeNombre || 'Empresa',
+        fotoPerfil: p.mypeFotoPerfil || null, // ← NUEVO
+      });
+    }
+    return acc;
+  }, []);
+}, [proyectosData]);
 
   const S = {
     sectionTitle: { fontSize:14, fontFamily:FONT, fontWeight:600, letterSpacing:'-0.01em', color:'#0F1F3D', display:'flex', alignItems:'center', gap:8 },
