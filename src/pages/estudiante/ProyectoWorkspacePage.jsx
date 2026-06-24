@@ -463,23 +463,22 @@ export function ProyectoWorkspacePage() {
   const chatEndRef = useRef(null);
   const queryClient = useQueryClient();
   const emojiPickerRef = useRef(null);
-
   const [activeTab, setActiveTab] = useState("entregables");
-  const [nuevoMensaje, setNuevoMensaje] = useState("");
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [selectedEntregable, setSelectedEntregable] = useState(null);
-  const [uploadFile, setUploadFile] = useState(null);
-  const [uploadDescripcion, setUploadDescripcion] = useState("");
-  const [uploadError, setUploadError] = useState("");
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
-  const [showEmoji, setShowEmoji] = useState(false);
-  const [showVotacionModal, setShowVotacionModal] = useState(false);
-  const [lockedEntregableId, setLockedEntregableId] = useState(null);
-  const [chatTabActivo, setChatTabActivo] = useState("EQUIPO");
-  const [showCompletadoModal, setShowCompletadoModal] = useState(false);
+const [nuevoMensaje, setNuevoMensaje] = useState("");
+const [showUploadModal, setShowUploadModal] = useState(false);
+const [selectedEntregable, setSelectedEntregable] = useState(null);
+const [uploadFile, setUploadFile] = useState(null);
+const [uploadDescripcion, setUploadDescripcion] = useState("");
+const [uploadError, setUploadError] = useState("");
+const [uploadSuccess, setUploadSuccess] = useState(false);
+const [dragActive, setDragActive] = useState(false);
+const [showEmoji, setShowEmoji] = useState(false);
+const [showVotacionModal, setShowVotacionModal] = useState(false);
+const [lockedEntregableId, setLockedEntregableId] = useState(null);
+const [chatTabActivo, setChatTabActivo] = useState("EQUIPO");
+const [showCompletadoModal, setShowCompletadoModal] = useState(false);
+const [entregableIdEnEdicion, setEntregableIdEnEdicion] = useState(null); // ✅ NUEVO
 
-  const quickEmojis = ["👍","👏","🎉","💪","🔥","✅","🙌","😊","🚀","⭐","😄","🙏","👀","📄","💡","⏰"];
 
   const { proyecto, entregables, mensajes, conversacionId, mype, isLoading, errorProyecto, proyectoError, recargarWorkspace } = useWorkspaceRealTime(proyectoId);
   const { subirEntregable, isSubiendo, uploadProgress, enviarMensaje, isEnviandoMensaje, descargarArchivo, eliminarEntregable, resetUpload } = useWorkspaceActions(proyectoId);
@@ -547,31 +546,35 @@ export function ProyectoWorkspacePage() {
   };
 
   const handleSubirEntregable = async (e) => {
-    e.preventDefault();
-    if (!uploadFile || !selectedEntregable) {
-      setUploadError("Selecciona un archivo");
-      return;
+  e.preventDefault();
+  if (!uploadFile || !selectedEntregable) {
+    setUploadError("Selecciona un archivo");
+    return;
+  }
+  try {
+    const formData = new FormData();
+    formData.append("titulo", selectedEntregable);
+    formData.append("descripcion", uploadDescripcion || `Entrega: ${selectedEntregable}`);
+    formData.append("archivo", uploadFile);
+    if (entregableIdEnEdicion) {
+      formData.append("entregableId", entregableIdEnEdicion); // ✅ Enviar ID
     }
-    try {
-      const formData = new FormData();
-      formData.append("titulo", selectedEntregable);
-      formData.append("descripcion", uploadDescripcion || `Entrega: ${selectedEntregable}`);
-      formData.append("archivo", uploadFile);
-      await subirEntregable({ formData });
-      setUploadSuccess(true);
-      setTimeout(() => {
-        setShowUploadModal(false);
-        setUploadSuccess(false);
-        setUploadFile(null);
-        setUploadDescripcion("");
-        setSelectedEntregable(null);
-        resetUpload();
-        recargarWorkspace();
-      }, 1800);
-    } catch (err) {
-      setUploadError(err.message || "Error al subir el archivo");
-    }
-  };
+    await subirEntregable({ formData });
+    setUploadSuccess(true);
+    setTimeout(() => {
+      setShowUploadModal(false);
+      setUploadSuccess(false);
+      setUploadFile(null);
+      setUploadDescripcion("");
+      setSelectedEntregable(null);
+      setEntregableIdEnEdicion(null); // ✅ Limpiar
+      resetUpload();
+      recargarWorkspace();
+    }, 1800);
+  } catch (err) {
+    setUploadError(err.message || "Error al subir el archivo");
+  }
+};
 
   const handleEliminarEntregable = async (entregableId) => {
     try {
@@ -787,19 +790,22 @@ export function ProyectoWorkspacePage() {
                           esDelegado={esDelegado}
                           esProyectoIndividual={esProyectoIndividual}
                           onUpload={async (titulo, entregaExistente) => {
-                            if (entregaExistente?.id) {
-                              try {
-                                await lockEntregable(proyectoId, entregaExistente.id);
-                                setLockedEntregableId(entregaExistente.id);
-                              } catch (err) {
-                                const msg = err.response?.data?.message || "Otro usuario está editando este entregable";
-                                alert(msg);
-                                return;
-                              }
-                            }
-                            setSelectedEntregable(titulo);
-                            setShowUploadModal(true);
-                          }}
+  if (entregaExistente?.id) {
+    try {
+      await lockEntregable(proyectoId, entregaExistente.id);
+      setLockedEntregableId(entregaExistente.id);
+      setEntregableIdEnEdicion(entregaExistente.id); // ✅ Guardar ID
+    } catch (err) {
+      const msg = err.response?.data?.message || "Otro usuario está editando este entregable";
+      alert(msg);
+      return;
+    }
+  } else {
+    setEntregableIdEnEdicion(null); // ✅ Nuevo entregable
+  }
+  setSelectedEntregable(titulo);
+  setShowUploadModal(true);
+}}
                           onDownload={descargarArchivo}
                           onDelete={handleEliminarEntregable}
                         />
