@@ -1,12 +1,17 @@
 import { httpClient } from "@/shared/api/httpClient";
 
 export const registerEstudianteApi = (data) => {
-  return httpClient.post("/auth/register/estudiante", data);
+  return httpClient.post("/auth/register/estudiante", {
+    ...data,
+    otpCode: data.otpCode || "",
+  });
 };
 
 export const registerMypeApi = (data) => {
   return httpClient.post("/auth/register/mype", data);
 };
+
+
 
 export const checkDniApi = (dni) => httpClient.get(`/auth/check-dni`, { params: { dni } });
 export const checkRucApi = (ruc) => httpClient.get(`/auth/check-ruc`, { params: { ruc } });

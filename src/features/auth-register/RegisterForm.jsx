@@ -195,7 +195,7 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
   const EMAIL_VERIFICATION_ENABLED = import.meta.env.VITE_EMAIL_VERIFICATION_ENABLED === "true";
   const TOTAL_STEPS = EMAIL_VERIFICATION_ENABLED ? 4 : 3;
 
-  const { register: registerUser, isLoading, error: backendError, successData } = useRegister(tipo);
+  const { register: registerUser, isLoading, error: backendError, successData, sendOtp, resetOtpState, otpSent, otpError } = useRegister(tipo);
   const [showBackendError, setShowBackendError] = useState(false);
   const { buscarDni, isLoading: isLoadingDni, error: dniError, clearError: clearDniError } = useConsultaDni();
   const { buscarRuc, isLoading: isLoadingRuc, error: rucError, clearError: clearRucError } = useConsultaRuc();
@@ -210,6 +210,8 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
   const [rucConsultado, setRucConsultado] = useState(false);
   const [rucData, setRucData] = useState(null);
 
+  const [otpEnviado, setOtpEnviado] = useState(false);
+
   // ── ESTADOS PARA COOLDOWN ──
   const [dniCooldown, setDniCooldown] = useState(false);
   const [dniCooldownTime, setDniCooldownTime] = useState(0);
@@ -217,18 +219,24 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
   const [rucCooldownTime, setRucCooldownTime] = useState(0);
   // ── ESTADOS OTP (VERIFICACIÓN) ──
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [otpError, setOtpError] = useState("");
   const [otpSending, setOtpSending] = useState(false);
   const otpRefs = useRef([]);
+const [sendingOtp, setSendingOtp] = useState(false);
+const [otpErrorLocal, setOtpErrorLocal] = useState("");
+
+const [otpExpirySeconds, setOtpExpirySeconds] = useState(0); // 300 = 5 minutos
+const otpExpiryTimerRef = useRef(null);
 
   const dniTimerRef = useRef(null);
   const rucTimerRef = useRef(null);
+  const otpEnviadoRef = useRef(false);
+  
 
   const {
     register, handleSubmit, watch, trigger, clearErrors,
     setValue, setError,
     formState: { errors },
+    
   } = useForm({
     mode: "onChange",
     defaultValues: {
@@ -239,13 +247,27 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
     }
   });
 
-  // ── Limpiar timers al desmontar ──
+  const email = watch("email");
+  const codigoEstudiante = watch("codigoEstudiante");
+
   useEffect(() => {
+  if (esEstudiante && codigoEstudiante?.length === 9) {
+    const emailGenerado = `${codigoEstudiante.toLowerCase()}@upn.pe`;
+    const emailActual = watch("email");
+    if (emailGenerado !== emailActual) {
+      setValue("email", emailGenerado, { shouldValidate: true });
+    }
+  }
+}, [codigoEstudiante, esEstudiante, setValue, watch]);
+
+  // ── Limpiar timers al desmontar ──
+  /*useEffect(() => {
     return () => {
       if (dniTimerRef.current) clearInterval(dniTimerRef.current);
       if (rucTimerRef.current) clearInterval(rucTimerRef.current);
+      if (otpExpiryTimerRef.current) clearInterval(otpExpiryTimerRef.current);
     };
-  }, []);
+  }, []);*/
 
   useEffect(() => {
     if (backendError) {
@@ -273,9 +295,13 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
     : (EMAIL_RE.test((formValues.email || "").trim()) && PASS_RE.test(formValues.password || "") &&
        (formValues.confirmPassword === formValues.password && (formValues.password || "").length > 0));
 
+  const passwordValue = watch("password", "");
+  const confirmPasswordValue = watch("confirmPassword", "");
+  const emailValue = watch("email", "");
+
   const isStep2Valid = EMAIL_VERIFICATION_ENABLED
-    ? (EMAIL_RE.test((formValues.email || "").trim()) && PASS_RE.test(formValues.password || "") &&
-       (formValues.confirmPassword === formValues.password && (formValues.password || "").length > 0))
+    ? (EMAIL_RE.test(emailValue.trim()) && PASS_RE.test(passwordValue) &&
+      (confirmPasswordValue === passwordValue && passwordValue.length > 0))
     : (esEstudiante
         ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
         : (formValues.rubro && formValues.telefono?.length === 9));
@@ -288,10 +314,10 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
     : isStep3Valid));
 
   const canSubmit = EMAIL_VERIFICATION_ENABLED
-    ? (hasAcceptedTerms && otpVerified)
-    : (hasAcceptedTerms && (esEstudiante
-        ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
-        : (formValues.rubro && formValues.telefono?.length === 9)));
+  ? (hasAcceptedTerms && otp.every(d => d !== "") && otpExpirySeconds > 0)
+  : (hasAcceptedTerms && (esEstudiante
+      ? (formValues.universidad && formValues.carrera && formValues.telefono?.length === 9 && formValues.codigoEstudiante?.length === 9)
+      : (formValues.rubro && formValues.telefono?.length === 9)));
 
   const isNextDisabled = !isCurrentStepValid || isLoading || isValidating;
 
@@ -453,7 +479,6 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
           setError("email", { message: "Este correo ya está registrado" });
           return;
         }
-        await authRecoveryApi.sendVerificationOtp(watch("email"));
       }
     } else {
       if (step === 1) {
@@ -507,6 +532,8 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
     }
   };
 
+
+
   const handleBack = () => {
     if (step > 0) setStep(s => s - 1);
   };
@@ -518,9 +545,13 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
       return;
     }
 
-    const clean = {};
-    Object.keys(data).forEach(k => { clean[k] = stripXSS(String(data[k] || "")).trim(); });
+    const clean = { ...data };
+    Object.keys(clean).forEach(k => { clean[k] = stripXSS(String(clean[k] || "")).trim(); });
     delete clean.confirmPassword;
+    if (esEstudiante) {
+      clean.otpCode = otp.join(""); // ya lo haces
+    }
+    
 
     if (esEstudiante) {
       clean.nombre = `${clean.nombres} ${clean.apellidoPaterno} ${clean.apellidoMaterno}`.trim();
@@ -528,8 +559,21 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
       delete clean.apellidoPaterno;
       delete clean.apellidoMaterno;
     }
+    // Dentro de onSubmit, antes de llamar a registerUser:
+    if (EMAIL_VERIFICATION_ENABLED) {
+      const code = otp.join("");
+      if (code.length !== 6) {
+        setError("email", { type: "manual", message: "Ingresa el código de verificación completo" });
+        return;
+      }
+      if (otpExpirySeconds === 0) {
+        setError("email", { type: "manual", message: "El código ha expirado. Solicita uno nuevo." });
+        return;
+      }
+    }
 
-    registerUser(clean, {
+    // ✅ Incluir otpCode
+    registerUser({ ...clean, otpCode: otp.join("") }, {
       onError: (error) => {
         const errorMsg = error?.response?.data?.message || error.message || "Error al registrar usuario";
         const msgLower = errorMsg.toLowerCase();
@@ -544,7 +588,7 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
         }
         else if (msgLower.includes("correo") || msgLower.includes("email")) {
           setError("email", { type: "server", message: errorMsg });
-          setStep(1);
+          setStep(EMAIL_VERIFICATION_ENABLED ? 2 : 1);
         }
         else if (msgLower.includes("código") || msgLower.includes("codigo")) {
           setError("codigoEstudiante", { type: "server", message: errorMsg });
@@ -584,13 +628,13 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
   };
 
   const handleOtpChange = (index, value) => {
-    if (!/^\d*$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-    setOtpError("");
-    if (value && index < 5) otpRefs.current[index + 1]?.focus();
-  };
+  if (!/^\d*$/.test(value)) return;
+  const newOtp = [...otp];
+  newOtp[index] = value;
+  setOtp(newOtp);
+  setOtpErrorLocal(""); // <-- CAMBIADO
+  if (value && index < 5) otpRefs.current[index + 1]?.focus();
+};
 
   const handleOtpKeyDown = (index, e) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
@@ -606,37 +650,85 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
     setOtp(newOtp);
     otpRefs.current[Math.min(paste.length, 5)]?.focus();
   };
+  
 
-  const handleVerifyOtp = async () => {
-    const code = otp.join("");
-    if (code.length !== 6) { setOtpError("Ingresa el código completo"); return; }
-    setOtpSending(true);
+  const handleSendOtp = async () => {
+    const emailActual = watch("email");
+    if (!emailActual) {
+      setOtpErrorLocal("No se encontró el correo");
+      return;
+    }
+    if (otpExpirySeconds > 0) return;
+
+    setSendingOtp(true);
+    setOtpErrorLocal("");
+    setOtp(["", "", "", "", "", ""]);
+
     try {
-      const { data } = await authRecoveryApi.confirmVerificationOtp(watch("email"), code);
-      if (data.valid) {
-        setOtpVerified(true);
-        setOtpError("");
-      } else {
-        setOtpError("Código inválido o expirado");
+      await authRecoveryApi.sendVerificationOtp(emailActual);
+      setOtpEnviado(true);
+      otpEnviadoRef.current = true;
+      setOtpExpirySeconds(600);
+
+      if (otpExpiryTimerRef.current) {
+        clearInterval(otpExpiryTimerRef.current);
       }
-    } catch {
-      setOtpError("Error al verificar el código");
+      otpExpiryTimerRef.current = setInterval(() => {
+        setOtpExpirySeconds(prev => {
+          if (prev <= 1) {
+            clearInterval(otpExpiryTimerRef.current);
+            otpExpiryTimerRef.current = null;
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      console.log("📧 OTP enviado a:", emailActual);
+    } catch (err) {
+      otpEnviadoRef.current = false;
+      setOtpEnviado(false);
+      const msg = err.response?.data?.message || err.message || "Error al enviar el código";
+      setOtpErrorLocal(msg);
     } finally {
-      setOtpSending(false);
+      setSendingOtp(false);
     }
   };
 
   const handleResendOtp = async () => {
+    if (otpExpirySeconds > 0) return; // No reenviar si el contador está activo
+
     setOtpSending(true);
+    setOtpErrorLocal("");
+    setOtp(["", "", "", "", "", ""]); // Limpiar inputs
+
     try {
-      await authRecoveryApi.sendVerificationOtp(watch("email"));
-      setOtpError("");
+      const emailActual = watch("email");
+      await authRecoveryApi.sendVerificationOtp(emailActual);
+      setOtpEnviado(true);
+      otpEnviadoRef.current = true;
+
+      if (otpExpiryTimerRef.current) {
+        clearInterval(otpExpiryTimerRef.current);
+      }
+      otpExpiryTimerRef.current = setInterval(() => {
+        setOtpExpirySeconds(prev => {
+          if (prev <= 1) {
+            clearInterval(otpExpiryTimerRef.current);
+            otpExpiryTimerRef.current = null;
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } catch {
-      setOtpError("Error al reenviar");
+      otpEnviadoRef.current = false;
     } finally {
       setOtpSending(false);
     }
   };
+
+  
 
   const isDniSearchBlocked = dniCooldown || isLoadingDni;
   const isRucSearchBlocked = rucCooldown || isLoadingRuc;
@@ -1156,11 +1248,30 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
           {step === 2 && EMAIL_VERIFICATION_ENABLED && (
             <motion.div key="step2-ver" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               <Field label="Correo electrónico" icon={Mail} error={errors.email}>
-                <input type="text" inputMode="email" autoComplete="email" maxLength={MAX} className={`rf-input${errors.email ? " err" : ""}`}
-                  value={esEstudiante && watch("codigoEstudiante")?.length === 9 ? `${watch("codigoEstudiante").toLowerCase()}@upn.pe` : undefined}
+                <input
+                  type="text"
+                  inputMode="email"
+                  autoComplete="email"
+                  maxLength={MAX}
+                  className={`rf-input${errors.email ? " err" : ""}`}
                   readOnly={esEstudiante}
-                  style={{ ...inputStyle(!!errors.email), background: esEstudiante ? "#F0FDF4" : "#F9FAFB", cursor: esEstudiante ? "not-allowed" : "text" }}
-                  {...register("email", { required: "El correo es obligatorio", maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` }, validate: { format: (v) => EMAIL_RE.test(stripXSS(v).trim()) || "Formato de correo inválido", noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos" }, onChange: (e) => { e.target.value = e.target.value.replace(/<[^>]*>/g, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "").replace(/[<>"'`]/g, ""); } })} />
+                  style={{
+                    ...inputStyle(!!errors.email),
+                    background: esEstudiante ? "#F0FDF4" : "#F9FAFB",
+                    cursor: esEstudiante ? "not-allowed" : "text",
+                  }}
+                  {...register("email", {
+                    required: "El correo es obligatorio",
+                    maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` },
+                    validate: {
+                      format: (v) => EMAIL_RE.test(stripXSS(v).trim()) || "Formato de correo inválido",
+                      noScript: (v) => !/<|javascript:|on\w+=/.test(v) || "Caracteres no permitidos"
+                    },
+                    onChange: (e) => {
+                      e.target.value = e.target.value.replace(/<[^>]*>/g, "").replace(/javascript:/gi, "").replace(/on\w+\s*=/gi, "").replace(/[<>"'`]/g, "");
+                    }
+                  })}
+                />
               </Field>
               <Field label="Contraseña" icon={Lock} error={errors.password} rightEl={eye(showPass, setShowPass)}>
                 <input type={showPass ? "text" : "password"} autoComplete="new-password" maxLength={MAX} className={`rf-input${errors.password ? " err" : ""}`} style={inputStyle(!!errors.password, true)}
@@ -1239,26 +1350,81 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
                 <h3 style={{ fontSize: 18, fontWeight: 700, color: "#0F1F3D", marginBottom: 8 }}>Verifica tu correo</h3>
                 <p style={{ fontSize: 13, color: "#6B7280", margin: 0 }}>Enviamos un código de 6 dígitos a <strong>{watch("email")}</strong></p>
               </div>
-              <div style={{ display: "flex", gap: 10, justifyContent: "center" }} onPaste={handleOtpPaste}>
-                {otp.map((digit, index) => (
-                  <input key={index} ref={el => otpRefs.current[index] = el} type="text" inputMode="numeric" maxLength={1} value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)} onKeyDown={(e) => handleOtpKeyDown(index, e)} autoFocus={index === 0}
-                    style={{ width: 48, height: 56, textAlign: "center", fontSize: 22, fontWeight: 700, border: `1.5px solid ${otpError ? "#FCA5A5" : "#E5E7EB"}`, borderRadius: 8, background: otpError ? "#FFF5F5" : "white", color: "#0F1F3D", fontFamily: "Arial, sans-serif", outline: "none", transition: "all 0.2s ease" }} />
-                ))}
-              </div>
-              {otpError && <p style={{ fontSize: 13, color: "#EF4444", margin: 0 }}>{otpError}</p>}
-              {otpVerified ? (
-                <p style={{ fontSize: 14, color: "#22C55E", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle2 size={18} /> Email verificado</p>
-              ) : (
-                <button type="button" onClick={handleVerifyOtp} disabled={otp.some(d => !d) || otpSending}
-                  style={{ width: "100%", height: 48, border: "none", borderRadius: 8, background: otp.some(d => !d) ? "#D1D5DB" : "linear-gradient(135deg, #1B6FE8 0%, #0E54C4 100%)", color: "white", fontWeight: 600, fontSize: 14, cursor: otp.some(d => !d) ? "not-allowed" : "pointer", fontFamily: "Arial, sans-serif" }}>
-                  {otpSending ? <Loader2 size={18} className="animate-spin" /> : "Verificar código"}
+
+              {!otpEnviado ? (
+                <button
+                  type="button"
+                  onClick={handleSendOtp}
+                  disabled={sendingOtp}
+                  style={{
+                    width: "100%",
+                    height: 48,
+                    border: "none",
+                    borderRadius: 8,
+                    background: sendingOtp ? "#D1D5DB" : "linear-gradient(135deg, #1B6FE8 0%, #0E54C4 100%)",
+                    color: "white",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: sendingOtp ? "not-allowed" : "pointer",
+                    fontFamily: "Arial, sans-serif",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                >
+                  {sendingOtp ? <><Loader2 size={18} className="animate-spin" /> Enviando...</> : "Enviar código de verificación"}
                 </button>
+              ) : (
+                <>
+                  <div style={{ display: "flex", gap: 10, justifyContent: "center" }} onPaste={handleOtpPaste}>
+                    {otp.map((digit, index) => (
+                      <input key={index} ref={el => otpRefs.current[index] = el} type="text" inputMode="numeric" maxLength={1} value={digit}
+                        onChange={(e) => handleOtpChange(index, e.target.value)} onKeyDown={(e) => handleOtpKeyDown(index, e)} disabled={isLoading}
+                        autoFocus={index === 0}
+                        style={{ width: 48, height: 56, textAlign: "center", fontSize: 22, fontWeight: 700, border: `1.5px solid ${otpErrorLocal ? "#FCA5A5" : "#E5E7EB"}`, borderRadius: 8, background: otpErrorLocal ? "#FFF5F5" : "white", color: "#0F1F3D", fontFamily: "Arial, sans-serif", outline: "none", transition: "all 0.2s ease" }} />
+                    ))}
+                  </div>
+
+                  {otpErrorLocal && <p style={{ fontSize: 13, color: "#EF4444", margin: 0 }}>{otpErrorLocal}</p>}
+
+                  {otpExpirySeconds > 0 && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: otpExpirySeconds < 60 ? "#EF4444" : "#6B7280", fontWeight: 500 }}>
+                      <Clock size={14} color={otpExpirySeconds < 60 ? "#EF4444" : "#6B7280"} />
+                      <span>
+                        El código expira en{" "}
+                        <strong style={{ color: otpExpirySeconds < 60 ? "#DC2626" : "#0F1F3D" }}>
+                          {Math.floor(otpExpirySeconds / 60)}:{String(otpExpirySeconds % 60).padStart(2, "0")}
+                        </strong>
+                      </span>
+                    </div>
+                  )}
+                  {otpExpirySeconds === 0 && (
+                    <>
+                      <p style={{ fontSize: 13, color: "#EF4444", fontWeight: 500, margin: 0 }}>
+                        El código ha expirado. Solicita uno nuevo.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleResendOtp}
+                        disabled={otpSending}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: otpSending ? "#9CA3AF" : "#1B6FE8",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: otpSending ? "not-allowed" : "pointer",
+                          fontFamily: "Arial, sans-serif",
+                          padding: "4px 8px",
+                        }}
+                      >
+                        {otpSending ? <Loader2 size={14} className="animate-spin" /> : "Reenviar código"}
+                      </button>
+                    </>
+                  )}
+                </>
               )}
-              <button type="button" onClick={handleResendOtp} disabled={otpSending}
-                style={{ background: "none", border: "none", color: "#1B6FE8", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "Arial, sans-serif" }}>
-                Reenviar código
-              </button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1298,7 +1464,9 @@ export function RegisterForm({ tipo, onDirtyChange, hasAcceptedTerms, onOpenTerm
                 width: 16, height: 16,
                 cursor: "pointer", accentColor: "#1B6FE8", flexShrink: 0,
               }}
+              
             />
+            
             <p style={{ margin: 0, fontFamily: "inherit", fontSize: 13, color: "#4B5563", lineHeight: 1.55 }}>
               He leído y acepto los{" "}
               <button
