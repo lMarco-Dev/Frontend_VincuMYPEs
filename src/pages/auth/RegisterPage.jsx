@@ -396,7 +396,7 @@ export function RegisterPage() {
         }
       `}</style>
 
-      {/* ── Modal de Confirmación ── */}
+{/* ── Modal de Confirmación ── */}
 <AnimatePresence>
   {targetTipo && (
     <motion.div
@@ -404,160 +404,164 @@ export function RegisterPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      style={{ 
-        position: "fixed", 
-        inset: 0, 
-        zIndex: 9999, 
-        display: "flex", 
-        alignItems: "center", 
-        justifyContent: "center", 
-        background: "rgba(15, 42, 74, 0.6)", 
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(0,0,0,0.35)",
         backdropFilter: "blur(6px)",
-        padding: 20
+        padding: 20,
       }}
+      onClick={() => setTargetTipo(null)}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        initial={{ opacity: 0, y: 20, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.97 }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        style={{ 
-          background: "white", 
-          padding: 0, 
-          borderRadius: 12, 
-          width: "100%", 
-          maxWidth: 420, 
-          boxShadow: "0 25px 50px rgba(0,0,0,0.15)", 
-          fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
-          overflow: "hidden"
+        style={{
+          background: "#FFFFFF",
+          borderRadius: 12,
+          width: "100%",
+          maxWidth: 420,
+          padding: 0,
+          boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
+          border: "1px solid #EDEDE8",
+          overflow: "hidden",
         }}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Header con icono */}
-        <div style={{ 
-          padding: "28px 28px 20px",
-          borderBottom: "1px solid #F3F4F6"
+        {/* Header */}
+        <div style={{
+          padding: "28px 32px 20px",
+          borderBottom: "1px solid #F0F0EC",
         }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-            <div style={{ 
-              width: 44, 
-              height: 44, 
-              borderRadius: 10, 
-              background: "#FEF3C7", 
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "center",
-              flexShrink: 0
-            }}>
-              <AlertCircle size={22} color="#F59E0B" />
-            </div>
-            <div>
-              <h3 style={{ 
-                margin: "0 0 4px", 
-                fontSize: 17, 
-                fontWeight: 600, 
-                color: "#0F1F3D", 
-                letterSpacing: "-0.02em",
-                lineHeight: 1.3
-              }}>
-                ¿Cambiar tipo de registro?
-              </h3>
-              <p style={{ 
-                margin: 0, 
-                color: "#6B7280", 
-                fontSize: 13, 
-                lineHeight: 1.5, 
-                fontWeight: 400 
-              }}>
-                Perderás los datos ingresados en el formulario actual
-              </p>
-            </div>
-          </div>
+          <h3 style={{
+            margin: "0 0 6px",
+            fontSize: 17,
+            fontWeight: 600,
+            color: "#0F1F3D",
+            letterSpacing: "-0.02em",
+            lineHeight: 1.3,
+            fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+          }}>
+            ¿Cambiar tipo de registro?
+          </h3>
+          <p style={{
+            margin: 0,
+            color: "#6B7280",
+            fontSize: 13,
+            lineHeight: 1.5,
+            fontWeight: 400,
+            fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+          }}>
+            Perderás los datos ingresados en el formulario actual
+          </p>
         </div>
 
         {/* Contenido */}
-        <div style={{ padding: "20px 28px 24px" }}>
+        <div style={{ padding: "24px 32px 28px" }}>
+          {/* Tarjeta de información del cambio */}
           <div style={{
             display: "flex",
             alignItems: "center",
-            gap: 10,
-            padding: "12px 14px",
+            gap: 12,
+            padding: "14px 16px",
             background: "#F9FAFB",
             borderRadius: 8,
-            border: "1px solid #E5E7EB",
-            marginBottom: 20
+            border: "1px solid #EDEDE8",
+            marginBottom: 24,
           }}>
             <div style={{
               width: 32,
               height: 32,
-              borderRadius: 6,
+              borderRadius: "50%",
               background: targetTipo === "mype" ? "#FEF3C7" : "#DBEAFE",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              flexShrink: 0
+              flexShrink: 0,
             }}>
-              {targetTipo === "mype" ? 
-                <Building2 size={16} color="#F59E0B" /> : 
-                <GraduationCap size={16} color="#1B6FE8" />
-              }
+              {targetTipo === "mype" ? (
+                <Building2 size={14} color="#D4580A" />
+              ) : (
+                <GraduationCap size={14} color="#1B6FE8" />
+              )}
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: "#0F1F3D" }}>
-                Cambiando a {targetTipo === "mype" ? "Empresa (MYPE)" : "Estudiante"}
+              <p style={{
+                margin: 0,
+                fontSize: 13,
+                fontWeight: 500,
+                color: "#0F1F3D",
+                fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+              }}>
+                Cambiando a <strong>{targetTipo === "mype" ? "Empresa (MYPE)" : "Estudiante"}</strong>
               </p>
-              <p style={{ margin: "2px 0 0", fontSize: 12, color: "#9CA3AF" }}>
+              <p style={{
+                margin: "2px 0 0",
+                fontSize: 12,
+                color: "#9CA3AF",
+                fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+              }}>
                 Se reiniciará todo el formulario
               </p>
             </div>
           </div>
 
+          {/* Botones */}
           <div style={{ display: "flex", gap: 10 }}>
-            <button 
-              onClick={() => setTargetTipo(null)} 
-              style={{ 
-                flex: 1, 
-                height: 42, 
-                borderRadius: 8, 
-                border: "1.5px solid #E5E7EB", 
-                background: "white",
-                color: "#4B5563", 
-                fontSize: 14, 
+            <button
+              onClick={() => setTargetTipo(null)}
+              style={{
+                flex: 1,
+                height: 40,
+                borderRadius: 6,
+                border: "1.5px solid #E5E7EB",
+                background: "transparent",
+                color: "#4B5563",
+                fontSize: 13,
                 fontWeight: 500,
                 fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
                 cursor: "pointer",
-                transition: "all 0.2s"
+                transition: "all 0.15s ease",
               }}
-              onMouseEnter={e => { 
-                e.currentTarget.style.background = "#F9FAFB"; 
-                e.currentTarget.style.borderColor = "#D1D5DB"; 
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#F9FAFB";
+                e.currentTarget.style.borderColor = "#D1D5DB";
               }}
-              onMouseLeave={e => { 
-                e.currentTarget.style.background = "white"; 
-                e.currentTarget.style.borderColor = "#E5E7EB"; 
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.borderColor = "#E5E7EB";
               }}
             >
               Cancelar
             </button>
-            <button 
-              onClick={confirmToggle} 
-              style={{ 
-                flex: 1, 
-                height: 42, 
-                borderRadius: 8, 
-                border: "none", 
-                color: "white", 
-                background: "#EF4444", 
-                fontWeight: 600, 
-                fontSize: 14, 
-                cursor: "pointer", 
-                fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif", 
-                transition: "all 0.2s" 
+            <button
+              onClick={confirmToggle}
+              style={{
+                flex: 1,
+                height: 40,
+                borderRadius: 6,
+                border: "none",
+                background: "#0F1F3D",
+                color: "#FFFFFF",
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+                fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif",
+                transition: "all 0.15s ease",
               }}
-              onMouseEnter={e => { 
-                e.currentTarget.style.background = "#DC2626"; 
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#1B6FE8";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(27,111,232,0.2)";
               }}
-              onMouseLeave={e => { 
-                e.currentTarget.style.background = "#EF4444"; 
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "#0F1F3D";
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
               Sí, cambiar

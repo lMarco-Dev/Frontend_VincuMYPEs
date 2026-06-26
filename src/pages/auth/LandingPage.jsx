@@ -682,7 +682,7 @@ export function LandingPage() {
             <div className="grid-steps" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}>
               {[
                 { num: "01", color: "#1B6FE8", title: "La empresa describe su problema",       desc: "Nuestro Asistente Inteligente guía a la empresa con preguntas simples y convierte su necesidad en un proyecto técnico completo de forma automática. No necesitas saber de tecnología.", tag: "Sin conocimiento técnico" },
-                { num: "02", color: "#8B5CF6", title: "Nosotros gestionamos todo el proceso",  desc: "Actuamos como tu equipo de RRHH especializado. Evaluamos perfiles técnicos, revisamos postulantes y te presentamos al candidato ideal para tu proyecto.", tag: "RRHH especializado" },
+                { num: "02", color: "#8B5CF6", title: "Nosotros gestionamos todo el proceso",  desc: "Actuamos como tu equipo de RRHH dedicado. Evaluamos perfiles técnicos, revisamos postulantes y te presentamos al candidato ideal para tu proyecto.", tag: "RRHH especializado" },
                 { num: "03", color: "#059669", title: "Trabajo enfocado en entregables",        desc: "Se trabaja sobre entregables predefinidos con fechas acordadas según la complejidad. Claridad total: tu empresa sabe exactamente qué recibirá.", tag: "Resultados garantizados" },
               ].map((s, i) => (
                 <FadeUp key={s.num} delay={i * .1}>
@@ -721,7 +721,7 @@ export function LandingPage() {
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
                     <div style={{ width: 3, height: 36, background: "linear-gradient(to bottom,#1B6FE8,#06B6D4)", borderRadius: 2, flexShrink: 0 }} />
                     <p style={{ fontFamily: F, fontSize: 18, fontWeight: 400, color: "#fff", letterSpacing: "-.01em", lineHeight: 1.2 }}>
-                      Tu RRHH<br />especializado
+                      Tu RRHH<br />dedicado
                     </p>
                   </div>
                   <p style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,.4)", lineHeight: 1.7 }}>
@@ -800,7 +800,6 @@ export function LandingPage() {
                     <div style={{ width: 36, height: 36, borderRadius: 7, background: cat.color + "14", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
                       <cat.icon size={18} color={cat.color} />
                     </div>
-                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: cat.color, marginBottom: 8 }} />
                     <p style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "#0f1f3d", lineHeight: 1.35, marginBottom: 4 }}>{cat.label}</p>
                     <p style={{ fontFamily: F, fontSize: 11, fontWeight: 400, color: "#8888a0" }}>{cat.grupo}</p>
                   </div>

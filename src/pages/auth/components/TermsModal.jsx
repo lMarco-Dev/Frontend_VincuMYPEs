@@ -225,7 +225,7 @@ function TermsContent() {
       <div style={{ marginBottom: 16 }}>
         <h3 style={{ fontSize: 15, fontWeight: 600, color: "#0f1f3d", marginBottom: 8 }}>6. Contacto</h3>
         <p style={{ color: "#6b6b7a", fontSize: 13 }}>
-          Para consultas, reclamos o ejercicio de derechos sobre datos personales: <strong style={{ color: "#0f1f3d" }}>contacto.linkuy@gmail.com</strong>
+          Para consultas, reclamos o ejercicio de derechos sobre datos personales: <strong style={{ color: "#0f1f3d" }}>capstoneclaud@gmail.com</strong>
         </p>
       </div>
     </div>
@@ -243,7 +243,7 @@ function PrivacyContent() {
       <div style={{ marginBottom: 24 }}>
         <h3 style={{ fontSize: 15, fontWeight: 600, color: "#0f1f3d", marginBottom: 8 }}>1. Responsable del tratamiento</h3>
         <p style={{ color: "#6b6b7a", fontSize: 13 }}>
-          El equipo de Linkuy, en su condición de operador de la Plataforma en el marco de un proyecto académico universitario. Para cualquier asunto relativo a datos personales, el Usuario puede dirigirse a <strong style={{ color: "#0f1f3d" }}>contacto.linkuy@gmail.com</strong>.
+          El equipo de Linkuy, en su condición de operador de la Plataforma en el marco de un proyecto académico universitario. Para cualquier asunto relativo a datos personales, el Usuario puede dirigirse a <strong style={{ color: "#0f1f3d" }}>capstoneclaud@gmail.com</strong>.
         </p>
       </div>
 
@@ -285,7 +285,7 @@ function PrivacyContent() {
       <div style={{ marginBottom: 16 }}>
         <h3 style={{ fontSize: 15, fontWeight: 600, color: "#0f1f3d", marginBottom: 8 }}>6. Derechos ARCO</h3>
         <p style={{ color: "#6b6b7a", fontSize: 13 }}>
-          El usuario tiene derecho a acceder, rectificar, cancelar u oponerse al tratamiento de sus datos personales. Para ejercer estos derechos debe enviar una solicitud a <strong style={{ color: "#0f1f3d" }}>contacto.linkuy@gmail.com</strong> identificándose de la siguiente manera:
+          El usuario tiene derecho a acceder, rectificar, cancelar u oponerse al tratamiento de sus datos personales. Para ejercer estos derechos debe enviar una solicitud a <strong style={{ color: "#0f1f3d" }}>capstoneclaud@gmail.com</strong> identificándose de la siguiente manera:
         </p>
         <ul style={{ color: "#6b6b7a", fontSize: 13, paddingLeft: 20, marginTop: 8 }}>
           <li><strong>Estudiantes:</strong> nombre completo y DNI.</li>
