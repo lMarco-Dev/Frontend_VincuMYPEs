@@ -539,68 +539,97 @@ const otpExpiryTimerRef = useRef(null);
   };
 
   const onSubmit = (data) => {
-    const maxStep = TOTAL_STEPS - 1;
-    if (step < maxStep) {
-      handleNext();
-      return;
-    }
+  const maxStep = TOTAL_STEPS - 1;
+  if (step < maxStep) {
+    handleNext();
+    return;
+  }
 
-    const clean = { ...data };
-    Object.keys(clean).forEach(k => { clean[k] = stripXSS(String(clean[k] || "")).trim(); });
-    delete clean.confirmPassword;
-    if (esEstudiante) {
-      clean.otpCode = otp.join(""); // ya lo haces
-    }
-    
+  const clean = { ...data };
+  Object.keys(clean).forEach(k => { clean[k] = stripXSS(String(clean[k] || "")).trim(); });
+  delete clean.confirmPassword;
+  if (esEstudiante) {
+    clean.otpCode = otp.join("");
+  }
 
-    if (esEstudiante) {
-      clean.nombre = `${clean.nombres} ${clean.apellidoPaterno} ${clean.apellidoMaterno}`.trim();
-      delete clean.nombres;
-      delete clean.apellidoPaterno;
-      delete clean.apellidoMaterno;
-    }
-    // Dentro de onSubmit, antes de llamar a registerUser:
-    if (EMAIL_VERIFICATION_ENABLED) {
-      const code = otp.join("");
-      if (code.length !== 6) {
-        setError("email", { type: "manual", message: "Ingresa el código de verificación completo" });
-        return;
+  if (esEstudiante) {
+    clean.nombre = `${clean.nombres} ${clean.apellidoPaterno} ${clean.apellidoMaterno}`.trim();
+    delete clean.nombres;
+    delete clean.apellidoPaterno;
+    delete clean.apellidoMaterno;
+  }
+  
+  // ✅ Validación OTP - solo verificar que esté completo
+  // Validación OTP en onSubmit
+if (EMAIL_VERIFICATION_ENABLED) {
+  const code = otp.join("");
+  if (code.length !== 6) {
+    setOtpErrorLocal("📝 Ingresa el código de verificación completo (6 dígitos)");
+    return;
+  }
+  if (otpExpirySeconds === 0) {
+    setOtpErrorLocal("El código ha expirado. Haz clic en 'Reenviar código' para obtener uno nuevo.");
+    return;
+  }
+}
+
+  registerUser({ ...clean, otpCode: otp.join("") }, {
+    onError: (error) => {
+      const errorMsg = error?.response?.data?.message || error.message || "Error al registrar usuario";
+      const msgLower = errorMsg.toLowerCase();
+
+      // Detectar errores de OTP
+      if (msgLower.includes("otp") || 
+          msgLower.includes("código de verificación") || 
+          (msgLower.includes("código") && msgLower.includes("expir")) ||
+          (msgLower.includes("invalid") && msgLower.includes("code"))) {
+        
+        let mensajeMostrar = "";
+        
+        // 🔥 LÓGICA CORREGIDA: Usar el contador para determinar el mensaje
+        if (otpExpirySeconds === 0) {
+          // Si el contador ya llegó a 0, definitivamente es expiración
+          mensajeMostrar = "⏰ El código de verificación ha expirado. Solicita uno nuevo.";
+        } else if (otpExpirySeconds > 0) {
+          // Si aún hay tiempo, el código es incorrecto (aunque el backend diga expirado)
+          mensajeMostrar = "El código de verificación es incorrecto. Intenta nuevamente.";
+        } else {
+          // Fallback: usar el mensaje del backend
+          if (msgLower.includes("expir") || msgLower.includes("expirado") || msgLower.includes("tiempo")) {
+            mensajeMostrar = "El código de verificación ha expirado. Solicita uno nuevo.";
+          } else {
+            mensajeMostrar = "El código de verificación es incorrecto. Intenta nuevamente.";
+          }
+        }
+        
+        setOtpErrorLocal(mensajeMostrar);
+        return; // Salir para no duplicar
       }
-      if (otpExpirySeconds === 0) {
-        setError("email", { type: "manual", message: "El código ha expirado. Solicita uno nuevo." });
-        return;
+
+      // Resto de errores...
+      if (msgLower.includes("dni")) {
+        setError("dni", { type: "server", message: errorMsg });
+        setStep(0);
+      }
+      else if (msgLower.includes("ruc")) {
+        setError("ruc", { type: "server", message: errorMsg });
+        setStep(0);
+      }
+      else if (msgLower.includes("correo") || msgLower.includes("email")) {
+        setError("email", { type: "server", message: errorMsg });
+        setStep(EMAIL_VERIFICATION_ENABLED ? 2 : 1);
+      }
+      else if (msgLower.includes("código") || msgLower.includes("codigo")) {
+        setError("codigoEstudiante", { type: "server", message: errorMsg });
+        setStep(EMAIL_VERIFICATION_ENABLED ? 1 : 2);
+      }
+      else if (msgLower.includes("teléfono") || msgLower.includes("telefono")) {
+        setError("telefono", { type: "server", message: errorMsg });
+        setStep(EMAIL_VERIFICATION_ENABLED ? 1 : 2);
       }
     }
-
-    // ✅ Incluir otpCode
-    registerUser({ ...clean, otpCode: otp.join("") }, {
-      onError: (error) => {
-        const errorMsg = error?.response?.data?.message || error.message || "Error al registrar usuario";
-        const msgLower = errorMsg.toLowerCase();
-
-        if (msgLower.includes("dni")) {
-          setError("dni", { type: "server", message: errorMsg });
-          setStep(0);
-        }
-        else if (msgLower.includes("ruc")) {
-          setError("ruc", { type: "server", message: errorMsg });
-          setStep(0);
-        }
-        else if (msgLower.includes("correo") || msgLower.includes("email")) {
-          setError("email", { type: "server", message: errorMsg });
-          setStep(EMAIL_VERIFICATION_ENABLED ? 2 : 1);
-        }
-        else if (msgLower.includes("código") || msgLower.includes("codigo")) {
-          setError("codigoEstudiante", { type: "server", message: errorMsg });
-          setStep(EMAIL_VERIFICATION_ENABLED ? 1 : 2);
-        }
-        else if (msgLower.includes("teléfono") || msgLower.includes("telefono")) {
-          setError("telefono", { type: "server", message: errorMsg });
-          setStep(EMAIL_VERIFICATION_ENABLED ? 1 : 2);
-        }
-      }
-    });
-  };
+  });
+};
 
   const eye = (show, setShow) => (
     <button type="button"
@@ -628,13 +657,16 @@ const otpExpiryTimerRef = useRef(null);
   };
 
   const handleOtpChange = (index, value) => {
-  if (!/^\d*$/.test(value)) return;
-  const newOtp = [...otp];
-  newOtp[index] = value;
-  setOtp(newOtp);
-  setOtpErrorLocal(""); // <-- CAMBIADO
-  if (value && index < 5) otpRefs.current[index + 1]?.focus();
-};
+    if (!/^\d*$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    
+    // 🔥 Limpiar error cuando el usuario cambia CUALQUIER dígito
+    setOtpErrorLocal("");
+    
+    if (value && index < 5) otpRefs.current[index + 1]?.focus();
+  };
 
   const handleOtpKeyDown = (index, e) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
@@ -684,51 +716,62 @@ const otpExpiryTimerRef = useRef(null);
         });
       }, 1000);
 
-      console.log("📧 OTP enviado a:", emailActual);
+      console.log("OTP enviado a:", emailActual);
     } catch (err) {
-      otpEnviadoRef.current = false;
-      setOtpEnviado(false);
-      const msg = err.response?.data?.message || err.message || "Error al enviar el código";
-      setOtpErrorLocal(msg);
-    } finally {
-      setSendingOtp(false);
+    otpEnviadoRef.current = false;
+    setOtpEnviado(false);
+    const msg = err.response?.data?.message || err.message || "Error al enviar el código";
+    // Mostrar mensaje más amigable
+    if (msg.toLowerCase().includes("timeout") || msg.toLowerCase().includes("tiempo")) {
+      setOtpErrorLocal("⏱️ El servidor tardó en responder. Intenta nuevamente.");
+    } else {
+      setOtpErrorLocal("❌ " + msg);
     }
-  };
+  } finally {
+    setSendingOtp(false);
+  }
+};
 
   const handleResendOtp = async () => {
-    if (otpExpirySeconds > 0) return; // No reenviar si el contador está activo
+  // 🔥 PERMITIR reenviar incluso si el contador está en 0
+  // (antes tenía if (otpExpirySeconds > 0) return;)
 
-    setOtpSending(true);
-    setOtpErrorLocal("");
-    setOtp(["", "", "", "", "", ""]); // Limpiar inputs
+  setOtpSending(true);
+  setOtpErrorLocal("");
+  setOtp(["", "", "", "", "", ""]); // Limpiar inputs
 
-    try {
-      const emailActual = watch("email");
-      await authRecoveryApi.sendVerificationOtp(emailActual);
-      setOtpEnviado(true);
-      otpEnviadoRef.current = true;
+  try {
+    const emailActual = watch("email");
+    await authRecoveryApi.sendVerificationOtp(emailActual);
+    setOtpEnviado(true);
+    otpEnviadoRef.current = true;
+    
+    // 🔥 REINICIAR el contador a 600 segundos
+    setOtpExpirySeconds(600);
 
-      if (otpExpiryTimerRef.current) {
-        clearInterval(otpExpiryTimerRef.current);
-      }
-      otpExpiryTimerRef.current = setInterval(() => {
-        setOtpExpirySeconds(prev => {
-          if (prev <= 1) {
-            clearInterval(otpExpiryTimerRef.current);
-            otpExpiryTimerRef.current = null;
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } catch {
-      otpEnviadoRef.current = false;
-    } finally {
-      setOtpSending(false);
+    if (otpExpiryTimerRef.current) {
+      clearInterval(otpExpiryTimerRef.current);
     }
-  };
+    otpExpiryTimerRef.current = setInterval(() => {
+      setOtpExpirySeconds(prev => {
+        if (prev <= 1) {
+          clearInterval(otpExpiryTimerRef.current);
+          otpExpiryTimerRef.current = null;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  } catch (err) {
+    otpEnviadoRef.current = false;
+    setOtpEnviado(false);
+    const msg = err.response?.data?.message || err.message || "Error al enviar el código";
+    setOtpErrorLocal("❌ " + msg);
+  } finally {
+    setOtpSending(false);
+  }
+};
 
-  
 
   const isDniSearchBlocked = dniCooldown || isLoadingDni;
   const isRucSearchBlocked = rucCooldown || isLoadingRuc;
@@ -1386,8 +1429,10 @@ const otpExpiryTimerRef = useRef(null);
                     ))}
                   </div>
 
+                  {/* 🔥 SOLO UN MENSAJE DE ERROR */}
                   {otpErrorLocal && <p style={{ fontSize: 13, color: "#EF4444", margin: 0 }}>{otpErrorLocal}</p>}
 
+                  {/* 🔥 CONTADOR SIEMPRE visible cuando hay tiempo, incluso si hay error */}
                   {otpExpirySeconds > 0 && (
                     <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: otpExpirySeconds < 60 ? "#EF4444" : "#6B7280", fontWeight: 500 }}>
                       <Clock size={14} color={otpExpirySeconds < 60 ? "#EF4444" : "#6B7280"} />
@@ -1399,29 +1444,27 @@ const otpExpiryTimerRef = useRef(null);
                       </span>
                     </div>
                   )}
+                  
+                  {/* 🔥 Botón "Reenviar código" SIEMPRE visible cuando no hay tiempo */}
                   {otpExpirySeconds === 0 && (
-                    <>
-                      <p style={{ fontSize: 13, color: "#EF4444", fontWeight: 500, margin: 0 }}>
-                        El código ha expirado. Solicita uno nuevo.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={handleResendOtp}
-                        disabled={otpSending}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: otpSending ? "#9CA3AF" : "#1B6FE8",
-                          fontSize: 13,
-                          fontWeight: 600,
-                          cursor: otpSending ? "not-allowed" : "pointer",
-                          fontFamily: "Arial, sans-serif",
-                          padding: "4px 8px",
-                        }}
-                      >
-                        {otpSending ? <Loader2 size={14} className="animate-spin" /> : "Reenviar código"}
-                      </button>
-                    </>
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      disabled={otpSending}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: otpSending ? "#9CA3AF" : "#1B6FE8",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: otpSending ? "not-allowed" : "pointer",
+                        fontFamily: "Arial, sans-serif",
+                        padding: "4px 8px",
+                        marginTop: 4,
+                      }}
+                    >
+                      {otpSending ? <Loader2 size={14} className="animate-spin" /> : "Reenviar código"}
+                    </button>
                   )}
                 </>
               )}
@@ -1431,7 +1474,10 @@ const otpExpiryTimerRef = useRef(null);
 
         {/* Backend error display - solo si no hay errores de campo específicos */}
         <AnimatePresence>
-          {showBackendError && backendError && !errors.dni && !errors.ruc && !errors.email && !errors.codigoEstudiante && !errors.telefono && (
+          {showBackendError && backendError && 
+            !errors.dni && !errors.ruc && !errors.email && !errors.codigoEstudiante && !errors.telefono && 
+            !backendError.toLowerCase().includes("otp") && 
+            !backendError.toLowerCase().includes("código de verificación") && (
             <motion.div
               initial={{ opacity: 0, y: -8, height: 0 }}
               animate={{ opacity: 1, y: 0, height: "auto" }}
