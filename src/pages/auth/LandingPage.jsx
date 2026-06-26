@@ -9,6 +9,7 @@ import {
   Mail, MapPin, Menu, X
 } from "lucide-react";
 import { Logo } from "@shared/ui/Logo";
+import { TermsModal } from "./components/TermsModal";
 
 /* ════════════════════════════════════════════
    ANIMACIÓN SVG DEL HERO — red viva MYPE↔Plataforma↔Estudiante
@@ -257,15 +258,6 @@ function HeroAnimation() {
           </motion.g>
         ))}
 
-        {/* ══ Label "ENTREGABLES" en arco superior ══ */}
-        <motion.g animate={{opacity:[0,0.85,0,0.85,0]}}
-          transition={{duration:5,delay:5.5,repeat:Infinity,ease:"easeInOut"}}>
-          <rect x="248" y="50" width="108" height="19" rx="4"
-            fill="rgba(212,88,10,0.15)" stroke="rgba(212,88,10,0.4)" strokeWidth="1"/>
-          <text x="302" y="64" textAnchor="middle" fontSize="8.5" fontWeight="700"
-            fontFamily="Arial,sans-serif" letterSpacing="1.8"
-            fill="rgba(245,158,11,0.95)">ENTREGABLES ✓</text>
-        </motion.g>
 
         {/* ══ Pulso de éxito ══ */}
         <motion.circle cx={PL.cx} cy={PL.cy} r={PL.r}
@@ -329,6 +321,17 @@ const CATEGORIAS = [
 export function LandingPage() {
   const [scrolled, setScrolled]       = useState(false);
   const [mobileMenuOpen, setMobile]   = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);  
+  const [modalType, setModalType] = useState("terminos");
+
+  const openModal = (type) => {
+    setModalType(type);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+  };
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 32);
@@ -780,7 +783,7 @@ export function LandingPage() {
               <div className="s-rule" />
               <p style={{ fontFamily: F, fontSize: 11, fontWeight: 400, letterSpacing: ".12em", textTransform: "uppercase", color: "#8888a0", marginBottom: 14 }}>Qué hacemos</p>
               <h2 style={{ fontFamily: F, fontSize: "clamp(26px,3vw,40px)", fontWeight: 400, color: "#0f1f3d", letterSpacing: "-.02em", marginBottom: 12 }}>
-                Cuatro áreas de especialidad
+                Áreas de especialidad
               </h2>
               <p style={{ fontFamily: F, fontSize: 15, fontWeight: 400, color: "#6b6b7a", maxWidth: 500, lineHeight: 1.7 }}>
                 Cobertura completa de las necesidades tecnológicas más comunes para impulsar tu empresa.
@@ -836,7 +839,7 @@ export function LandingPage() {
                 <div className="benefit-card">
                   {[
                     { num: "01", color: "#1B6FE8", title: "Cero barreras técnicas",              desc: "Nuestro Asistente Inteligente redacta el proyecto técnico por ti a partir de preguntas simples. Solo cuéntanos el problema de tu negocio." },
-                    { num: "02", color: "#8B5CF6", title: "Tu equipo de RRHH especializado",     desc: "Conocemos la carrera y sabemos qué perfiles técnicos necesita cada proyecto. Gestionamos la selección completa y te presentamos al candidato ideal." },
+                    { num: "02", color: "#8B5CF6", title: "Tu equipo de RRHH dedicado",     desc: "Conocemos la carrera y sabemos qué perfiles técnicos necesita cada proyecto. Gestionamos la selección completa y te presentamos al candidato ideal." },
                     { num: "03", color: "#059669", title: "Claridad total desde el día uno",     desc: "Tu empresa sabrá exactamente qué va a recibir: código fuente, manuales, prototipos. Las fechas se acuerdan según la complejidad real del proyecto." },
                   ].map(r => (
                     <div key={r.title} className="rule-item">
@@ -991,7 +994,7 @@ export function LandingPage() {
               color: "#6b6b7a", 
               lineHeight: 1.7 
             }}>
-              Linkuy es completamente gratuito para empresas y una oportunidad real de portafolio para estudiantes. Sin compromisos.
+              Linkuy es completamente gratuito para empresas y una oportunidad real de portafolio para estudiantes.
             </p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -1061,14 +1064,6 @@ export function LandingPage() {
                 <p style={{ fontFamily: F, fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,.28)", lineHeight: 1.7, maxWidth: 260, marginBottom: 24 }}>
                   Puente académico-empresarial que conecta empresas con talento universitario de ingeniería para resolver necesidades tecnológicas reales.
                 </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {[{ icon: MapPin, l: "Cajamarca, Perú" }, { icon: Mail, l: "contacto@mypelink.pe" }].map(c => (
-                    <div key={c.l} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <c.icon size={12} color="rgba(255,255,255,.22)" />
-                      <span style={{ fontFamily: F, fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,.22)" }}>{c.l}</span>
-                    </div>
-                  ))}
-                </div>
               </div>
 
               <div>
@@ -1104,14 +1099,45 @@ export function LandingPage() {
             <div style={{ borderTop: "1px solid rgba(255,255,255,.06)", paddingTop: 24, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14 }}>
               <p style={{ fontFamily: F, fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,.16)" }}>© 2026 Linkuy · Proyecto Capstone</p>
               <div style={{ display: "flex", gap: 20 }}>
-                {["Términos de uso", "Privacidad"].map(l => (
-                  <span key={l} style={{ fontFamily: F, fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,.16)", cursor: "pointer" }}>{l}</span>
-                ))}
+                <span 
+                  onClick={() => openModal("terminos")}
+                  style={{ 
+                    fontFamily: F, 
+                    fontSize: 12, 
+                    fontWeight: 400, 
+                    color: "rgba(255,255,255,.16)", 
+                    cursor: "pointer",
+                    transition: "color 0.2s",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = "rgba(255,255,255,.6)"}
+                  onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,.16)"}
+                >
+                  Términos de uso
+                </span>
+                <span 
+                  onClick={() => openModal("privacidad")}
+                  style={{ 
+                    fontFamily: F, 
+                    fontSize: 12, 
+                    fontWeight: 400, 
+                    color: "rgba(255,255,255,.16)", 
+                    cursor: "pointer",
+                    transition: "color 0.2s",
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = "rgba(255,255,255,.6)"}
+                  onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,.16)"}
+                >
+                  Privacidad
+                </span>
               </div>
             </div>
           </div>
         </footer>
-
+        <TermsModal 
+          isOpen={modalOpen} 
+          onClose={closeModal} 
+          type={modalType} 
+        />
       </div>
     </>
   );
