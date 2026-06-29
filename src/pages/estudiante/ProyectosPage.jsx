@@ -732,7 +732,7 @@ const ProyectosPage = () => {
   };
 
   return (
-    <div style={{ fontFamily: FONT, background: "#F8FAFC", minHeight: "100vh", padding: "20px", maxWidth: 1200, margin: "0 auto" }}>
+    <div style={{ fontFamily: FONT, background: "#F8FAFC", minHeight: "100vh", padding: "32px 32px", maxWidth: 1400, margin: "0 auto" }}>
 
       {/* Hero Command Center */}
       <ProyectosCommandCenter totalDisponibles={proyectos.length} totalPostulaciones={postulaciones?.length || 0} />
