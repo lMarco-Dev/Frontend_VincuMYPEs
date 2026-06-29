@@ -532,18 +532,53 @@ const otpExpiryTimerRef = useRef(null);
     // Si estamos en el último paso (OTP), no hacer nada con Enter
     if (step >= TOTAL_STEPS - 1) return;
     
-    // 🔥 CRÍTICO: Validar que el paso actual sea válido antes de avanzar
+    // 🔥 VALIDACIÓN ESPECÍFICA PARA EL PASO DE CONTRASEÑAS
+    if (step === 2 && EMAIL_VERIFICATION_ENABLED) {
+      const pass = watch("password");
+      const confirmPass = watch("confirmPassword");
+      
+      let hasError = false;
+      
+      // Validar contraseña
+      if (!pass || pass.length < 8) {
+        setError("password", { message: "La contraseña debe tener al menos 8 caracteres" });
+        trigger("password");
+        hasError = true;
+      } else if (!PASS_RE.test(pass)) {
+        setError("password", { message: "La contraseña debe tener mayúscula, minúscula, número y símbolo" });
+        trigger("password");
+        hasError = true;
+      }
+      
+      // Validar confirmación
+      if (!confirmPass || confirmPass.length === 0) {
+        setError("confirmPassword", { message: "Confirma tu contraseña" });
+        trigger("confirmPassword");
+        hasError = true;
+      } else if (pass !== confirmPass) {
+        setError("confirmPassword", { message: "Las contraseñas no coinciden" });
+        trigger("confirmPassword");
+        hasError = true;
+      }
+      
+      // Si hay errores, no avanzar
+      if (hasError) return;
+      
+      // Si todo está bien, avanzar
+      handleNext();
+      return;
+    }
+    
+    // Para cualquier otro caso, usar la validación normal
     if (isCurrentStepValid) {
       handleNext();
     } else {
-      // Disparar validación de todos los campos del paso actual para mostrar errores
+      // Disparar validación para mostrar errores
       const fieldsToValidate = step === 0
         ? (esEstudiante ? ["dni", "nombres", "apellidoPaterno", "apellidoMaterno"] : ["ruc", "nombre", "nombreComercial", "direccion"])
         : step === 1 && EMAIL_VERIFICATION_ENABLED
           ? (esEstudiante ? ["universidad", "carrera", "telefono", "codigoEstudiante"] : ["rubro", "telefono"])
-          : step === 2 && EMAIL_VERIFICATION_ENABLED
-            ? ["email", "password", "confirmPassword"]
-            : ["email", "password", "confirmPassword"];
+          : ["email", "password", "confirmPassword"];
       
       trigger(fieldsToValidate);
     }
