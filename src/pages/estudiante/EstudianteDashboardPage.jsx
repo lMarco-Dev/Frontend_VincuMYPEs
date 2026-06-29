@@ -291,35 +291,113 @@ const ProjectCard = ({ proyecto, isViewed = false, onView }) => {
   };
 
   return (
-    <motion.div
-      onClick={handleClick}
-      style={{
-        background: isViewed ? '#F8FAFC' : '#FCFDFD',
-        border: '1px solid #F1F5F9',
-        borderRadius: 14,
-        padding: '14px 16px',
-        display: 'flex', flexDirection: 'column',
-        justifyContent: 'space-between',
-        cursor: 'pointer',
-        boxShadow: '0 2px 4px rgba(15,23,42,0.01)',
-      }}
-      whileHover={{ background: '#FFFDF5', borderColor: '#FEF3C7', boxShadow: '0 4px 8px rgba(15,23,42,0.04)' }}
-      transition={{ duration: 0.15 }}
-    >
-      <div style={{ marginBottom: 10 }}>
-        <div style={{ fontSize: 11, fontFamily: FONT, color: '#94A3B8', fontWeight: 500, marginBottom: 4 }}>
-          {proyecto.mypeNombre || proyecto.nombre || 'MYPE'}
+    <>
+      <style>
+        {`
+          .saas-project-card:hover .project-card-cta {
+            background-color: #1B6FE8;
+            color: #FFFFFF;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(27,111,232,0.25);
+          }
+          .saas-project-card:hover .project-card-cta svg {
+            color: #FFFFFF;
+          }
+        `}
+      </style>
+      <motion.div
+        className="saas-project-card"
+        onClick={handleClick}
+        style={{
+          background: isViewed ? '#F8FAFC' : '#FFFFFF',
+          border: `1px solid ${isViewed ? '#F1F5F9' : '#E2E8F0'}`,
+          borderRadius: 14,
+          padding: '14px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          boxShadow: isViewed 
+            ? '0 1px 3px rgba(15,23,42,0.01)' 
+            : '0 2px 4px rgba(15,23,42,0.02)',
+          position: 'relative',
+        }}
+        whileHover={{ 
+          y: -2, 
+          boxShadow: '0 8px 24px -8px rgba(15,23,42,0.08)',
+          borderColor: '#BFDBFE',
+        }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      >
+        <div style={{ marginBottom: 10 }}>
+          {/* MYPE nombre */}
+          <div style={{ 
+            fontSize: 11, 
+            fontFamily: FONT, 
+            color: '#94A3B8', 
+            fontWeight: 500, 
+            marginBottom: 4,
+            letterSpacing: '0.02em',
+          }}>
+            {proyecto.mypeNombre || proyecto.nombre || 'MYPE'}
+          </div>
+          
+          {/* Título */}
+          <div style={{ 
+            fontSize: 13, 
+            fontFamily: FONT, 
+            fontWeight: 600, 
+            color: '#0F1F3D', 
+            lineHeight: 1.35,
+            display: '-webkit-box', 
+            WebkitLineClamp: 2, 
+            WebkitBoxOrient: 'vertical', 
+            overflow: 'hidden'
+          }}>
+            {proyecto.titulo}
+          </div>
         </div>
-        <div style={{ fontSize: 13, fontFamily: FONT, fontWeight: 600, color: '#0F1F3D', lineHeight: 1.35 }}>
-          {proyecto.titulo}
+
+        {/* Footer con botón CTA */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          paddingTop: 8, 
+          borderTop: '1px solid #F1F5F9',
+        }}>
+          <span style={{ 
+            fontSize: 10, 
+            fontFamily: FONT, 
+            fontWeight: 500, 
+            color: isViewed ? '#94A3B8' : '#059669' 
+          }}>
+            {isViewed ? 'Visto' : 'Nueva oportunidad'}
+          </span>
+
+          <span 
+            className="project-card-cta"
+            style={{ 
+              fontSize: 11, 
+              fontFamily: FONT, 
+              fontWeight: 600, 
+              color: '#1B6FE8', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 4,
+              padding: '4px 12px',
+              borderRadius: 20,
+              background: '#EFF6FF',
+              transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+              cursor: 'pointer',
+            }}
+          >
+            Postular 
+            <ArrowRight size={11} style={{ color: '#1B6FE8', transition: 'color 0.3s' }} />
+          </span>
         </div>
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 8, borderTop: '1px solid #F1F5F9' }}>
-        <span style={{ fontSize: 11, fontFamily: FONT, fontWeight: 600, color: '#1B6FE8', display: 'flex', alignItems: 'center', gap: 3 }}>
-          Postular <ArrowRight size={11} />
-        </span>
-      </div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 };
 
@@ -554,7 +632,7 @@ const HeroBanner = ({ totalPostulaciones = 0, aceptados = 0, certificados = 0 })
       style={{
         position: 'relative', overflow: 'hidden', borderRadius: 24,
         background: `linear-gradient(135deg, ${C.navyDeep} 0%, ${C.navyMid} 55%, ${C.navySoft} 100%)`,
-        padding: '28px 40px', color: '#fff',
+        padding: '68px 40px', color: '#fff',
         marginBottom: 20, minHeight: 160,
         display: 'flex', alignItems: 'center',
         boxShadow: '0 24px 48px -28px rgba(10,22,40,0.7)',
@@ -735,7 +813,7 @@ const EstudianteDashboardPage = () => {
   };
 
   return (
-    <div style={{ fontFamily: FONT, background:'#f8fafc', minHeight:'100vh', padding:'32px 20px', maxWidth:1200, margin:'0 auto' }}>
+    <div style={{ fontFamily: FONT, background:'#f8fafc', minHeight:'100vh', padding:'32px 32px', maxWidth:1400, margin:'0 auto' }}>
       <style>{`
         @keyframes vping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
         @keyframes vpulse { 0%,100%{opacity:1} 50%{opacity:.45} }
@@ -827,128 +905,249 @@ const EstudianteDashboardPage = () => {
       )}
 
       {/* ── FILA 1: Proyectos recomendados 60% | Actividad reciente 40% ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '60fr 40fr', gap: 20, alignItems: 'stretch', marginBottom: 20 }}>
+<div style={{ display: 'grid', gridTemplateColumns: '60fr 40fr', gap: 20, alignItems: 'stretch', marginBottom: 20 }}>
 
-        <Panel delay={0.20} style={{
-          height: '100%', boxSizing: 'border-box',
-          background: '#FFFFFF',
-          border: '1px solid #E5E7EB',
-          boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
-        }}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-            <div style={S.sectionTitle}><span style={{ ...S.sectionBar, background:'#F59E0B' }} />Proyectos recomendados</div>
-            <Link to="/proyectos" style={{ ...S.seeAll, color:'#D97706' }}>Explorar todos <ArrowRight size={12} /></Link>
-          </div>
-          {loadingProyectos ? (
-            <div style={{ padding:36, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT }}>
-              <svg style={{ animation:'spin 1s linear infinite', height:20, width:20, color:'#1B6FE8', display:'block', margin:'0 auto 8px' }} viewBox="0 0 24 24">
-                <circle style={{ opacity:0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path style={{ opacity:0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Buscando las mejores oportunidades…
-            </div>
-          ) : proyectosRecomendados.length === 0 ? (
-            <div style={{ padding:36, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT, border:'1px dashed #E2E8F0', borderRadius:10 }}>
-              No hay proyectos disponibles por el momento.
-            </div>
-          ) : (
-            <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:14 }}>
-              {proyectosRecomendados.map(p => (
-                <ProjectCard
-                  key={p.id}
-                  proyecto={p}
-                  isViewed={viewed.has(String(p.id))}
-                  onView={markViewed}
-                />
-              ))}
-            </div>
-          )}
-        </Panel>
-
-        <Panel delay={0.22} style={{
-          height: '100%', boxSizing: 'border-box',
-          background: '#FFFFFF',
-          border: '1px solid #E5E7EB',
-          boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
-        }}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-            <div style={S.sectionTitle}><span style={{ ...S.sectionBar, background:'#06B6D4' }} />Actividad reciente<CountChip count={activityItems.filter(n => !n.leida).length} /></div>
-            <button
-              onClick={() => setIsNotifPanelOpen(true)}
-              style={{ ...S.seeAll, background: 'none', border: 'none', padding: 0, color:'#0891B2' }}
-            >
-              Ver todo <ArrowRight size={12} />
-            </button>
-          </div>
-          {loadingNotificaciones ? (
-            <div style={{ padding:16, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT }}>Cargando actividad…</div>
-          ) : activityItems.length === 0 ? (
-            <div style={{ padding:20, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT, border:'1px dashed #E2E8F0', borderRadius:10 }}>
-              No hay actividad reciente.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {activityItems.map((item, index) => {
-                const key = item.id || index;
-                const isOpen = expandido === key;
-                const url = item.urlReferencia
-                  ? (item.urlReferencia.startsWith('/') ? item.urlReferencia : `/${item.urlReferencia}`)
-                  : null;
-                const clickable = url && (url.startsWith('/mis-postulaciones') || url.startsWith('/proyectos'));
-                return (
-                  <div
-                    key={key}
-                    onClick={() => {
-                      if (!item.leida) leerNotificacion(item.id);
-                      setExpandido(isOpen ? null : key);
-                    }}
-                    onMouseEnter={e => { if (clickable || item.mensaje) e.currentTarget.style.background = '#F0FFFE'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = item.leida ? '#FFFFFF' : '#F0FFFE'; }}
-                    style={{
-                      borderLeft:   '3px solid #E2E8F0',
-                      borderRadius: 8,
-                      padding:      '10px 14px',
-                      cursor:       (clickable || item.mensaje) ? 'pointer' : 'default',
-                      background:   item.leida ? '#FFFFFF' : '#EFF6FF',
-                      transition:   'background 0.3s ease',
-                      marginBottom: 6,
-                      flexShrink:   0,
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ fontSize: 13, fontFamily: FONT, fontWeight: 600, color: '#0F1F3D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, marginRight: 8 }}>
-                        {item.titulo}
-                      </div>
-                      {item.mensaje && (
-                        <ChevronRight size={14} color="#9CA3AF" style={{ flexShrink: 0, transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
-                      )}
-                    </div>
-                    <div style={{ fontSize: 11, fontFamily: FONT, color: '#94A3B8', marginTop: 2 }}>
-                      {tiempoRelativo(item.fechaCreacion)}
-                    </div>
-                    {isOpen && item.mensaje && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
-                        <div style={{ fontSize: 12, fontFamily: FONT, color: '#64748B', marginTop: 8, paddingTop: 8, borderTop: '1px solid #F1F5F9' }}>
-                          {item.mensaje}
-                        </div>
-                        {clickable && (
-                          <button
-                            onClick={e => { e.stopPropagation(); navigate(url); }}
-                            style={{ marginTop: 8, fontSize: 11, fontFamily: FONT, fontWeight: 600, color: '#1B6FE8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, padding: 0 }}
-                          >
-                            Ver detalle <ArrowRight size={11} />
-                          </button>
-                        )}
-                      </motion.div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Panel>
-
+  <Panel delay={0.20} style={{
+    height: '100%', boxSizing: 'border-box',
+    background: '#FFFFFF',
+    border: '1px solid #E5E7EB',
+    boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
+  }}>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+      <div style={S.sectionTitle}><span style={{ ...S.sectionBar, background:'#F59E0B' }} />Proyectos recomendados</div>
+      <Link to="/proyectos" style={{ ...S.seeAll, color:'#D97706' }}>Explorar todos <ArrowRight size={12} /></Link>
+    </div>
+    {loadingProyectos ? (
+      <div style={{ padding:36, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT }}>
+        <svg style={{ animation:'spin 1s linear infinite', height:20, width:20, color:'#1B6FE8', display:'block', margin:'0 auto 8px' }} viewBox="0 0 24 24">
+          <circle style={{ opacity:0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+          <path style={{ opacity:0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        </svg>
+        Buscando las mejores oportunidades…
       </div>
+    ) : proyectosRecomendados.length === 0 ? (
+      <div style={{ padding:36, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT, border:'1px dashed #E2E8F0', borderRadius:10 }}>
+        No hay proyectos disponibles por el momento.
+      </div>
+    ) : (
+      <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:14 }}>
+        {proyectosRecomendados.map(p => (
+          <ProjectCard
+            key={p.id}
+            proyecto={p}
+            isViewed={viewed.has(String(p.id))}
+            onView={markViewed}
+          />
+        ))}
+      </div>
+    )}
+  </Panel>
+
+  {/* ════════════════════════════════════════════════
+      PANEL DE ACTIVIDAD RECIENTE - NUEVO DISEÑO WHATSAPP
+      ════════════════════════════════════════════════ */}
+  <Panel delay={0.22} style={{
+    height: '100%', boxSizing: 'border-box',
+    background: '#FFFFFF',
+    border: '1px solid #E5E7EB',
+    boxShadow: '0 2px 8px rgba(15,23,42,0.06)',
+  }}>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+      <div style={S.sectionTitle}>
+        <span style={{ ...S.sectionBar, background:'#06B6D4' }} />
+        Actividad reciente
+        {activityItems.filter(n => !n.leida).length > 0 && (
+          <span style={{
+            background: '#1B6FE8',
+            color: '#FFFFFF',
+            fontSize: 9,
+            fontWeight: 700,
+            borderRadius: 10,
+            padding: '1px 8px',
+            marginLeft: 4,
+            fontFamily: FONT,
+          }}>
+            {activityItems.filter(n => !n.leida).length}
+          </span>
+        )}
+      </div>
+      <button
+        onClick={() => setIsNotifPanelOpen(true)}
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          color: '#0891B2',
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
+          fontFamily: FONT,
+        }}
+      >
+        Ver todo <ArrowRight size={12} />
+      </button>
+    </div>
+
+    {loadingNotificaciones ? (
+      <div style={{ padding:16, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT }}>Cargando actividad…</div>
+    ) : activityItems.length === 0 ? (
+      <div style={{ padding:20, textAlign:'center', color:'#94A3B8', fontSize:12, fontFamily:FONT, border:'1px dashed #E2E8F0', borderRadius:10 }}>
+        No hay actividad reciente.
+      </div>
+    ) : (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {activityItems.map((item, index) => {
+          const key = item.id || index;
+          const isOpen = expandido === key;
+          const isLeida = item.leida;
+          const url = item.urlReferencia
+            ? (item.urlReferencia.startsWith('/') ? item.urlReferencia : `/${item.urlReferencia}`)
+            : null;
+          const clickable = url && (url.startsWith('/mis-postulaciones') || url.startsWith('/proyectos'));
+
+          return (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.04 }}
+              onClick={() => {
+                if (!isLeida) leerNotificacion(item.id);
+                setExpandido(isOpen ? null : key);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 12,
+                padding: '12px 16px',
+                borderRadius: 12,
+                background: isLeida ? 'transparent' : '#EFF6FF',
+                cursor: 'pointer',
+                transition: 'background 0.2s ease',
+                position: 'relative',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = isLeida ? '#F8FAFC' : '#DBEAFE';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = isLeida ? 'transparent' : '#EFF6FF';
+              }}
+            >
+              {/* Indicador de no leído (punto azul estilo WhatsApp) */}
+              {!isLeida && (
+                <div style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: '#1B6FE8',
+                  flexShrink: 0,
+                  marginTop: 5,
+                }} />
+              )}
+
+              {/* Contenido */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: isLeida ? 500 : 600,
+                  color: isLeida ? '#64748B' : '#0F1F3D',
+                  lineHeight: 1.4,
+                  fontFamily: FONT,
+                }}>
+                  {item.titulo}
+                </div>
+
+                <div style={{
+                  fontSize: 11,
+                  color: '#94A3B8',
+                  marginTop: 2,
+                  fontFamily: FONT,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}>
+                  {tiempoRelativo(item.fechaCreacion)}
+                  {isLeida && (
+                    <span style={{
+                      fontSize: 9,
+                      color: '#94A3B8',
+                      background: '#F1F5F9',
+                      padding: '0px 6px',
+                      borderRadius: 4,
+                    }}>
+                      Leído
+                    </span>
+                  )}
+                </div>
+
+                {/* Mensaje expandido */}
+                {isOpen && item.mensaje && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <div style={{
+                      fontSize: 12,
+                      color: '#475569',
+                      marginTop: 8,
+                      paddingTop: 8,
+                      borderTop: '1px solid #F1F5F9',
+                      lineHeight: 1.5,
+                      fontFamily: FONT,
+                    }}>
+                      {item.mensaje}
+                    </div>
+                    {clickable && (
+                      <button
+                        onClick={e => { e.stopPropagation(); navigate(url); }}
+                        style={{
+                          marginTop: 8,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: '#1B6FE8',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 3,
+                          padding: 0,
+                          fontFamily: FONT,
+                        }}
+                      >
+                        Ver detalle <ArrowRight size={11} />
+                      </button>
+                    )}
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Flecha expandir */}
+              {item.mensaje && (
+                <motion.div
+                  animate={{ rotate: isOpen ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  style={{
+                    flexShrink: 0,
+                    marginTop: 2,
+                    color: '#94A3B8',
+                  }}
+                >
+                  <ChevronRight size={16} />
+                </motion.div>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+    )}
+  </Panel>
+</div>
 
       {/* ── FILA 2: Mi perfil 40% | Calificaciones pendientes 60% ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '40fr 60fr', gap: 20, alignItems: 'stretch' }}>
