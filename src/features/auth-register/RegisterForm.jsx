@@ -752,7 +752,7 @@ if (EMAIL_VERIFICATION_ENABLED) {
       await authRecoveryApi.sendVerificationOtp(emailActual);
       setOtpEnviado(true);
       otpEnviadoRef.current = true;
-      setOtpExpirySeconds(600);
+      setOtpExpirySeconds(120);
 
       if (otpExpiryTimerRef.current) {
         clearInterval(otpExpiryTimerRef.current);
@@ -799,7 +799,7 @@ if (EMAIL_VERIFICATION_ENABLED) {
     otpEnviadoRef.current = true;
     
     // 🔥 REINICIAR el contador a 600 segundos
-    setOtpExpirySeconds(600);
+    setOtpExpirySeconds(120);
 
     if (otpExpiryTimerRef.current) {
       clearInterval(otpExpiryTimerRef.current);
