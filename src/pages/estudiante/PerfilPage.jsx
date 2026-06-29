@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuthStore } from '../../store/authStore';
-import { Mail, Phone, MapPin, Edit2, Loader2, ExternalLink, Save, X, ArrowRight, CheckCircle2, Search } from 'lucide-react';
+import { Mail, Phone, MapPin, Edit2, Loader2, ExternalLink, Save, X, ArrowRight, CheckCircle2, Search,Edit3  } from 'lucide-react';
 import { usePerfil, useUpdatePerfil } from '@features/perfil/usePerfil';
 import { CvUploader } from '@features/perfil/CvUploader';
 import { useMisPostulaciones } from '@features/postulaciones-list/useMisPostulaciones';
@@ -375,72 +375,117 @@ const EditLocationModal = ({ isOpen, onClose, ciudadActual, paisActual, sectorAc
 /* ═══════════════════════════════════════════════
    HERO BANNER — animación conservada intacta
 ═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════
+   HERO BANNER — DISEÑO LIMPIO (sin burbujas/partículas)
+═══════════════════════════════════════════════ */
 const ProfileHeroBanner = ({ user, completitud, displayRol, academicInfo, isEstudiante, onEdit }) => {
-  const canvasRef = useRef(null);
-  const heroRef = useRef(null);
-  React.useEffect(() => {
-    const canvas = canvasRef.current, hero = heroRef.current;
-    if (!canvas || !hero) return;
-    const ctx = canvas.getContext('2d');
-    let W, H, animId;
-    const COLORS = ['rgba(27,111,232,','rgba(6,182,212,','rgba(212,88,10,','rgba(255,255,255,','rgba(16,185,129,'];
-    const resize = () => { W = canvas.width = hero.offsetWidth; H = canvas.height = hero.offsetHeight; };
-    resize();
-    const ro = new ResizeObserver(resize); ro.observe(hero);
-    class RisingParticle {
-      reset() { this.x = Math.random()*W; this.y = H+Math.random()*50; this.size = Math.random()*2.5+0.8; this.speedX = (Math.random()-0.5)*0.3; this.speedY = -(Math.random()*1.2+0.4); this.alpha = Math.random()*0.5+0.2; this.color = COLORS[Math.floor(Math.random()*COLORS.length)]; this.waveFreq = Math.random()*Math.PI*2; }
-      constructor() { this.reset(); }
-      update() { this.x += this.speedX + Math.sin(Date.now()*0.002+this.waveFreq)*0.15; this.y += this.speedY; if (this.y < -20) this.reset(); }
-      draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fillStyle = this.color+this.alpha+')'; ctx.fill(); if (this.size > 1.8) { ctx.shadowBlur = 6; ctx.shadowColor = this.color+this.alpha+')'; ctx.fill(); ctx.shadowBlur = 0; } }
-    }
-    const particles = Array.from({ length: 85 }, () => new RisingParticle());
-    const drawConnections = () => { for (let i=0;i<particles.length;i++) { for (let j=i+1;j<particles.length;j++) { const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy); if (d<70) { ctx.beginPath(); ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y); ctx.strokeStyle=`rgba(27,111,232,${0.05*(1-d/70)})`; ctx.lineWidth=0.5; ctx.stroke(); } } } };
-    const animate = () => { ctx.clearRect(0,0,W,H); drawConnections(); particles.forEach(p=>{p.update();p.draw();}); animId=requestAnimationFrame(animate); };
-    animate();
-    return () => { cancelAnimationFrame(animId); ro.disconnect(); };
-  }, []);
+  const iniciales = user.nombre
+    ?.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase() ?? "U";
 
-  const nombreCompleto = user.nombre || 'Usuario';
   return (
-    <motion.div ref={heroRef} initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.5, delay:0.08, ease:[0.22,1,0.36,1] }}
-      style={{ position:'relative', overflow:'hidden', borderRadius:20, background:'linear-gradient(135deg,#0d1b35,#0f2a4a 60%,#0a2240)', padding:'28px 44px', color:'#fff', marginBottom:24, fontFamily: FONT }}>
-      <style>{`@keyframes heroPulse{0%{box-shadow:0 0 0 0 rgba(74,222,128,0.45)}70%{box-shadow:0 0 0 9px rgba(74,222,128,0)}100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}}@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}@keyframes orbF1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-18px,14px) scale(1.08)}66%{transform:translate(9px,-9px) scale(0.95)}}@keyframes orbF2{0%,100%{transform:translate(0,0)}40%{transform:translate(14px,-18px)}70%{transform:translate(-9px,11px)}}@keyframes orbF3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-13px,18px) scale(1.1)}}`}</style>
-      <canvas ref={canvasRef} style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:0.6, pointerEvents:'none' }} />
-      <div style={{ position:'absolute', inset:0, pointerEvents:'none', backgroundImage:'linear-gradient(rgba(27,111,232,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(27,111,232,0.06) 1px,transparent 1px)', backgroundSize:'48px 48px', WebkitMaskImage:'radial-gradient(ellipse 80% 80% at 55% 50%,black,transparent)', maskImage:'radial-gradient(ellipse 80% 80% at 55% 50%,black,transparent)' }} />
-      <div style={{ position:'absolute', top:-70, right:-40, width:250, height:250, borderRadius:'50%', background:'rgba(27,111,232,0.16)', filter:'blur(40px)', animation:'orbF1 8s ease-in-out infinite' }} />
-      <div style={{ position:'absolute', bottom:-65, right:140, width:190, height:190, borderRadius:'50%', background:'rgba(212,88,10,0.09)', filter:'blur(40px)', animation:'orbF2 10s ease-in-out infinite' }} />
-      <div style={{ position:'absolute', top:10, right:210, width:150, height:150, borderRadius:'50%', background:'rgba(6,182,212,0.07)', filter:'blur(40px)', animation:'orbF3 13s ease-in-out infinite' }} />
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      style={{
+        background: "linear-gradient(135deg, #0A1628 0%, #0F2A4A 55%, #152642 100%)",
+        borderRadius: "20px",
+        padding: "44px 48px",
+        position: "relative",
+        overflow: "hidden",
+        marginBottom: "32px",
+        display: "flex",
+        alignItems: "center",
+        gap: 32,
+        flexWrap: "wrap",
+        border: "1px solid rgba(255,255,255,0.06)",
+        boxShadow: "0 24px 48px -12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
+      }}
+    >
+      {/* Solo el glow decorativo (sin partículas) */}
+      <div style={{ 
+        position: "absolute", 
+        top: -120, 
+        right: -60, 
+        width: 450, 
+        height: 450, 
+        background: "radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%)", 
+        filter: "blur(40px)", 
+        pointerEvents: "none", 
+        zIndex: 0 
+      }} />
 
-      <div style={{ position:'relative', zIndex:10, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div style={{ maxWidth:500 }}>
-          <div style={{ fontSize:'clamp(23px,2.5vw,30px)', fontWeight:800, lineHeight:1.08, letterSpacing:'-0.035em', marginBottom:6 }}>
-            <div style={{ overflow:'hidden' }}><motion.div initial={{ y:'110%', opacity:0 }} animate={{ y:0, opacity:1 }} transition={{ delay:0.15, duration:0.6, ease:[0.22,1,0.36,1] }} style={{ color:'#fff' }}>{nombreCompleto}</motion.div></div>
-            <div style={{ overflow:'hidden' }}><motion.div initial={{ y:'110%', opacity:0 }} animate={{ y:0, opacity:1 }} transition={{ delay:0.27, duration:0.6, ease:[0.22,1,0.36,1] }} style={{ background:'linear-gradient(90deg,#67d4f8,#1B6FE8,#06B6D4)', backgroundSize:'200% 100%', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', animation:'shimmer 4s ease-in-out infinite', fontSize:'clamp(15px,1.7vw,19px)' }}>tu perfil, tu huella profesional</motion.div></div>
-          </div>
-          {isEstudiante && (
-            <motion.div initial={{ opacity:0, y:6 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.4, duration:0.5 }} style={{ marginTop:14 }}>
-              <div style={{ maxWidth:340 }}>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
-                  <span style={{ fontSize:10, fontWeight:600, color:'rgba(255,255,255,0.5)', letterSpacing:'0.05em', textTransform:'uppercase', fontFamily: FONT }}>Completitud del perfil</span>
-                  <span style={{ fontSize:13, fontWeight:700, fontFamily: FONT, color: completitud >= 80 ? '#4ade80' : completitud >= 50 ? '#67d4f8' : '#fb923c' }}>{completitud}%</span>
-                </div>
-                <div style={{ width:'100%', height:5, background:'rgba(255,255,255,0.12)', borderRadius:3, overflow:'hidden' }}>
-                  <motion.div
-                    initial={{ width:0 }} animate={{ width:`${completitud}%` }}
-                    transition={{ duration:1.2, ease:'easeOut', delay:0.5 }}
-                    style={{ height:'100%', borderRadius:3, background: completitud >= 80 ? 'linear-gradient(90deg,#4ade80,#34d399)' : completitud >= 50 ? 'linear-gradient(90deg,#67d4f8,#1B6FE8)' : 'linear-gradient(90deg,#fb923c,#f97316)' }}
-                  />
-                </div>
-                <p style={{ fontSize:10, color:'rgba(255,255,255,0.35)', fontWeight:500, margin:'5px 0 0', fontFamily: FONT }}>
-                  {completitud < 50 ? 'Completa tu perfil' : completitud < 80 ? '¡Vas por buen camino!' : completitud < 100 ? '¡Casi completo!' : '¡Perfil completo!'}
-                </p>
-              </div>
-            </motion.div>
-          )}
+      {/* Avatar con iniciales */}
+      <div style={{ position: "relative", zIndex: 2 }}>
+        <div
+          style={{
+            width: 100,
+            height: 100,
+            borderRadius: "14px",
+            background: "rgba(255,255,255,0.08)",
+            border: "2px solid rgba(255,255,255,0.12)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "38px",
+            fontWeight: 700,
+            color: "#ffffff",
+            fontFamily: FONT,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1), 0 20px 30px -8px rgba(0,0,0,0.3)",
+          }}
+        >
+          {iniciales}
         </div>
       </div>
 
-      <div style={{ position:'absolute', bottom:0, left:0, right:0, height:1.5, background:'linear-gradient(90deg,transparent,rgba(27,111,232,0.5) 30%,rgba(6,182,212,0.5) 60%,transparent)' }} />
+      {/* Información */}
+      <div style={{ flex: 1, position: "relative", zIndex: 2, minWidth: 200 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: "8px" }}>
+          <h1 style={{ fontFamily: FONT, fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 600, color: "#ffffff", margin: 0, letterSpacing: "-0.5px" }}>
+            {user.nombre || "Usuario"}
+          </h1>
+        </div>
+        <p style={{ fontFamily: FONT, fontSize: "14px", fontWeight: 400, color: "#a1a1aa", margin: "0 0 4px 0", letterSpacing: "-0.2px" }}>
+          {displayRol}
+        </p>
+        {isEstudiante && academicInfo.universidad && (
+          <span style={{ fontFamily: FONT, fontSize: "12px", fontWeight: 500, color: "#94A3B8" }}>
+            {academicInfo.universidad}
+          </span>
+        )}
+      </div>
+
+      {/* Botón Editar */}
+      {isEstudiante && (
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          onClick={onEdit}
+          whileHover={{ background: "#f4f4f5", color: "#09090b" }}
+          style={{
+            fontFamily: FONT,
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            height: "42px",
+            padding: "0 20px",
+            borderRadius: "8px",
+            fontSize: "13px",
+            fontWeight: 500,
+            background: "#ffffff",
+            color: "#09090b",
+            border: "1px solid transparent",
+            cursor: "pointer",
+            transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+            position: "relative",
+            zIndex: 2,
+            boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
+          }}
+        >
+          <Edit3 size={15} /> Editar perfil
+        </motion.button>
+      )}
     </motion.div>
   );
 };
@@ -535,7 +580,7 @@ const PerfilPage = () => {
   };
 
   return (
-    <div style={{ fontFamily: FONT, background: '#F8FAFC', minHeight: '100vh', padding: '32px 36px', maxWidth: 1200, margin: '0 auto', paddingBottom: 80 }}>
+    <div style={{ fontFamily: FONT, background: '#F8FAFC', minHeight: '100vh', padding: '32px 36px 48px', maxWidth: 1400, margin: '0 auto', paddingBottom: 80 }}>
       <EditProfileModal isOpen={isEditing} onClose={() => setIsEditing(false)} formData={formData} onChange={handleInputChange} onSubmit={handleSubmit} isUpdating={isUpdating} />
       <EditLocationModal isOpen={isEditingLocation} onClose={() => setIsEditingLocation(false)} ciudadActual={locationInfo.ciudad} paisActual={locationInfo.pais} sectorActual={locationInfo.sector} barrioActual={locationInfo.barrio} latActual={locationInfo.lat} lngActual={locationInfo.lng} onSave={handleLocationSave} isUpdating={isUpdating} />
 
