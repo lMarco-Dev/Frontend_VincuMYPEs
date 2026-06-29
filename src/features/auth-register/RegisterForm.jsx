@@ -525,13 +525,30 @@ const otpExpiryTimerRef = useRef(null);
   }
 };
 
-  const checkKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (step < TOTAL_STEPS - 1) handleNext();
+ const checkKeyDown = (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    
+    // Si estamos en el último paso (OTP), no hacer nada con Enter
+    if (step >= TOTAL_STEPS - 1) return;
+    
+    // 🔥 CRÍTICO: Validar que el paso actual sea válido antes de avanzar
+    if (isCurrentStepValid) {
+      handleNext();
+    } else {
+      // Disparar validación de todos los campos del paso actual para mostrar errores
+      const fieldsToValidate = step === 0
+        ? (esEstudiante ? ["dni", "nombres", "apellidoPaterno", "apellidoMaterno"] : ["ruc", "nombre", "nombreComercial", "direccion"])
+        : step === 1 && EMAIL_VERIFICATION_ENABLED
+          ? (esEstudiante ? ["universidad", "carrera", "telefono", "codigoEstudiante"] : ["rubro", "telefono"])
+          : step === 2 && EMAIL_VERIFICATION_ENABLED
+            ? ["email", "password", "confirmPassword"]
+            : ["email", "password", "confirmPassword"];
+      
+      trigger(fieldsToValidate);
     }
-  };
-
+  }
+};
 
 
   const handleBack = () => {
