@@ -425,7 +425,7 @@ const MisPostulacionesPage = () => {
 
   if (isLoading) {
     return (
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 36px" }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "32px 36px 48px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {[1, 2, 3].map(i => (
             <div key={i} style={{ height: 80, background: "#F1F5F9", borderRadius: 16, animation: "pulse 2s infinite ease-in-out" }} />
@@ -438,7 +438,7 @@ const MisPostulacionesPage = () => {
 
   if (isError) {
     return (
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 36px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 400 }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "32px 36px 48px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 400 }}>
         <div style={{ background: "#fef2f2", color: "#dc2626", padding: 24, borderRadius: 16, border: "0.5px solid #fecaca", maxWidth: 400, textAlign: "center", fontFamily: FONT }}>
           <p style={{ fontWeight: 700, marginBottom: 4 }}>Error al cargar las postulaciones</p>
           <p style={{ fontSize: 13, opacity: 0.9 }}>{error?.response?.data?.message || error?.message || "Error desconocido"}</p>
@@ -448,7 +448,7 @@ const MisPostulacionesPage = () => {
   }
 
   return (
-    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 36px", paddingBottom: 120 }}>
+    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "32px 36px 48px", paddingBottom: 120 }}>
       <PostulacionesCommandCenter total={total} enRevision={enRevision} aceptadas={aceptadas} rechazadas={rechazadas} />
 
       {/* Banners informativos y de acción */}
