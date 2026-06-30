@@ -9,7 +9,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useSubirCv } from "./useSubirCv";
-
+import { getSafeUrl } from "@/utils/s3";
 const MAX_MB = 5;
 const MAX_BYTES = MAX_MB * 1024 * 1024;
 
@@ -63,11 +63,11 @@ export function CvUploader({ cvUrl, compact = false }) {
       <div className="flex items-center gap-2">
         {cvUrl ? (
           <a
-            href={cvUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 transition-colors"
-          >
+            href={getSafeUrl(cvUrl)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-emerald-600 underline underline-offset-2 hover:text-emerald-800 flex items-center gap-1"
+            >
             <FileText size={13} />
             Ver CV
             <ExternalLink size={11} />
@@ -99,11 +99,11 @@ export function CvUploader({ cvUrl, compact = false }) {
           </div>
           <div className="mb-3">
             <a
-              href={cvUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-emerald-600 underline underline-offset-2 hover:text-emerald-800 flex items-center gap-1"
-            >
+              href={getSafeUrl(cvUrl)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-emerald-600 underline underline-offset-2 hover:text-emerald-800 flex items-center gap-1"
+              >
               Ver mi CV actual <ExternalLink size={10} />
             </a>
           </div>

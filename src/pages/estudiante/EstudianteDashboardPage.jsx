@@ -6,6 +6,7 @@ import { useCertificados } from '../../features/certificados/useCertificados';
 import { useNotificaciones, useLeerNotificacion } from '../../features/notificaciones/useNotificaciones';
 import { useProyectos } from '../../features/proyectos-list/useProyectos';
 import { usePerfil } from '../../features/perfil/usePerfil';
+import { getSafeUrl } from '@/utils/s3';
 import CalificacionesPendientesCard from "@/features/calificaciones/CalificacionesPendientesCard";
 
 import {
@@ -142,7 +143,7 @@ const EmpresaCard = ({ empresa }) => {
       title={empresa.nombre}
       style={{
         width: CARD_W, minWidth: CARD_W, height: CARD_H,
-        background: empresa.fotoPerfil ? `url(${empresa.fotoPerfil}) center/cover` : color,
+        background: empresa.fotoPerfil ? `url(${getSafeUrl(empresa.fotoPerfil)}) center/cover` : color,
         borderRadius: 16,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: 'pointer', flexShrink: 0,

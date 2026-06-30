@@ -6,6 +6,7 @@ import {
   usePostulacionesAceptadas,
   useCambiarEstadoPostulacion,
 } from "@/features/proyecto-postulaciones/usePostulaciones";
+import { getSafeUrl } from "@/utils/s3";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, CheckCircle, XCircle, Clock, ChevronDown, Loader2,
@@ -292,7 +293,7 @@ function TalentExecutiveModule({ postulacion, proyectoId, verTodos, currentTab, 
 
                     {/* Cuadro 2: Currículum Adjunto */}
                     {postulacion.estudianteCvUrl ? (
-                        <a href={postulacion.estudianteCvUrl} target="_blank" rel="noopener noreferrer"
+                        <a href={getSafeUrl(postulacion.estudianteCvUrl)} target="_blank" rel="noopener noreferrer"
                             style={{ 
                                 flex: 1,
                                 display: "flex", 

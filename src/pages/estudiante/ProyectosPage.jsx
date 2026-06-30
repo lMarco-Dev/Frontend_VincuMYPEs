@@ -4,6 +4,7 @@ import { useMisPostulaciones } from "../../features/postulaciones-list/useMisPos
 import { usePerfil } from "../../features/perfil/usePerfil";
 import { httpClient } from "../../shared/api/httpClient";
 import RatingDisplay from "../../features/calificaciones/RatingDisplay";
+import { getSafeUrl } from "@/utils/s3";
 import {
   Search,
   X,
@@ -77,7 +78,7 @@ const MypeAvatar = ({ nombre, fotoUrl, size = 40 }) => {
   if (fotoUrl) {
     return (
       <img
-        src={fotoUrl}
+        src={getSafeUrl(fotoUrl)}
         alt={nombre || "Empresa"}
         style={{ width: size, height: size, borderRadius: "10px", objectFit: "cover", flexShrink: 0, border: "1px solid #F1F5F9" }}
       />

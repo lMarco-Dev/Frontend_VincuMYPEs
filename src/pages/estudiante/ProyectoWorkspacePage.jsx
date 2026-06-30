@@ -16,7 +16,6 @@ import {
   ListChecks,
   Loader2,
   X,
-  RefreshCw,
   User,
   ChevronDown,
   FileImage,
@@ -24,12 +23,11 @@ import {
   Trash2,
   Vote,
   Crown,
-  Shield,
-  Users,
   Building2,
   Eye,
   Shuffle,
 } from "lucide-react";
+import { getSafeUrl } from "@/utils/s3";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWorkspaceRealTime } from "@/features/workspace/useWorkspaceRealTime";
 import { useWorkspaceActions } from "@/features/workspace/useWorkspaceActions";
@@ -330,7 +328,7 @@ const EntregableCard = ({ titulo, entregable, onUpload, onDownload, onDelete, in
     const fileUrl = entregable?.archivoUrl || entregable?.archivo;
     if (!fileUrl) return;
     const fullUrl = getFullFileUrl(fileUrl);
-    if (fullUrl) window.open(fullUrl, "_blank", "noopener,noreferrer");
+    if (fullUrl) window.open(getSafeUrl(fullUrl), "_blank", "noopener,noreferrer");
   };
 
   const confirmDelete = () => {
@@ -414,7 +412,7 @@ const EntregableCard = ({ titulo, entregable, onUpload, onDownload, onDelete, in
               <button onClick={handleViewFile} title="Ver" style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#64748B", fontSize: 12, display: "flex", alignItems: "center", gap: 3 }}>
                 <Eye size={13} /> Ver
               </button>
-              <button onClick={() => onDownload(entregable.archivoUrl || entregable.archivo, entregable.archivoNombre)} title="Descargar" style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#64748B", fontSize: 12, display: "flex", alignItems: "center", gap: 3 }}>
+              <button onClick={() => onDownload(getSafeUrl(entregable.archivoUrl || entregable.archivo), entregable.archivoNombre)} title="Descargar" style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#64748B", fontSize: 12, display: "flex", alignItems: "center", gap: 3 }}>
                 <Download size={13} /> Bajar
               </button>
               <button onClick={() => onUpload(titulo, entregable)} title="Actualizar" style={{ padding: "4px 6px", borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#64748B" }}>

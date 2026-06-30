@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { usePerfilPublicoEstudiante } from "@/features/perfil-publico/usePerfilPublicoEstudiante";
 import { useAuthStore } from "@/store/authStore";
+import { getSafeUrl } from "@/utils/s3";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
@@ -299,7 +300,7 @@ const HeroBannerPublico = ({ nombre, displayRol, academicInfo, fotoPerfil, inici
           <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 145, height: 145, borderRadius: "50%", border: "0.8px solid rgba(27,111,232,0.1)", pointerEvents: "none" }} />
           <div style={{ width: 95, height: 95, borderRadius: 24, border: "3px solid rgba(255,255,255,0.22)", boxShadow: "0 18px 45px rgba(0,0,0,0.3), 0 0 30px rgba(27,111,232,0.15)", overflow: "hidden", background: "#fff", position: "relative", zIndex: 2 }}>
             {fotoPerfil ? (
-              <img alt="Foto" style={{ width: "100%", height: "100%", objectFit: "cover" }} src={fotoPerfil} />
+              <img alt="Foto" style={{ width: "100%", height: "100%", objectFit: "cover" }} src={getSafeUrl(fotoPerfil)} />
             ) : (
               <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#1B6FE8,#06B6D4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, fontWeight: 800, color: "#fff" }}>
                 {iniciales}
@@ -681,7 +682,7 @@ export default function PerfilPublicoEstudiantePage() {
         {perfil.cvUrl && (
           <Section title="Currículum Vitae">
             <a
-              href={perfil.cvUrl}
+              href={getSafeUrl(perfil.cvUrl)}
               target="_blank"
               rel="noopener noreferrer"
               style={{
