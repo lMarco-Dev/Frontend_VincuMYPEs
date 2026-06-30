@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 import { useMiPerfilMype } from "@/features/mype-perfil/useMypePerfil";
 import { useAuthStore } from "@/store/authStore";
 import { httpClient } from "@/shared/api/httpClient";
+import { puedeEmitirCertificado } from "@/features/proyectos-list/proyectos.api";
+import { useQuery } from "@tanstack/react-query";
 import RateUserModal from "@/features/calificaciones/RateUserModal";
 
 
@@ -61,6 +63,12 @@ const { proyectos, refetch: refetchProyectos } = useMisProyectos();  const proye
   const [estudiantesParaCalificar, setEstudiantesParaCalificar] = useState([]);
   const [indiceEstudiante, setIndiceEstudiante] = useState(0);
   const [calificacionesCompletadas, setCalificacionesCompletadas] = useState(false);
+
+  const { data: puedeEmitir } = useQuery({
+    queryKey: ['puede-emitir-certificado', proyectoId],
+    queryFn: () => puedeEmitirCertificado(Number(proyectoId)),
+    enabled: !!proyectoId && !isCompletado
+  });
 
   const handleRevisar = (entregableId, estado) => {
     revisarEntregable(
@@ -189,8 +197,8 @@ const { proyectos, refetch: refetchProyectos } = useMisProyectos();  const proye
         ) : (
           <>
             {/* CERTIFICACIÓN */}
-            {esCertificable && (
-               <div className="bg-emerald-50/50 border border-emerald-200 rounded-lg p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+            {puedeEmitir === true && (
+              <div className="bg-emerald-50/50 border border-emerald-200 rounded-lg p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
                   <div className="flex gap-3 items-center flex-1">
                      <div className="bg-emerald-100 p-2 rounded-full text-emerald-700">
                         <Award size={20} />

@@ -11,6 +11,7 @@ import { PlantillaCertificado } from "@/features/certificados/PlantillaCertifica
 import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import RateUserModal from "@/features/calificaciones/RateUserModal";
 import { useMiPerfilMype } from "@/features/mype-perfil/useMypePerfil";
+import { useNavigate } from "react-router-dom";
 import { httpClient } from "@/shared/api/httpClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1305,6 +1306,8 @@ export function CertificadosPage() {
   const { user } = useAuthStore();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [certificadoVistaPrevia, setCertificadoVistaPrevia] = useState(null);
+  const [mostrarModalCertificado, setMostrarModalCertificado] = useState(false);
+  const [proyectoParaCertificar, setProyectoParaCertificar] = useState(null);
   const [pendingCertsByProject, setPendingCertsByProject] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("vincumype_cert_pending") || "{}");
@@ -1349,22 +1352,20 @@ export function CertificadosPage() {
 
   const proyectosConCertEmitido = new Set(certsArr.map(c => c.proyectoId));
   const proyectosDisponibles = proyectosCompletados.filter(p => !proyectosConCertEmitido.has(p.id));
+  const navigate = useNavigate();
 
   return (
     <MypeLayout titulo="Conformidad Contractual y Cierre">
       <AnimatePresence>
         {modalAbierto && (
           <FormalizacionDocumentalOverlay
-            proyectosCompletados={[proyectoParaCertificar]}
-            mypeNombre={mypeNombre}
-            rucMype={rucMype}
-            gerenteNombre={gerenteNombre}
-            certificadosEmitidos={[]}
-            onClose={() => setMostrarModalCertificado(false)}
-            onSuccess={async () => {
-              setMostrarModalCertificado(false);
-              navigate("/dashboard/mype/certificados");
-            }}
+            proyectosCompletados={proyectosCompletados}
+            mypeNombre={perfil?.nombreComercial ?? ""}
+            rucMype={perfil?.ruc ?? ""}
+            gerenteNombre={perfil?.nombreRepresentante ?? user?.nombre ?? ""}
+            certificadosEmitidos={certsArr}
+            onClose={() => setModalAbierto(false)}
+            onSuccess={handleEmitSuccess}
           />
         )}
         
