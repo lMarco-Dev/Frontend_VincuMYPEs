@@ -3,26 +3,27 @@ import { Star, X, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCalificarUsuario } from "./useCalificarUsuario";
 
-export default function RateUserModal({ open, onClose, pendiente, onSuccess }) {
+export default function RateUserModal({ open, onClose, pendiente, onSuccess, closeOnSuccess = true }) {
   const [puntuacion, setPuntuacion] = useState(0);
   const [hover, setHover] = useState(0);
   const { calificar, isLoading, error } = useCalificarUsuario();
 
   if (!open || !pendiente) return null;
 
+  // ✅ En RateUserModal, el onSuccess debe pasar la puntuación
   const handleSubmit = () => {
-  if (puntuacion < 1) return;
-  calificar(
-    { proyectoId: pendiente.proyectoId, calificadoId: pendiente.calificadoId, puntuacion },
-    {
-      onSuccess: () => {
-        setPuntuacion(0);
-        onClose();
-        if (onSuccess) onSuccess();
-      },
-    }
-  );
-};
+    if (puntuacion < 1) return;
+    calificar(
+      { proyectoId: pendiente.proyectoId, calificadoId: pendiente.calificadoId, puntuacion },
+      {
+        onSuccess: () => {
+          setPuntuacion(0);
+          if (onSuccess) onSuccess(puntuacion);
+          if (closeOnSuccess && onClose) onClose();
+        },
+      }
+    );
+  };
 
   return (
     <div

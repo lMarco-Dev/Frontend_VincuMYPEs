@@ -1284,10 +1284,11 @@ const HistorialCertificaciones = ({ certificados, enviarMap, eliminar, onVerCert
           proyectoTitulo:  certParaCalificar.proyectoTitulo,
         } : null}
         onClose={() => setCertParaCalificar(null)}
-        onSuccess={() => {
+        // ✅ CORREGIDO
+        onSuccess={(puntuacion) => {
           const cert = certParaCalificar;
           setCertParaCalificar(null);
-          enviarMap.enviar(cert.id, null);
+          enviarMap.enviar(cert.id, null, puntuacion);
         }}
       />
     </div>
@@ -1354,13 +1355,16 @@ export function CertificadosPage() {
       <AnimatePresence>
         {modalAbierto && (
           <FormalizacionDocumentalOverlay
-            proyectosCompletados={proyectosCompletados}
-            mypeNombre={perfil?.nombreComercial ?? ""}
-            rucMype={perfil?.ruc ?? ""}
-            gerenteNombre={perfil?.nombreRepresentante ?? user?.nombre ?? ""}
-            certificadosEmitidos={certsArr}
-            onClose={() => setModalAbierto(false)}
-            onSuccess={handleEmitSuccess}
+            proyectosCompletados={[proyectoParaCertificar]}
+            mypeNombre={mypeNombre}
+            rucMype={rucMype}
+            gerenteNombre={gerenteNombre}
+            certificadosEmitidos={[]}
+            onClose={() => setMostrarModalCertificado(false)}
+            onSuccess={async () => {
+              setMostrarModalCertificado(false);
+              navigate("/dashboard/mype/certificados");
+            }}
           />
         )}
         

@@ -90,17 +90,17 @@ export function useEliminarCertificado() {
   };
 }
 
-// ✅ Hook para enviar certificado por email
+// ✅ CORREGIDO
 export function useEnviarCertificado() {
   const queryClient = useQueryClient();
-  const [loading, setLoading] = useState({}); // ← AHORA FUNCIONA
-  const [errorMap, setErrorMap] = useState({}); // ← AHORA FUNCIONA
+  const [loading, setLoading] = useState({});
+  const [errorMap, setErrorMap] = useState({});
 
-  const enviar = async (certificadoId, pdfBase64 = null) => {
+  const enviar = async (certificadoId, pdfBase64 = null, calificacion = null) => {
     setLoading((p) => ({ ...p, [certificadoId]: true }));
     setErrorMap((p) => ({ ...p, [certificadoId]: null }));
     try {
-      await enviarCertificadoApi(certificadoId, pdfBase64);
+      await enviarCertificadoApi(certificadoId, pdfBase64, calificacion);
       queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
     } catch (e) {
       setErrorMap((p) => ({

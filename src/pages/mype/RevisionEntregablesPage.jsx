@@ -7,6 +7,9 @@ import { FormalizacionDocumentalOverlay } from "@/pages/mype/CertificadosPage";
 import { useNavigate } from "react-router-dom";
 import { useMiPerfilMype } from "@/features/mype-perfil/useMypePerfil";
 import { useAuthStore } from "@/store/authStore";
+import { httpClient } from "@/shared/api/httpClient";
+import RateUserModal from "@/features/calificaciones/RateUserModal";
+
 
 import { AnimatePresence } from "framer-motion"; 
 
@@ -51,7 +54,13 @@ const gerenteNombre = perfil?.nombreRepresentante || user?.nombre || "";
 const { proyectos, refetch: refetchProyectos } = useMisProyectos();  const proyecto = proyectos.find((p) => p.id === Number(proyectoId));
   const isCompletado = proyecto?.estado === "COMPLETADO";
   const [mostrarModalCertificado, setMostrarModalCertificado] = useState(false);
-const [proyectoParaCertificar, setProyectoParaCertificar] = useState(null);
+  const [mostrarModalCompletado, setMostrarModalCompletado] = useState(false);
+  const [proyectoParaCertificar, setProyectoParaCertificar] = useState(null);
+
+  const [mostrarModalCalificacion, setMostrarModalCalificacion] = useState(false);
+  const [estudiantesParaCalificar, setEstudiantesParaCalificar] = useState([]);
+  const [indiceEstudiante, setIndiceEstudiante] = useState(0);
+  const [calificacionesCompletadas, setCalificacionesCompletadas] = useState(false);
 
   const handleRevisar = (entregableId, estado) => {
     revisarEntregable(
@@ -73,13 +82,23 @@ const [proyectoParaCertificar, setProyectoParaCertificar] = useState(null);
         onSuccess: async () => {
           setEntregableSeleccionado(null);
           setObservacion("");
+          
+          // Refrescar datos
           await refetch(); // Refrescar entregables
           await refetchProyectos(); // Refrescar proyectos
-          // ✅ Obtener el proyecto actualizado del array ya refrescado
+          
+          // ✅ Obtener el proyecto actualizado
           const proyectoActualizado = proyectos.find((p) => p.id === Number(proyectoId));
-          if (proyectoActualizado?.estado === "COMPLETADO") {
-            setProyectoParaCertificar(proyectoActualizado);
-            setMostrarModalCertificado(true);
+          
+          // ✅ Verificar si todos los entregables están aprobados
+          // Usamos entregables del hook (ya deberían estar actualizados después del refetch)
+          const totalEntregables = entregables.length;
+          const aprobados = entregables.filter(e => e.estado === "APROBADO").length;
+          const todosAprobados = totalEntregables > 0 && aprobados === totalEntregables;
+          
+          // ✅ Si todos están aprobados y el proyecto no está completado, mostrar modal
+          if (todosAprobados && proyectoActualizado?.estado !== "COMPLETADO") {
+            setMostrarModalCompletado(true);
           }
         },
       }
@@ -94,6 +113,26 @@ const [proyectoParaCertificar, setProyectoParaCertificar] = useState(null);
     e.stopPropagation();
     setEntregableSeleccionado((prev) => (prev === id ? null : id));
   };
+
+    const handleEmitirCertificado = () => {
+    setProyectoParaCertificar(proyecto);
+    setMostrarModalCertificado(true);
+    setMostrarModalCompletado(false);
+  };
+
+  const handleCalificacionCompletada = () => {
+  if (indiceEstudiante + 1 < estudiantesParaCalificar.length) {
+    setIndiceEstudiante((prev) => prev + 1);
+  } else {
+    completar(Number(proyectoId));
+    refetch();
+    refetchProyectos();
+    setMostrarModalCalificacion(false);
+    setEstudiantesParaCalificar([]);
+    setIndiceEstudiante(0);
+    setCalificacionesCompletadas(true);
+  }
+};
 
   const entregablesData = useMemo(() => entregables || [], [entregables]);
   const indicadores = useMemo(() => {
@@ -168,30 +207,19 @@ const [proyectoParaCertificar, setProyectoParaCertificar] = useState(null);
 
                   <div className="w-full md:w-auto">
                      {confirmarCompletado ? (
-                       <div className="flex gap-2">
-                           <button
-                             onClick={() => setConfirmarCompletado(false)}
-                             className="text-[13px] font-semibold px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-md transition-colors"
-                           >
-                             Cancelar
-                           </button>
-                           <button
-                             onClick={() => completar(Number(proyectoId), { onSuccess: () => setConfirmarCompletado(false) })}
-                             disabled={completando}
-                             className="text-[13px] font-bold px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md shadow-sm"
-                           >
-                             {completando ? <Loader2 size={14} className="mx-auto animate-spin" /> : "Emitir Certificado"}
-                           </button>
-                       </div>
-                     ) : (
-                        <button
-                          onClick={() => setConfirmarCompletado(true)}
-                          className="flex items-center gap-2 text-[13px] font-bold px-5 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg shadow-sm"
-                        >
-                          <CheckCircle2 size={14} />
+                      <div className="flex gap-2">
+                        <button onClick={() => setConfirmarCompletado(false)}>Cancelar</button>
+                        <button onClick={() => {
+                          // Mostrar modal de calificación en lugar de completar directamente
+                          setMostrarModalCalificacion(true);
+                          setConfirmarCompletado(false);
+                        }}>
                           Emitir Certificado
                         </button>
-                     )}
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirmarCompletado(true)}>Emitir Certificado</button>
+                    )}
                   </div>
                </div>
             )}
@@ -449,6 +477,149 @@ const [proyectoParaCertificar, setProyectoParaCertificar] = useState(null);
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
       `}} />
+      {/* Modal de confirmación de proyecto completado */}
+      {mostrarModalCompletado && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 9999,
+          background: "rgba(10,22,40,0.85)",
+          backdropFilter: "blur(8px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "20px"
+        }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              background: "#FFFFFF",
+              borderRadius: "16px",
+              padding: "40px 32px 32px",
+              maxWidth: "440px",
+              width: "100%",
+              textAlign: "center",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.25)",
+              fontFamily: "Arial, 'Helvetica Neue', Helvetica, sans-serif"
+            }}
+          >
+            {/* Icono de éxito */}
+            <div style={{
+              width: "64px",
+              height: "64px",
+              borderRadius: "50%",
+              background: "#F0FDF4",
+              border: "1px solid #BBF7D0",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 20px"
+            }}>
+              <CheckCircle2 size={32} color="#16A34A" />
+            </div>
+
+            <h3 style={{
+              fontSize: "20px",
+              fontWeight: 700,
+              color: "#0F1F3D",
+              margin: "0 0 8px",
+              letterSpacing: "-0.02em"
+            }}>
+              Proyecto completado
+            </h3>
+            <p style={{
+              fontSize: "14px",
+              color: "#6B7280",
+              margin: "0 0 24px",
+              lineHeight: 1.6
+            }}>
+              Todos los entregables han sido aprobados. ¿Quieres emitir el certificado ahora?
+            </p>
+
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                onClick={() => {
+                  setMostrarModalCompletado(false);
+                  navigate("/dashboard/mype/proyectos");
+                }}
+                style={{
+                  flex: 1,
+                  padding: "12px 20px",
+                  borderRadius: "8px",
+                  border: "1.5px solid #E5E7EB",
+                  background: "#FFFFFF",
+                  color: "#4B5563",
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#F9FAFB";
+                  e.currentTarget.style.borderColor = "#D1D5DB";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#FFFFFF";
+                  e.currentTarget.style.borderColor = "#E5E7EB";
+                }}
+              >
+                Más tarde
+              </button>
+              <button
+                onClick={() => {
+                  setMostrarModalCompletado(false);
+                  handleEmitirCertificado();
+                }}
+                style={{
+                  flex: 1,
+                  padding: "12px 20px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: "#0F1F3D",
+                  color: "#FFFFFF",
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#1B6FE8";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 4px 16px rgba(27,111,232,0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#0F1F3D";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                Sí, emitir ahora
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {mostrarModalCalificacion && estudiantesParaCalificar[indiceEstudiante] && (
+  <RateUserModal
+    open={mostrarModalCalificacion}
+    onClose={() => {
+      setMostrarModalCalificacion(false);
+      setEstudiantesParaCalificar([]);
+      setIndiceEstudiante(0);
+    }}
+    pendiente={{
+      proyectoId: Number(proyectoId),
+      calificadoId: estudiantesParaCalificar[indiceEstudiante]?.estudianteId,
+      calificadoNombre: estudiantesParaCalificar[indiceEstudiante]?.estudianteNombre,
+      proyectoTitulo: proyecto?.titulo || "",
+    }}
+    onSuccess={handleCalificacionCompletada}
+    closeOnSuccess={false}
+  />
+)}
       
     <AnimatePresence>
       {mostrarModalCertificado && proyectoParaCertificar && (

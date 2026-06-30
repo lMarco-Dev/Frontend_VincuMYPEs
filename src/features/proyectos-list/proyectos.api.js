@@ -6,3 +6,8 @@ export const getProyectos = async (page = 0, size = 10) => {
   });
   return response.data;
 };
+
+export const puedeEmitirCertificado = async (proyectoId) => {
+  const response = await httpClient.get(`/proyectos/${proyectoId}/puede-emitir-certificado`);
+  return response.data;
+};
