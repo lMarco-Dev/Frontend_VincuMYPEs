@@ -108,24 +108,43 @@ export function PlantillaCertificado({ datos, isForPreviewCanvas = false }) {
             {/* Centro: firma + representante + cargo */}
             <div style={{ flex: 1.5, textAlign: "center", paddingBottom: "2px" }}>
               {datos.firmaUrl ? (
-                (() => {
-                  if (datos.firmaUrl.startsWith('data:image')) {
-                    return <img src={datos.firmaUrl} alt="Firma" style={{ height: 76, objectFit: "contain", display: "block", margin: "0 auto", marginBottom: -22 }} />;
-                  } else if (datos.certificadoId) {
-                    const token = localStorage.getItem('accessToken');
-                    const proxyUrl = `/api/certificados/${datos.certificadoId}/firma?token=${encodeURIComponent(token)}`;
-                    return <img src={proxyUrl} alt="Firma" style={{ height: 76, objectFit: "contain", display: "block", margin: "0 auto", marginBottom: -22 }} onError={(e) => { e.target.style.display = 'none'; }} />;
-                  } else if (datos.firmaUrl.startsWith('http')) {
-                    return <img src={datos.firmaUrl} alt="Firma" style={{ height: 76, objectFit: "contain", display: "block", margin: "0 auto", marginBottom: -22 }} crossOrigin="anonymous" onError={(e) => { e.target.style.display = 'none'; }} />;
-                  } else {
-                    return <img src={`data:image/png;base64,${datos.firmaUrl}`} alt="Firma" style={{ height: 76, objectFit: "contain", display: "block", margin: "0 auto", marginBottom: -22 }} />;
-                  }
-                })()
-              ) : (
-                <div style={{ height: 60, width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ border: "1px dashed #CBD5E1", padding: "5px 15px", color: "#94A3B8", fontSize: 11 }}>Firma Digital Pendiente</span>
-                </div>
-              )}
+  (() => {
+    if (datos.firmaUrl.startsWith('data:image')) {
+      return (
+        <img
+          src={datos.firmaUrl}
+          alt="Firma"
+          style={{ height: 76, objectFit: "contain", display: "block", margin: "0 auto", marginBottom: -22 }}
+        />
+      );
+    } else if (datos.certificadoId) {
+      const token = localStorage.getItem('accessToken');
+      const apiBase = import.meta.env.VITE_API_BASE_URL; // ya incluye /api
+      const proxyUrl = `${apiBase}/certificados/${datos.certificadoId}/firma?token=${encodeURIComponent(token)}`;
+      return (
+        <img
+          src={proxyUrl}
+          alt="Firma"
+          style={{ height: 76, objectFit: "contain", display: "block", margin: "0 auto", marginBottom: -22 }}
+          crossOrigin="anonymous"
+          onError={(e) => { e.target.style.display = 'none'; }}
+        />
+      );
+    } else {
+      return (
+        <img
+          src={`data:image/png;base64,${datos.firmaUrl}`}
+          alt="Firma"
+          style={{ height: 76, objectFit: "contain", display: "block", margin: "0 auto", marginBottom: -22 }}
+        />
+      );
+    }
+  })()
+) : (
+  <div style={{ height: 60, width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <span style={{ border: "1px dashed #CBD5E1", padding: "5px 15px", color: "#94A3B8", fontSize: 11 }}>Firma Digital Pendiente</span>
+  </div>
+)}
               <div style={{ width: "65%", height: "1px", background: "#0F172A", margin: "0 auto" }} />
               <p style={{ fontSize: 15, fontWeight: 600, color: "#1E293B", margin: "0 0 4px" }}>
                 {datos.gerente || "Representante Legal"}

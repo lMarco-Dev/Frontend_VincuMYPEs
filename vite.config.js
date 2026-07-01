@@ -20,7 +20,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:8080",
+        target: "https://api.linkuy.org.pe/api",
         changeOrigin: true,
         secure: false,
       },
