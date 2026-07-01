@@ -673,8 +673,13 @@ function FormalizacionDocumentalOverlay({
     if (onSuccess) {
       await onSuccess(resultado, {
         proyectoId: form.proyectoId,
+        proyectoTitulo: form.proyectoTitulo,
         gerente: form.gerente,
         cargo: form.cargo,
+        estudiantesIds: form.estudiantesSeleccionados,
+        estudiantesInfo: estudiantesConfirmados.filter(e =>
+          form.estudiantesSeleccionados.includes(e.estudianteId)
+        ),
       });
     }
   } catch (err) {
@@ -1293,7 +1298,8 @@ export function CertificadosPage() {
   const [certificadoVistaPrevia, setCertificadoVistaPrevia] = useState(null);
   const [mostrarModalCertificado, setMostrarModalCertificado] = useState(false);
   const [proyectoParaCertificar, setProyectoParaCertificar] = useState(null);
-  const [certParaCalificar, setCertParaCalificar] = useState(null);
+  const [colaCalificaciones, setColaCalificaciones] = useState([]);
+  const certParaCalificar = colaCalificaciones[0] || null;  
   const [pendingCertsByProject, setPendingCertsByProject] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("vincumype_cert_pending") || "{}");
@@ -1354,22 +1360,30 @@ export function CertificadosPage() {
       await refetchCertificados();
       queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
 
-      // ✅ Abrir modal para el primer estudiante
-      if (certificadosEmitidos.length > 0) {
-        const cert = certificadosEmitidos[0];
-        console.log('🔍 CERTIFICADO PARA CALIFICAR:', {
-          proyectoId: formData?.proyectoId || cert.proyectoId,
-          calificadoId: cert.estudianteId,
-          calificadoNombre: cert.estudianteNombre,
-          proyectoTitulo: formData?.proyectoTitulo || cert.proyectoTitulo,
-        });
+      // ✅ Armar una cola con TODOS los estudiantes certificados en esta tanda
+      const estudiantesInfo = formData?.estudiantesInfo || [];
+      const proyectoIdActual = formData?.proyectoId;
+      const proyectoTituloActual = formData?.proyectoTitulo;
 
-        setCertParaCalificar({
-          proyectoId: formData?.proyectoId || cert.proyectoId,
+      if (estudiantesInfo.length > 0) {
+        const nuevaCola = estudiantesInfo.map((est) => ({
+          proyectoId: proyectoIdActual,
+          calificadoId: est.estudianteId,
+          calificadoNombre: est.estudianteNombre || "Estudiante",
+          proyectoTitulo: proyectoTituloActual,
+        }));
+
+        console.log('🔍 COLA DE CALIFICACIONES:', nuevaCola);
+        setColaCalificaciones(nuevaCola);
+      } else if (certificadosEmitidos.length > 0) {
+        // Fallback si por algún motivo no llegó estudiantesInfo
+        const cert = certificadosEmitidos[0];
+        setColaCalificaciones([{
+          proyectoId: proyectoIdActual || cert.proyectoId,
           calificadoId: cert.estudianteId,
-          calificadoNombre: cert.estudianteNombre,
-          proyectoTitulo: formData?.proyectoTitulo || cert.proyectoTitulo,
-        });
+          calificadoNombre: cert.estudianteNombre || "Estudiante",
+          proyectoTitulo: proyectoTituloActual || cert.proyectoTitulo,
+        }]);
       }
     }
   };
@@ -1411,13 +1425,13 @@ export function CertificadosPage() {
               proyectoTitulo: certParaCalificar.proyectoTitulo,
             }}
             onClose={() => {
-              setCertParaCalificar(null);
+              setColaCalificaciones((prev) => prev.slice(1));
               refetchCertificados();
               queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
             }}
             onSuccess={(puntuacion) => {
               console.log('✅ Calificación enviada:', puntuacion);
-              setCertParaCalificar(null);
+              setColaCalificaciones((prev) => prev.slice(1));
               refetchCertificados();
               queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
             }}
