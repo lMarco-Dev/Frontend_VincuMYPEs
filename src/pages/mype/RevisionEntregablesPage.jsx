@@ -417,28 +417,48 @@ const { proyectos, refetch: refetchProyectos } = useMisProyectos();  const proye
                                                 autoFocus
                                               />
                                               <div className="flex gap-2 justify-end">
-                                                <button onClick={() => setEntregableSeleccionado(null)} className="text-[12px] px-3 py-1.5 bg-slate-100 rounded-md">Cancelar</button>
-                                                <button onClick={() => handleRevisar(ent.id, "RECHAZADO")} disabled={!observacion.trim()} className="text-[12px] px-3 py-1.5 bg-orange-600 text-white rounded-md disabled:opacity-50">
-                                                  Enviar corrección
-                                                </button>
+                                            <button 
+                                              onClick={() => setEntregableSeleccionado(null)} 
+                                              className="text-[12px] px-3 py-1.5 bg-slate-100 text-slate-700 rounded-md transition-all duration-200 hover:bg-slate-200 hover:scale-[1.02] active:scale-[0.97]"
+                                            >
+                                              Cancelar
+                                            </button>                                                <button 
+                                              onClick={() => handleRevisar(ent.id, "RECHAZADO")} 
+                                              disabled={!observacion.trim() || isRevisando} 
+                                              className="text-[12px] px-3 py-1.5 bg-orange-600 text-white rounded-md transition-all duration-200 hover:bg-orange-700 hover:scale-[1.02] active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-orange-600"
+                                            >
+                                              {isRevisando ? (
+                                                <span className="flex items-center gap-2">
+                                                  <Loader2 size={12} className="animate-spin" /> Enviando...
+                                                </span>
+                                              ) : (
+                                                'Enviar corrección'
+                                              )}
+                                            </button>
                                               </div>
                                             </div>
                                         ) : (
                                            <div className="flex gap-2">
-                                                <button
-                                                  onClick={(e) => { e.stopPropagation(); handleRevisar(ent.id, "APROBADO")}}
-                                                  disabled={isRevisando}
-                                                  className="flex-1 text-[12px] font-semibold py-2 bg-emerald-600 text-white rounded-md"
-                                                >
-                                                  Aprobar
-                                                </button>
-                                                <button
-                                                  onClick={(e) => abrirFormObservacion(e, ent.id)}
-                                                  className="flex-1 text-[12px] font-semibold py-2 bg-white border border-orange-500 text-orange-600 rounded-md"
-                                                >
-                                                  Rechazar
-                                                </button>
-                                           </div>
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); handleRevisar(ent.id, "APROBADO")}}
+                                              disabled={isRevisando}
+                                              className="flex-1 text-[12px] font-semibold py-2 bg-emerald-600 text-white rounded-md transition-all duration-200 hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.97] active:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-emerald-600"
+                                            >
+                                              {isRevisando ? (
+                                                <span className="flex items-center justify-center gap-2">
+                                                  <Loader2 size={14} className="animate-spin" /> Procesando...
+                                                </span>
+                                              ) : (
+                                                'Aprobar'
+                                              )}
+                                            </button>
+                                            <button
+                                              onClick={(e) => abrirFormObservacion(e, ent.id)}
+                                              className="flex-1 text-[12px] font-semibold py-2 bg-white border border-orange-500 text-orange-600 rounded-md transition-all duration-200 hover:bg-orange-50 hover:border-orange-600 hover:scale-[1.02] active:scale-[0.97] active:bg-orange-100"
+                                            >
+                                              Rechazar
+                                            </button>
+                                          </div>
                                         )}
                                      </div>
                                   )}
