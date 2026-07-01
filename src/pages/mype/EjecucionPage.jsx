@@ -7,6 +7,9 @@ import { useEntregables } from "@/features/proyecto-entregables/useEntregables";
 import { getEntregablesPorProyecto } from "@/features/proyecto-entregables/entregables.api";
 import { Link } from "react-router-dom";
 import { getSafeUrl } from "@/utils/s3";
+
+import { Link, useLocation } from "react-router-dom"; // ✅ Agregar useLocation
+import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity,
@@ -265,7 +268,6 @@ function TableroOperativoProyecto({ proyecto, delay }) {
   const { postulaciones: equipo } = usePostulacionesAceptadas(proyecto.id);
   const { entregables, isLoading } = useEntregables(proyecto.id);
 
-  // Orden: Históricos abajo, recientes arriba en visualización estructural.
   const hitosOrdenados = [...entregables].sort((a, b) => new Date(a.fechaEntrega) - new Date(b.fechaEntrega));
 
   const pendientesAuditoria = entregables.filter((e) => e.estado === "EN_REVISION").length;
@@ -335,15 +337,27 @@ function TableroOperativoProyecto({ proyecto, delay }) {
           )}
           
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <Link to={`/dashboard/mype/proyectos/${proyecto.id}/entregables`} style={{ textDecoration: "none" }}>
+              {/* BOTÓN GESTIONAR ENTREGABLES - AHORA DEPENDE DE expandido */}
+              <Link to={`/dashboard/mype/proyectos/${proyecto.id}/entregables`} state={{ from: "ejecucion", shouldRefresh: true }}  style={{ textDecoration: "none", pointerEvents: expandido ? "auto" : "none" }}>
                 <motion.button 
-                  whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}
+                  whileHover={expandido ? { y: -2 } : {}}
+                  whileTap={expandido ? { scale: 0.98 } : {}}
                   style={{
-                    fontFamily: FONT, background: "#1B6FE8", color: "#FFFFFF",
-                    border: "none", borderRadius: "10px", padding: "8px 16px",
-                    fontSize: 12, fontWeight: 600, cursor: "pointer",
-                    display: "inline-flex", alignItems: "center", gap: 6,
-                    boxShadow: "0 4px 8px -4px rgba(27, 111, 232, 0.3)"
+                    fontFamily: FONT,
+                    background: expandido ? "#1B6FE8" : "#E2E8F0",
+                    color: expandido ? "#FFFFFF" : "#94A3B8",
+                    border: "none",
+                    borderRadius: "10px",
+                    padding: "8px 16px",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: expandido ? "pointer" : "not-allowed",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    boxShadow: expandido ? "0 4px 8px -4px rgba(27, 111, 232, 0.3)" : "none",
+                    transition: "all 0.2s ease",
+                    opacity: expandido ? 1 : 0.6,
                   }}
                 >
                   Gestionar Entregables <ChevronRight size={14} />
@@ -352,7 +366,10 @@ function TableroOperativoProyecto({ proyecto, delay }) {
 
               {/* Botón Acordeón Desplegar */}
              <button
-              onClick={(e) => { setExpandido(!expandido); }}
+              onClick={(e) => { 
+                e.stopPropagation();
+                setExpandido(!expandido); 
+              }}
               style={{
                 width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
                 background: expandido ? "#F1F5F9" : "#FFFFFF", border: "1px solid #E2E8F0",
@@ -367,7 +384,7 @@ function TableroOperativoProyecto({ proyecto, delay }) {
         </div>
       </div>
 
-      {/* --- CONTENIDO DETALLADO (OCULTO POR DEFECTO, EXPANDE SUAVE) --- */}
+      {/* --- RESTO DEL CÓDIGO SIN CAMBIOS --- */}
       <AnimatePresence>
         {expandido && (
           <motion.div
@@ -379,7 +396,6 @@ function TableroOperativoProyecto({ proyecto, delay }) {
             <div style={{ padding: "0 32px 32px", position: "relative", zIndex: 1 }}>
               <div style={{ height: "1px", background: "#F1F5F9", width: "100%", margin: "0 0 32px" }} />
 
-              {/* --- GRID DE DETALLES: FLUJO OPERATIVO & EQUIPO --- */}
               <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)", gap: 48 }}>
                 
                 {/* LADO IZQUIERDO: FLUJO OPERATIVO DE HITOS */}
@@ -401,7 +417,6 @@ function TableroOperativoProyecto({ proyecto, delay }) {
                         </div>
                     ) : (
                         <div style={{ position: "relative" }}>
-                          {/* Línea conectora base */}
                           <div style={{ position: "absolute", top: 15, left: 15, bottom: 20, width: 2, background: "#E2E8F0" }} />
                           
                           <AnimatePresence>
@@ -418,7 +433,6 @@ function TableroOperativoProyecto({ proyecto, delay }) {
                                     transition={{ duration: 0.3 }}
                                     style={{ position: "relative", paddingLeft: 46, marginBottom: esUltimoEnVista ? 0 : 32 }}
                                   >
-                                    {/* Nodo central de tiempo */}
                                     <div style={{ position: "absolute", left: 0, top: 0, width: 32, height: 32, background: estadoDef.bg, border: `2px solid ${estadoDef.border}`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 6px #F8FAFC`, zIndex: 2 }}>
                                         {hito.estado === "APROBADO" && <CheckCircle2 size={16} color={estadoDef.color} strokeWidth={2.5} />}
                                         {hito.estado === "EN_REVISION" && <Clock size={14} color={estadoDef.color} />}
@@ -456,7 +470,6 @@ function TableroOperativoProyecto({ proyecto, delay }) {
                             })}
                           </AnimatePresence>
 
-                          {/* Control Interactivo de Hitos Históricos Ocultos */}
                           {hitosOcultosNum > 0 && (
                             <div style={{ position: "relative", paddingLeft: 46, marginTop: 32 }}>
                                 <div style={{ position: "absolute", left: 8, top: 4, background: "#F8FAFC" }}>
@@ -565,16 +578,28 @@ function TableroOperativoProyecto({ proyecto, delay }) {
     </motion.div>
   );
 }
-
 /* ═══════════════════════════════════════════════
    PANTALLA PRINCIPAL MYPE (CONTENEDOR GLOBAL)
 ═══════════════════════════════════════════════ */
 export function EjecucionPage() {
+  const location = useLocation(); // ✅ NUEVO
+  const queryClient = useQueryClient(); // ✅ NUEVO
   const { proyectos, isLoading } = useMisProyectos();
   
   // Extraemos toda la data sin perder consistencia del sistema actual.
   const operacionesActivas = proyectos.filter((p) => p.estado === "EN_DESARROLLO" || p.estado === "EN_VOTACION_DELEGADO" || p.estado === "EN_REVISION");
   const conteoOperaciones = operacionesActivas.length;
+  // ✅ NUEVO: Refrescar cuando vuelve de entregables
+  useEffect(() => {
+    if (location.state?.shouldRefresh) {
+      operacionesActivas.forEach((p) => {
+        queryClient.invalidateQueries({ queryKey: ["entregables", p.id] });
+      });
+      // Limpiar el state para que no se ejecute de nuevo
+      window.history.replaceState({}, document.title);
+    }
+  }, [location, operacionesActivas, queryClient]);
+
 
   const hitosData = useQueries({
     queries: operacionesActivas.map((p) => ({
