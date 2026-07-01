@@ -26,6 +26,7 @@ import {
   Building2,
   Eye,
   Shuffle,
+   Shield,
 } from "lucide-react";
 import { getSafeUrl } from "@/utils/s3";
 import { useQueryClient } from "@tanstack/react-query";
@@ -639,7 +640,7 @@ const [entregableIdEnEdicion, setEntregableIdEnEdicion] = useState(null); // ✅
   }
 
   return (
-    <div style={{ fontFamily: FONT, maxWidth: 1200, margin: "0 auto", padding: "32px 36px", paddingBottom: 120 }}>
+    <div style={{ fontFamily: FONT, maxWidth: 1400, margin: "0 auto", padding: "32px 36px 48px", paddingBottom: 120 }}>
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes vping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
@@ -1714,19 +1715,7 @@ const [entregableIdEnEdicion, setEntregableIdEnEdicion] = useState(null); // ✅
         </div>
       </motion.div>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
-        <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          whileHover={{ y: -1 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate(-1)}
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 10, border: "1px solid #E2E8F0", background: "#FFFFFF", fontSize: 12, fontWeight: 600, color: "#475569", cursor: "pointer", fontFamily: FONT }}
-        >
-          <ArrowLeft size={14} /> Volver
-        </motion.button>
-      </div>
+     
 
       {/* Modal de subida */}
 <AnimatePresence>
