@@ -11,6 +11,7 @@ import { getSafeUrl } from "@/utils/s3";
 import { Link, useLocation } from "react-router-dom"; // ✅ Agregar useLocation
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+
 import {
   Activity,
   UserCheck,
