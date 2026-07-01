@@ -38,13 +38,13 @@ function AppRoot() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   // 📱 Si es móvil → bloqueo
-  /*if (esMovil) {
+  if (esMovil) {
     return (
       <StrictMode>
         <MobileBlockPage ancho={ancho} />
       </StrictMode>
     );
-  }*/
+  }
 
   // 💻 Si es escritorio → app normal
   return (

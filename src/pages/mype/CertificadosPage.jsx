@@ -1192,7 +1192,12 @@ const HistorialCertificaciones = ({ certificados, enviarMap, eliminar, onVerCert
 
                     {/* Botón Enviar al Estudiante */}
                     <button
-                      onClick={() => !enviado && setCertParaCalificar(cert)}
+                      onClick={() => {
+                        if (!enviado && !isEnviando) {
+                          // Enviar directamente (sin modal de calificación)
+                          enviarMap.enviar(cert.id, null, null);
+                        }
+                      }}
                       disabled={isEnviando || enviado}
                       style={{ 
                         display: "inline-flex", alignItems: "center", gap: 8,
@@ -1275,23 +1280,6 @@ const HistorialCertificaciones = ({ certificados, enviarMap, eliminar, onVerCert
           })}
         </div>
       </div>
-
-      <RateUserModal
-        open={!!certParaCalificar}
-        pendiente={certParaCalificar ? {
-          proyectoId:      certParaCalificar.proyectoId,
-          calificadoId:    certParaCalificar.estudianteId,
-          calificadoNombre: certParaCalificar.estudianteNombre,
-          proyectoTitulo:  certParaCalificar.proyectoTitulo,
-        } : null}
-        onClose={() => setCertParaCalificar(null)}
-        // ✅ CORREGIDO
-        onSuccess={(puntuacion) => {
-          const cert = certParaCalificar;
-          setCertParaCalificar(null);
-          enviarMap.enviar(cert.id, null, puntuacion);
-        }}
-      />
     </div>
   );
 };
@@ -1308,6 +1296,7 @@ export function CertificadosPage() {
   const [certificadoVistaPrevia, setCertificadoVistaPrevia] = useState(null);
   const [mostrarModalCertificado, setMostrarModalCertificado] = useState(false);
   const [proyectoParaCertificar, setProyectoParaCertificar] = useState(null);
+  const [certParaCalificar, setCertParaCalificar] = useState(null);
   const [pendingCertsByProject, setPendingCertsByProject] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("vincumype_cert_pending") || "{}");
@@ -1336,19 +1325,56 @@ export function CertificadosPage() {
   const operacionesConCert = new Set(certsArr.map((c) => c.proyectoId)).size;
 
   const handleEmitSuccess = async (resultado, formData) => {
-    if (formData?.proyectoId) {
-      const entry = { gerente: formData.gerente, cargo: formData.cargo };
-      setPendingCertsByProject(prev => {
-        const next = { ...prev, [formData.proyectoId]: entry };
-        try { localStorage.setItem("vincumype_cert_pending", JSON.stringify(next)); } catch {}
-        return next;
-      });
+  if (formData?.proyectoId) {
+    const entry = { gerente: formData.gerente, cargo: formData.cargo };
+    setPendingCertsByProject(prev => {
+      const next = { ...prev, [formData.proyectoId]: entry };
+      try { localStorage.setItem("vincumype_cert_pending", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }
+
+  // 1. Refrescar lista de certificados
+  await refetchCertificados();
+  queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
+  queryClient.invalidateQueries({ queryKey: ["mis-proyectos"] });
+  
+  // 2. Cerrar el modal de emisión
+  setModalAbierto(false);
+
+  // 3. Obtener los certificados recién emitidos
+  const certificadosEmitidos = Array.isArray(resultado?.certificados) 
+    ? resultado.certificados 
+    : resultado ? [resultado] : [];
+
+  if (certificadosEmitidos.length > 0) {
+    // 4. ✅ ENVIAR AUTOMÁTICAMENTE cada certificado
+    for (const cert of certificadosEmitidos) {
+      try {
+        await enviadorTools.enviar(cert.id, null, null);
+      } catch (error) {
+        console.error(`Error al enviar certificado ${cert.id}:`, error);
+      }
     }
+
+    // 5. Refrescar nuevamente para ver el estado actualizado
     await refetchCertificados();
     queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
-    queryClient.invalidateQueries({ queryKey: ["mis-proyectos"] });
-    setModalAbierto(false);
-  };
+
+    // 6. ✅ ABRIR MODAL DE CALIFICACIÓN para el primer estudiante
+    //    (o para todos secuencialmente)
+    if (certificadosEmitidos.length > 0) {
+      setCertParaCalificar({
+        ...certificadosEmitidos[0],
+        // Asegurar que tenga los datos necesarios para RateUserModal
+        proyectoId: formData?.proyectoId || certificadosEmitidos[0].proyectoId,
+        estudianteId: certificadosEmitidos[0].estudianteId,
+        estudianteNombre: certificadosEmitidos[0].estudianteNombre,
+        proyectoTitulo: formData?.proyectoTitulo || certificadosEmitidos[0].proyectoTitulo,
+      });
+    }
+  }
+};
 
   const proyectosConCertEmitido = new Set(certsArr.map(c => c.proyectoId));
   const proyectosDisponibles = proyectosCompletados.filter(p => !proyectosConCertEmitido.has(p.id));
@@ -1376,6 +1402,32 @@ export function CertificadosPage() {
           />
         )}
       </AnimatePresence>
+      {/* ✅ MODAL DE CALIFICACIÓN (se abre automáticamente después de enviar) */}
+{certParaCalificar && (
+  <RateUserModal
+    open={!!certParaCalificar}
+    pendiente={{
+      proyectoId: certParaCalificar.proyectoId,
+      calificadoId: certParaCalificar.estudianteId,
+      calificadoNombre: certParaCalificar.estudianteNombre,
+      proyectoTitulo: certParaCalificar.proyectoTitulo,
+    }}
+    onClose={() => {
+      // Cerrar el modal actual y ver si hay más certificados por calificar
+      setCertParaCalificar(null);
+      // Refrescar datos
+      refetchCertificados();
+      queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
+    }}
+    onSuccess={(puntuacion) => {
+      console.log('✅ Calificación enviada:', puntuacion);
+      // Calificación guardada, cerrar modal
+      setCertParaCalificar(null);
+      refetchCertificados();
+      queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
+    }}
+  />
+)}
 
       <div style={{ maxWidth: 1320, margin: "0 auto", paddingBottom: 60 }}>
         

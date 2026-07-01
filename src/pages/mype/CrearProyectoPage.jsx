@@ -162,11 +162,9 @@ const FONT = "'Angro Std', 'Outfit', sans-serif";
             <h3 style={{ margin: "0 0 12px", fontSize: 20, fontWeight: 600, color: "#0F1F3D", letterSpacing: "-0.01em" }}>
               Asistente Inteligente
             </h3>
-            
-           
-            
+
             <p style={{ color: "#475569", fontSize: 14, lineHeight: 1.5, margin: 0 }}>
-              Proceso guiado paso a paso. Traducimos tu problema en un requerimiento técnico estructurado.
+              Responde preguntas sobre tu necesidad. El sistema te sugerirá el proyecto ideal basado en tus respuestas.
             </p>
           </motion.div>
 
@@ -210,18 +208,16 @@ const FONT = "'Angro Std', 'Outfit', sans-serif";
                 borderRadius: 10,
                 letterSpacing: "0.02em"
               }}>
-                Tú describes, nosotros conectamos
+                Catálogo directo
               </span>
             </div>
-            
+
             <h3 style={{ margin: "0 0 12px", fontSize: 20, fontWeight: 600, color: "#0F1F3D", letterSpacing: "-0.01em" }}>
-              Configuración Manual
+              Directo al Catálogo
             </h3>
-            
-            
-            
+
             <p style={{ color: "#475569", fontSize: 14, lineHeight: 1.5, margin: 0 }}>
-              Acceso directo a las especificaciones. Define tecnologías, alcances y entregables con total libertad.
+              Accede directamente al catálogo de proyectos. Selecciona el proyecto que ya tienes definido sin pasar por preguntas.
             </p>
           </motion.div>
         </div>
@@ -430,34 +426,29 @@ export function CrearProyectoPage() {
               <div style={{ background: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: 24, padding: "40px 48px", boxShadow: "0 24px 48px -12px rgba(0,0,0,0.05)" }}>
                 {/* Cabecera del Proyecto - MODIFICADO: LÍNEA MÁS LARGA */}
                 <div style={{ marginBottom: 32, paddingBottom: 20, borderBottom: "1px solid #E2E8F0" }}>
-                  {/* Texto "Asistente Inteligente" con línea azul más larga */}
-                  <div style={{ 
-                    marginBottom: 16
-                  }}>
+                  <div style={{ marginBottom: 16 }}>
                     <span style={{ 
                       fontSize: 12, 
                       fontWeight: 400, 
                       color: "#1B6FE8", 
                       letterSpacing: "0.08em", 
-                    //  textTransform: "uppercase",
                       display: "block",
                       marginBottom: 6,
                       fontFamily: FONT 
                     }}>
                       Asistente Inteligente
                     </span>
-                    {/* Línea separada - más larga */}
                     <div style={{ 
-                      width: "1100px",           // ← Ajusta este valor para controlar el largo
+                      width: "1100px", 
                       height: "2px", 
                       background: "#1B6FE8"
                     }} />
                   </div>
-                  <h2 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 600, color: "#0F1F3D", letterSpacing: "-0.02em" ,fontFamily: FONT }}>
-                    Estructuración guiada
+                  <h2 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 600, color: "#0F1F3D", letterSpacing: "-0.02em", fontFamily: FONT }}>
+                    ¿Qué necesitas resolver?
                   </h2>
-                  <p style={{ margin: 0, fontSize: 15, color: "#64748B", lineHeight: 1.5 ,fontFamily: FONT }}>
-                    Describe tu necesidad. El sistema clasificará automáticamente los detalles técnicos para conectar con el perfil adecuado.
+                  <p style={{ margin: 0, fontSize: 15, color: "#64748B", lineHeight: 1.5, fontFamily: FONT }}>
+                    Responde preguntas sobre tu necesidad. El sistema te sugerirá el proyecto ideal basado en tus respuestas.
                   </p>
                 </div>
                 <CrearProyectoForm />
@@ -470,34 +461,32 @@ export function CrearProyectoPage() {
               <button onClick={handleBack} style={backButtonStyle}>← Volver a la selección</button>
               <div style={{ background: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: 24, padding: "40px 48px", boxShadow: "0 24px 48px -12px rgba(0,0,0,0.05)" }}>
                 <div style={{ marginBottom: 32, paddingBottom: 24, borderBottom: "1px solid #F1F5F9" }}>
-               {/* Texto "Configuración Manual" con línea verde larga */}
-                <div style={{ marginBottom: 16 }}>
-                  <span style={{ 
-                    fontSize: 12, 
-                    fontWeight: 400, 
-                    color: "#10B981", 
-                    letterSpacing: "0.08em", 
-                    //textTransform: "uppercase",
-                    display: "block",
-                    marginBottom: 6,
-                    fontFamily: FONT 
-                  }}>
-                    Configuración Manual
-                  </span>
-                  <div style={{ 
-                    width: "1100px", 
-                    height: "2px", 
-                    background: "#10B981"
-                  }} />
+                  <div style={{ marginBottom: 16 }}>
+                    <span style={{ 
+                      fontSize: 12, 
+                      fontWeight: 400, 
+                      color: "#10B981", 
+                      letterSpacing: "0.08em", 
+                      display: "block",
+                      marginBottom: 6,
+                      fontFamily: FONT 
+                    }}>
+                      Catálogo de Proyectos
+                    </span>
+                    <div style={{ 
+                      width: "1100px", 
+                      height: "2px", 
+                      background: "#10B981"
+                    }} />
+                  </div>
+                  <h2 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 600, color: "#0F1F3D", letterSpacing: "-0.02em", fontFamily: FONT }}>
+                    Selecciona tu proyecto
+                  </h2>
+                  <p style={{ margin: 0, fontSize: 15, color: "#64748B", lineHeight: 1.5, fontFamily: FONT }}>
+                    Explora el catálogo de proyectos disponibles y selecciona el que mejor se ajuste a tu necesidad. Sin preguntas, sin asistencia.
+                  </p>
                 </div>
-                <h2 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 600, color: "#0F1F3D", letterSpacing: "-0.02em" ,fontFamily: FONT }}>
-                  Especificaciones del Proyecto
-                </h2>
-                <p style={{ margin: 0, fontSize: 15, color: "#64748B", lineHeight: 1.5 ,fontFamily: FONT }}>
-                  Define los requerimientos exactos de tu solución. Cuanto más específico seas, mejor será el match con el talento.
-                </p>
-              </div>
-                <CrearProyectoManualForm  />
+                <CrearProyectoManualForm />
               </div>
             </motion.div>
           )}
