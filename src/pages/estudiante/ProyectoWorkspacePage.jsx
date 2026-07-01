@@ -345,6 +345,12 @@ const EntregableCard = ({ titulo, entregable, onUpload, onDownload, onDelete, in
     return <FileArchive size={14} color={C.textMuted} />;
   };
 
+  const getFileExtension = () => {
+    const nombre = entregable?.archivoNombre || "";
+    const ext = nombre.split(".").pop()?.toLowerCase() || "";
+    return ext.toUpperCase();
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -371,68 +377,266 @@ const EntregableCard = ({ titulo, entregable, onUpload, onDownload, onDelete, in
           background: "#FFFFFF",
           borderRadius: 10,
           border: `1px solid ${hovered ? "#CBD5E1" : "#E2E8F0"}`,
-          padding: "10px 14px",
+          padding: "12px 16px",
           display: "flex",
-          alignItems: "center",
-          gap: 12,
+          flexDirection: "column",
+          gap: 8,
           transition: "border-color 0.15s",
         }}
       >
-        {/* Número y estado */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 60 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", background: "#F1F5F9", padding: "1px 6px", borderRadius: 4 }}>#{index+1}</span>
-          <span style={{ fontSize: 10, fontWeight: 600, color: statusColor }}>{statusLabel}</span>
-        </div>
+        {/* === FILA 1: Número + Nombre del archivo + Estado === */}
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: 12,
+          width: "100%",
+        }}>
+          <span style={{ 
+            fontSize: 10, 
+            fontWeight: 700, 
+            color: "#94a3b8", 
+            background: "#F1F5F9", 
+            padding: "2px 8px", 
+            borderRadius: 4,
+            flexShrink: 0,
+          }}>
+            #{index + 1}
+          </span>
 
-        {/* Título y detalles */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: C.textPrimary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {titulo}
-            </span>
-            {tieneArchivo && (
-              <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "#64748B", background: "#F8FAFC", padding: "1px 6px", borderRadius: 4 }}>
-                {getFileIcon()}
-                <span style={{ maxWidth: 80, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {entregable?.archivoNombre || "Archivo"}
-                </span>
+          {tieneArchivo ? (
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: 8,
+              flex: 1,
+              minWidth: 0,
+              background: "#F8FAFC",
+              padding: "4px 12px 4px 8px",
+              borderRadius: 6,
+              border: "1px solid #E2E8F0",
+            }}>
+              {getFileIcon()}
+              <span style={{ 
+                fontSize: 13, 
+                fontWeight: 500, 
+                color: "#0F1F3D",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                flex: 1,
+              }}>
+                {entregable?.archivoNombre || "Archivo"}
               </span>
-            )}
-          </div>
-          {tieneArchivo && entregable?.subidoPorNombre && (
-            <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>
-              Subido por {entregable.subidoPorNombre}
-              {entregable.fechaSubida && ` · ${formatDistanceToNow(new Date(entregable.fechaSubida), { addSuffix: true, locale: es })}`}
+              <span style={{ 
+                fontSize: 9, 
+                fontWeight: 700, 
+                color: "#94a3b8",
+                background: "#F1F5F9",
+                padding: "1px 6px",
+                borderRadius: 3,
+                flexShrink: 0,
+              }}>
+                {getFileExtension()}
+              </span>
             </div>
+          ) : (
+            <span style={{ 
+              fontSize: 12, 
+              color: "#94a3b8",
+              fontStyle: "italic",
+              flex: 1,
+            }}>
+              Sin archivo subido
+            </span>
           )}
+
+          <span style={{ 
+            fontSize: 9, 
+            fontWeight: 600, 
+            color: statusColor,
+            background: statusColor === "#10b981" ? "#ECFDF5" : statusColor === "#eab308" ? "#FFFBEB" : statusColor === "#ef4444" ? "#FEF2F2" : "#F8FAFC",
+            padding: "2px 10px",
+            borderRadius: 4,
+            border: `1px solid ${statusColor}20`,
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+          }}>
+            {statusLabel}
+          </span>
         </div>
 
-        {/* Acciones */}
-        <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+        {/* === FILA 2: Título del entregable === */}
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          width: "100%",
+          paddingTop: 2,
+        }}>
+          <span style={{ 
+            fontSize: 12, 
+            fontWeight: 600, 
+            color: C.textPrimary,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            flex: 1,
+            minWidth: 0,
+          }}>
+            {titulo}
+          </span>
+        </div>
+
+        {/* === FILA 3: Subido por + Fecha === */}
+        {tieneArchivo && entregable?.subidoPorNombre && (
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            width: "100%",
+            gap: 4,
+          }}>
+            <span style={{ 
+              fontSize: 10, 
+              color: "#94a3b8",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}>
+              <span>Subido por <strong style={{ color: "#64748B", fontWeight: 600 }}>{entregable.subidoPorNombre}</strong></span>
+              {entregable.fechaSubida && (
+                <span>· {formatDistanceToNow(new Date(entregable.fechaSubida), { addSuffix: true, locale: es })}</span>
+              )}
+            </span>
+          </div>
+        )}
+
+        {/* === FILA 4: Botones de acción (debajo de Subido por) === */}
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: 6,
+          width: "100%",
+          paddingTop: 4,
+          borderTop: `1px solid #F1F5F9`,
+          flexWrap: "wrap",
+        }}>
           {tieneArchivo ? (
             <>
-              <button onClick={handleViewFile} title="Ver" style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#64748B", fontSize: 12, display: "flex", alignItems: "center", gap: 3 }}>
+              <button 
+                onClick={handleViewFile} 
+                title="Ver" 
+                style={{ 
+                  padding: "5px 12px", 
+                  borderRadius: 6, 
+                  border: "1px solid #E2E8F0", 
+                  background: "transparent", 
+                  cursor: "pointer", 
+                  color: "#64748B", 
+                  fontSize: 11, 
+                  fontWeight: 500,
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: 4,
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#F8FAFC"; e.currentTarget.style.borderColor = "#CBD5E1"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "#E2E8F0"; }}
+              >
                 <Eye size={13} /> Ver
               </button>
-              <button onClick={() => onDownload(getSafeUrl(entregable.archivoUrl || entregable.archivo), entregable.archivoNombre)} title="Descargar" style={{ padding: "4px 8px", borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#64748B", fontSize: 12, display: "flex", alignItems: "center", gap: 3 }}>
+              <button 
+                onClick={() => onDownload(getSafeUrl(entregable.archivoUrl || entregable.archivo), entregable.archivoNombre)} 
+                title="Descargar" 
+                style={{ 
+                  padding: "5px 12px", 
+                  borderRadius: 6, 
+                  border: "1px solid #E2E8F0", 
+                  background: "transparent", 
+                  cursor: "pointer", 
+                  color: "#64748B", 
+                  fontSize: 11, 
+                  fontWeight: 500,
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: 4,
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#F8FAFC"; e.currentTarget.style.borderColor = "#CBD5E1"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "#E2E8F0"; }}
+              >
                 <Download size={13} /> Bajar
               </button>
-              <button onClick={() => onUpload(titulo, entregable)} title="Actualizar" style={{ padding: "4px 6px", borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#64748B" }}>
+              <button 
+                onClick={() => onUpload(titulo, entregable)} 
+                title="Actualizar" 
+                style={{ 
+                  padding: "5px 10px", 
+                  borderRadius: 6, 
+                  border: "1px solid #E2E8F0", 
+                  background: "transparent", 
+                  cursor: "pointer", 
+                  color: "#64748B",
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#F8FAFC"; e.currentTarget.style.borderColor = "#CBD5E1"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "#E2E8F0"; }}
+              >
                 <RefreshCw size={13} />
               </button>
               {puedeSubir && (
-                <button onClick={() => setShowDeleteConfirm(true)} title="Eliminar" style={{ padding: "4px 6px", borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#94a3b8" }}>
+                <button 
+                  onClick={() => setShowDeleteConfirm(true)} 
+                  title="Eliminar" 
+                  style={{ 
+                    padding: "5px 10px", 
+                    borderRadius: 6, 
+                    border: "1px solid #E2E8F0", 
+                    background: "transparent", 
+                    cursor: "pointer", 
+                    color: "#94a3b8",
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#FEF2F2"; e.currentTarget.style.borderColor = "#FCA5A5"; e.currentTarget.style.color = "#DC2626"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "#E2E8F0"; e.currentTarget.style.color = "#94a3b8"; }}
+                >
                   <Trash2 size={13} />
                 </button>
               )}
             </>
           ) : (
-            <button onClick={() => onUpload(titulo, null)} style={{ padding: "4px 12px", borderRadius: 6, border: "none", background: C.primary, color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-              <Upload size={12} /> Subir
+            <button 
+              onClick={() => onUpload(titulo, null)} 
+              style={{ 
+                padding: "6px 16px", 
+                borderRadius: 6, 
+                border: "none", 
+                background: C.primary, 
+                color: "#fff", 
+                fontSize: 11, 
+                fontWeight: 600, 
+                cursor: "pointer", 
+                display: "flex", 
+                alignItems: "center", 
+                gap: 5,
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "#1a5fc9"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = C.primary; }}
+            >
+              <Upload size={12} /> Subir archivo
             </button>
           )}
           {tieneFeedback && (
-            <button onClick={() => setExpanded(!expanded)} style={{ padding: "2px 4px", border: "none", background: "transparent", cursor: "pointer", color: "#94a3b8" }}>
+            <button 
+              onClick={() => setExpanded(!expanded)} 
+              style={{ 
+                padding: "4px 6px", 
+                border: "none", 
+                background: "transparent", 
+                cursor: "pointer", 
+                color: "#94a3b8",
+                marginLeft: "auto",
+              }}
+            >
               <ChevronDown size={14} style={{ transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
             </button>
           )}
@@ -443,7 +647,8 @@ const EntregableCard = ({ titulo, entregable, onUpload, onDownload, onDelete, in
         <AnimatePresence>
           {expanded && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: "hidden" }}>
-              <div style={{ marginTop: 4, padding: "8px 12px", borderRadius: 6, background: "#F8FAFC", border: "1px solid #E2E8F0", fontSize: 11, color: "#475569" }}>
+              <div style={{ marginTop: 4, padding: "10px 14px", borderRadius: 6, background: "#F8FAFC", border: "1px solid #E2E8F0", fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+                <span style={{ fontWeight: 600, color: "#64748B", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: 4 }}>Comentario</span>
                 {entregable.observaciones}
               </div>
             </motion.div>
@@ -641,7 +846,7 @@ const [entregableIdEnEdicion, setEntregableIdEnEdicion] = useState(null); // ✅
   }
 
   return (
-    <div style={{ fontFamily: FONT, maxWidth: 1400, margin: "0 auto", padding: "32px 36px 48px", paddingBottom: 120 }}>
+    <div style={{ fontFamily: FONT, maxWidth: 1400, margin: "0 auto", padding: "32px 36px 48px", paddingBottom: 60 }}>
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes vping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
@@ -778,7 +983,7 @@ const [entregableIdEnEdicion, setEntregableIdEnEdicion] = useState(null); // ✅
                     )}
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: 16 }}>
                     {entregablesProyecto.map((titulo, idx) => {
                       const entrega = entregables.find((e) => e.titulo?.toLowerCase() === titulo.toLowerCase());
                       return (
