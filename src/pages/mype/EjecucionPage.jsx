@@ -338,7 +338,12 @@ function TableroOperativoProyecto({ proyecto, delay }) {
           
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
               {/* BOTÓN GESTIONAR ENTREGABLES - AHORA DEPENDE DE expandido */}
-              <Link to={`/dashboard/mype/proyectos/${proyecto.id}/entregables`} state={{ from: "ejecucion", shouldRefresh: true }}  style={{ textDecoration: "none", pointerEvents: expandido ? "auto" : "none" }}>
+              <Link to={`/dashboard/mype/proyectos/${proyecto.id}/entregables`} 
+              state={{ from: "ejecucion", shouldRefresh: true }} 
+              onClick={() => {
+                sessionStorage.setItem('refreshOnReturn', 'true');
+              }} 
+              style={{ textDecoration: "none", pointerEvents: expandido ? "auto" : "none" }}>
                 <motion.button 
                   whileHover={expandido ? { y: -2 } : {}}
                   whileTap={expandido ? { scale: 0.98 } : {}}
@@ -591,14 +596,18 @@ export function EjecucionPage() {
   const conteoOperaciones = operacionesActivas.length;
   // ✅ NUEVO: Refrescar cuando vuelve de entregables
   useEffect(() => {
-    if (location.state?.shouldRefresh) {
-      operacionesActivas.forEach((p) => {
-        queryClient.invalidateQueries({ queryKey: ["entregables", p.id] });
-      });
-      // Limpiar el state para que no se ejecute de nuevo
-      window.history.replaceState({}, document.title);
-    }
-  }, [location, operacionesActivas, queryClient]);
+  // Detectar si venimos de entregables por sessionStorage
+  const shouldRefresh = sessionStorage.getItem('refreshOnReturn') === 'true';
+  
+  if (shouldRefresh || location.state?.shouldRefresh) {
+    operacionesActivas.forEach((p) => {
+      queryClient.invalidateQueries({ queryKey: ["entregables", p.id] });
+    });
+    // Limpiar después de refrescar
+    sessionStorage.removeItem('refreshOnReturn');
+    window.history.replaceState({}, document.title);
+  }
+}, [location, operacionesActivas, queryClient]);
 
 
   const hitosData = useQueries({
