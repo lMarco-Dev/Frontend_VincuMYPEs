@@ -5,7 +5,6 @@ import { useMisProyectos } from "@/features/proyecto-list-mype/useMisProyectos";
 import { usePostulacionesAceptadas } from "@/features/proyecto-postulaciones/usePostulaciones";
 import { useEntregables } from "@/features/proyecto-entregables/useEntregables";
 import { getEntregablesPorProyecto } from "@/features/proyecto-entregables/entregables.api";
-import { Link } from "react-router-dom";
 import { getSafeUrl } from "@/utils/s3";
 
 import { Link, useLocation } from "react-router-dom"; // ✅ Agregar useLocation
