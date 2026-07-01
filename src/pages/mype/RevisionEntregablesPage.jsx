@@ -11,6 +11,7 @@ import { httpClient } from "@/shared/api/httpClient";
 import { puedeEmitirCertificado } from "@/features/proyectos-list/proyectos.api";
 import { useQuery } from "@tanstack/react-query";
 import RateUserModal from "@/features/calificaciones/RateUserModal";
+import { getSafeUrl } from "@/utils/s3";
 
 
 import { AnimatePresence } from "framer-motion"; 
@@ -383,13 +384,13 @@ const { proyectos, refetch: refetchProyectos } = useMisProyectos();  const proye
                                     {ent.descripcion || "Sin descripción adicional."}
                                  </p>
                                  <a
-                                   href={ent.archivo}
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   className="inline-flex items-center gap-1.5 text-[12px] font-medium text-blue-600 hover:text-blue-700 border border-blue-200 px-3 py-1.5 rounded-md bg-blue-50"
-                                 >
-                                    Ver archivo <ExternalLink size={12} />
-                                 </a>
+                                  href={getSafeUrl(ent.archivo)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 text-[12px] font-medium text-blue-600 hover:text-blue-700 border border-blue-200 px-3 py-1.5 rounded-md bg-blue-50"
+                                >
+                                  Ver archivo <ExternalLink size={12} />
+                                </a>
                              </div>
 
                              <div className="bg-white border border-slate-200 rounded-md p-3">

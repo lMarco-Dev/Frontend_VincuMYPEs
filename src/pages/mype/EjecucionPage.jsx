@@ -6,6 +6,7 @@ import { usePostulacionesAceptadas } from "@/features/proyecto-postulaciones/use
 import { useEntregables } from "@/features/proyecto-entregables/useEntregables";
 import { getEntregablesPorProyecto } from "@/features/proyecto-entregables/entregables.api";
 import { Link } from "react-router-dom";
+import { getSafeUrl } from "@/utils/s3";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity,
@@ -443,7 +444,7 @@ function TableroOperativoProyecto({ proyecto, delay }) {
                                           {hito.archivo && (
                                               <>
                                                 <span style={{ color: "#CBD5E1" }}>|</span>
-                                                <a href={hito.archivo} target="_blank" rel="noopener noreferrer" style={{ color: "#1B6FE8", display: "inline-flex", alignItems: "center", gap: 4, textDecoration: "none", fontWeight: 500 }}>
+                                                <a href={getSafeUrl(hito.archivo)} target="_blank" rel="noopener noreferrer" style={{ color: "#1B6FE8", display: "inline-flex", alignItems: "center", gap: 4, textDecoration: "none", fontWeight: 500 }}>
                                                   Abrir adjunto operativo <ExternalLink size={13}/>
                                                 </a>
                                               </>
