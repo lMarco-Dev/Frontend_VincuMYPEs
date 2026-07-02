@@ -1328,54 +1328,56 @@ export function CertificadosPage() {
   const operacionesConCert = new Set(certsArr.map((c) => c.proyectoId)).size;
 
   const handleEmitSuccess = async (resultado, formData) => {
-    console.log('🔍 RESULTADO DE EMITIR:', resultado);
+  console.log('🔍 RESULTADO DE EMITIR:', resultado);
 
-    if (formData?.proyectoId) {
-      const entry = { gerente: formData.gerente, cargo: formData.cargo };
-      setPendingCertsByProject(prev => {
-        const next = { ...prev, [formData.proyectoId]: entry };
-        try { localStorage.setItem("vincumype_cert_pending", JSON.stringify(next)); } catch {}
-        return next;
-      });
+  if (formData?.proyectoId) {
+    const entry = { gerente: formData.gerente, cargo: formData.cargo };
+    setPendingCertsByProject(prev => {
+      const next = { ...prev, [formData.proyectoId]: entry };
+      try { localStorage.setItem("vincumype_cert_pending", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }
+
+  await refetchCertificados();
+  queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
+  queryClient.invalidateQueries({ queryKey: ["mis-proyectos"] });
+  setModalAbierto(false);
+
+  const certificadosEmitidos = Array.isArray(resultado?.certificados) 
+    ? resultado.certificados 
+    : resultado ? [resultado] : [];
+
+  if (certificadosEmitidos.length > 0) {
+    for (const cert of certificadosEmitidos) {
+      try {
+        await enviadorTools.enviar(cert.id, null, null);
+      } catch (error) {
+        console.error(`Error al enviar certificado ${cert.id}:`, error);
+      }
     }
 
     await refetchCertificados();
     queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
-    queryClient.invalidateQueries({ queryKey: ["mis-proyectos"] });
-    setModalAbierto(false);
 
-    const certificadosEmitidos = Array.isArray(resultado?.certificados) 
-      ? resultado.certificados 
-      : resultado ? [resultado] : [];
+    // ✅ USAR DIRECTAMENTE LOS DATOS DEL CertificadoResponse
+    // NO usar estudiantesInfo, usar los datos del resultado
+    const proyectoIdActual = formData?.proyectoId || certificadosEmitidos[0]?.proyectoId;
+    const proyectoTituloActual = formData?.proyectoTitulo || certificadosEmitidos[0]?.nombreProyecto || certificadosEmitidos[0]?.proyectoTitulo;
 
-    if (certificadosEmitidos.length > 0) {
-      for (const cert of certificadosEmitidos) {
-        try {
-          await enviadorTools.enviar(cert.id, null, null);
-        } catch (error) {
-          console.error(`Error al enviar certificado ${cert.id}:`, error);
-        }
-      }
+    const nuevaCola = certificadosEmitidos.map((cert) => ({
+      proyectoId: proyectoIdActual,
+      calificadoId: cert.estudianteId,  // ← ESTE es el ID del USUARIO (tabla usuarios)
+      calificadoNombre: cert.estudianteNombre || "Estudiante",
+      proyectoTitulo: proyectoTituloActual,
+    }));
 
-      await refetchCertificados();
-      queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
-
-      // ✅ USAR DIRECTAMENTE LOS DATOS DEL CERTIFICADO DEL BACKEND
-      // El CertificadoResponse ya contiene estudianteId (que es el ID del usuario)
-      const proyectoIdActual = formData?.proyectoId || certificadosEmitidos[0]?.proyectoId;
-      const proyectoTituloActual = formData?.proyectoTitulo || certificadosEmitidos[0]?.nombreProyecto || certificadosEmitidos[0]?.proyectoTitulo;
-
-      const nuevaCola = certificadosEmitidos.map((cert) => ({
-        proyectoId: proyectoIdActual,
-        calificadoId: cert.estudianteId,  // ✅ El backend ya devuelve el ID correcto del usuario
-        calificadoNombre: cert.estudianteNombre || "Estudiante",
-        proyectoTitulo: proyectoTituloActual,
-      }));
-
-      console.log('🔍 COLA DE CALIFICACIONES (usando CertificadoResponse):', nuevaCola);
-      setColaCalificaciones(nuevaCola);
-    }
-  };
+    console.log('🔍 COLA DE CALIFICACIONES (USANDO CertificadoResponse):', nuevaCola);
+    console.log('🔍 IDs de usuario enviados:', nuevaCola.map(c => c.calificadoId));
+    
+    setColaCalificaciones(nuevaCola);
+  }
+};
 
   const proyectosConCertEmitido = new Set(certsArr.map(c => c.proyectoId));
   const proyectosDisponibles = proyectosCompletados.filter(p => !proyectosConCertEmitido.has(p.id));
