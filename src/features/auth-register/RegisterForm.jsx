@@ -1329,12 +1329,27 @@ if (EMAIL_VERIFICATION_ENABLED) {
               </Field>
               <Field label="Contraseña" icon={Lock} error={errors.password} rightEl={eye(showPass, setShowPass)}>
                 <input type={showPass ? "text" : "password"} autoComplete="new-password" maxLength={MAX} className={`rf-input${errors.password ? " err" : ""}`} style={inputStyle(!!errors.password, true)}
-                  {...register("password", { required: "La contraseña es obligatoria", minLength: { value: 8, message: " " }, maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` }, validate: { strong: (v) => PASS_RE.test(v) || "", noScript: (v) => !/<script|javascript:|on\w+=/.test(v) || "Caracteres no permitidos" } })} />
+                  {...register("password", {
+                    required: "La contraseña es obligatoria",
+                    minLength: { value: 8, message: " " },
+                    maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` },
+                    validate: {
+                      noInvalidChars: (v) => !/[.,]/.test(v) || "No se permiten los caracteres '.' ni ',' en la contraseña. Usa @ $ ! % * ? & - _ #",
+                      strong: (v) => PASS_RE.test(v) || "",
+                      noScript: (v) => !/<script|javascript:|on\w+=/.test(v) || "Caracteres no permitidos"
+                    }
+                  })} />
               </Field>
               <PasswordStrength value={passValue} />
               <Field label="Confirmar contraseña" icon={CheckCircle2} error={errors.confirmPassword} rightEl={eye(showConfirm, setShowConfirm)}>
                 <input type={showConfirm ? "text" : "password"} autoComplete="new-password" maxLength={MAX} className={`rf-input${errors.confirmPassword ? " err" : ""}`} style={inputStyle(!!errors.confirmPassword, true)}
-                  {...register("confirmPassword", { required: "Confirma tu contraseña", validate: (v) => v === passValue || "Las contraseñas no coinciden" })} />
+                  {...register("confirmPassword", {
+                    required: "Confirma tu contraseña",
+                    validate: (v) => {
+                      if (/[.,]/.test(v)) return "No se permiten los caracteres '.' ni ',' en la contraseña.";
+                      return v === passValue || "Las contraseñas no coinciden";
+                    }
+                  })} />
               </Field>
             </motion.div>
           )}
@@ -1370,12 +1385,27 @@ if (EMAIL_VERIFICATION_ENABLED) {
               </Field>
               <Field label="Contraseña" icon={Lock} error={errors.password} rightEl={eye(showPass, setShowPass)}>
                 <input type={showPass ? "text" : "password"} autoComplete="new-password" maxLength={MAX} className={`rf-input${errors.password ? " err" : ""}`} style={inputStyle(!!errors.password, true)}
-                  {...register("password", { required: "La contraseña es obligatoria", minLength: { value: 8, message: " " }, maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` }, validate: { strong: (v) => PASS_RE.test(v) || "", noScript: (v) => !/<script|javascript:|on\w+=/.test(v) || "Caracteres no permitidos" } })} />
+                  {...register("password", {
+                    required: "La contraseña es obligatoria",
+                    minLength: { value: 8, message: " " },
+                    maxLength: { value: MAX, message: `Máximo ${MAX} caracteres` },
+                    validate: {
+                      noInvalidChars: (v) => !/[.,]/.test(v) || "No se permiten los caracteres '.' ni ',' en la contraseña. Usa @ $ ! % * ? & - _ #",
+                      strong: (v) => PASS_RE.test(v) || "",
+                      noScript: (v) => !/<script|javascript:|on\w+=/.test(v) || "Caracteres no permitidos"
+                    }
+                  })} />
               </Field>
               <PasswordStrength value={passValue} />
               <Field label="Confirmar contraseña" icon={CheckCircle2} error={errors.confirmPassword} rightEl={eye(showConfirm, setShowConfirm)}>
                 <input type={showConfirm ? "text" : "password"} autoComplete="new-password" maxLength={MAX} className={`rf-input${errors.confirmPassword ? " err" : ""}`} style={inputStyle(!!errors.confirmPassword, true)}
-                  {...register("confirmPassword", { required: "Confirma tu contraseña", validate: (v) => v === passValue || "Las contraseñas no coinciden" })} />
+                  {...register("confirmPassword", {
+                    required: "Confirma tu contraseña",
+                    validate: (v) => {
+                      if (/[.,]/.test(v)) return "No se permiten los caracteres '.' ni ',' en la contraseña.";
+                      return v === passValue || "Las contraseñas no coinciden";
+                    }
+                  })} />
               </Field>
             </motion.div>
           )}
