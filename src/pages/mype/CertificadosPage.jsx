@@ -1360,31 +1360,20 @@ export function CertificadosPage() {
       await refetchCertificados();
       queryClient.invalidateQueries({ queryKey: ["certificados-emitidos"] });
 
-      // ✅ Armar una cola con TODOS los estudiantes certificados en esta tanda
-      const estudiantesInfo = formData?.estudiantesInfo || [];
-      const proyectoIdActual = formData?.proyectoId;
-      const proyectoTituloActual = formData?.proyectoTitulo;
+      // ✅ USAR DIRECTAMENTE LOS DATOS DEL CERTIFICADO DEL BACKEND
+      // El CertificadoResponse ya contiene estudianteId (que es el ID del usuario)
+      const proyectoIdActual = formData?.proyectoId || certificadosEmitidos[0]?.proyectoId;
+      const proyectoTituloActual = formData?.proyectoTitulo || certificadosEmitidos[0]?.nombreProyecto || certificadosEmitidos[0]?.proyectoTitulo;
 
-      if (estudiantesInfo.length > 0) {
-        const nuevaCola = estudiantesInfo.map((est) => ({
-          proyectoId: proyectoIdActual,
-          calificadoId: est.estudianteId,
-          calificadoNombre: est.estudianteNombre || "Estudiante",
-          proyectoTitulo: proyectoTituloActual,
-        }));
+      const nuevaCola = certificadosEmitidos.map((cert) => ({
+        proyectoId: proyectoIdActual,
+        calificadoId: cert.estudianteId,  // ✅ El backend ya devuelve el ID correcto del usuario
+        calificadoNombre: cert.estudianteNombre || "Estudiante",
+        proyectoTitulo: proyectoTituloActual,
+      }));
 
-        console.log('🔍 COLA DE CALIFICACIONES:', nuevaCola);
-        setColaCalificaciones(nuevaCola);
-      } else if (certificadosEmitidos.length > 0) {
-        // Fallback si por algún motivo no llegó estudiantesInfo
-        const cert = certificadosEmitidos[0];
-        setColaCalificaciones([{
-          proyectoId: proyectoIdActual || cert.proyectoId,
-          calificadoId: cert.estudianteId,
-          calificadoNombre: cert.estudianteNombre || "Estudiante",
-          proyectoTitulo: proyectoTituloActual || cert.proyectoTitulo,
-        }]);
-      }
+      console.log('🔍 COLA DE CALIFICACIONES (usando CertificadoResponse):', nuevaCola);
+      setColaCalificaciones(nuevaCola);
     }
   };
 
