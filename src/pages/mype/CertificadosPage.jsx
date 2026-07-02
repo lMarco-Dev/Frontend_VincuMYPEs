@@ -1344,10 +1344,7 @@ export function CertificadosPage() {
   queryClient.invalidateQueries({ queryKey: ["mis-proyectos"] });
   setModalAbierto(false);
 
-  const certificadosEmitidos = Array.isArray(resultado?.certificados) 
-    ? resultado.certificados 
-    : resultado ? [resultado] : [];
-
+  const certificadosEmitidos = Array.isArray(resultado) ? resultado : [];
   if (certificadosEmitidos.length > 0) {
     for (const cert of certificadosEmitidos) {
       try {

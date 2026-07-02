@@ -2,7 +2,7 @@ import { httpClient } from "@/shared/api/httpClient";
 
 // MYPE emite un certificado
 export const emitirCertificadoApi = (data) => {
-  return httpClient.post("/certificados", data);
+  return httpClient.post("/certificados", data).then(r => r.data);
 };
 
 // MYPE ve los certificados que ha emitido
